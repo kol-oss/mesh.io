@@ -95,6 +95,10 @@ export default function EntityList({ selectedId, onSelect, onClearSelection }: E
 
   const handleAddEntity = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
+    if (!isOpened) {
+      setIsOpened(true);
+    }
+
     const newEntity: NetworkEntity = {
       name: `Entity ${entities.length + 1}`,
       type: "PEER",

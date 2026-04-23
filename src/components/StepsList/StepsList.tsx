@@ -78,6 +78,10 @@ export default function StepsList({ selectedId, onSelect, onClearSelection }: St
 
   const handleAddStep = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
+    if (!isOpened) {
+      setIsOpened(true);
+    }
+
     const nextTick = steps.reduce((maxTick, step) => Math.max(maxTick, step.tick), 0) + 1;
     const newStep: WorkflowStep = {
       id: `step-${Date.now()}`,
