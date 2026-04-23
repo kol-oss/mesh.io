@@ -23,6 +23,21 @@ export default function StepsList({ selectedId, onSelect, onClearSelection }: St
   const [steps, setSteps] = useLocalStorage<WorkflowStep[]>("mesh_steps", INITIAL_WORKFLOW_STEPS);
   const { showToast } = useToast();
 
+  useEffect(() => {
+    const hasMissingTick = steps.some(
+      (step) => typeof (step as WorkflowStep | { tick?: number }).tick !== "number",
+    );
+    if (!hasMissingTick) {
+      return;
+    }
+
+    const migratedSteps = steps.map((step, index) => {
+      const tick = (step as WorkflowStep | { tick?: number }).tick;
+      return typeof tick === "number" ? step : { ...step, tick: index + 1 };
+    });
+    setSteps(migratedSteps);
+  }, [steps, setSteps]);
+
   const handleDeleteStep = useCallback(() => {
     if (!selectedId) return;
     const index = steps.findIndex((s) => s.id === selectedId);
@@ -62,10 +77,12 @@ export default function StepsList({ selectedId, onSelect, onClearSelection }: St
 
   const handleAddStep = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
+    const nextTick = steps.reduce((maxTick, step) => Math.max(maxTick, step.tick), 0) + 1;
     const newStep: WorkflowStep = {
       id: `step-${Date.now()}`,
       title: `Step ${steps.length + 1}`,
       type: "MOVE",
+      tick: nextTick,
     };
     const updatedSteps = [...steps, newStep];
     setSteps(updatedSteps);

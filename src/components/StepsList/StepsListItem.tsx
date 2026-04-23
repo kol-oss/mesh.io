@@ -21,6 +21,7 @@ export default function StepsListItem({ step, isSelected, onSelect }: StepsListI
     >
       <span className="navigation__step-type">{stepTypeIcon}</span>
       <span className="navigation__step-title">{step.title}</span>
+      <span className="navigation__step-tick">{step.tick}</span>
     </div>
   );
 }
