@@ -25,7 +25,7 @@ export default function NavigationHeader({ isCollapsed, onToggleCollapse }: Navi
             ))}
           </div>
         </div>
-        <TooltipAnchor content="Expand sidebar">
+        <TooltipAnchor content="Expand sidebar" placement="bottom">
           <button
             className="navigation__compact-button"
             type="button"
@@ -41,13 +41,8 @@ export default function NavigationHeader({ isCollapsed, onToggleCollapse }: Navi
 
   return (
     <div className="navigation__header">
-      <div className="navigation__header-general">
-        <p className="navigation__header-general-title">Mesh IO</p>
-        <p className="navigation__header-general-moto">Design and Learn</p>
-      </div>
-
       <div>
-        <TooltipAnchor content="Collapse sidebar">
+        <TooltipAnchor content="Collapse sidebar" placement="bottom">
           <button
             className="navigation__compact-button"
             type="button"
@@ -57,6 +52,11 @@ export default function NavigationHeader({ isCollapsed, onToggleCollapse }: Navi
             <PanelLeftClose size={15} />
           </button>
         </TooltipAnchor>
+      </div>
+
+      <div className="navigation__header-general">
+        <p className="navigation__header-general-title">Mesh IO</p>
+        <p className="navigation__header-general-moto">Design and Learn</p>
       </div>
     </div>
   );
