@@ -23,6 +23,13 @@
   }
 }
 
+.navigation__header-action {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  line-height: 0;
+}
+
 .navigation__compact-button {
   position: absolute;
   top: 20px;
@@ -46,6 +53,10 @@
   &:hover {
     background-color: $neutral-200;
     color: $black-800;
+  }
+
+  &--inline {
+    position: static;
   }
 }
 

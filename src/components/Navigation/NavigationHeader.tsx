@@ -41,10 +41,15 @@ export default function NavigationHeader({ isCollapsed, onToggleCollapse }: Navi
 
   return (
     <div className="navigation__header">
-      <div>
+      <div className="navigation__header-general">
+        <p className="navigation__header-general-title">Mesh IO</p>
+        <p className="navigation__header-general-moto">Design and Learn</p>
+      </div>
+
+      <div className="navigation__header-action">
         <TooltipAnchor content="Collapse sidebar" placement="bottom">
           <button
-            className="navigation__compact-button"
+            className="navigation__compact-button navigation__compact-button--inline"
             type="button"
             aria-label="Collapse navigation"
             onClick={onToggleCollapse}
@@ -52,11 +57,6 @@ export default function NavigationHeader({ isCollapsed, onToggleCollapse }: Navi
             <PanelLeftClose size={15} />
           </button>
         </TooltipAnchor>
-      </div>
-
-      <div className="navigation__header-general">
-        <p className="navigation__header-general-title">Mesh IO</p>
-        <p className="navigation__header-general-moto">Design and Learn</p>
       </div>
     </div>
   );
