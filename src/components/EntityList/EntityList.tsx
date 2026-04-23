@@ -27,6 +27,21 @@ export default function EntityList({ selectedId, onSelect, onClearSelection }: E
   );
   const { showToast } = useToast();
 
+  useEffect(() => {
+    const hasLegacyRouterType = entities.some(
+      (entity) => (entity as NetworkEntity | { type: string }).type === "ROUTER",
+    );
+    if (!hasLegacyRouterType) {
+      return;
+    }
+
+    const migratedEntities = entities.map((entity) => {
+      const normalizedType = (entity as NetworkEntity | { type: string }).type;
+      return normalizedType === "ROUTER" ? { ...entity, type: "PEER" as const } : entity;
+    });
+    setEntities(migratedEntities);
+  }, [entities, setEntities]);
+
   const handleDeleteEntity = useCallback(() => {
     if (!selectedId) return;
     const entity = entities.find((e) => e.name === selectedId);
@@ -82,7 +97,7 @@ export default function EntityList({ selectedId, onSelect, onClearSelection }: E
     event.stopPropagation();
     const newEntity: NetworkEntity = {
       name: `Entity ${entities.length + 1}`,
-      type: "ROUTER",
+      type: "PEER",
     };
     const updatedEntities = [...entities, newEntity];
     setEntities(updatedEntities);

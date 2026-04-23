@@ -68,7 +68,7 @@
 }
 .navigation__step-item {
   display: grid;
-  grid-template-columns: 70px 1fr;
+  grid-template-columns: 24px 1fr;
   align-items: center;
   gap: 2px;
   padding: 5px 19px 5px 8px;
@@ -89,6 +89,7 @@
   min-width: 0;
 }
 .navigation__step-type {
+  display: inline-flex;
+  align-items: center;
   color: $black-400;
-  font-size: 12px;
 }

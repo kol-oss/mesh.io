@@ -1,4 +1,4 @@
-import { Lock, LockOpen } from "lucide-react";
+import { Link, Lock, LockOpen, Radio, SquareSlash } from "lucide-react";
 import type { NetworkEntity } from "../../types/navigation";
 
 type EntityListItemProps = {
@@ -14,12 +14,18 @@ export default function EntityListItem({
   onSelect,
   onToggleLock,
 }: EntityListItemProps) {
+  const entityTypeIcon = {
+    PEER: <Radio size={13} />,
+    LINK: <Link size={13} />,
+    OBSTACLE: <SquareSlash size={13} />,
+  }[entity.type];
+
   return (
     <div
       className={`navigation__entity-item ${isSelected ? "navigation__entity-item--selected" : ""}`}
       onClick={onSelect}
     >
-      <span className="navigation__entity-type">{entity.type}</span>
+      <span className="navigation__entity-type">{entityTypeIcon}</span>
       <span className="navigation__entity-title">{entity.name}</span>
       <button
         className={`navigation__entity-lock ${entity.locked ? "navigation__entity-lock--active" : ""}`}
