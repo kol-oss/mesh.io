@@ -1,9 +1,64 @@
 @use "../../abstracts/variables" as *;
 
 .navigation {
+  --navigation-scrollbar-gutter: 10px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  height: 100vh;
   border-right: 1px solid $neutral-400;
   background-color: $neutral-0;
+
+  &__lists {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: $neutral-400 $neutral-0;
+
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: $neutral-0;
+    }
+
+    &::-webkit-scrollbar-track-piece {
+      background: $neutral-0;
+    }
+
+    &::-webkit-scrollbar-button {
+      width: 0;
+      height: 0;
+      display: none;
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-corner {
+      background: $neutral-0;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $neutral-400;
+      border-radius: 999px;
+      border: 2px solid $neutral-0;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: $black-400;
+    }
+
+    > .navigation__entities,
+    > .navigation__steps {
+      margin-right: calc(-1 * var(--navigation-scrollbar-gutter));
+      padding-right: var(--navigation-scrollbar-gutter);
+      box-sizing: border-box;
+    }
+  }
 
   &__resizer {
     position: absolute;

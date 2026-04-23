@@ -47,16 +47,18 @@ export default function Navigation() {
       {!isCollapsed && (
         <>
           <NavigationMenu />
-          <EntityList
-            selectedId={selectedSource === "entities" ? selectedId : null}
-            onSelect={handleEntitySelect}
-            onClearSelection={handleClearSelection}
-          />
-          <StepsList
-            selectedId={selectedSource === "steps" ? selectedId : null}
-            onSelect={handleStepSelect}
-            onClearSelection={handleClearSelection}
-          />
+          <div className="navigation__lists">
+            <EntityList
+              selectedId={selectedSource === "entities" ? selectedId : null}
+              onSelect={handleEntitySelect}
+              onClearSelection={handleClearSelection}
+            />
+            <StepsList
+              selectedId={selectedSource === "steps" ? selectedId : null}
+              onSelect={handleStepSelect}
+              onClearSelection={handleClearSelection}
+            />
+          </div>
           <div
             className="navigation__resizer"
             role="separator"
