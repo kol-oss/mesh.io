@@ -1,15 +1,54 @@
 import {
   useState,
+  useEffect,
+  useCallback,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { ChevronRight, Plus } from "lucide-react";
 
 import { INITIAL_WORKFLOW_STEPS } from "../../utils/navigation/steps";
+import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
+import { useToast } from "../../hooks/useToast";
+import type { WorkflowStep } from "../../types/steps";
 import StepsListItem from "./StepsListItem";
 
-export default function StepsList() {
+type StepsListProps = {
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onClearSelection: () => void;
+};
+
+export default function StepsList({ selectedId, onSelect, onClearSelection }: StepsListProps) {
   const [isOpened, setIsOpened] = useState(false);
+  const [steps, setSteps] = useLocalStorage<WorkflowStep[]>("mesh_steps", INITIAL_WORKFLOW_STEPS);
+  const { showToast } = useToast();
+
+  const handleDeleteStep = useCallback(() => {
+    if (!selectedId) return;
+    const index = steps.findIndex((s) => s.id === selectedId);
+    const stepToDelete = steps[index];
+    const updatedSteps = steps.filter((s) => s.id !== selectedId);
+    setSteps(updatedSteps);
+    showToast(`Step "${stepToDelete?.title}" deleted`);
+    const nextStep = updatedSteps[index] ?? updatedSteps[index - 1];
+    if (nextStep) {
+      onSelect(nextStep.id);
+    } else {
+      onClearSelection();
+    }
+  }, [selectedId, steps, setSteps, showToast, onSelect, onClearSelection]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Delete" && selectedId && isOpened) {
+        handleDeleteStep();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedId, isOpened, handleDeleteStep]);
 
   const toggleOpen = () => setIsOpened((prevState) => !prevState);
 
@@ -24,7 +63,14 @@ export default function StepsList() {
 
   const handleAddStep = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    // TODO: Add new step logic
+    const newStep: WorkflowStep = {
+      id: `step-${Date.now()}`,
+      title: `Step ${steps.length + 1}`,
+      type: "MOVE",
+    };
+    const updatedSteps = [...steps, newStep];
+    setSteps(updatedSteps);
+    showToast(`Step "${newStep.title}" added`);
   };
 
   return (
@@ -56,8 +102,13 @@ export default function StepsList() {
 
       {isOpened && (
         <div className="navigation__steps-items">
-          {INITIAL_WORKFLOW_STEPS.map((step) => (
-            <StepsListItem key={step.id} step={step} />
+          {steps.map((step) => (
+            <StepsListItem
+              key={step.id}
+              step={step}
+              isSelected={selectedId === step.id}
+              onSelect={() => onSelect(step.id)}
+            />
           ))}
         </div>
       )}

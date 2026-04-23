@@ -5,4 +5,5 @@ export type NavigationMenuItem = {
 export type NetworkEntity = {
   name: string;
   type: "ROUTER" | "LINK" | "OBSTACLE";
+  locked?: boolean;
 };

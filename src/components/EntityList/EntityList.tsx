@@ -1,15 +1,71 @@
 import {
   useState,
+  useEffect,
+  useCallback,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { ChevronRight, Plus } from "lucide-react";
 
 import { INITIAL_NETWORK_ENTITIES } from "../../utils/navigation/entities";
+import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
+import { useToast } from "../../hooks/useToast";
+import type { NetworkEntity } from "../../types/navigation";
 import EntityListItem from "./EntityListItem";
 
-export default function EntityList() {
+type EntityListProps = {
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onClearSelection: () => void;
+};
+
+export default function EntityList({ selectedId, onSelect, onClearSelection }: EntityListProps) {
   const [isOpened, setIsOpened] = useState(false);
+  const [entities, setEntities] = useLocalStorage<NetworkEntity[]>(
+    "mesh_entities",
+    INITIAL_NETWORK_ENTITIES,
+  );
+  const { showToast } = useToast();
+
+  const handleDeleteEntity = useCallback(() => {
+    if (!selectedId) return;
+    const entity = entities.find((e) => e.name === selectedId);
+    if (entity?.locked) {
+      showToast(`Entity "${selectedId}" is locked`);
+      return;
+    }
+    const index = entities.findIndex((e) => e.name === selectedId);
+    const updatedEntities = entities.filter((e) => e.name !== selectedId);
+    setEntities(updatedEntities);
+    showToast(`Entity "${selectedId}" deleted`);
+    const nextEntity = updatedEntities[index] ?? updatedEntities[index - 1];
+    if (nextEntity) {
+      onSelect(nextEntity.name);
+    } else {
+      onClearSelection();
+    }
+  }, [selectedId, entities, setEntities, showToast, onSelect, onClearSelection]);
+
+  const handleToggleLock = useCallback(
+    (name: string) => {
+      const updatedEntities = entities.map((e) =>
+        e.name === name ? { ...e, locked: !e.locked } : e,
+      );
+      setEntities(updatedEntities);
+    },
+    [entities, setEntities],
+  );
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Delete" && selectedId && isOpened) {
+        handleDeleteEntity();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedId, isOpened, handleDeleteEntity]);
 
   const toggleOpen = () => setIsOpened((prevState) => !prevState);
 
@@ -24,7 +80,13 @@ export default function EntityList() {
 
   const handleAddEntity = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    // TODO: Add new entity logic
+    const newEntity: NetworkEntity = {
+      name: `Entity ${entities.length + 1}`,
+      type: "ROUTER",
+    };
+    const updatedEntities = [...entities, newEntity];
+    setEntities(updatedEntities);
+    showToast(`Entity "${newEntity.name}" added`);
   };
 
   return (
@@ -56,8 +118,14 @@ export default function EntityList() {
 
       {isOpened && (
         <div className="navigation__entities-items">
-          {INITIAL_NETWORK_ENTITIES.map((networkEntity) => (
-            <EntityListItem key={networkEntity.name} entity={networkEntity} />
+          {entities.map((networkEntity) => (
+            <EntityListItem
+              key={networkEntity.name}
+              entity={networkEntity}
+              isSelected={selectedId === networkEntity.name}
+              onSelect={() => onSelect(networkEntity.name)}
+              onToggleLock={() => handleToggleLock(networkEntity.name)}
+            />
           ))}
         </div>
       )}
