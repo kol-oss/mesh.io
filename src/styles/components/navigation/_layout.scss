@@ -1,0 +1,17 @@
+@use "../../abstracts/variables" as *;
+
+.navigation {
+  position: relative;
+  border-right: 1px solid $neutral-400;
+  background-color: $neutral-0;
+
+  &__resizer {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    width: 4px;
+    height: 100%;
+    cursor: col-resize;
+    touch-action: none;
+  }
+}
