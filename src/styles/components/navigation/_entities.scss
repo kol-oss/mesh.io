@@ -99,11 +99,14 @@
 .navigation__entity-lock {
   background: transparent;
   border: none;
+  width: 24px;
+  height: 24px;
   padding: 0;
   cursor: pointer;
   color: $black-400;
   display: flex;
   align-items: center;
+  justify-content: center;
   opacity: 0;
   transition: opacity 0.15s;
 
