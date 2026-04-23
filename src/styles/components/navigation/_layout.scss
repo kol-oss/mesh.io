@@ -14,4 +14,11 @@
     cursor: col-resize;
     touch-action: none;
   }
+
+  &--collapsed {
+    width: 280px;
+    border-right: none;
+    background: transparent;
+    padding: 10px 12px;
+  }
 }

@@ -45,16 +45,19 @@
   border: none;
   color: $black-400;
   border-radius: 3px;
-  padding: 2px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   transition:
     background-color 0.2s,
     color 0.2s;
   &:hover {
     background-color: $neutral-200;
-    color: $black-400;
+    color: $black-800;
   }
 }
 
@@ -88,7 +91,8 @@
   }
 }
 
-.navigation__entity-item--selected:hover .navigation__entity-lock:not(.navigation__entity-lock--active) {
+.navigation__entity-item--selected:hover
+  .navigation__entity-lock:not(.navigation__entity-lock--active) {
   opacity: 1;
 }
 

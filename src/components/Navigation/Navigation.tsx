@@ -7,6 +7,7 @@ import NavigationMenu from "./NavigationMenu";
 
 export default function Navigation() {
   const { widthPercent, onResizeStart } = useSidebarResize();
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedSource, setSelectedSource] = useState<"entities" | "steps" | null>(null);
 
@@ -33,27 +34,38 @@ export default function Navigation() {
     setSelectedSource(null);
   };
 
+  const handleToggleCollapse = () => {
+    setIsCollapsed((prevState) => !prevState);
+  };
+
   return (
-    <aside className="navigation" style={{ width: `${widthPercent}%` }}>
-      <NavigationHeader />
-      <NavigationMenu />
-      <EntityList
-        selectedId={selectedSource === "entities" ? selectedId : null}
-        onSelect={handleEntitySelect}
-        onClearSelection={handleClearSelection}
-      />
-      <StepsList
-        selectedId={selectedSource === "steps" ? selectedId : null}
-        onSelect={handleStepSelect}
-        onClearSelection={handleClearSelection}
-      />
-      <div
-        className="navigation__resizer"
-        role="separator"
-        aria-label="Resize sidebar"
-        aria-orientation="vertical"
-        onPointerDown={onResizeStart}
-      />
+    <aside
+      className={`navigation ${isCollapsed ? "navigation--collapsed" : ""}`}
+      style={isCollapsed ? undefined : { width: `${widthPercent}%` }}
+    >
+      <NavigationHeader isCollapsed={isCollapsed} onToggleCollapse={handleToggleCollapse} />
+      {!isCollapsed && (
+        <>
+          <NavigationMenu />
+          <EntityList
+            selectedId={selectedSource === "entities" ? selectedId : null}
+            onSelect={handleEntitySelect}
+            onClearSelection={handleClearSelection}
+          />
+          <StepsList
+            selectedId={selectedSource === "steps" ? selectedId : null}
+            onSelect={handleStepSelect}
+            onClearSelection={handleClearSelection}
+          />
+          <div
+            className="navigation__resizer"
+            role="separator"
+            aria-label="Resize sidebar"
+            aria-orientation="vertical"
+            onPointerDown={onResizeStart}
+          />
+        </>
+      )}
     </aside>
   );
 }
