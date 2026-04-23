@@ -1,7 +1,6 @@
 @use "../../abstracts/variables" as *;
 
 .navigation {
-  --navigation-scrollbar-gutter: 10px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -14,8 +13,8 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    overflow-y: overlay;
     overflow-x: hidden;
-    scrollbar-gutter: stable;
     scrollbar-width: thin;
     scrollbar-color: $neutral-400 $neutral-0;
 
@@ -50,13 +49,6 @@
 
     &::-webkit-scrollbar-thumb:hover {
       background: $black-400;
-    }
-
-    > .navigation__entities,
-    > .navigation__steps {
-      margin-right: calc(-1 * var(--navigation-scrollbar-gutter));
-      padding-right: var(--navigation-scrollbar-gutter);
-      box-sizing: border-box;
     }
   }
 

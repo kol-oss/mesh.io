@@ -1,17 +1,4 @@
-import {
-  cloneElement,
-  isValidElement,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type FocusEventHandler,
-  type MouseEventHandler,
-  type ReactElement,
-  type ReactNode,
-  type Ref,
-} from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 type TooltipAnchorProps = {
@@ -33,24 +20,26 @@ export default function TooltipAnchor({
   children,
   placement = "top",
 }: TooltipAnchorProps) {
-  const anchorRef = useRef<HTMLElement | null>(null);
+  const anchorRef = useRef<HTMLSpanElement | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState<TooltipPosition | null>(null);
 
-  const setAnchorRef = useCallback((node: HTMLElement | null, childRef?: Ref<HTMLElement>) => {
+  const setAnchorRef = useCallback((node: HTMLSpanElement | null) => {
     anchorRef.current = node;
+  }, []);
 
-    if (!childRef) {
-      return;
+  const getAnchorElement = useCallback(() => {
+    if (!anchorRef.current) {
+      return null;
     }
 
-    if (typeof childRef === "function") {
-      childRef(node);
-      return;
+    const childElement = anchorRef.current.firstElementChild;
+    if (childElement instanceof HTMLElement) {
+      return childElement;
     }
 
-    childRef.current = node;
+    return anchorRef.current;
   }, []);
 
   const clearTooltipTimeout = useCallback(() => {
@@ -61,11 +50,13 @@ export default function TooltipAnchor({
   }, []);
 
   const updatePosition = useCallback(() => {
-    if (!anchorRef.current) {
+    const anchorNode = getAnchorElement();
+
+    if (!anchorNode) {
       return;
     }
 
-    const rect = anchorRef.current.getBoundingClientRect();
+    const rect = anchorNode.getBoundingClientRect();
     const top =
       placement === "bottom" ? rect.bottom + TOOLTIP_OFFSET_PX : rect.top - TOOLTIP_OFFSET_PX;
 
@@ -73,10 +64,11 @@ export default function TooltipAnchor({
       top,
       left: rect.left + rect.width / 2,
     });
-  }, [placement]);
+  }, [getAnchorElement, placement]);
 
   const showTooltip = useCallback(() => {
     clearTooltipTimeout();
+
     timeoutRef.current = window.setTimeout(() => {
       updatePosition();
       setIsVisible(true);
@@ -92,8 +84,6 @@ export default function TooltipAnchor({
     if (!isVisible) {
       return;
     }
-
-    updatePosition();
 
     const handleViewportChange = () => {
       updatePosition();
@@ -113,55 +103,6 @@ export default function TooltipAnchor({
       clearTooltipTimeout();
     };
   }, [clearTooltipTimeout]);
-
-  if (isValidElement(children)) {
-    const child = children as ReactElement<{
-      ref?: Ref<HTMLElement>;
-      onMouseEnter?: MouseEventHandler<HTMLElement>;
-      onMouseLeave?: MouseEventHandler<HTMLElement>;
-      onFocus?: FocusEventHandler<HTMLElement>;
-      onBlur?: FocusEventHandler<HTMLElement>;
-    }>;
-
-    const childProps = child.props;
-
-    return (
-      <>
-        {cloneElement(child, {
-          ref: (node: HTMLElement | null) => setAnchorRef(node, childProps.ref),
-          onMouseEnter: (event) => {
-            childProps.onMouseEnter?.(event);
-            showTooltip();
-          },
-          onMouseLeave: (event) => {
-            childProps.onMouseLeave?.(event);
-            hideTooltip();
-          },
-          onFocus: (event) => {
-            childProps.onFocus?.(event);
-            showTooltip();
-          },
-          onBlur: (event) => {
-            childProps.onBlur?.(event);
-            hideTooltip();
-          },
-        })}
-        {isVisible &&
-          position &&
-          createPortal(
-            <div
-              className={`navigation__tooltip navigation__tooltip--${placement}`}
-              style={{ left: `${position.left}px`, top: `${position.top}px` }}
-              role="tooltip"
-            >
-              <span className="navigation__tooltip-content">{content}</span>
-              <span className="navigation__tooltip-arrow" />
-            </div>,
-            document.body,
-          )}
-      </>
-    );
-  }
 
   return (
     <>
