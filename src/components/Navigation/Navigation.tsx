@@ -1,4 +1,5 @@
 import EntityList from "../EntityList/EntityList";
+import StepsList from "../StepsList/StepsList";
 import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
 import NavigationHeader from "./NavigationHeader";
 import NavigationMenu from "./NavigationMenu";
@@ -11,6 +12,7 @@ export default function Navigation() {
       <NavigationHeader />
       <NavigationMenu />
       <EntityList />
+      <StepsList />
       <div
         className="navigation__resizer"
         role="separator"

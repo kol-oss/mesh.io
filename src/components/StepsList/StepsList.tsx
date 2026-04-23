@@ -5,10 +5,10 @@ import {
 } from "react";
 import { ChevronRight, Plus } from "lucide-react";
 
-import { INITIAL_NETWORK_ENTITIES } from "../../utils/navigation/entities";
-import EntityListItem from "./EntityListItem";
+import { INITIAL_WORKFLOW_STEPS } from "../../utils/navigation/steps";
+import StepsListItem from "./StepsListItem";
 
-export default function EntityList() {
+export default function StepsList() {
   const [isOpened, setIsOpened] = useState(false);
 
   const toggleOpen = () => setIsOpened((prevState) => !prevState);
@@ -22,15 +22,15 @@ export default function EntityList() {
     toggleOpen();
   };
 
-  const handleAddEntity = (event: ReactMouseEvent<HTMLButtonElement>) => {
+  const handleAddStep = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    // TODO: Add new entity logic
+    // TODO: Add new step logic
   };
 
   return (
-    <div className="navigation__entities">
+    <div className="navigation__steps">
       <div
-        className="navigation__entities-header"
+        className="navigation__steps-header"
         onClick={toggleOpen}
         onKeyDown={handleHeaderKeyDown}
         role="button"
@@ -39,25 +39,25 @@ export default function EntityList() {
       >
         <ChevronRight
           size={10}
-          className={`navigation__entities-chevron ${
-            isOpened ? "navigation__entities-chevron--open" : ""
+          className={`navigation__steps-chevron ${
+            isOpened ? "navigation__steps-chevron--open" : ""
           }`}
         />
-        <span className="navigation__entities-title">Entities</span>
+        <span className="navigation__steps-title">Steps</span>
         <button
-          className="navigation__entities-add"
-          onClick={handleAddEntity}
+          className="navigation__steps-add"
+          onClick={handleAddStep}
           type="button"
-          aria-label="Add new entity"
+          aria-label="Add new step"
         >
           <Plus size={14} />
         </button>
       </div>
 
       {isOpened && (
-        <div className="navigation__entities-items">
-          {INITIAL_NETWORK_ENTITIES.map((networkEntity) => (
-            <EntityListItem key={networkEntity.name} entity={networkEntity} />
+        <div className="navigation__steps-items">
+          {INITIAL_WORKFLOW_STEPS.map((step) => (
+            <StepsListItem key={step.id} step={step} />
           ))}
         </div>
       )}

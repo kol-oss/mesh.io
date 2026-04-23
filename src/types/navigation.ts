@@ -4,5 +4,5 @@ export type NavigationMenuItem = {
 
 export type NetworkEntity = {
   name: string;
-  deviceType: string;
+  type: "ROUTER" | "LINK" | "OBSTACLE";
 };

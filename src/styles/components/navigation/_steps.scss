@@ -1,6 +1,6 @@
 @use "../../abstracts/variables" as *;
 
-.navigation__entities {
+.navigation__steps {
   position: relative;
   border-bottom: 1px solid $neutral-400;
   display: flex;
@@ -8,7 +8,7 @@
   min-height: 45px;
 }
 
-.navigation__entities-header {
+.navigation__steps-header {
   width: 100%;
   display: flex;
   align-items: center;
@@ -22,15 +22,15 @@
   border-radius: 3px;
 }
 
-.navigation__entities-chevron {
+.navigation__steps-chevron {
   transition: transform 0.2s;
   color: $black-400;
 }
-.navigation__entities-chevron--open {
+.navigation__steps-chevron--open {
   transform: rotate(90deg);
 }
 
-.navigation__entities-title {
+.navigation__steps-title {
   flex: 1;
   text-align: left;
   color: $black-800;
@@ -40,7 +40,7 @@
   align-items: center;
 }
 
-.navigation__entities-add {
+.navigation__steps-add {
   background: transparent;
   border: none;
   color: $black-400;
@@ -58,12 +58,12 @@
   }
 }
 
-.navigation__entities-items {
+.navigation__steps-items {
   padding-left: 32px;
   padding-top: 0;
   padding-bottom: 4px;
 }
-.navigation__entity-item {
+.navigation__step-item {
   display: grid;
   grid-template-columns: 70px 1fr;
   align-items: center;
@@ -77,12 +77,12 @@
     background-color: $neutral-200;
   }
 }
-.navigation__entity-title {
+.navigation__step-title {
   color: $black-800;
   font-size: 13px;
   min-width: 0;
 }
-.navigation__entity-type {
+.navigation__step-type {
   color: $black-400;
   font-size: 11px;
 }
