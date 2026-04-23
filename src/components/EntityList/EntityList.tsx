@@ -10,6 +10,7 @@ import { INITIAL_NETWORK_ENTITIES } from "../../utils/navigation/entities";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
 import type { NetworkEntity } from "../../types/navigation";
+import TooltipAnchor from "../Tooltip/TooltipAnchor";
 import EntityListItem from "./EntityListItem";
 
 type EntityListProps = {
@@ -120,14 +121,16 @@ export default function EntityList({ selectedId, onSelect, onClearSelection }: E
           }`}
         />
         <span className="navigation__entities-title">Entities</span>
-        <button
-          className="navigation__entities-add"
-          onClick={handleAddEntity}
-          type="button"
-          aria-label="Add new entity"
-        >
-          <Plus size={14} />
-        </button>
+        <TooltipAnchor content="Add new entity">
+          <button
+            className="navigation__entities-add"
+            onClick={handleAddEntity}
+            type="button"
+            aria-label="Add new entity"
+          >
+            <Plus size={14} />
+          </button>
+        </TooltipAnchor>
       </div>
 
       {isOpened && (

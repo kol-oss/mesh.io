@@ -1,5 +1,6 @@
 import { Link, Lock, LockOpen, Radio, SquareSlash } from "lucide-react";
 import type { NetworkEntity } from "../../types/navigation";
+import TooltipAnchor from "../Tooltip/TooltipAnchor";
 
 type EntityListItemProps = {
   entity: NetworkEntity;
@@ -14,6 +15,12 @@ export default function EntityListItem({
   onSelect,
   onToggleLock,
 }: EntityListItemProps) {
+  const entityTypeTooltip = {
+    PEER: "Peer",
+    LINK: "Link",
+    OBSTACLE: "Obstacle",
+  }[entity.type];
+
   const entityTypeIcon = {
     PEER: <Radio size={13} />,
     LINK: <Link size={13} />,
@@ -25,19 +32,23 @@ export default function EntityListItem({
       className={`navigation__entity-item ${isSelected ? "navigation__entity-item--selected" : ""}`}
       onClick={onSelect}
     >
-      <span className="navigation__entity-type">{entityTypeIcon}</span>
+      <TooltipAnchor content={entityTypeTooltip}>
+        <span className="navigation__entity-type">{entityTypeIcon}</span>
+      </TooltipAnchor>
       <span className="navigation__entity-title">{entity.name}</span>
-      <button
-        className={`navigation__entity-lock ${entity.locked ? "navigation__entity-lock--active" : ""}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleLock();
-        }}
-        type="button"
-        aria-label={entity.locked ? "Unlock entity" : "Lock entity"}
-      >
-        {entity.locked ? <Lock size={11} /> : <LockOpen size={11} />}
-      </button>
+      <TooltipAnchor content={entity.locked ? "Unlock" : "Lock"}>
+        <button
+          className={`navigation__entity-lock ${entity.locked ? "navigation__entity-lock--active" : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleLock();
+          }}
+          type="button"
+          aria-label={entity.locked ? "Unlock" : "Lock"}
+        >
+          {entity.locked ? <Lock size={11} /> : <LockOpen size={11} />}
+        </button>
+      </TooltipAnchor>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import TooltipAnchor from "../Tooltip/TooltipAnchor";
 import { NAVIGATION_MENU_ITEMS } from "../../utils/navigation/constants";
 
 type NavigationHeaderProps = {
@@ -24,14 +25,16 @@ export default function NavigationHeader({ isCollapsed, onToggleCollapse }: Navi
             ))}
           </div>
         </div>
-        <button
-          className="navigation__compact-button"
-          type="button"
-          aria-label="Expand navigation"
-          onClick={onToggleCollapse}
-        >
-          <PanelLeftOpen size={15} />
-        </button>
+        <TooltipAnchor content="Expand sidebar">
+          <button
+            className="navigation__compact-button"
+            type="button"
+            aria-label="Expand navigation"
+            onClick={onToggleCollapse}
+          >
+            <PanelLeftOpen size={15} />
+          </button>
+        </TooltipAnchor>
       </div>
     );
   }
@@ -44,14 +47,16 @@ export default function NavigationHeader({ isCollapsed, onToggleCollapse }: Navi
       </div>
 
       <div>
-        <button
-          className="navigation__compact-button"
-          type="button"
-          aria-label="Collapse navigation"
-          onClick={onToggleCollapse}
-        >
-          <PanelLeftClose size={15} />
-        </button>
+        <TooltipAnchor content="Collapse sidebar">
+          <button
+            className="navigation__compact-button"
+            type="button"
+            aria-label="Collapse navigation"
+            onClick={onToggleCollapse}
+          >
+            <PanelLeftClose size={15} />
+          </button>
+        </TooltipAnchor>
       </div>
     </div>
   );

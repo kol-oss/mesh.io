@@ -10,6 +10,7 @@ import { INITIAL_WORKFLOW_STEPS } from "../../utils/navigation/steps";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
 import type { WorkflowStep } from "../../types/steps";
+import TooltipAnchor from "../Tooltip/TooltipAnchor";
 import StepsListItem from "./StepsListItem";
 
 type StepsListProps = {
@@ -106,14 +107,16 @@ export default function StepsList({ selectedId, onSelect, onClearSelection }: St
           }`}
         />
         <span className="navigation__steps-title">Steps</span>
-        <button
-          className="navigation__steps-add"
-          onClick={handleAddStep}
-          type="button"
-          aria-label="Add new step"
-        >
-          <Plus size={14} />
-        </button>
+        <TooltipAnchor content="Add new step">
+          <button
+            className="navigation__steps-add"
+            onClick={handleAddStep}
+            type="button"
+            aria-label="Add new step"
+          >
+            <Plus size={14} />
+          </button>
+        </TooltipAnchor>
       </div>
 
       {isOpened && (
