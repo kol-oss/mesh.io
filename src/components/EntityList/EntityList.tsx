@@ -1,5 +1,4 @@
 import {
-  useState,
   useEffect,
   useCallback,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -20,7 +19,7 @@ type EntityListProps = {
 };
 
 export default function EntityList({ selectedId, onSelect, onClearSelection }: EntityListProps) {
-  const [isOpened, setIsOpened] = useState(false);
+  const [isOpened, setIsOpened] = useLocalStorage<boolean>("mesh_entities_opened", false);
   const [entities, setEntities] = useLocalStorage<NetworkEntity[]>(
     "mesh_entities",
     INITIAL_NETWORK_ENTITIES,
@@ -82,7 +81,7 @@ export default function EntityList({ selectedId, onSelect, onClearSelection }: E
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedId, isOpened, handleDeleteEntity]);
 
-  const toggleOpen = () => setIsOpened((prevState) => !prevState);
+  const toggleOpen = () => setIsOpened(!isOpened);
 
   const handleHeaderKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Enter" && event.key !== " ") {

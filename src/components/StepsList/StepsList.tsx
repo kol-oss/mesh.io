@@ -1,5 +1,4 @@
 import {
-  useState,
   useEffect,
   useCallback,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -20,7 +19,7 @@ type StepsListProps = {
 };
 
 export default function StepsList({ selectedId, onSelect, onClearSelection }: StepsListProps) {
-  const [isOpened, setIsOpened] = useState(false);
+  const [isOpened, setIsOpened] = useLocalStorage<boolean>("mesh_steps_opened", false);
   const [steps, setSteps] = useLocalStorage<WorkflowStep[]>("mesh_steps", INITIAL_WORKFLOW_STEPS);
   const { showToast } = useToast();
 
@@ -50,7 +49,7 @@ export default function StepsList({ selectedId, onSelect, onClearSelection }: St
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedId, isOpened, handleDeleteStep]);
 
-  const toggleOpen = () => setIsOpened((prevState) => !prevState);
+  const toggleOpen = () => setIsOpened(!isOpened);
 
   const handleHeaderKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Enter" && event.key !== " ") {
