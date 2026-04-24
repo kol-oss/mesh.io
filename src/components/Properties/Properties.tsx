@@ -8,6 +8,7 @@ type PropertiesProps = {
   selectedSource: "entities" | "steps" | null;
   entities: NetworkEntity[];
   setEntities: (value: NetworkEntity[]) => void;
+  isNavCollapsed: boolean;
 };
 
 const PROTOCOLS: PeerRoutingProtocol[] = ["HWMP", "BATMAN", "OLSR", "AODV", "DSR"];
@@ -22,10 +23,11 @@ export default function Properties({
   selectedSource,
   entities,
   setEntities,
+  isNavCollapsed,
 }: PropertiesProps) {
   const { widthPercent, onResizeStart } = useSidebarResize({ side: "right" });
 
-  if (!selectedId || !selectedSource) {
+  if (isNavCollapsed || !selectedId || !selectedSource) {
     return null;
   }
 

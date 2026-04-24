@@ -17,6 +17,8 @@ type NavigationProps = {
   onEntitySelect: (id: string) => void;
   onStepSelect: (id: string) => void;
   onClearSelection: () => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 };
 
 export default function Navigation({
@@ -29,20 +31,17 @@ export default function Navigation({
   onEntitySelect,
   onStepSelect,
   onClearSelection,
+  isCollapsed,
+  onToggleCollapse,
 }: NavigationProps) {
   const { widthPercent, onResizeStart } = useSidebarResize();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const handleToggleCollapse = () => {
-    setIsCollapsed((prevState) => !prevState);
-  };
 
   return (
     <aside
       className={`navigation ${isCollapsed ? "navigation--collapsed" : ""}`}
       style={isCollapsed ? undefined : { width: `${widthPercent}%` }}
     >
-      <NavigationHeader isCollapsed={isCollapsed} onToggleCollapse={handleToggleCollapse} />
+      <NavigationHeader isCollapsed={isCollapsed} onToggleCollapse={onToggleCollapse} />
       {!isCollapsed && (
         <>
           <NavigationMenu />

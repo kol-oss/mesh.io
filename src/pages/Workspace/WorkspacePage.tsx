@@ -13,6 +13,11 @@ import { INITIAL_WORKFLOW_STEPS } from "../../utils/navigation/steps";
 export default function WorkspacePage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedSource, setSelectedSource] = useState<"entities" | "steps" | null>(null);
+  const [isNavCollapsed, setIsNavCollapsed] = useState(false);
+
+  const handleToggleCollapse = () => {
+    setIsNavCollapsed((prev) => !prev);
+  };
   const [entities, setEntities] = useLocalStorage<NetworkEntity[]>(
     "mesh_entities",
     INITIAL_NETWORK_ENTITIES,
@@ -59,6 +64,8 @@ export default function WorkspacePage() {
           onEntitySelect={handleEntitySelect}
           onStepSelect={handleStepSelect}
           onClearSelection={handleClearSelection}
+          isCollapsed={isNavCollapsed}
+          onToggleCollapse={handleToggleCollapse}
         />
       </div>
       <div className="workspace-page__workspace">
@@ -73,6 +80,7 @@ export default function WorkspacePage() {
           selectedSource={selectedSource}
           entities={entities}
           setEntities={setEntities}
+          isNavCollapsed={isNavCollapsed}
         />
       </div>
     </div>
