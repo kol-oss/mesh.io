@@ -1,3 +1,4 @@
+import { type PointerEvent as ReactPointerEvent } from "react";
 import { Activity, ChevronsRight, Mail } from "lucide-react";
 import type { WorkflowStep } from "../../types/steps";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
@@ -5,10 +6,18 @@ import TooltipAnchor from "../Tooltip/TooltipAnchor";
 type StepsListItemProps = {
   step: WorkflowStep;
   isSelected: boolean;
+  isDragging?: boolean;
   onSelect: () => void;
+  onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
 };
 
-export default function StepsListItem({ step, isSelected, onSelect }: StepsListItemProps) {
+export default function StepsListItem({
+  step,
+  isSelected,
+  isDragging,
+  onSelect,
+  onPointerDown,
+}: StepsListItemProps) {
   const stepTypeTooltip = {
     MOVE: "Move",
     MESSAGE: "Message",
@@ -23,8 +32,9 @@ export default function StepsListItem({ step, isSelected, onSelect }: StepsListI
 
   return (
     <div
-      className={`navigation__step-item ${isSelected ? "navigation__step-item--selected" : ""}`}
+      className={`navigation__step-item${isSelected ? " navigation__step-item--selected" : ""}${isDragging ? " navigation__step-item--dragging" : ""}`}
       onClick={onSelect}
+      onPointerDown={onPointerDown}
     >
       <TooltipAnchor content={stepTypeTooltip}>
         <span className="navigation__step-type">{stepTypeIcon}</span>

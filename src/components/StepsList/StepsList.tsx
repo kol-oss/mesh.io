@@ -1,8 +1,13 @@
 import {
+  Fragment,
   useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
   useCallback,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 import { ChevronRight, Plus } from "lucide-react";
 
@@ -30,6 +35,26 @@ export default function StepsList({
   const [isOpened, setIsOpened] = useLocalStorage<boolean>("mesh_steps_opened", false);
   const { showToast } = useToast();
 
+  // Drag-to-reorder
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const dragIndexRef = useRef<number | null>(null);
+  const dropIndexRef = useRef<number | null>(null);
+  const validRangeRef = useRef<{ min: number; max: number } | null>(null);
+  const isDraggingRef = useRef(false);
+  const pointerStartYRef = useRef(0);
+  const suppressNextClickRef = useRef(false);
+  const itemsContainerRef = useRef<HTMLDivElement | null>(null);
+  const stepsRef = useRef(steps);
+
+  useLayoutEffect(() => {
+    stepsRef.current = steps;
+  });
+
+  useLayoutEffect(() => {
+    dropIndexRef.current = dropIndex;
+  });
+
   useEffect(() => {
     const hasMissingTick = steps.some(
       (step) => typeof (step as WorkflowStep | { tick?: number }).tick !== "number",
@@ -44,6 +69,97 @@ export default function StepsList({
     });
     setSteps(migratedSteps);
   }, [steps, setSteps]);
+
+  const handleItemPointerDown = useCallback(
+    (index: number, event: ReactPointerEvent<HTMLDivElement>) => {
+      if (event.button !== 0) return;
+      dragIndexRef.current = index;
+      isDraggingRef.current = false;
+      pointerStartYRef.current = event.clientY;
+
+      const draggedTick = stepsRef.current[index].tick;
+      const sameTickIndices = stepsRef.current
+        .map((s, i) => (s.tick === draggedTick ? i : -1))
+        .filter((i) => i !== -1);
+      validRangeRef.current = {
+        min: sameTickIndices[0],
+        max: sameTickIndices[sameTickIndices.length - 1] + 1,
+      };
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const DRAG_THRESHOLD = 5;
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (dragIndexRef.current === null) return;
+
+      if (
+        !isDraggingRef.current &&
+        Math.abs(event.clientY - pointerStartYRef.current) < DRAG_THRESHOLD
+      ) {
+        return;
+      }
+
+      if (!isDraggingRef.current) {
+        isDraggingRef.current = true;
+        document.body.style.cursor = "grabbing";
+        document.body.style.userSelect = "none";
+        setDragIndex(dragIndexRef.current);
+      }
+
+      const container = itemsContainerRef.current;
+      if (!container) return;
+
+      const items = Array.from(container.querySelectorAll<HTMLElement>(".navigation__step-item"));
+      let rawDrop = items.length;
+
+      for (let i = 0; i < items.length; i++) {
+        const rect = items[i].getBoundingClientRect();
+        if (event.clientY < rect.top + rect.height / 2) {
+          rawDrop = i;
+          break;
+        }
+      }
+
+      const range = validRangeRef.current;
+      const newDropIndex = range ? Math.min(Math.max(rawDrop, range.min), range.max) : rawDrop;
+
+      setDropIndex(newDropIndex);
+      dropIndexRef.current = newDropIndex;
+    };
+
+    const onPointerUp = () => {
+      if (dragIndexRef.current === null) return;
+
+      if (isDraggingRef.current && dropIndexRef.current !== null) {
+        const from = dragIndexRef.current;
+        const to = dropIndexRef.current;
+        const current = stepsRef.current;
+        const next = [...current];
+        const [removed] = next.splice(from, 1);
+        next.splice(to > from ? to - 1 : to, 0, removed);
+        setSteps(next);
+        suppressNextClickRef.current = true;
+      }
+
+      dragIndexRef.current = null;
+      isDraggingRef.current = false;
+      validRangeRef.current = null;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      setDragIndex(null);
+      setDropIndex(null);
+    };
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+    };
+  }, [setSteps]);
 
   const handleDeleteStep = useCallback(() => {
     if (!selectedId) return;
@@ -130,15 +246,33 @@ export default function StepsList({
       </div>
 
       {isOpened && (
-        <div className="navigation__steps-items">
-          {steps.map((step) => (
-            <StepsListItem
-              key={step.id}
-              step={step}
-              isSelected={selectedId === step.id}
-              onSelect={() => onSelect(step.id)}
-            />
+        <div
+          className={`navigation__steps-items${dragIndex !== null ? " navigation__steps-items--reordering" : ""}`}
+          ref={itemsContainerRef}
+        >
+          {steps.map((step, index) => (
+            <Fragment key={step.id}>
+              {dragIndex !== null && dropIndex === index && (
+                <div className="navigation__step-drop-indicator" />
+              )}
+              <StepsListItem
+                step={step}
+                isSelected={selectedId === step.id}
+                isDragging={dragIndex === index}
+                onSelect={() => {
+                  if (suppressNextClickRef.current) {
+                    suppressNextClickRef.current = false;
+                    return;
+                  }
+                  onSelect(step.id);
+                }}
+                onPointerDown={(e) => handleItemPointerDown(index, e)}
+              />
+            </Fragment>
           ))}
+          {dragIndex !== null && dropIndex === steps.length && (
+            <div className="navigation__step-drop-indicator" />
+          )}
         </div>
       )}
     </div>

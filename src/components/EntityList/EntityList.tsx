@@ -1,6 +1,7 @@
 import {
   Fragment,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useCallback,
@@ -109,8 +110,14 @@ export default function EntityList({
   const suppressNextClickRef = useRef(false);
   const itemsContainerRef = useRef<HTMLDivElement | null>(null);
   const entitiesRef = useRef(entities);
-  entitiesRef.current = entities;
-  dropIndexRef.current = dropIndex;
+
+  useLayoutEffect(() => {
+    entitiesRef.current = entities;
+  });
+
+  useLayoutEffect(() => {
+    dropIndexRef.current = dropIndex;
+  });
 
   useEffect(() => {
     const requiresMigration = entities.some((entity) => {

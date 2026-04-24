@@ -83,6 +83,23 @@
   &--selected {
     background-color: $neutral-400;
   }
+  &--dragging {
+    opacity: 0.35;
+    cursor: grabbing;
+    pointer-events: none;
+  }
+}
+
+.navigation__steps-items--reordering .navigation__step-item:not(.navigation__step-item--dragging) {
+  pointer-events: none;
+
+  &:hover {
+    background-color: transparent;
+  }
+
+  &.navigation__step-item--selected {
+    background-color: $neutral-400;
+  }
 }
 .navigation__step-title {
   color: $black-800;
@@ -107,4 +124,12 @@
   align-items: center;
   justify-content: center;
   justify-self: end;
+}
+
+.navigation__step-drop-indicator {
+  height: 2px;
+  background-color: #0e99ff;
+  border-radius: 1px;
+  margin: 1px 0;
+  pointer-events: none;
 }
