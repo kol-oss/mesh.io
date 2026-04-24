@@ -156,23 +156,44 @@
 
   &__protocols {
     display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
+    flex-wrap: nowrap;
+    border: 1px solid $neutral-400;
+    border-radius: 6px;
+    overflow: hidden;
+    background: $neutral-200;
   }
 
   &__protocol {
-    @extend .typo-caption;
-    border: 1px solid $neutral-400;
-    border-radius: 3px;
-    color: $black-400;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 16px;
+    flex: 1;
+    min-width: max-content;
+    border: none;
+    border-left: 1px solid $neutral-400;
+    border-radius: 0;
+    color: $black-800;
     background: transparent;
-    padding: 3px 6px;
+    padding: 4px 6px;
     cursor: pointer;
+    white-space: nowrap;
+    text-align: center;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+
+    &:first-child {
+      border-left: none;
+    }
 
     &--active {
       color: $neutral-0;
-      background: $black-800;
-      border-color: $black-800;
+      background: #0f7fd0;
+      border-left-color: #0f7fd0;
+
+      & + .properties__protocol {
+        border-left-color: #0f7fd0;
+      }
     }
   }
 

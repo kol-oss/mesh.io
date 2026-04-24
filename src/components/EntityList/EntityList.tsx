@@ -18,7 +18,7 @@ const PEER_DEFAULTS = {
   y: 100,
   range: 75,
   enabled: true,
-  protocol: "BATMAN" as const,
+  protocols: ["BATMAN" as const],
   batmanOgmInterval: 1,
   batmanPurgeTimeout: 10,
 };
@@ -33,7 +33,7 @@ const hasPeerDefaults = (entity: NetworkEntity) => {
     typeof entity.y === "number" &&
     typeof entity.range === "number" &&
     typeof entity.enabled === "boolean" &&
-    typeof entity.protocol === "string" &&
+    Array.isArray(entity.protocols) &&
     typeof entity.batmanOgmInterval === "number" &&
     typeof entity.batmanPurgeTimeout === "number"
   );

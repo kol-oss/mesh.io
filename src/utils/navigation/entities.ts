@@ -11,7 +11,7 @@ export const INITIAL_NETWORK_ENTITIES: NetworkEntity[] = [
     y: 100,
     range: 75,
     enabled: true,
-    protocol: "BATMAN",
+    protocols: ["BATMAN"],
     batmanOgmInterval: 1,
     batmanPurgeTimeout: 10,
   },

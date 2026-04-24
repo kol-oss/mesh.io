@@ -13,7 +13,7 @@ export type PeerEntity = {
   y: number;
   range: number;
   enabled: boolean;
-  protocol: PeerRoutingProtocol;
+  protocols: PeerRoutingProtocol[];
   batmanOgmInterval: number;
   batmanPurgeTimeout: number;
 };

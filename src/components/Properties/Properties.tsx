@@ -214,22 +214,30 @@ export default function Properties({
         <label className="properties__field">
           <span className="properties__field-label">Protocol</span>
           <div className="properties__protocols">
-            {PROTOCOLS.map((protocol) => (
-              <button
-                className={`properties__protocol ${
-                  selectedPeer.protocol === protocol ? "properties__protocol--active" : ""
-                }`}
-                key={protocol}
-                type="button"
-                onClick={() => updatePeer({ protocol })}
-              >
-                {protocol}
-              </button>
-            ))}
+            {PROTOCOLS.map((protocol) => {
+              const isActive = selectedPeer.protocols.includes(protocol);
+              return (
+                <button
+                  className={`properties__protocol ${
+                    isActive ? "properties__protocol--active" : ""
+                  }`}
+                  key={protocol}
+                  type="button"
+                  onClick={() => {
+                    const next = isActive
+                      ? selectedPeer.protocols.filter((p) => p !== protocol)
+                      : [...selectedPeer.protocols, protocol];
+                    updatePeer({ protocols: next });
+                  }}
+                >
+                  {protocol}
+                </button>
+              );
+            })}
           </div>
         </label>
 
-        {selectedPeer.protocol === "BATMAN" && (
+        {selectedPeer.protocols.includes("BATMAN") && (
           <>
             <label className="properties__field">
               <span className="properties__field-label">BATMAN OGM Interval</span>
