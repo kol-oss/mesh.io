@@ -10,6 +10,31 @@
   border-left: 1px solid $neutral-400;
   background-color: $neutral-0;
 
+  &--locked {
+    .properties__input,
+    .properties__status,
+    .properties__protocol {
+      color: $black-400;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .properties__input-with-prefix,
+    .properties__input-with-icon {
+      color: $neutral-400;
+      cursor: not-allowed;
+    }
+
+    .properties__protocols {
+      pointer-events: none;
+    }
+
+    .properties__field-label,
+    .properties__section-title {
+      color: $neutral-400;
+    }
+  }
+
   &__resizer {
     position: absolute;
     top: 0;
@@ -51,6 +76,16 @@
     &:hover {
       text-decoration: underline;
     }
+  }
+
+  &__locked-notice {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border-bottom: 1px solid $neutral-400;
+    @extend .typo-caption;
+    color: $black-400;
   }
 
   &__section {

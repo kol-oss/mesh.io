@@ -1,4 +1,4 @@
-import { CircleDot, Clock3, Diamond, ExternalLink } from "lucide-react";
+import { CircleDot, Clock3, Diamond, ExternalLink, Lock } from "lucide-react";
 
 import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
 import type { NetworkEntity, PeerEntity, PeerRoutingProtocol } from "../../types/navigation";
@@ -100,7 +100,10 @@ export default function Properties({
 
   const selectedPeer: PeerEntity = selectedEntity;
 
+  const isLocked = selectedPeer.locked === true;
+
   const updatePeer = (changes: Partial<PeerEntity>) => {
+    if (isLocked) return;
     const updatedEntities = entities.map((entity) => {
       if (entity.id !== selectedPeer.id || entity.type !== "PEER") {
         return entity;
@@ -133,6 +136,13 @@ export default function Properties({
           Read more
         </a>
       </header>
+
+      {isLocked && (
+        <div className="properties__locked-notice">
+          <Lock size={12} />
+          This entity is unmodifiable.
+        </div>
+      )}
 
       <section className="properties__section">
         <p className="properties__section-title">Configuration</p>
