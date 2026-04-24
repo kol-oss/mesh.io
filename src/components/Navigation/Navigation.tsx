@@ -1,4 +1,3 @@
-import { useState } from "react";
 import EntityList from "../EntityList/EntityList";
 import StepsList from "../StepsList/StepsList";
 import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";

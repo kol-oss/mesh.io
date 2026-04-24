@@ -15,6 +15,14 @@ export const INITIAL_NETWORK_ENTITIES: NetworkEntity[] = [
     batmanOgmInterval: 1,
     batmanPurgeTimeout: 10,
   },
-  { id: generateUUID(), name: "Access Point", type: "LINK", locked: false },
+  {
+    id: generateUUID(),
+    name: "Access Point",
+    type: "LINK",
+    locked: false,
+    sourcePeerId: null,
+    destinationPeerId: null,
+    enabled: true,
+  },
   { id: generateUUID(), name: "Fence", type: "OBSTACLE", locked: false },
 ];

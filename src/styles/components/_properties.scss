@@ -14,24 +14,17 @@
     .properties__input,
     .properties__status,
     .properties__protocol {
-      color: $black-400;
       cursor: not-allowed;
       pointer-events: none;
     }
 
     .properties__input-with-prefix,
     .properties__input-with-icon {
-      color: $neutral-400;
       cursor: not-allowed;
     }
 
     .properties__protocols {
       pointer-events: none;
-    }
-
-    .properties__field-label,
-    .properties__section-title {
-      color: $neutral-400;
     }
   }
 
@@ -143,6 +136,10 @@
 
     &:focus {
       border-color: #0e99ff;
+    }
+
+    &--placeholder {
+      color: $black-400;
     }
   }
 

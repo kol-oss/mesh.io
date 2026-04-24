@@ -23,6 +23,9 @@ export type LinkEntity = {
   name: string;
   type: "LINK";
   locked?: boolean;
+  sourcePeerId: string | null;
+  destinationPeerId: string | null;
+  enabled: boolean;
 };
 
 export type ObstacleEntity = {

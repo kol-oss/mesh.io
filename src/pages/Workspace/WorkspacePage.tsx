@@ -11,8 +11,11 @@ import { INITIAL_NETWORK_ENTITIES } from "../../utils/navigation/entities";
 import { INITIAL_WORKFLOW_STEPS } from "../../utils/navigation/steps";
 
 export default function WorkspacePage() {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selectedSource, setSelectedSource] = useState<"entities" | "steps" | null>(null);
+  const [selectedId, setSelectedId] = useLocalStorage<string | null>("mesh_selected_id", null);
+  const [selectedSource, setSelectedSource] = useLocalStorage<"entities" | "steps" | null>(
+    "mesh_selected_source",
+    null,
+  );
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
 
   const handleToggleCollapse = () => {

@@ -1,7 +1,12 @@
-import { CircleDot, Clock3, Diamond, ExternalLink, Lock } from "lucide-react";
+import { CircleDot, Clock3, Diamond, ExternalLink, Lock, Radio } from "lucide-react";
 
 import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
-import type { NetworkEntity, PeerEntity, PeerRoutingProtocol } from "../../types/navigation";
+import type {
+  LinkEntity,
+  NetworkEntity,
+  PeerEntity,
+  PeerRoutingProtocol,
+} from "../../types/navigation";
 
 type PropertiesProps = {
   selectedId: string | null;
@@ -68,7 +73,7 @@ export default function Properties({
     },
     LINK: {
       title: "Link",
-      description: "A directional or bidirectional connection between two nodes in the network.",
+      description: "A persistent bidirectional connection between two nodes in the network.",
     },
     OBSTACLE: {
       title: "Obstacle",
@@ -77,6 +82,171 @@ export default function Properties({
   };
 
   const { title: entityTitle, description: entityDescription } = entityHeader[selectedEntity.type];
+
+  if (selectedEntity.type === "LINK") {
+    const selectedLink: LinkEntity = selectedEntity;
+    const isLocked = selectedLink.locked === true;
+    const peers = entities.filter((entity): entity is PeerEntity => entity.type === "PEER");
+
+    const sourceValue =
+      selectedLink.sourcePeerId && peers.some((peer) => peer.id === selectedLink.sourcePeerId)
+        ? selectedLink.sourcePeerId
+        : "";
+    const destinationValue =
+      selectedLink.destinationPeerId &&
+      selectedLink.destinationPeerId !== sourceValue &&
+      peers.some((peer) => peer.id === selectedLink.destinationPeerId)
+        ? selectedLink.destinationPeerId
+        : "";
+
+    const updateLink = (changes: Partial<LinkEntity>) => {
+      if (isLocked) return;
+
+      const nextSource =
+        "sourcePeerId" in changes
+          ? (changes.sourcePeerId ?? null)
+          : (selectedLink.sourcePeerId ?? null);
+      const nextDestination =
+        "destinationPeerId" in changes
+          ? (changes.destinationPeerId ?? null)
+          : (selectedLink.destinationPeerId ?? null);
+
+      if (nextSource && nextDestination && nextSource === nextDestination) {
+        return;
+      }
+
+      const updatedEntities = entities.map((entity) => {
+        if (entity.id !== selectedLink.id || entity.type !== "LINK") {
+          return entity;
+        }
+
+        return {
+          ...entity,
+          ...changes,
+        };
+      });
+
+      setEntities(updatedEntities);
+    };
+
+    return (
+      <aside
+        className={`properties ${isLocked ? "properties--locked" : ""}`}
+        style={{ width: `${widthPercent}%` }}
+      >
+        <div
+          className="properties__resizer"
+          role="separator"
+          aria-label="Resize properties"
+          aria-orientation="vertical"
+          onPointerDown={onResizeStart}
+        />
+
+        <header className="properties__header">
+          <p className="properties__title">{entityTitle}</p>
+          <p className="properties__subtitle">{entityDescription}</p>
+          <a className="properties__read-more" href="#" tabIndex={0}>
+            <ExternalLink size={12} />
+            Read more
+          </a>
+        </header>
+
+        {isLocked && (
+          <div className="properties__locked-notice">
+            <Lock size={12} />
+            This entity is unmodifiable.
+          </div>
+        )}
+
+        <section className="properties__section">
+          <p className="properties__section-title">Configuration</p>
+
+          <label className="properties__field">
+            <span className="properties__field-label">Name</span>
+            <input
+              className="properties__input"
+              type="text"
+              value={selectedLink.name}
+              onChange={(event) => updateLink({ name: event.target.value })}
+            />
+          </label>
+
+          <div className="properties__field">
+            <div className="properties__inline-group">
+              <div className="properties__field">
+                <span className="properties__field-label">Source</span>
+                <div className="properties__input-with-prefix">
+                  <Radio size={12} />
+                  <select
+                    className={`properties__input ${sourceValue ? "" : "properties__input--placeholder"}`}
+                    value={sourceValue}
+                    onChange={(event) => {
+                      const nextSource = event.target.value || null;
+                      const nextDestination =
+                        nextSource && selectedLink.destinationPeerId === nextSource
+                          ? null
+                          : selectedLink.destinationPeerId;
+
+                      updateLink({
+                        sourcePeerId: nextSource,
+                        destinationPeerId: nextDestination,
+                      });
+                    }}
+                  >
+                    <option value="">Select</option>
+                    {peers.map((peer) => (
+                      <option key={peer.id} value={peer.id}>
+                        {peer.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="properties__field">
+                <span className="properties__field-label">Destination</span>
+                <div className="properties__input-with-prefix">
+                  <Radio size={12} />
+                  <select
+                    className={`properties__input ${destinationValue ? "" : "properties__input--placeholder"}`}
+                    value={destinationValue}
+                    onChange={(event) => {
+                      const nextDestination = event.target.value || null;
+                      if (nextDestination && nextDestination === sourceValue) {
+                        return;
+                      }
+                      updateLink({ destinationPeerId: nextDestination });
+                    }}
+                  >
+                    <option value="">Select</option>
+                    {peers
+                      .filter((peer) => peer.id !== sourceValue)
+                      .map((peer) => (
+                        <option key={peer.id} value={peer.id}>
+                          {peer.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <label className="properties__field">
+            <span className="properties__field-label">Status</span>
+            <button
+              className="properties__status"
+              type="button"
+              onClick={() => updateLink({ enabled: !selectedLink.enabled })}
+            >
+              <Diamond size={12} />
+              {selectedLink.enabled ? "Enabled" : "Disabled"}
+            </button>
+          </label>
+        </section>
+      </aside>
+    );
+  }
 
   if (selectedEntity.type !== "PEER") {
     return (
@@ -121,7 +291,10 @@ export default function Properties({
   };
 
   return (
-    <aside className="properties" style={{ width: `${widthPercent}%` }}>
+    <aside
+      className={`properties ${isLocked ? "properties--locked" : ""}`}
+      style={{ width: `${widthPercent}%` }}
+    >
       <div
         className="properties__resizer"
         role="separator"

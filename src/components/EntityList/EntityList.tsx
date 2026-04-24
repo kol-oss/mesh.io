@@ -23,6 +23,12 @@ const PEER_DEFAULTS = {
   batmanPurgeTimeout: 10,
 };
 
+const LINK_DEFAULTS = {
+  sourcePeerId: null,
+  destinationPeerId: null,
+  enabled: true,
+};
+
 const hasPeerDefaults = (entity: NetworkEntity) => {
   if (entity.type !== "PEER") {
     return true;
@@ -36,6 +42,18 @@ const hasPeerDefaults = (entity: NetworkEntity) => {
     Array.isArray(entity.protocols) &&
     typeof entity.batmanOgmInterval === "number" &&
     typeof entity.batmanPurgeTimeout === "number"
+  );
+};
+
+const hasLinkDefaults = (entity: NetworkEntity) => {
+  if (entity.type !== "LINK") {
+    return true;
+  }
+
+  return (
+    (entity.sourcePeerId === null || typeof entity.sourcePeerId === "string") &&
+    (entity.destinationPeerId === null || typeof entity.destinationPeerId === "string") &&
+    typeof entity.enabled === "boolean"
   );
 };
 
@@ -61,7 +79,12 @@ export default function EntityList({
     const requiresMigration = entities.some((entity) => {
       const normalizedType = (entity as NetworkEntity | { type: string }).type;
       const hasId = "id" in entity;
-      return normalizedType === "ROUTER" || !hasPeerDefaults(entity) || !hasId;
+      return (
+        normalizedType === "ROUTER" ||
+        !hasPeerDefaults(entity) ||
+        !hasLinkDefaults(entity) ||
+        !hasId
+      );
     });
     if (!requiresMigration) {
       return;
@@ -83,6 +106,14 @@ export default function EntityList({
       }
 
       if (entity.type !== "PEER") {
+        if (entity.type === "LINK") {
+          return {
+            ...LINK_DEFAULTS,
+            ...baseEntity,
+            type: "LINK" as const,
+          };
+        }
+
         return baseEntity;
       }
 
