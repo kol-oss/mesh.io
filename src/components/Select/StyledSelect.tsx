@@ -14,6 +14,7 @@ type StyledSelectProps = {
   onChange: (value: string) => void;
   disabled?: boolean;
   allowEmpty?: boolean;
+  invalid?: boolean;
 };
 
 export default function StyledSelect({
@@ -23,6 +24,7 @@ export default function StyledSelect({
   onChange,
   disabled = false,
   allowEmpty = true,
+  invalid = false,
 }: StyledSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -62,7 +64,7 @@ export default function StyledSelect({
   return (
     <div className="properties-select" ref={rootRef}>
       <button
-        className={`properties-select__trigger ${selectedOption ? "" : "properties-select__trigger--placeholder"}`}
+        className={`properties-select__trigger ${selectedOption ? "" : "properties-select__trigger--placeholder"} ${invalid ? "properties__required-outline" : ""}`}
         type="button"
         onClick={() => {
           if (disabled) {

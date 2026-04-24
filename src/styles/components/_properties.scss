@@ -106,6 +106,10 @@
     @extend .typo-caption;
     color: $black-400;
     font-weight: 300;
+
+    &--required {
+      color: $red-400;
+    }
   }
 
   &__field-grid {
@@ -324,4 +328,8 @@
   &--selected {
     background: $neutral-200;
   }
+}
+
+.properties__required-outline {
+  border-color: $red-400 !important;
 }

@@ -116,6 +116,13 @@ export default function Properties({
         ? "Disabled"
         : "Enabled";
 
+    const isStepNameMissing = selectedStep.title.trim() === "";
+    const isStepMessageSourceMissing = selectedStep.type === "MESSAGE" && messageSourceValue === "";
+    const isStepMessageDestinationMissing =
+      selectedStep.type === "MESSAGE" && messageDestinationValue === "";
+    const isStepToggleEntityMissing = selectedStep.type === "TOGGLE" && toggleTargetValue === "";
+    const isStepMoveEntityMissing = selectedStep.type === "MOVE" && moveTargetValue === "";
+
     const updateStep = (changes: Partial<WorkflowStep>) => {
       const updatedSteps = steps.map((step) => {
         if (step.id !== selectedStep.id) {
@@ -186,9 +193,13 @@ export default function Properties({
           <p className="properties__section-title">Configuration</p>
 
           <label className="properties__field">
-            <span className="properties__field-label">Name</span>
+            <span
+              className={`properties__field-label ${isStepNameMissing ? "properties__field-label--required" : ""}`}
+            >
+              Name
+            </span>
             <input
-              className="properties__input"
+              className={`properties__input ${isStepNameMissing ? "properties__required-outline" : ""}`}
               type="text"
               value={selectedStep.title}
               onChange={(event) => updateStep({ title: event.target.value })}
@@ -202,6 +213,7 @@ export default function Properties({
                 <StyledSelect
                   allowEmpty={false}
                   value={selectedStep.type}
+                  invalid={false}
                   options={stepTypeOptions.map((stepType) => ({
                     value: stepType.value,
                     label: stepType.label,
@@ -261,9 +273,14 @@ export default function Properties({
             <div className="properties__field">
               <div className="properties__inline-group">
                 <div className="properties__field">
-                  <span className="properties__field-label">Source</span>
+                  <span
+                    className={`properties__field-label ${isStepMessageSourceMissing ? "properties__field-label--required" : ""}`}
+                  >
+                    Source
+                  </span>
                   <StyledSelect
                     value={messageSourceValue}
+                    invalid={isStepMessageSourceMissing}
                     options={peerSelectOptions}
                     onChange={(value) => {
                       const nextSource = value || null;
@@ -281,9 +298,14 @@ export default function Properties({
                 </div>
 
                 <div className="properties__field">
-                  <span className="properties__field-label">Destination</span>
+                  <span
+                    className={`properties__field-label ${isStepMessageDestinationMissing ? "properties__field-label--required" : ""}`}
+                  >
+                    Destination
+                  </span>
                   <StyledSelect
                     value={messageDestinationValue}
+                    invalid={isStepMessageDestinationMissing}
                     options={peerSelectOptions.filter((peer) => peer.value !== messageSourceValue)}
                     onChange={(value) => {
                       const nextDestination = value || null;
@@ -302,17 +324,30 @@ export default function Properties({
             <div className="properties__field">
               <div className="properties__inline-group">
                 <div className="properties__field">
-                  <span className="properties__field-label">Entity</span>
+                  <span
+                    className={`properties__field-label ${isStepToggleEntityMissing ? "properties__field-label--required" : ""}`}
+                  >
+                    Entity
+                  </span>
                   <StyledSelect
                     value={toggleTargetValue}
+                    invalid={isStepToggleEntityMissing}
                     options={toggleTargetOptions}
                     onChange={(value) => updateStep({ targetEntityId: value || null })}
                   />
                 </div>
 
                 <label className="properties__field">
-                  <span className="properties__field-label">New status</span>
-                  <button className="properties__status" type="button" disabled>
+                  <span
+                    className={`properties__field-label ${isStepToggleEntityMissing ? "properties__field-label--required" : ""}`}
+                  >
+                    New status
+                  </span>
+                  <button
+                    className={`properties__status ${isStepToggleEntityMissing ? "properties__required-outline" : ""}`}
+                    type="button"
+                    disabled
+                  >
                     <Activity size={12} />
                     {reverseStatusLabel}
                   </button>
@@ -324,9 +359,14 @@ export default function Properties({
           {selectedStep.type === "MOVE" && (
             <>
               <label className="properties__field">
-                <span className="properties__field-label">Entity</span>
+                <span
+                  className={`properties__field-label ${isStepMoveEntityMissing ? "properties__field-label--required" : ""}`}
+                >
+                  Entity
+                </span>
                 <StyledSelect
                   value={moveTargetValue}
+                  invalid={isStepMoveEntityMissing}
                   options={peerSelectOptions}
                   onChange={(value) => {
                     const nextMovePeerId = value || null;
@@ -425,6 +465,10 @@ export default function Properties({
         ? selectedLink.destinationPeerId
         : "";
 
+    const isLinkNameMissing = selectedLink.name.trim() === "";
+    const isLinkSourceMissing = sourceValue === "";
+    const isLinkDestinationMissing = destinationValue === "";
+
     const linkPeerOptions = peers.map((peer) => ({
       value: peer.id,
       label: peer.name,
@@ -494,9 +538,13 @@ export default function Properties({
           <p className="properties__section-title">Configuration</p>
 
           <label className="properties__field">
-            <span className="properties__field-label">Name</span>
+            <span
+              className={`properties__field-label ${isLinkNameMissing ? "properties__field-label--required" : ""}`}
+            >
+              Name
+            </span>
             <input
-              className="properties__input"
+              className={`properties__input ${isLinkNameMissing ? "properties__required-outline" : ""}`}
               type="text"
               value={selectedLink.name}
               onChange={(event) => updateLink({ name: event.target.value })}
@@ -506,9 +554,14 @@ export default function Properties({
           <div className="properties__field">
             <div className="properties__inline-group">
               <div className="properties__field">
-                <span className="properties__field-label">Source</span>
+                <span
+                  className={`properties__field-label ${isLinkSourceMissing ? "properties__field-label--required" : ""}`}
+                >
+                  Source
+                </span>
                 <StyledSelect
                   value={sourceValue}
+                  invalid={isLinkSourceMissing}
                   options={linkPeerOptions}
                   onChange={(value) => {
                     const nextSource = value || null;
@@ -526,9 +579,14 @@ export default function Properties({
               </div>
 
               <div className="properties__field">
-                <span className="properties__field-label">Destination</span>
+                <span
+                  className={`properties__field-label ${isLinkDestinationMissing ? "properties__field-label--required" : ""}`}
+                >
+                  Destination
+                </span>
                 <StyledSelect
                   value={destinationValue}
+                  invalid={isLinkDestinationMissing}
                   options={linkPeerOptions.filter((peer) => peer.value !== sourceValue)}
                   onChange={(value) => {
                     const nextDestination = value || null;
@@ -561,6 +619,7 @@ export default function Properties({
   if (selectedEntity.type !== "PEER") {
     const selectedObstacle: ObstacleEntity = selectedEntity;
     const isLocked = selectedObstacle.locked === true;
+    const isObstacleNameMissing = selectedObstacle.name.trim() === "";
 
     const updateObstacle = (changes: Partial<ObstacleEntity>) => {
       if (isLocked) return;
@@ -606,9 +665,13 @@ export default function Properties({
           <p className="properties__section-title">Configuration</p>
 
           <label className="properties__field">
-            <span className="properties__field-label">Name</span>
+            <span
+              className={`properties__field-label ${isObstacleNameMissing ? "properties__field-label--required" : ""}`}
+            >
+              Name
+            </span>
             <input
-              className="properties__input"
+              className={`properties__input ${isObstacleNameMissing ? "properties__required-outline" : ""}`}
               type="text"
               value={selectedObstacle.name}
               onChange={(event) => updateObstacle({ name: event.target.value })}
@@ -690,6 +753,12 @@ export default function Properties({
   const selectedPeer: PeerEntity = selectedEntity;
 
   const isLocked = selectedPeer.locked === true;
+  const isPeerNameMissing = selectedPeer.name.trim() === "";
+  const isProtocolMissing = selectedPeer.protocols.length === 0;
+  const isBatmanOgmMissing =
+    selectedPeer.protocols.includes("BATMAN") && selectedPeer.batmanOgmInterval <= 0;
+  const isBatmanPurgeMissing =
+    selectedPeer.protocols.includes("BATMAN") && selectedPeer.batmanPurgeTimeout <= 0;
 
   const updatePeer = (changes: Partial<PeerEntity>) => {
     if (isLocked) return;
@@ -740,9 +809,13 @@ export default function Properties({
         <p className="properties__section-title">Configuration</p>
 
         <label className="properties__field">
-          <span className="properties__field-label">Name</span>
+          <span
+            className={`properties__field-label ${isPeerNameMissing ? "properties__field-label--required" : ""}`}
+          >
+            Name
+          </span>
           <input
-            className="properties__input"
+            className={`properties__input ${isPeerNameMissing ? "properties__required-outline" : ""}`}
             type="text"
             value={selectedPeer.name}
             onChange={(event) => updatePeer({ name: event.target.value })}
@@ -818,8 +891,14 @@ export default function Properties({
         <p className="properties__section-title">Routing</p>
 
         <label className="properties__field">
-          <span className="properties__field-label">Protocol</span>
-          <div className="properties__protocols">
+          <span
+            className={`properties__field-label ${isProtocolMissing ? "properties__field-label--required" : ""}`}
+          >
+            Protocol
+          </span>
+          <div
+            className={`properties__protocols ${isProtocolMissing ? "properties__required-outline" : ""}`}
+          >
             {PROTOCOLS.map((protocol) => {
               const isActive = selectedPeer.protocols.includes(protocol);
               return (
@@ -846,11 +925,15 @@ export default function Properties({
         {selectedPeer.protocols.includes("BATMAN") && (
           <>
             <label className="properties__field">
-              <span className="properties__field-label">BATMAN OGM Interval</span>
+              <span
+                className={`properties__field-label ${isBatmanOgmMissing ? "properties__field-label--required" : ""}`}
+              >
+                BATMAN OGM Interval
+              </span>
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
-                  className="properties__input"
+                  className={`properties__input ${isBatmanOgmMissing ? "properties__required-outline" : ""}`}
                   type="number"
                   min="1"
                   value={selectedPeer.batmanOgmInterval}
@@ -867,11 +950,15 @@ export default function Properties({
             </label>
 
             <label className="properties__field">
-              <span className="properties__field-label">BATMAN Purge Timeout</span>
+              <span
+                className={`properties__field-label ${isBatmanPurgeMissing ? "properties__field-label--required" : ""}`}
+              >
+                BATMAN Purge Timeout
+              </span>
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
-                  className="properties__input"
+                  className={`properties__input ${isBatmanPurgeMissing ? "properties__required-outline" : ""}`}
                   type="number"
                   min="1"
                   value={selectedPeer.batmanPurgeTimeout}
