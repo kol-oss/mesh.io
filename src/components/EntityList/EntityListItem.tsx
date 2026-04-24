@@ -1,3 +1,4 @@
+import { type PointerEvent as ReactPointerEvent } from "react";
 import { Link, Lock, LockOpen, Radio, SquareSlash } from "lucide-react";
 import type { NetworkEntity } from "../../types/navigation";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
@@ -5,15 +6,19 @@ import TooltipAnchor from "../Tooltip/TooltipAnchor";
 type EntityListItemProps = {
   entity: NetworkEntity;
   isSelected: boolean;
+  isDragging?: boolean;
   onSelect: () => void;
   onToggleLock: () => void;
+  onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
 };
 
 export default function EntityListItem({
   entity,
   isSelected,
+  isDragging,
   onSelect,
   onToggleLock,
+  onPointerDown,
 }: EntityListItemProps) {
   const entityTypeTooltip = {
     PEER: "Peer",
@@ -29,8 +34,9 @@ export default function EntityListItem({
 
   return (
     <div
-      className={`navigation__entity-item ${isSelected ? "navigation__entity-item--selected" : ""}`}
+      className={`navigation__entity-item${isSelected ? " navigation__entity-item--selected" : ""}${isDragging ? " navigation__entity-item--dragging" : ""}`}
       onClick={onSelect}
+      onPointerDown={onPointerDown}
     >
       <TooltipAnchor content={entityTypeTooltip}>
         <span className="navigation__entity-type">{entityTypeIcon}</span>

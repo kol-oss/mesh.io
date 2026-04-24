@@ -89,6 +89,26 @@
   &--selected {
     background-color: $neutral-400;
   }
+
+  &--dragging {
+    opacity: 0.35;
+    cursor: grabbing;
+    pointer-events: none;
+  }
+}
+
+.navigation__entities-items--reordering
+  .navigation__entity-item:not(.navigation__entity-item--dragging) {
+  pointer-events: none;
+
+  &:hover,
+  &:hover.navigation__entity-item--selected {
+    background-color: transparent;
+  }
+
+  &:hover.navigation__entity-item--selected {
+    background-color: $neutral-400;
+  }
 }
 
 .navigation__entity-item--selected:hover
@@ -126,4 +146,12 @@
   display: inline-flex;
   align-items: center;
   color: $black-400;
+}
+
+.navigation__entity-drop-indicator {
+  height: 2px;
+  background-color: #0e99ff;
+  border-radius: 1px;
+  margin: 1px 0;
+  pointer-events: none;
 }

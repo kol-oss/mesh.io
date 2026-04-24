@@ -1,8 +1,12 @@
 import {
+  Fragment,
   useEffect,
+  useRef,
+  useState,
   useCallback,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 import { ChevronRight, Plus } from "lucide-react";
 
@@ -95,6 +99,19 @@ export default function EntityList({
   const [isOpened, setIsOpened] = useLocalStorage<boolean>("mesh_entities_opened", false);
   const { showToast } = useToast();
 
+  // Drag-to-reorder
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const dragIndexRef = useRef<number | null>(null);
+  const dropIndexRef = useRef<number | null>(null);
+  const isDraggingRef = useRef(false);
+  const pointerStartYRef = useRef(0);
+  const suppressNextClickRef = useRef(false);
+  const itemsContainerRef = useRef<HTMLDivElement | null>(null);
+  const entitiesRef = useRef(entities);
+  entitiesRef.current = entities;
+  dropIndexRef.current = dropIndex;
+
   useEffect(() => {
     const requiresMigration = entities.some((entity) => {
       const normalizedType = (entity as NetworkEntity | { type: string }).type;
@@ -182,6 +199,84 @@ export default function EntityList({
     [entities, setEntities],
   );
 
+  const handleItemPointerDown = useCallback(
+    (index: number, event: ReactPointerEvent<HTMLDivElement>) => {
+      if (event.button !== 0) return;
+      dragIndexRef.current = index;
+      isDraggingRef.current = false;
+      pointerStartYRef.current = event.clientY;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const DRAG_THRESHOLD = 5;
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (dragIndexRef.current === null) return;
+
+      if (
+        !isDraggingRef.current &&
+        Math.abs(event.clientY - pointerStartYRef.current) < DRAG_THRESHOLD
+      ) {
+        return;
+      }
+
+      if (!isDraggingRef.current) {
+        isDraggingRef.current = true;
+        document.body.style.cursor = "grabbing";
+        document.body.style.userSelect = "none";
+        setDragIndex(dragIndexRef.current);
+      }
+
+      const container = itemsContainerRef.current;
+      if (!container) return;
+
+      const items = Array.from(container.querySelectorAll<HTMLElement>(".navigation__entity-item"));
+      let newDropIndex = items.length;
+
+      for (let i = 0; i < items.length; i++) {
+        const rect = items[i].getBoundingClientRect();
+        if (event.clientY < rect.top + rect.height / 2) {
+          newDropIndex = i;
+          break;
+        }
+      }
+
+      setDropIndex(newDropIndex);
+      dropIndexRef.current = newDropIndex;
+    };
+
+    const onPointerUp = () => {
+      if (dragIndexRef.current === null) return;
+
+      if (isDraggingRef.current && dropIndexRef.current !== null) {
+        const from = dragIndexRef.current;
+        const to = dropIndexRef.current;
+        const current = entitiesRef.current;
+        const next = [...current];
+        const [removed] = next.splice(from, 1);
+        next.splice(to > from ? to - 1 : to, 0, removed);
+        setEntities(next);
+        suppressNextClickRef.current = true;
+      }
+
+      dragIndexRef.current = null;
+      isDraggingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      setDragIndex(null);
+      setDropIndex(null);
+    };
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+    };
+  }, [setEntities]);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Delete" && selectedId && isOpened) {
@@ -251,16 +346,34 @@ export default function EntityList({
       </div>
 
       {isOpened && (
-        <div className="navigation__entities-items">
-          {entities.map((networkEntity) => (
-            <EntityListItem
-              key={networkEntity.id}
-              entity={networkEntity}
-              isSelected={selectedId === networkEntity.id}
-              onSelect={() => onSelect(networkEntity.id)}
-              onToggleLock={() => handleToggleLock(networkEntity.id)}
-            />
+        <div
+          className={`navigation__entities-items${dragIndex !== null ? " navigation__entities-items--reordering" : ""}`}
+          ref={itemsContainerRef}
+        >
+          {entities.map((networkEntity, index) => (
+            <Fragment key={networkEntity.id}>
+              {dragIndex !== null && dropIndex === index && (
+                <div className="navigation__entity-drop-indicator" />
+              )}
+              <EntityListItem
+                entity={networkEntity}
+                isSelected={selectedId === networkEntity.id}
+                isDragging={dragIndex === index}
+                onSelect={() => {
+                  if (suppressNextClickRef.current) {
+                    suppressNextClickRef.current = false;
+                    return;
+                  }
+                  onSelect(networkEntity.id);
+                }}
+                onToggleLock={() => handleToggleLock(networkEntity.id)}
+                onPointerDown={(e) => handleItemPointerDown(index, e)}
+              />
+            </Fragment>
           ))}
+          {dragIndex !== null && dropIndex === entities.length && (
+            <div className="navigation__entity-drop-indicator" />
+          )}
         </div>
       )}
     </div>
