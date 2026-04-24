@@ -6,6 +6,7 @@ import {
   Diamond,
   ExternalLink,
   Lock,
+  Link2,
   Mail,
   MoveHorizontal,
   MoveVertical,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
+import StyledSelect from "../Select/StyledSelect";
 import type {
   LinkEntity,
   NetworkEntity,
@@ -33,11 +35,6 @@ type PropertiesProps = {
 };
 
 const PROTOCOLS: PeerRoutingProtocol[] = ["HWMP", "BATMAN", "OLSR", "AODV", "DSR"];
-const STEP_TYPES: Array<{ value: WorkflowStep["type"]; label: string }> = [
-  { value: "MOVE", label: "Move" },
-  { value: "MESSAGE", label: "Message" },
-  { value: "TOGGLE", label: "Toggle" },
-];
 
 const parseNumberValue = (value: string, fallback: number) => {
   const parsedValue = Number(value);
@@ -71,11 +68,23 @@ export default function Properties({
         entity.type === "PEER" || entity.type === "LINK",
     );
 
-    const selectedTypeIcon = {
-      MESSAGE: <Mail size={12} />,
-      TOGGLE: <Activity size={12} />,
-      MOVE: <ChevronsRight size={12} />,
-    }[selectedStep.type];
+    const stepTypeOptions = [
+      { value: "MOVE", label: "Move", icon: <ChevronsRight size={12} /> },
+      { value: "MESSAGE", label: "Message", icon: <Mail size={12} /> },
+      { value: "TOGGLE", label: "Toggle", icon: <Activity size={12} /> },
+    ] as const;
+
+    const peerSelectOptions = peers.map((peer) => ({
+      value: peer.id,
+      label: peer.name,
+      icon: <Radio size={12} />,
+    }));
+
+    const toggleTargetOptions = toggleTargets.map((entity) => ({
+      value: entity.id,
+      label: entity.name,
+      icon: entity.type === "PEER" ? <Radio size={12} /> : <Link2 size={12} />,
+    }));
 
     const messageSourceValue =
       selectedStep.sourcePeerId && peers.some((peer) => peer.id === selectedStep.sourcePeerId)
@@ -190,48 +199,44 @@ export default function Properties({
             <div className="properties__inline-group">
               <label className="properties__field">
                 <span className="properties__field-label">Type</span>
-                <div className="properties__input-with-prefix">
-                  {selectedTypeIcon}
-                  <select
-                    className="properties__input"
-                    value={selectedStep.type}
-                    onChange={(event) => {
-                      const nextType = event.target.value as WorkflowStep["type"];
+                <StyledSelect
+                  allowEmpty={false}
+                  value={selectedStep.type}
+                  options={stepTypeOptions.map((stepType) => ({
+                    value: stepType.value,
+                    label: stepType.label,
+                    icon: stepType.icon,
+                  }))}
+                  onChange={(value) => {
+                    const nextType = value as WorkflowStep["type"];
 
-                      if (nextType === "MESSAGE") {
-                        updateStep({
-                          type: nextType,
-                          targetEntityId: null,
-                          movePeerId: null,
-                        });
-                        return;
-                      }
+                    if (nextType === "MESSAGE") {
+                      updateStep({
+                        type: nextType,
+                        targetEntityId: null,
+                        movePeerId: null,
+                      });
+                      return;
+                    }
 
-                      if (nextType === "TOGGLE") {
-                        updateStep({
-                          type: nextType,
-                          sourcePeerId: null,
-                          destinationPeerId: null,
-                          movePeerId: null,
-                        });
-                        return;
-                      }
-
+                    if (nextType === "TOGGLE") {
                       updateStep({
                         type: nextType,
                         sourcePeerId: null,
                         destinationPeerId: null,
-                        targetEntityId: null,
+                        movePeerId: null,
                       });
-                    }}
-                  >
-                    {STEP_TYPES.map((stepType) => (
-                      <option key={stepType.value} value={stepType.value}>
-                        {stepType.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                      return;
+                    }
+
+                    updateStep({
+                      type: nextType,
+                      sourcePeerId: null,
+                      destinationPeerId: null,
+                      targetEntityId: null,
+                    });
+                  }}
+                />
               </label>
 
               <label className="properties__field">
@@ -257,59 +262,37 @@ export default function Properties({
               <div className="properties__inline-group">
                 <div className="properties__field">
                   <span className="properties__field-label">Source</span>
-                  <div className="properties__input-with-prefix">
-                    <Radio size={12} />
-                    <select
-                      className={`properties__input ${messageSourceValue ? "" : "properties__input--placeholder"}`}
-                      value={messageSourceValue}
-                      onChange={(event) => {
-                        const nextSource = event.target.value || null;
-                        const nextDestination =
-                          nextSource && selectedStep.destinationPeerId === nextSource
-                            ? null
-                            : selectedStep.destinationPeerId;
+                  <StyledSelect
+                    value={messageSourceValue}
+                    options={peerSelectOptions}
+                    onChange={(value) => {
+                      const nextSource = value || null;
+                      const nextDestination =
+                        nextSource && selectedStep.destinationPeerId === nextSource
+                          ? null
+                          : selectedStep.destinationPeerId;
 
-                        updateStep({
-                          sourcePeerId: nextSource,
-                          destinationPeerId: nextDestination,
-                        });
-                      }}
-                    >
-                      <option value="">Select</option>
-                      {peers.map((peer) => (
-                        <option key={peer.id} value={peer.id}>
-                          {peer.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                      updateStep({
+                        sourcePeerId: nextSource,
+                        destinationPeerId: nextDestination,
+                      });
+                    }}
+                  />
                 </div>
 
                 <div className="properties__field">
                   <span className="properties__field-label">Destination</span>
-                  <div className="properties__input-with-prefix">
-                    <Radio size={12} />
-                    <select
-                      className={`properties__input ${messageDestinationValue ? "" : "properties__input--placeholder"}`}
-                      value={messageDestinationValue}
-                      onChange={(event) => {
-                        const nextDestination = event.target.value || null;
-                        if (nextDestination && nextDestination === messageSourceValue) {
-                          return;
-                        }
-                        updateStep({ destinationPeerId: nextDestination });
-                      }}
-                    >
-                      <option value="">Select</option>
-                      {peers
-                        .filter((peer) => peer.id !== messageSourceValue)
-                        .map((peer) => (
-                          <option key={peer.id} value={peer.id}>
-                            {peer.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                  <StyledSelect
+                    value={messageDestinationValue}
+                    options={peerSelectOptions.filter((peer) => peer.value !== messageSourceValue)}
+                    onChange={(value) => {
+                      const nextDestination = value || null;
+                      if (nextDestination && nextDestination === messageSourceValue) {
+                        return;
+                      }
+                      updateStep({ destinationPeerId: nextDestination });
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -320,23 +303,11 @@ export default function Properties({
               <div className="properties__inline-group">
                 <div className="properties__field">
                   <span className="properties__field-label">Entity</span>
-                  <div className="properties__input-with-prefix">
-                    <Diamond size={12} />
-                    <select
-                      className={`properties__input ${toggleTargetValue ? "" : "properties__input--placeholder"}`}
-                      value={toggleTargetValue}
-                      onChange={(event) =>
-                        updateStep({ targetEntityId: event.target.value || null })
-                      }
-                    >
-                      <option value="">Select</option>
-                      {toggleTargets.map((entity) => (
-                        <option key={entity.id} value={entity.id}>
-                          {entity.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <StyledSelect
+                    value={toggleTargetValue}
+                    options={toggleTargetOptions}
+                    onChange={(value) => updateStep({ targetEntityId: value || null })}
+                  />
                 </div>
 
                 <label className="properties__field">
@@ -354,36 +325,26 @@ export default function Properties({
             <>
               <label className="properties__field">
                 <span className="properties__field-label">Entity</span>
-                <div className="properties__input-with-prefix">
-                  <Radio size={12} />
-                  <select
-                    className={`properties__input ${moveTargetValue ? "" : "properties__input--placeholder"}`}
-                    value={moveTargetValue}
-                    onChange={(event) => {
-                      const nextMovePeerId = event.target.value || null;
-                      const selectedPeer = peers.find((peer) => peer.id === nextMovePeerId);
-                      const hasMoveCoordinates = selectedStep.x !== 0 || selectedStep.y !== 0;
+                <StyledSelect
+                  value={moveTargetValue}
+                  options={peerSelectOptions}
+                  onChange={(value) => {
+                    const nextMovePeerId = value || null;
+                    const selectedPeer = peers.find((peer) => peer.id === nextMovePeerId);
+                    const hasMoveCoordinates = selectedStep.x !== 0 || selectedStep.y !== 0;
 
-                      if (!selectedPeer || hasMoveCoordinates) {
-                        updateStep({ movePeerId: nextMovePeerId });
-                        return;
-                      }
+                    if (!selectedPeer || hasMoveCoordinates) {
+                      updateStep({ movePeerId: nextMovePeerId });
+                      return;
+                    }
 
-                      updateStep({
-                        movePeerId: nextMovePeerId,
-                        x: Math.max(0, selectedPeer.x),
-                        y: Math.max(0, selectedPeer.y),
-                      });
-                    }}
-                  >
-                    <option value="">Select</option>
-                    {peers.map((peer) => (
-                      <option key={peer.id} value={peer.id}>
-                        {peer.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    updateStep({
+                      movePeerId: nextMovePeerId,
+                      x: Math.max(0, selectedPeer.x),
+                      y: Math.max(0, selectedPeer.y),
+                    });
+                  }}
+                />
               </label>
 
               <label className="properties__field">
@@ -464,6 +425,12 @@ export default function Properties({
         ? selectedLink.destinationPeerId
         : "";
 
+    const linkPeerOptions = peers.map((peer) => ({
+      value: peer.id,
+      label: peer.name,
+      icon: <Radio size={12} />,
+    }));
+
     const updateLink = (changes: Partial<LinkEntity>) => {
       if (isLocked) return;
 
@@ -540,59 +507,37 @@ export default function Properties({
             <div className="properties__inline-group">
               <div className="properties__field">
                 <span className="properties__field-label">Source</span>
-                <div className="properties__input-with-prefix">
-                  <Radio size={12} />
-                  <select
-                    className={`properties__input ${sourceValue ? "" : "properties__input--placeholder"}`}
-                    value={sourceValue}
-                    onChange={(event) => {
-                      const nextSource = event.target.value || null;
-                      const nextDestination =
-                        nextSource && selectedLink.destinationPeerId === nextSource
-                          ? null
-                          : selectedLink.destinationPeerId;
+                <StyledSelect
+                  value={sourceValue}
+                  options={linkPeerOptions}
+                  onChange={(value) => {
+                    const nextSource = value || null;
+                    const nextDestination =
+                      nextSource && selectedLink.destinationPeerId === nextSource
+                        ? null
+                        : selectedLink.destinationPeerId;
 
-                      updateLink({
-                        sourcePeerId: nextSource,
-                        destinationPeerId: nextDestination,
-                      });
-                    }}
-                  >
-                    <option value="">Select</option>
-                    {peers.map((peer) => (
-                      <option key={peer.id} value={peer.id}>
-                        {peer.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    updateLink({
+                      sourcePeerId: nextSource,
+                      destinationPeerId: nextDestination,
+                    });
+                  }}
+                />
               </div>
 
               <div className="properties__field">
                 <span className="properties__field-label">Destination</span>
-                <div className="properties__input-with-prefix">
-                  <Radio size={12} />
-                  <select
-                    className={`properties__input ${destinationValue ? "" : "properties__input--placeholder"}`}
-                    value={destinationValue}
-                    onChange={(event) => {
-                      const nextDestination = event.target.value || null;
-                      if (nextDestination && nextDestination === sourceValue) {
-                        return;
-                      }
-                      updateLink({ destinationPeerId: nextDestination });
-                    }}
-                  >
-                    <option value="">Select</option>
-                    {peers
-                      .filter((peer) => peer.id !== sourceValue)
-                      .map((peer) => (
-                        <option key={peer.id} value={peer.id}>
-                          {peer.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
+                <StyledSelect
+                  value={destinationValue}
+                  options={linkPeerOptions.filter((peer) => peer.value !== sourceValue)}
+                  onChange={(value) => {
+                    const nextDestination = value || null;
+                    if (nextDestination && nextDestination === sourceValue) {
+                      return;
+                    }
+                    updateLink({ destinationPeerId: nextDestination });
+                  }}
+                />
               </div>
             </div>
           </div>

@@ -13,7 +13,8 @@
   &--locked {
     .properties__input,
     .properties__status,
-    .properties__protocol {
+    .properties__protocol,
+    .properties-select__trigger {
       cursor: not-allowed;
       pointer-events: none;
     }
@@ -232,5 +233,95 @@
   &__placeholder {
     @extend .typo-button;
     color: $black-400;
+  }
+}
+
+.properties-select {
+  position: relative;
+  width: 100%;
+}
+
+.properties-select__trigger {
+  @extend .typo-button;
+  min-height: 28px;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  background: $neutral-200;
+  color: $black-800;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+
+  &:focus-visible {
+    border-color: #0e99ff;
+  }
+
+  &--placeholder {
+    color: $black-400;
+  }
+}
+
+.properties-select__value {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.properties-select__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: $black-400;
+}
+
+.properties-select__chevron {
+  color: $black-400;
+  transition: transform 0.15s ease;
+
+  &--open {
+    transform: rotate(180deg);
+  }
+}
+
+.properties-select__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid $neutral-400;
+  border-radius: 6px;
+  background: $neutral-0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.properties-select__option {
+  @extend .typo-button;
+  min-height: 28px;
+  width: 100%;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: $black-800;
+  text-align: left;
+  cursor: pointer;
+  padding: 4px 8px;
+
+  &:hover {
+    background: $neutral-200;
+  }
+
+  &--selected {
+    background: $neutral-200;
   }
 }
