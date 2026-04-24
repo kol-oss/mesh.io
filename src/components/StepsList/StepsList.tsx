@@ -17,6 +17,8 @@ import type { WorkflowStep } from "../../types/steps";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
 import StepsListItem from "./StepsListItem";
 
+const STEP_TYPES = ["MOVE", "MESSAGE", "TOGGLE"] as const;
+
 type StepsListProps = {
   steps: WorkflowStep[];
   setSteps: (value: WorkflowStep[]) => void;
@@ -56,16 +58,60 @@ export default function StepsList({
   });
 
   useEffect(() => {
-    const hasMissingTick = steps.some(
-      (step) => typeof (step as WorkflowStep | { tick?: number }).tick !== "number",
-    );
-    if (!hasMissingTick) {
+    const requiresMigration = steps.some((step) => {
+      const rawStep = step as WorkflowStep & {
+        tick?: number;
+        type?: string;
+        sourcePeerId?: string | null;
+        destinationPeerId?: string | null;
+        targetEntityId?: string | null;
+        movePeerId?: string | null;
+        x?: number;
+        y?: number;
+      };
+
+      return (
+        typeof rawStep.tick !== "number" ||
+        !STEP_TYPES.includes(rawStep.type as (typeof STEP_TYPES)[number]) ||
+        (rawStep.sourcePeerId !== null && typeof rawStep.sourcePeerId !== "string") ||
+        (rawStep.destinationPeerId !== null && typeof rawStep.destinationPeerId !== "string") ||
+        (rawStep.targetEntityId !== null && typeof rawStep.targetEntityId !== "string") ||
+        (rawStep.movePeerId !== null && typeof rawStep.movePeerId !== "string") ||
+        typeof rawStep.x !== "number" ||
+        typeof rawStep.y !== "number"
+      );
+    });
+
+    if (!requiresMigration) {
       return;
     }
 
     const migratedSteps = steps.map((step, index) => {
-      const tick = (step as WorkflowStep | { tick?: number }).tick;
-      return typeof tick === "number" ? step : { ...step, tick: index + 1 };
+      const rawStep = step as WorkflowStep & {
+        tick?: number;
+        type?: string;
+        sourcePeerId?: string | null;
+        destinationPeerId?: string | null;
+        targetEntityId?: string | null;
+        movePeerId?: string | null;
+        x?: number;
+        y?: number;
+      };
+
+      return {
+        ...step,
+        type: STEP_TYPES.includes(rawStep.type as (typeof STEP_TYPES)[number])
+          ? (rawStep.type as WorkflowStep["type"])
+          : "MOVE",
+        tick: typeof rawStep.tick === "number" ? rawStep.tick : index + 1,
+        sourcePeerId: typeof rawStep.sourcePeerId === "string" ? rawStep.sourcePeerId : null,
+        destinationPeerId:
+          typeof rawStep.destinationPeerId === "string" ? rawStep.destinationPeerId : null,
+        targetEntityId: typeof rawStep.targetEntityId === "string" ? rawStep.targetEntityId : null,
+        movePeerId: typeof rawStep.movePeerId === "string" ? rawStep.movePeerId : null,
+        x: typeof rawStep.x === "number" ? rawStep.x : 0,
+        y: typeof rawStep.y === "number" ? rawStep.y : 0,
+      };
     });
     setSteps(migratedSteps);
   }, [steps, setSteps]);
@@ -210,6 +256,12 @@ export default function StepsList({
       title: `Step ${steps.length + 1}`,
       type: "MOVE",
       tick: nextTick,
+      sourcePeerId: null,
+      destinationPeerId: null,
+      targetEntityId: null,
+      movePeerId: null,
+      x: 0,
+      y: 0,
     };
     const updatedSteps = [...steps, newStep];
     setSteps(updatedSteps);

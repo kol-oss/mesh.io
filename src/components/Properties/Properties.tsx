@@ -1,9 +1,12 @@
 import {
+  Activity,
+  ChevronsRight,
   CircleDot,
   Clock3,
   Diamond,
   ExternalLink,
   Lock,
+  Mail,
   MoveHorizontal,
   MoveVertical,
   Radio,
@@ -17,16 +20,24 @@ import type {
   PeerEntity,
   PeerRoutingProtocol,
 } from "../../types/navigation";
+import type { WorkflowStep } from "../../types/steps";
 
 type PropertiesProps = {
   selectedId: string | null;
   selectedSource: "entities" | "steps" | null;
   entities: NetworkEntity[];
   setEntities: (value: NetworkEntity[]) => void;
+  steps: WorkflowStep[];
+  setSteps: (value: WorkflowStep[]) => void;
   isNavCollapsed: boolean;
 };
 
 const PROTOCOLS: PeerRoutingProtocol[] = ["HWMP", "BATMAN", "OLSR", "AODV", "DSR"];
+const STEP_TYPES: Array<{ value: WorkflowStep["type"]; label: string }> = [
+  { value: "MOVE", label: "Move" },
+  { value: "MESSAGE", label: "Message" },
+  { value: "TOGGLE", label: "Toggle" },
+];
 
 const parseNumberValue = (value: string, fallback: number) => {
   const parsedValue = Number(value);
@@ -38,6 +49,8 @@ export default function Properties({
   selectedSource,
   entities,
   setEntities,
+  steps,
+  setSteps,
   isNavCollapsed,
 }: PropertiesProps) {
   const { widthPercent, onResizeStart } = useSidebarResize({ side: "right" });
@@ -47,6 +60,106 @@ export default function Properties({
   }
 
   if (selectedSource === "steps") {
+    const selectedStep = steps.find((step) => step.id === selectedId);
+    if (!selectedStep) {
+      return null;
+    }
+
+    const peers = entities.filter((entity): entity is PeerEntity => entity.type === "PEER");
+    const toggleTargets = entities.filter(
+      (entity): entity is PeerEntity | LinkEntity =>
+        entity.type === "PEER" || entity.type === "LINK",
+    );
+
+    const selectedTypeIcon = {
+      MESSAGE: <Mail size={12} />,
+      TOGGLE: <Activity size={12} />,
+      MOVE: <ChevronsRight size={12} />,
+    }[selectedStep.type];
+
+    const messageSourceValue =
+      selectedStep.sourcePeerId && peers.some((peer) => peer.id === selectedStep.sourcePeerId)
+        ? selectedStep.sourcePeerId
+        : "";
+
+    const messageDestinationValue =
+      selectedStep.destinationPeerId &&
+      selectedStep.destinationPeerId !== messageSourceValue &&
+      peers.some((peer) => peer.id === selectedStep.destinationPeerId)
+        ? selectedStep.destinationPeerId
+        : "";
+
+    const toggleTargetValue =
+      selectedStep.targetEntityId &&
+      toggleTargets.some((entity) => entity.id === selectedStep.targetEntityId)
+        ? selectedStep.targetEntityId
+        : "";
+
+    const moveTargetValue =
+      selectedStep.movePeerId && peers.some((peer) => peer.id === selectedStep.movePeerId)
+        ? selectedStep.movePeerId
+        : "";
+
+    const toggleTargetEntity = toggleTargets.find((entity) => entity.id === toggleTargetValue);
+    const reverseStatusLabel = !toggleTargetEntity
+      ? "Disabled"
+      : toggleTargetEntity.enabled
+        ? "Disabled"
+        : "Enabled";
+
+    const updateStep = (changes: Partial<WorkflowStep>) => {
+      const updatedSteps = steps.map((step) => {
+        if (step.id !== selectedStep.id) {
+          return step;
+        }
+
+        return {
+          ...step,
+          ...changes,
+        };
+      });
+
+      setSteps(updatedSteps);
+    };
+
+    const updateStepTick = (nextTick: number) => {
+      const normalizedTick = Math.max(1, nextTick);
+      const stepIndex = steps.findIndex((step) => step.id === selectedStep.id);
+      if (stepIndex === -1) {
+        return;
+      }
+
+      const updatedStep = {
+        ...steps[stepIndex],
+        tick: normalizedTick,
+      };
+
+      const stepsWithoutCurrent = steps.filter((step) => step.id !== selectedStep.id);
+      const lastSameTickIndex = (() => {
+        let lastIndex = -1;
+        for (let i = 0; i < stepsWithoutCurrent.length; i++) {
+          if (stepsWithoutCurrent[i].tick === normalizedTick) {
+            lastIndex = i;
+          }
+        }
+        return lastIndex;
+      })();
+
+      const insertIndex =
+        lastSameTickIndex >= 0
+          ? lastSameTickIndex + 1
+          : (() => {
+              const firstGreaterIndex = stepsWithoutCurrent.findIndex(
+                (step) => step.tick > normalizedTick,
+              );
+              return firstGreaterIndex === -1 ? stepsWithoutCurrent.length : firstGreaterIndex;
+            })();
+
+      const reorderedSteps = [...stepsWithoutCurrent];
+      reorderedSteps.splice(insertIndex, 0, updatedStep);
+      setSteps(reorderedSteps);
+    };
+
     return (
       <aside className="properties" style={{ width: `${widthPercent}%` }}>
         <div className="properties__resizer" onPointerDown={onResizeStart} />
@@ -61,11 +174,247 @@ export default function Properties({
           </a>
         </header>
         <section className="properties__section">
-          <p className="properties__section-title">Information</p>
-          <p className="properties__placeholder">
-            You selected a workflow step. Detailed step properties will be added in the next
-            iteration.
-          </p>
+          <p className="properties__section-title">Configuration</p>
+
+          <label className="properties__field">
+            <span className="properties__field-label">Name</span>
+            <input
+              className="properties__input"
+              type="text"
+              value={selectedStep.title}
+              onChange={(event) => updateStep({ title: event.target.value })}
+            />
+          </label>
+
+          <div className="properties__field">
+            <div className="properties__inline-group">
+              <label className="properties__field">
+                <span className="properties__field-label">Type</span>
+                <div className="properties__input-with-prefix">
+                  {selectedTypeIcon}
+                  <select
+                    className="properties__input"
+                    value={selectedStep.type}
+                    onChange={(event) => {
+                      const nextType = event.target.value as WorkflowStep["type"];
+
+                      if (nextType === "MESSAGE") {
+                        updateStep({
+                          type: nextType,
+                          targetEntityId: null,
+                          movePeerId: null,
+                        });
+                        return;
+                      }
+
+                      if (nextType === "TOGGLE") {
+                        updateStep({
+                          type: nextType,
+                          sourcePeerId: null,
+                          destinationPeerId: null,
+                          movePeerId: null,
+                        });
+                        return;
+                      }
+
+                      updateStep({
+                        type: nextType,
+                        sourcePeerId: null,
+                        destinationPeerId: null,
+                        targetEntityId: null,
+                      });
+                    }}
+                  >
+                    {STEP_TYPES.map((stepType) => (
+                      <option key={stepType.value} value={stepType.value}>
+                        {stepType.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </label>
+
+              <label className="properties__field">
+                <span className="properties__field-label">Tick</span>
+                <div className="properties__input-with-prefix">
+                  <Clock3 size={12} />
+                  <input
+                    className="properties__input"
+                    type="number"
+                    min="1"
+                    value={selectedStep.tick}
+                    onChange={(event) =>
+                      updateStepTick(parseNumberValue(event.target.value, selectedStep.tick))
+                    }
+                  />
+                </div>
+              </label>
+            </div>
+          </div>
+
+          {selectedStep.type === "MESSAGE" && (
+            <div className="properties__field">
+              <div className="properties__inline-group">
+                <div className="properties__field">
+                  <span className="properties__field-label">Source</span>
+                  <div className="properties__input-with-prefix">
+                    <Radio size={12} />
+                    <select
+                      className={`properties__input ${messageSourceValue ? "" : "properties__input--placeholder"}`}
+                      value={messageSourceValue}
+                      onChange={(event) => {
+                        const nextSource = event.target.value || null;
+                        const nextDestination =
+                          nextSource && selectedStep.destinationPeerId === nextSource
+                            ? null
+                            : selectedStep.destinationPeerId;
+
+                        updateStep({
+                          sourcePeerId: nextSource,
+                          destinationPeerId: nextDestination,
+                        });
+                      }}
+                    >
+                      <option value="">Select</option>
+                      {peers.map((peer) => (
+                        <option key={peer.id} value={peer.id}>
+                          {peer.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="properties__field">
+                  <span className="properties__field-label">Destination</span>
+                  <div className="properties__input-with-prefix">
+                    <Radio size={12} />
+                    <select
+                      className={`properties__input ${messageDestinationValue ? "" : "properties__input--placeholder"}`}
+                      value={messageDestinationValue}
+                      onChange={(event) => {
+                        const nextDestination = event.target.value || null;
+                        if (nextDestination && nextDestination === messageSourceValue) {
+                          return;
+                        }
+                        updateStep({ destinationPeerId: nextDestination });
+                      }}
+                    >
+                      <option value="">Select</option>
+                      {peers
+                        .filter((peer) => peer.id !== messageSourceValue)
+                        .map((peer) => (
+                          <option key={peer.id} value={peer.id}>
+                            {peer.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {selectedStep.type === "TOGGLE" && (
+            <div className="properties__field">
+              <div className="properties__inline-group">
+                <div className="properties__field">
+                  <span className="properties__field-label">Entity</span>
+                  <div className="properties__input-with-prefix">
+                    <Diamond size={12} />
+                    <select
+                      className={`properties__input ${toggleTargetValue ? "" : "properties__input--placeholder"}`}
+                      value={toggleTargetValue}
+                      onChange={(event) =>
+                        updateStep({ targetEntityId: event.target.value || null })
+                      }
+                    >
+                      <option value="">Select</option>
+                      {toggleTargets.map((entity) => (
+                        <option key={entity.id} value={entity.id}>
+                          {entity.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <label className="properties__field">
+                  <span className="properties__field-label">New status</span>
+                  <button className="properties__status" type="button" disabled>
+                    <Activity size={12} />
+                    {reverseStatusLabel}
+                  </button>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {selectedStep.type === "MOVE" && (
+            <>
+              <label className="properties__field">
+                <span className="properties__field-label">Entity</span>
+                <div className="properties__input-with-prefix">
+                  <Radio size={12} />
+                  <select
+                    className={`properties__input ${moveTargetValue ? "" : "properties__input--placeholder"}`}
+                    value={moveTargetValue}
+                    onChange={(event) => {
+                      const nextMovePeerId = event.target.value || null;
+                      const selectedPeer = peers.find((peer) => peer.id === nextMovePeerId);
+                      const hasMoveCoordinates = selectedStep.x !== 0 || selectedStep.y !== 0;
+
+                      if (!selectedPeer || hasMoveCoordinates) {
+                        updateStep({ movePeerId: nextMovePeerId });
+                        return;
+                      }
+
+                      updateStep({
+                        movePeerId: nextMovePeerId,
+                        x: selectedPeer.x,
+                        y: selectedPeer.y,
+                      });
+                    }}
+                  >
+                    <option value="">Select</option>
+                    {peers.map((peer) => (
+                      <option key={peer.id} value={peer.id}>
+                        {peer.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </label>
+
+              <label className="properties__field">
+                <span className="properties__field-label">Position</span>
+                <div className="properties__inline-group">
+                  <div className="properties__input-with-icon">
+                    <span className="properties__input-icon">X</span>
+                    <input
+                      className="properties__input"
+                      type="number"
+                      value={selectedStep.x}
+                      onChange={(event) =>
+                        updateStep({ x: parseNumberValue(event.target.value, selectedStep.x) })
+                      }
+                    />
+                  </div>
+                  <div className="properties__input-with-icon">
+                    <span className="properties__input-icon">Y</span>
+                    <input
+                      className="properties__input"
+                      type="number"
+                      value={selectedStep.y}
+                      onChange={(event) =>
+                        updateStep({ y: parseNumberValue(event.target.value, selectedStep.y) })
+                      }
+                    />
+                  </div>
+                </div>
+              </label>
+            </>
+          )}
         </section>
       </aside>
     );

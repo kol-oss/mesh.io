@@ -83,6 +83,8 @@ export default function WorkspacePage() {
           selectedSource={selectedSource}
           entities={entities}
           setEntities={setEntities}
+          steps={steps}
+          setSteps={setSteps}
           isNavCollapsed={isNavCollapsed}
         />
       </div>
