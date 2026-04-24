@@ -1,9 +1,19 @@
-import { CircleDot, Clock3, Diamond, ExternalLink, Lock, Radio } from "lucide-react";
+import {
+  CircleDot,
+  Clock3,
+  Diamond,
+  ExternalLink,
+  Lock,
+  MoveHorizontal,
+  MoveVertical,
+  Radio,
+} from "lucide-react";
 
 import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
 import type {
   LinkEntity,
   NetworkEntity,
+  ObstacleEntity,
   PeerEntity,
   PeerRoutingProtocol,
 } from "../../types/navigation";
@@ -249,9 +259,33 @@ export default function Properties({
   }
 
   if (selectedEntity.type !== "PEER") {
+    const selectedObstacle: ObstacleEntity = selectedEntity;
+    const isLocked = selectedObstacle.locked === true;
+
+    const updateObstacle = (changes: Partial<ObstacleEntity>) => {
+      if (isLocked) return;
+      const updatedEntities = entities.map((entity) => {
+        if (entity.id !== selectedObstacle.id || entity.type !== "OBSTACLE") {
+          return entity;
+        }
+        return { ...entity, ...changes };
+      });
+      setEntities(updatedEntities);
+    };
+
     return (
-      <aside className="properties" style={{ width: `${widthPercent}%` }}>
-        <div className="properties__resizer" onPointerDown={onResizeStart} />
+      <aside
+        className={`properties ${isLocked ? "properties--locked" : ""}`}
+        style={{ width: `${widthPercent}%` }}
+      >
+        <div
+          className="properties__resizer"
+          role="separator"
+          aria-label="Resize properties"
+          aria-orientation="vertical"
+          onPointerDown={onResizeStart}
+        />
+
         <header className="properties__header">
           <p className="properties__title">{entityTitle}</p>
           <p className="properties__subtitle">{entityDescription}</p>
@@ -260,11 +294,90 @@ export default function Properties({
             Read more
           </a>
         </header>
+
+        {isLocked && (
+          <div className="properties__locked-notice">
+            <Lock size={12} />
+            This entity is unmodifiable.
+          </div>
+        )}
+
         <section className="properties__section">
-          <p className="properties__section-title">Information</p>
-          <p className="properties__placeholder">
-            Properties for this entity type are not implemented yet.
-          </p>
+          <p className="properties__section-title">Configuration</p>
+
+          <label className="properties__field">
+            <span className="properties__field-label">Name</span>
+            <input
+              className="properties__input"
+              type="text"
+              value={selectedObstacle.name}
+              onChange={(event) => updateObstacle({ name: event.target.value })}
+            />
+          </label>
+
+          <label className="properties__field">
+            <span className="properties__field-label">Position</span>
+            <div className="properties__inline-group">
+              <div className="properties__input-with-icon">
+                <span className="properties__input-icon">X</span>
+                <input
+                  className="properties__input"
+                  type="number"
+                  min="0"
+                  value={selectedObstacle.x}
+                  onChange={(event) =>
+                    updateObstacle({ x: parseNumberValue(event.target.value, selectedObstacle.x) })
+                  }
+                />
+              </div>
+              <div className="properties__input-with-icon">
+                <span className="properties__input-icon">Y</span>
+                <input
+                  className="properties__input"
+                  type="number"
+                  min="0"
+                  value={selectedObstacle.y}
+                  onChange={(event) =>
+                    updateObstacle({ y: parseNumberValue(event.target.value, selectedObstacle.y) })
+                  }
+                />
+              </div>
+            </div>
+          </label>
+
+          <label className="properties__field">
+            <span className="properties__field-label">Size</span>
+            <div className="properties__inline-group">
+              <div className="properties__input-with-prefix">
+                <MoveHorizontal size={12} />
+                <input
+                  className="properties__input"
+                  type="number"
+                  min="1"
+                  value={selectedObstacle.width}
+                  onChange={(event) =>
+                    updateObstacle({
+                      width: parseNumberValue(event.target.value, selectedObstacle.width),
+                    })
+                  }
+                />
+              </div>
+              <div className="properties__input-with-prefix">
+                <MoveVertical size={12} />
+                <input
+                  className="properties__input"
+                  type="number"
+                  min="1"
+                  value={selectedObstacle.height}
+                  onChange={(event) =>
+                    updateObstacle({
+                      height: parseNumberValue(event.target.value, selectedObstacle.height),
+                    })
+                  }
+                />
+              </div>
+            </div>
+          </label>
         </section>
       </aside>
     );

@@ -24,5 +24,14 @@ export const INITIAL_NETWORK_ENTITIES: NetworkEntity[] = [
     destinationPeerId: null,
     enabled: true,
   },
-  { id: generateUUID(), name: "Fence", type: "OBSTACLE", locked: false },
+  {
+    id: generateUUID(),
+    name: "Fence",
+    type: "OBSTACLE",
+    locked: false,
+    x: 200,
+    y: 200,
+    width: 100,
+    height: 60,
+  },
 ];

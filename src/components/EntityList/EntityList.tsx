@@ -29,6 +29,13 @@ const LINK_DEFAULTS = {
   enabled: true,
 };
 
+const OBSTACLE_DEFAULTS = {
+  x: 200,
+  y: 200,
+  width: 100,
+  height: 60,
+};
+
 const hasPeerDefaults = (entity: NetworkEntity) => {
   if (entity.type !== "PEER") {
     return true;
@@ -54,6 +61,19 @@ const hasLinkDefaults = (entity: NetworkEntity) => {
     (entity.sourcePeerId === null || typeof entity.sourcePeerId === "string") &&
     (entity.destinationPeerId === null || typeof entity.destinationPeerId === "string") &&
     typeof entity.enabled === "boolean"
+  );
+};
+
+const hasObstacleDefaults = (entity: NetworkEntity) => {
+  if (entity.type !== "OBSTACLE") {
+    return true;
+  }
+
+  return (
+    typeof entity.x === "number" &&
+    typeof entity.y === "number" &&
+    typeof entity.width === "number" &&
+    typeof entity.height === "number"
   );
 };
 
@@ -83,6 +103,7 @@ export default function EntityList({
         normalizedType === "ROUTER" ||
         !hasPeerDefaults(entity) ||
         !hasLinkDefaults(entity) ||
+        !hasObstacleDefaults(entity) ||
         !hasId
       );
     });
@@ -111,6 +132,14 @@ export default function EntityList({
             ...LINK_DEFAULTS,
             ...baseEntity,
             type: "LINK" as const,
+          };
+        }
+
+        if (entity.type === "OBSTACLE") {
+          return {
+            ...OBSTACLE_DEFAULTS,
+            ...baseEntity,
+            type: "OBSTACLE" as const,
           };
         }
 

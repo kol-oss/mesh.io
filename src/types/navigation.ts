@@ -33,6 +33,10 @@ export type ObstacleEntity = {
   name: string;
   type: "OBSTACLE";
   locked?: boolean;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 };
 
 export type NetworkEntity = PeerEntity | LinkEntity | ObstacleEntity;
