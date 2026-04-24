@@ -9,7 +9,8 @@ import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { ChevronRight, Plus } from "lucide-react";
+import { Activity, ChevronRight, ChevronsRight, Mail, Plus } from "lucide-react";
+import { createPortal } from "react-dom";
 
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
@@ -35,6 +36,10 @@ export default function StepsList({
   onClearSelection,
 }: StepsListProps) {
   const [isOpened, setIsOpened] = useLocalStorage<boolean>("mesh_steps_opened", false);
+  const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
+  const [addMenuPosition, setAddMenuPosition] = useState<{ top: number; left: number } | null>(
+    null,
+  );
   const { showToast } = useToast();
 
   // Drag-to-reorder
@@ -47,6 +52,9 @@ export default function StepsList({
   const pointerStartYRef = useRef(0);
   const suppressNextClickRef = useRef(false);
   const itemsContainerRef = useRef<HTMLDivElement | null>(null);
+  const addMenuRef = useRef<HTMLDivElement | null>(null);
+  const addMenuFloatingRef = useRef<HTMLDivElement | null>(null);
+  const addButtonRef = useRef<HTMLButtonElement | null>(null);
   const stepsRef = useRef(steps);
 
   useLayoutEffect(() => {
@@ -233,6 +241,26 @@ export default function StepsList({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedId, isOpened, handleDeleteStep]);
 
+  useEffect(() => {
+    if (!isAddMenuOpen) {
+      return;
+    }
+
+    const onWindowMouseDown = (event: MouseEvent) => {
+      const targetNode = event.target as Node;
+      if (
+        (addMenuRef.current && addMenuRef.current.contains(targetNode)) ||
+        (addMenuFloatingRef.current && addMenuFloatingRef.current.contains(targetNode))
+      ) {
+        return;
+      }
+      setIsAddMenuOpen(false);
+    };
+
+    window.addEventListener("mousedown", onWindowMouseDown);
+    return () => window.removeEventListener("mousedown", onWindowMouseDown);
+  }, [isAddMenuOpen]);
+
   const toggleOpen = () => setIsOpened(!isOpened);
 
   const handleHeaderKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -244,17 +272,28 @@ export default function StepsList({
     toggleOpen();
   };
 
-  const handleAddStep = (event: ReactMouseEvent<HTMLButtonElement>) => {
+  const handleAddStepClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     if (!isOpened) {
       setIsOpened(true);
     }
 
-    const nextTick = steps.reduce((maxTick, step) => Math.max(maxTick, step.tick), 0) + 1;
+    const triggerRect = addButtonRef.current?.getBoundingClientRect();
+    if (triggerRect) {
+      setAddMenuPosition({
+        top: triggerRect.top + triggerRect.height / 2,
+        left: triggerRect.right + 6,
+      });
+    }
+    setIsAddMenuOpen((prev) => !prev);
+  };
+
+  const handleCreateStep = (type: WorkflowStep["type"]) => {
+    const nextTick = steps.length > 0 ? steps[steps.length - 1].tick : 1;
     const newStep: WorkflowStep = {
       id: `step-${Date.now()}`,
-      title: `Step ${steps.length + 1}`,
-      type: "MOVE",
+      title: type === "TOGGLE" ? "Toggle" : type === "MESSAGE" ? "Message" : "Move",
+      type,
       tick: nextTick,
       sourcePeerId: null,
       destinationPeerId: null,
@@ -265,6 +304,8 @@ export default function StepsList({
     };
     const updatedSteps = [...steps, newStep];
     setSteps(updatedSteps);
+    onSelect(newStep.id);
+    setIsAddMenuOpen(false);
     showToast(`Step "${newStep.title}" added`);
   };
 
@@ -285,16 +326,56 @@ export default function StepsList({
           }`}
         />
         <span className="navigation__steps-title">Steps</span>
-        <TooltipAnchor content="Add new step">
-          <button
-            className="navigation__steps-add"
-            onClick={handleAddStep}
-            type="button"
-            aria-label="Add new step"
-          >
-            <Plus size={14} />
-          </button>
-        </TooltipAnchor>
+        <div className="navigation__steps-add-wrap" ref={addMenuRef}>
+          <TooltipAnchor content="Add new step">
+            <button
+              ref={addButtonRef}
+              className="navigation__steps-add"
+              onClick={handleAddStepClick}
+              type="button"
+              aria-label="Add new step"
+            >
+              <Plus size={14} />
+            </button>
+          </TooltipAnchor>
+        </div>
+
+        {isAddMenuOpen &&
+          addMenuPosition &&
+          createPortal(
+            <div
+              className="navigation__steps-add-menu"
+              ref={addMenuFloatingRef}
+              style={{ top: `${addMenuPosition.top}px`, left: `${addMenuPosition.left}px` }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <button
+                className="navigation__steps-add-option"
+                onClick={() => handleCreateStep("MOVE")}
+                type="button"
+              >
+                <ChevronsRight size={12} />
+                Move
+              </button>
+              <button
+                className="navigation__steps-add-option"
+                onClick={() => handleCreateStep("MESSAGE")}
+                type="button"
+              >
+                <Mail size={12} />
+                Message
+              </button>
+              <button
+                className="navigation__steps-add-option"
+                onClick={() => handleCreateStep("TOGGLE")}
+                type="button"
+              >
+                <Activity size={12} />
+                Toggle
+              </button>
+            </div>,
+            document.body,
+          )}
       </div>
 
       {isOpened && (

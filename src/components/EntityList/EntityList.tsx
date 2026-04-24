@@ -9,7 +9,8 @@ import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { ChevronRight, Plus } from "lucide-react";
+import { ChevronRight, Link, Plus, Radio, SquareSlash } from "lucide-react";
+import { createPortal } from "react-dom";
 
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
@@ -98,6 +99,10 @@ export default function EntityList({
   onClearSelection,
 }: EntityListProps) {
   const [isOpened, setIsOpened] = useLocalStorage<boolean>("mesh_entities_opened", false);
+  const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
+  const [addMenuPosition, setAddMenuPosition] = useState<{ top: number; left: number } | null>(
+    null,
+  );
   const { showToast } = useToast();
 
   // Drag-to-reorder
@@ -109,6 +114,9 @@ export default function EntityList({
   const pointerStartYRef = useRef(0);
   const suppressNextClickRef = useRef(false);
   const itemsContainerRef = useRef<HTMLDivElement | null>(null);
+  const addMenuRef = useRef<HTMLDivElement | null>(null);
+  const addMenuFloatingRef = useRef<HTMLDivElement | null>(null);
+  const addButtonRef = useRef<HTMLButtonElement | null>(null);
   const entitiesRef = useRef(entities);
 
   useLayoutEffect(() => {
@@ -295,6 +303,26 @@ export default function EntityList({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedId, isOpened, handleDeleteEntity]);
 
+  useEffect(() => {
+    if (!isAddMenuOpen) {
+      return;
+    }
+
+    const onWindowMouseDown = (event: MouseEvent) => {
+      const targetNode = event.target as Node;
+      if (
+        (addMenuRef.current && addMenuRef.current.contains(targetNode)) ||
+        (addMenuFloatingRef.current && addMenuFloatingRef.current.contains(targetNode))
+      ) {
+        return;
+      }
+      setIsAddMenuOpen(false);
+    };
+
+    window.addEventListener("mousedown", onWindowMouseDown);
+    return () => window.removeEventListener("mousedown", onWindowMouseDown);
+  }, [isAddMenuOpen]);
+
   const toggleOpen = () => setIsOpened(!isOpened);
 
   const handleHeaderKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -306,20 +334,60 @@ export default function EntityList({
     toggleOpen();
   };
 
-  const handleAddEntity = (event: ReactMouseEvent<HTMLButtonElement>) => {
+  const handleAddEntityClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     if (!isOpened) {
       setIsOpened(true);
     }
 
-    const newEntity: NetworkEntity = {
-      id: generateUUID(),
-      name: `Entity ${entities.length + 1}`,
-      type: "PEER",
-      ...PEER_DEFAULTS,
-    };
+    const triggerRect = addButtonRef.current?.getBoundingClientRect();
+    if (triggerRect) {
+      setAddMenuPosition({
+        top: triggerRect.top + triggerRect.height / 2,
+        left: triggerRect.right + 6,
+      });
+    }
+    setIsAddMenuOpen((prev) => !prev);
+  };
+
+  const handleCreateEntity = (type: NetworkEntity["type"]) => {
+    const newEntity: NetworkEntity =
+      type === "PEER"
+        ? {
+            id: generateUUID(),
+            name: "Peer",
+            type: "PEER",
+            x: 0,
+            y: 0,
+            range: 0,
+            enabled: true,
+            protocols: [],
+            batmanOgmInterval: 0,
+            batmanPurgeTimeout: 0,
+          }
+        : type === "LINK"
+          ? {
+              id: generateUUID(),
+              name: "Link",
+              type: "LINK",
+              sourcePeerId: null,
+              destinationPeerId: null,
+              enabled: true,
+            }
+          : {
+              id: generateUUID(),
+              name: "Obstacle",
+              type: "OBSTACLE",
+              x: 0,
+              y: 0,
+              width: 0,
+              height: 0,
+            };
+
     const updatedEntities = [...entities, newEntity];
     setEntities(updatedEntities);
+    onSelect(newEntity.id);
+    setIsAddMenuOpen(false);
     showToast(`Entity "${newEntity.name}" added`);
   };
 
@@ -340,16 +408,56 @@ export default function EntityList({
           }`}
         />
         <span className="navigation__entities-title">Entities</span>
-        <TooltipAnchor content="Add new entity">
-          <button
-            className="navigation__entities-add"
-            onClick={handleAddEntity}
-            type="button"
-            aria-label="Add new entity"
-          >
-            <Plus size={14} />
-          </button>
-        </TooltipAnchor>
+        <div className="navigation__entities-add-wrap" ref={addMenuRef}>
+          <TooltipAnchor content="Add new entity">
+            <button
+              ref={addButtonRef}
+              className="navigation__entities-add"
+              onClick={handleAddEntityClick}
+              type="button"
+              aria-label="Add new entity"
+            >
+              <Plus size={14} />
+            </button>
+          </TooltipAnchor>
+        </div>
+
+        {isAddMenuOpen &&
+          addMenuPosition &&
+          createPortal(
+            <div
+              className="navigation__entities-add-menu"
+              ref={addMenuFloatingRef}
+              style={{ top: `${addMenuPosition.top}px`, left: `${addMenuPosition.left}px` }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <button
+                className="navigation__entities-add-option"
+                onClick={() => handleCreateEntity("PEER")}
+                type="button"
+              >
+                <Radio size={12} />
+                Peer
+              </button>
+              <button
+                className="navigation__entities-add-option"
+                onClick={() => handleCreateEntity("LINK")}
+                type="button"
+              >
+                <Link size={12} />
+                Link
+              </button>
+              <button
+                className="navigation__entities-add-option"
+                onClick={() => handleCreateEntity("OBSTACLE")}
+                type="button"
+              >
+                <SquareSlash size={12} />
+                Obstacle
+              </button>
+            </div>,
+            document.body,
+          )}
       </div>
 
       {isOpened && (
