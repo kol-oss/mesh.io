@@ -1,16 +1,26 @@
 .workspace-page {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+
   &__nav {
-    display: flex;
-    width: 100%;
-    min-height: 100vh;
+    display: contents;
   }
 
   &__workspace {
+    flex: 1;
+    min-width: 0;
   }
 
   &__toolbar {
+    position: absolute;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    z-index: 3;
   }
 
   &__properties {
+    display: contents;
   }
 }

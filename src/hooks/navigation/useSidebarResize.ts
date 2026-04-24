@@ -12,7 +12,14 @@ import {
   SIDEBAR_MIN_WIDTH_PERCENT,
 } from "../../utils/navigation/constants";
 
-export function useSidebarResize() {
+type ResizeSide = "left" | "right";
+
+type UseSidebarResizeOptions = {
+  side?: ResizeSide;
+};
+
+export function useSidebarResize(options?: UseSidebarResizeOptions) {
+  const side = options?.side ?? "left";
   const [widthPercent, setWidthPercent] = useState(SIDEBAR_MIN_WIDTH_PERCENT);
   const isResizing = useRef(false);
 
@@ -22,7 +29,10 @@ export function useSidebarResize() {
         return;
       }
 
-      const nextWidth = (event.clientX / window.innerWidth) * 100;
+      const nextWidth =
+        side === "left"
+          ? (event.clientX / window.innerWidth) * 100
+          : ((window.innerWidth - event.clientX) / window.innerWidth) * 100;
       setWidthPercent(clamp(nextWidth, SIDEBAR_MIN_WIDTH_PERCENT, SIDEBAR_MAX_WIDTH_PERCENT));
     };
 
@@ -43,7 +53,7 @@ export function useSidebarResize() {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
     };
-  }, []);
+  }, [side]);
 
   const onResizeStart = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     event.preventDefault();

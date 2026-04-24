@@ -2,37 +2,36 @@ import { useState } from "react";
 import EntityList from "../EntityList/EntityList";
 import StepsList from "../StepsList/StepsList";
 import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
+import type { NetworkEntity } from "../../types/navigation";
+import type { WorkflowStep } from "../../types/steps";
 import NavigationHeader from "./NavigationHeader";
 import NavigationMenu from "./NavigationMenu";
 
-export default function Navigation() {
+type NavigationProps = {
+  selectedId: string | null;
+  selectedSource: "entities" | "steps" | null;
+  entities: NetworkEntity[];
+  setEntities: (value: NetworkEntity[]) => void;
+  steps: WorkflowStep[];
+  setSteps: (value: WorkflowStep[]) => void;
+  onEntitySelect: (id: string) => void;
+  onStepSelect: (id: string) => void;
+  onClearSelection: () => void;
+};
+
+export default function Navigation({
+  selectedId,
+  selectedSource,
+  entities,
+  setEntities,
+  steps,
+  setSteps,
+  onEntitySelect,
+  onStepSelect,
+  onClearSelection,
+}: NavigationProps) {
   const { widthPercent, onResizeStart } = useSidebarResize();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selectedSource, setSelectedSource] = useState<"entities" | "steps" | null>(null);
-
-  const handleEntitySelect = (id: string) => {
-    if (selectedSource === "entities" && selectedId === id) {
-      handleClearSelection();
-      return;
-    }
-    setSelectedId(id);
-    setSelectedSource("entities");
-  };
-
-  const handleStepSelect = (id: string) => {
-    if (selectedSource === "steps" && selectedId === id) {
-      handleClearSelection();
-      return;
-    }
-    setSelectedId(id);
-    setSelectedSource("steps");
-  };
-
-  const handleClearSelection = () => {
-    setSelectedId(null);
-    setSelectedSource(null);
-  };
 
   const handleToggleCollapse = () => {
     setIsCollapsed((prevState) => !prevState);
@@ -49,14 +48,18 @@ export default function Navigation() {
           <NavigationMenu />
           <div className="navigation__lists">
             <EntityList
+              entities={entities}
+              setEntities={setEntities}
               selectedId={selectedSource === "entities" ? selectedId : null}
-              onSelect={handleEntitySelect}
-              onClearSelection={handleClearSelection}
+              onSelect={onEntitySelect}
+              onClearSelection={onClearSelection}
             />
             <StepsList
+              steps={steps}
+              setSteps={setSteps}
               selectedId={selectedSource === "steps" ? selectedId : null}
-              onSelect={handleStepSelect}
-              onClearSelection={handleClearSelection}
+              onSelect={onStepSelect}
+              onClearSelection={onClearSelection}
             />
           </div>
           <div

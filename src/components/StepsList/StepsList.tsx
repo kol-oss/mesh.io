@@ -6,7 +6,6 @@ import {
 } from "react";
 import { ChevronRight, Plus } from "lucide-react";
 
-import { INITIAL_WORKFLOW_STEPS } from "../../utils/navigation/steps";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
 import type { WorkflowStep } from "../../types/steps";
@@ -14,14 +13,21 @@ import TooltipAnchor from "../Tooltip/TooltipAnchor";
 import StepsListItem from "./StepsListItem";
 
 type StepsListProps = {
+  steps: WorkflowStep[];
+  setSteps: (value: WorkflowStep[]) => void;
   selectedId: string | null;
   onSelect: (id: string) => void;
   onClearSelection: () => void;
 };
 
-export default function StepsList({ selectedId, onSelect, onClearSelection }: StepsListProps) {
+export default function StepsList({
+  steps,
+  setSteps,
+  selectedId,
+  onSelect,
+  onClearSelection,
+}: StepsListProps) {
   const [isOpened, setIsOpened] = useLocalStorage<boolean>("mesh_steps_opened", false);
-  const [steps, setSteps] = useLocalStorage<WorkflowStep[]>("mesh_steps", INITIAL_WORKFLOW_STEPS);
   const { showToast } = useToast();
 
   useEffect(() => {

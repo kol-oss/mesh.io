@@ -6,66 +6,117 @@ import {
 } from "react";
 import { ChevronRight, Plus } from "lucide-react";
 
-import { INITIAL_NETWORK_ENTITIES } from "../../utils/navigation/entities";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
 import type { NetworkEntity } from "../../types/navigation";
+import { generateUUID } from "../../utils/uuid";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
 import EntityListItem from "./EntityListItem";
 
+const PEER_DEFAULTS = {
+  x: 300,
+  y: 100,
+  range: 75,
+  enabled: true,
+  protocol: "BATMAN" as const,
+  batmanOgmInterval: 1,
+  batmanPurgeTimeout: 10,
+};
+
+const hasPeerDefaults = (entity: NetworkEntity) => {
+  if (entity.type !== "PEER") {
+    return true;
+  }
+
+  return (
+    typeof entity.x === "number" &&
+    typeof entity.y === "number" &&
+    typeof entity.range === "number" &&
+    typeof entity.enabled === "boolean" &&
+    typeof entity.protocol === "string" &&
+    typeof entity.batmanOgmInterval === "number" &&
+    typeof entity.batmanPurgeTimeout === "number"
+  );
+};
+
 type EntityListProps = {
+  entities: NetworkEntity[];
+  setEntities: (value: NetworkEntity[]) => void;
   selectedId: string | null;
   onSelect: (id: string) => void;
   onClearSelection: () => void;
 };
 
-export default function EntityList({ selectedId, onSelect, onClearSelection }: EntityListProps) {
+export default function EntityList({
+  entities,
+  setEntities,
+  selectedId,
+  onSelect,
+  onClearSelection,
+}: EntityListProps) {
   const [isOpened, setIsOpened] = useLocalStorage<boolean>("mesh_entities_opened", false);
-  const [entities, setEntities] = useLocalStorage<NetworkEntity[]>(
-    "mesh_entities",
-    INITIAL_NETWORK_ENTITIES,
-  );
   const { showToast } = useToast();
 
   useEffect(() => {
-    const hasLegacyRouterType = entities.some(
-      (entity) => (entity as NetworkEntity | { type: string }).type === "ROUTER",
-    );
-    if (!hasLegacyRouterType) {
+    const requiresMigration = entities.some((entity) => {
+      const normalizedType = (entity as NetworkEntity | { type: string }).type;
+      const hasId = "id" in entity;
+      return normalizedType === "ROUTER" || !hasPeerDefaults(entity) || !hasId;
+    });
+    if (!requiresMigration) {
       return;
     }
 
     const migratedEntities = entities.map((entity) => {
       const normalizedType = (entity as NetworkEntity | { type: string }).type;
-      return normalizedType === "ROUTER" ? { ...entity, type: "PEER" as const } : entity;
+      const baseEntity = {
+        ...entity,
+        id: "id" in entity ? entity.id : generateUUID(),
+      };
+
+      if (normalizedType === "ROUTER") {
+        return {
+          ...baseEntity,
+          type: "PEER" as const,
+          ...PEER_DEFAULTS,
+        };
+      }
+
+      if (entity.type !== "PEER") {
+        return baseEntity;
+      }
+
+      return {
+        ...PEER_DEFAULTS,
+        ...baseEntity,
+        type: "PEER" as const,
+      };
     });
     setEntities(migratedEntities);
   }, [entities, setEntities]);
 
   const handleDeleteEntity = useCallback(() => {
     if (!selectedId) return;
-    const entity = entities.find((e) => e.name === selectedId);
+    const entity = entities.find((e) => e.id === selectedId);
     if (entity?.locked) {
-      showToast(`Entity "${selectedId}" is locked`);
+      showToast(`Entity "${entity.name}" is locked`);
       return;
     }
-    const index = entities.findIndex((e) => e.name === selectedId);
-    const updatedEntities = entities.filter((e) => e.name !== selectedId);
+    const index = entities.findIndex((e) => e.id === selectedId);
+    const updatedEntities = entities.filter((e) => e.id !== selectedId);
     setEntities(updatedEntities);
-    showToast(`Entity "${selectedId}" deleted`);
+    showToast(`Entity deleted`);
     const nextEntity = updatedEntities[index] ?? updatedEntities[index - 1];
     if (nextEntity) {
-      onSelect(nextEntity.name);
+      onSelect(nextEntity.id);
     } else {
       onClearSelection();
     }
   }, [selectedId, entities, setEntities, showToast, onSelect, onClearSelection]);
 
   const handleToggleLock = useCallback(
-    (name: string) => {
-      const updatedEntities = entities.map((e) =>
-        e.name === name ? { ...e, locked: !e.locked } : e,
-      );
+    (id: string) => {
+      const updatedEntities = entities.map((e) => (e.id === id ? { ...e, locked: !e.locked } : e));
       setEntities(updatedEntities);
     },
     [entities, setEntities],
@@ -100,8 +151,10 @@ export default function EntityList({ selectedId, onSelect, onClearSelection }: E
     }
 
     const newEntity: NetworkEntity = {
+      id: generateUUID(),
       name: `Entity ${entities.length + 1}`,
       type: "PEER",
+      ...PEER_DEFAULTS,
     };
     const updatedEntities = [...entities, newEntity];
     setEntities(updatedEntities);
@@ -141,11 +194,11 @@ export default function EntityList({ selectedId, onSelect, onClearSelection }: E
         <div className="navigation__entities-items">
           {entities.map((networkEntity) => (
             <EntityListItem
-              key={networkEntity.name}
+              key={networkEntity.id}
               entity={networkEntity}
-              isSelected={selectedId === networkEntity.name}
-              onSelect={() => onSelect(networkEntity.name)}
-              onToggleLock={() => handleToggleLock(networkEntity.name)}
+              isSelected={selectedId === networkEntity.id}
+              onSelect={() => onSelect(networkEntity.id)}
+              onToggleLock={() => handleToggleLock(networkEntity.id)}
             />
           ))}
         </div>
