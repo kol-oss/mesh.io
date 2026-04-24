@@ -12,7 +12,7 @@ export default function StepsListItem({ step, isSelected, onSelect }: StepsListI
   const stepTypeTooltip = {
     MOVE: "Move",
     MESSAGE: "Message",
-    TOGGLE: "Toggle",
+    TOGGLE: "Toggle Status",
   }[step.type];
 
   const stepTypeIcon = {
