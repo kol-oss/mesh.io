@@ -38,7 +38,10 @@ export default function StepsList({
 }: StepsListProps) {
   const [isOpened, setIsOpened] = useLocalStorage<boolean>("mesh_steps_opened", false);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
-  const [isRefreshHidden, setIsRefreshHidden] = useState(false);
+  const [isRefreshHidden, setIsRefreshHidden] = useLocalStorage<boolean>(
+    "mesh_steps_refresh_hidden",
+    false,
+  );
   const [addMenuPosition, setAddMenuPosition] = useState<{ top: number; left: number } | null>(
     null,
   );
@@ -363,7 +366,7 @@ export default function StepsList({
               className="navigation__steps-add"
               onClick={(event) => {
                 event.stopPropagation();
-                setIsRefreshHidden((prev) => !prev);
+                setIsRefreshHidden(!isRefreshHidden);
               }}
               type="button"
               aria-label={isRefreshHidden ? "Show routing steps" : "Hide routing steps"}
