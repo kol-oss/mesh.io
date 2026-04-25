@@ -1,29 +1,33 @@
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
-import { NAVIGATION_MENU_ITEMS } from "../../utils/navigation/constants";
+import NavigationMenu from "./NavigationMenu";
 
 type NavigationHeaderProps = {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  onFileNew: () => void;
+  onFileExport: () => void;
+  onFileImport: (file: File) => void | Promise<void>;
 };
 
-export default function NavigationHeader({ isCollapsed, onToggleCollapse }: NavigationHeaderProps) {
+export default function NavigationHeader({
+  isCollapsed,
+  onToggleCollapse,
+  onFileNew,
+  onFileExport,
+  onFileImport,
+}: NavigationHeaderProps) {
   if (isCollapsed) {
     return (
       <div className="navigation__collapsed-bar">
         <div className="navigation__collapsed-content">
           <p className="navigation__collapsed-title">Mesh IO</p>
-          <div className="navigation__collapsed-menu" aria-label="Navigation menu">
-            {NAVIGATION_MENU_ITEMS.map((menuItem) => (
-              <button
-                className="navigation__menu-button navigation__collapsed-menu-button"
-                key={menuItem.title}
-                type="button"
-              >
-                {menuItem.title}
-              </button>
-            ))}
-          </div>
+          <NavigationMenu
+            onNew={onFileNew}
+            onExport={onFileExport}
+            onImport={onFileImport}
+            isCompact
+          />
         </div>
         <TooltipAnchor content="Expand sidebar" placement="bottom">
           <button

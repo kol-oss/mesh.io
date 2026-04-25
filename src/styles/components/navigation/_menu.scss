@@ -12,6 +12,16 @@
   align-items: center;
 }
 
+.navigation__menu--compact {
+  padding: 0;
+  border-bottom: none;
+  min-height: auto;
+}
+
+.navigation__menu-group {
+  position: relative;
+}
+
 .navigation__menu-button {
   @extend .typo-button;
 
@@ -35,4 +45,50 @@
     background-color: $neutral-200;
     color: $black-800;
   }
+}
+
+.navigation__menu--compact .navigation__menu-button {
+  min-height: 22px;
+  padding: 2px 6px;
+  height: 22px;
+}
+
+.navigation__file-menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(26, 26, 26, 0.96);
+  color: $neutral-0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+  z-index: 60;
+}
+
+.navigation__file-menu-option {
+  width: 100%;
+  min-height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: $neutral-0;
+  text-align: left;
+  padding: 4px 9px 4px 14px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.14);
+  }
+}
+
+.navigation__import-input {
+  display: none;
 }

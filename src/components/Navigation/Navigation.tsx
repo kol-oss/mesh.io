@@ -16,6 +16,9 @@ type NavigationProps = {
   onEntitySelect: (id: string) => void;
   onStepSelect: (id: string) => void;
   onClearSelection: () => void;
+  onFileNew: () => void;
+  onFileExport: () => void;
+  onFileImport: (file: File) => void | Promise<void>;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
 };
@@ -30,6 +33,9 @@ export default function Navigation({
   onEntitySelect,
   onStepSelect,
   onClearSelection,
+  onFileNew,
+  onFileExport,
+  onFileImport,
   isCollapsed,
   onToggleCollapse,
 }: NavigationProps) {
@@ -40,10 +46,16 @@ export default function Navigation({
       className={`navigation ${isCollapsed ? "navigation--collapsed" : ""}`}
       style={isCollapsed ? undefined : { width: `${widthPercent}%` }}
     >
-      <NavigationHeader isCollapsed={isCollapsed} onToggleCollapse={onToggleCollapse} />
+      <NavigationHeader
+        isCollapsed={isCollapsed}
+        onToggleCollapse={onToggleCollapse}
+        onFileNew={onFileNew}
+        onFileExport={onFileExport}
+        onFileImport={onFileImport}
+      />
       {!isCollapsed && (
         <>
-          <NavigationMenu />
+          <NavigationMenu onNew={onFileNew} onExport={onFileExport} onImport={onFileImport} />
           <div className="navigation__lists">
             <EntityList
               entities={entities}
