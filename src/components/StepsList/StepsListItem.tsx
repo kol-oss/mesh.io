@@ -1,6 +1,7 @@
 import { type PointerEvent as ReactPointerEvent } from "react";
-import { Activity, ChevronsRight, Mail } from "lucide-react";
+import { Activity, ChevronsRight, Mail, RotateCw } from "lucide-react";
 import type { WorkflowStep } from "../../types/steps";
+import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
 
 type StepsListItemProps = {
@@ -22,12 +23,14 @@ export default function StepsListItem({
     MOVE: "Move",
     MESSAGE: "Message",
     TOGGLE: "Toggle Status",
+    REFRESH: "Routing Refresh",
   }[step.type];
 
   const stepTypeIcon = {
     MOVE: <ChevronsRight size={13} />,
     MESSAGE: <Mail size={13} />,
     TOGGLE: <Activity size={13} />,
+    REFRESH: <RotateCw size={13} />,
   }[step.type];
 
   return (
@@ -39,7 +42,11 @@ export default function StepsListItem({
       <TooltipAnchor content={stepTypeTooltip}>
         <span className="navigation__step-type">{stepTypeIcon}</span>
       </TooltipAnchor>
-      <span className="navigation__step-title">{step.title}</span>
+      <span
+        className={`navigation__step-title${isRefreshStep(step) ? " navigation__step-title--auto" : ""}`}
+      >
+        {step.title}
+      </span>
       <span className="navigation__step-tick">{step.tick}</span>
     </div>
   );

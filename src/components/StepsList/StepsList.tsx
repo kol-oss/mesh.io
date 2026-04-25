@@ -9,16 +9,17 @@ import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { Activity, ChevronRight, ChevronsRight, Mail, Plus } from "lucide-react";
+import { Activity, ChevronRight, ChevronsRight, Eye, EyeOff, Mail, Plus } from "lucide-react";
 import { createPortal } from "react-dom";
 
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
 import type { WorkflowStep } from "../../types/steps";
+import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
 import StepsListItem from "./StepsListItem";
 
-const STEP_TYPES = ["MOVE", "MESSAGE", "TOGGLE"] as const;
+const STEP_TYPES = ["MOVE", "MESSAGE", "TOGGLE", "REFRESH"] as const;
 
 type StepsListProps = {
   steps: WorkflowStep[];
@@ -37,6 +38,7 @@ export default function StepsList({
 }: StepsListProps) {
   const [isOpened, setIsOpened] = useLocalStorage<boolean>("mesh_steps_opened", false);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
+  const [isRefreshHidden, setIsRefreshHidden] = useState(false);
   const [addMenuPosition, setAddMenuPosition] = useState<{ top: number; left: number } | null>(
     null,
   );
@@ -55,11 +57,12 @@ export default function StepsList({
   const addMenuRef = useRef<HTMLDivElement | null>(null);
   const addMenuFloatingRef = useRef<HTMLDivElement | null>(null);
   const addButtonRef = useRef<HTMLButtonElement | null>(null);
-  const stepsRef = useRef(steps);
+  const visibleSteps = isRefreshHidden ? steps.filter((step) => !isRefreshStep(step)) : steps;
+  const stepsRef = useRef(visibleSteps);
 
   useLayoutEffect(() => {
-    stepsRef.current = steps;
-  });
+    stepsRef.current = visibleSteps;
+  }, [visibleSteps]);
 
   useLayoutEffect(() => {
     dropIndexRef.current = dropIndex;
@@ -131,10 +134,22 @@ export default function StepsList({
       isDraggingRef.current = false;
       pointerStartYRef.current = event.clientY;
 
-      const draggedTick = stepsRef.current[index].tick;
+      const draggedStep = stepsRef.current[index];
+      if (!draggedStep || isRefreshStep(draggedStep)) {
+        dragIndexRef.current = null;
+        return;
+      }
+
+      const draggedTick = draggedStep.tick;
       const sameTickIndices = stepsRef.current
-        .map((s, i) => (s.tick === draggedTick ? i : -1))
+        .map((s, i) => (s.tick === draggedTick && !isRefreshStep(s) ? i : -1))
         .filter((i) => i !== -1);
+
+      if (sameTickIndices.length === 0) {
+        dragIndexRef.current = null;
+        return;
+      }
+
       validRangeRef.current = {
         min: sameTickIndices[0],
         max: sameTickIndices[sameTickIndices.length - 1] + 1,
@@ -217,9 +232,12 @@ export default function StepsList({
 
   const handleDeleteStep = useCallback(() => {
     if (!selectedId) return;
-    const index = steps.findIndex((s) => s.id === selectedId);
-    const stepToDelete = steps[index];
-    const updatedSteps = steps.filter((s) => s.id !== selectedId);
+    const index = visibleSteps.findIndex((s) => s.id === selectedId);
+    if (index === -1 || isRefreshStep(visibleSteps[index])) {
+      return;
+    }
+    const stepToDelete = visibleSteps[index];
+    const updatedSteps = visibleSteps.filter((s) => s.id !== selectedId);
     setSteps(updatedSteps);
     showToast(`Step "${stepToDelete?.title}" deleted`);
     const nextStep = updatedSteps[index] ?? updatedSteps[index - 1];
@@ -228,7 +246,18 @@ export default function StepsList({
     } else {
       onClearSelection();
     }
-  }, [selectedId, steps, setSteps, showToast, onSelect, onClearSelection]);
+  }, [selectedId, visibleSteps, setSteps, showToast, onSelect, onClearSelection]);
+
+  useEffect(() => {
+    if (!isRefreshHidden || !selectedId) {
+      return;
+    }
+
+    const selectedStep = steps.find((step) => step.id === selectedId);
+    if (selectedStep && isRefreshStep(selectedStep)) {
+      onClearSelection();
+    }
+  }, [isRefreshHidden, onClearSelection, selectedId, steps]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -288,8 +317,10 @@ export default function StepsList({
     setIsAddMenuOpen((prev) => !prev);
   };
 
-  const handleCreateStep = (type: WorkflowStep["type"]) => {
-    const nextTick = steps.length > 0 ? steps[steps.length - 1].tick : 1;
+  const handleCreateStep = (type: "MOVE" | "MESSAGE" | "TOGGLE") => {
+    const manualSteps = steps.filter((step) => !isRefreshStep(step));
+    const nextTick =
+      manualSteps.length > 0 ? Math.max(1, manualSteps[manualSteps.length - 1].tick) : 1;
     const newStep: WorkflowStep = {
       id: `step-${Date.now()}`,
       title: type === "TOGGLE" ? "Toggle" : type === "MESSAGE" ? "Message" : "Move",
@@ -326,6 +357,21 @@ export default function StepsList({
           }`}
         />
         <span className="navigation__steps-title">Steps</span>
+        {isOpened && (
+          <TooltipAnchor content={isRefreshHidden ? "Show routing steps" : "Hide routing steps"}>
+            <button
+              className="navigation__steps-add"
+              onClick={(event) => {
+                event.stopPropagation();
+                setIsRefreshHidden((prev) => !prev);
+              }}
+              type="button"
+              aria-label={isRefreshHidden ? "Show routing steps" : "Hide routing steps"}
+            >
+              {isRefreshHidden ? <Eye size={14} /> : <EyeOff size={14} />}
+            </button>
+          </TooltipAnchor>
+        )}
         <div className="navigation__steps-add-wrap" ref={addMenuRef}>
           <TooltipAnchor content="Add new step">
             <button
@@ -383,7 +429,7 @@ export default function StepsList({
           className={`navigation__steps-items${dragIndex !== null ? " navigation__steps-items--reordering" : ""}`}
           ref={itemsContainerRef}
         >
-          {steps.map((step, index) => (
+          {visibleSteps.map((step, index) => (
             <Fragment key={step.id}>
               {dragIndex !== null && dropIndex === index && (
                 <div className="navigation__step-drop-indicator" />
@@ -399,11 +445,16 @@ export default function StepsList({
                   }
                   onSelect(step.id);
                 }}
-                onPointerDown={(e) => handleItemPointerDown(index, e)}
+                onPointerDown={(e) => {
+                  if (isRefreshStep(step)) {
+                    return;
+                  }
+                  handleItemPointerDown(index, e);
+                }}
               />
             </Fragment>
           ))}
-          {dragIndex !== null && dropIndex === steps.length && (
+          {dragIndex !== null && dropIndex === visibleSteps.length && (
             <div className="navigation__step-drop-indicator" />
           )}
         </div>

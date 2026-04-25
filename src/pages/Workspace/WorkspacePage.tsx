@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Navigation from "../../components/Navigation/Navigation";
 import Properties from "../../components/Properties/Properties";
@@ -8,6 +8,7 @@ import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import type { NetworkEntity } from "../../types/navigation";
 import type { WorkflowStep } from "../../types/steps";
 import { INITIAL_NETWORK_ENTITIES } from "../../utils/navigation/entities";
+import { composeStepsWithRefresh, sanitizeManualSteps } from "../../utils/navigation/refreshSteps";
 import { INITIAL_WORKFLOW_STEPS } from "../../utils/navigation/steps";
 
 export default function WorkspacePage() {
@@ -25,7 +26,25 @@ export default function WorkspacePage() {
     "mesh_entities",
     INITIAL_NETWORK_ENTITIES,
   );
-  const [steps, setSteps] = useLocalStorage<WorkflowStep[]>("mesh_steps", INITIAL_WORKFLOW_STEPS);
+  const [manualSteps, setManualSteps] = useLocalStorage<WorkflowStep[]>(
+    "mesh_steps",
+    INITIAL_WORKFLOW_STEPS,
+  );
+  const normalizedManualSteps = useMemo(() => sanitizeManualSteps(manualSteps), [manualSteps]);
+  const steps = useMemo(
+    () => composeStepsWithRefresh(normalizedManualSteps, entities),
+    [normalizedManualSteps, entities],
+  );
+
+  useEffect(() => {
+    if (normalizedManualSteps.length !== manualSteps.length) {
+      setManualSteps(normalizedManualSteps);
+    }
+  }, [manualSteps.length, normalizedManualSteps, setManualSteps]);
+
+  const setSteps = (nextSteps: WorkflowStep[]) => {
+    setManualSteps(sanitizeManualSteps(nextSteps));
+  };
 
   const handleEntitySelect = (id: string) => {
     if (selectedSource === "entities" && selectedId === id) {
@@ -53,6 +72,18 @@ export default function WorkspacePage() {
     setSelectedId(null);
     setSelectedSource(null);
   };
+
+  useEffect(() => {
+    if (selectedSource !== "steps" || !selectedId) {
+      return;
+    }
+
+    const hasSelectedStep = steps.some((step) => step.id === selectedId);
+    if (!hasSelectedStep) {
+      setSelectedId(null);
+      setSelectedSource(null);
+    }
+  }, [selectedId, selectedSource, setSelectedId, setSelectedSource, steps]);
 
   return (
     <div className="workspace-page">

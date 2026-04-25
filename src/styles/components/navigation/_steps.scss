@@ -143,6 +143,10 @@
   color: $black-800;
   font-size: 14px;
   min-width: 0;
+
+  &--auto {
+    color: $black-400;
+  }
 }
 .navigation__step-type {
   display: inline-flex;
