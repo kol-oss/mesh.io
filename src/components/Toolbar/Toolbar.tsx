@@ -1,3 +1,336 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Activity,
+  ArrowLeftCircle,
+  ArrowRightCircle,
+  Check,
+  ChevronDown,
+  Link2,
+  Mail,
+  MousePointer2,
+  PackageSearch,
+  Play,
+  Radio,
+  SquareSlash,
+  TableProperties,
+  Type,
+  ChevronsRight,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
+import TooltipAnchor from "../Tooltip/TooltipAnchor";
+
+type ToolMode =
+  | "navigationMove"
+  | "peer"
+  | "link"
+  | "obstacle"
+  | "message"
+  | "move"
+  | "toggle"
+  | "routingTable"
+  | "packetStructure"
+  | "text";
+
+type ModeButton = {
+  key: ToolMode;
+  label: string;
+  icon: LucideIcon;
+  locked?: boolean;
+};
+
+type ModeGroup = {
+  id: "navigation" | "entities" | "steps" | "inspection" | "text";
+  items: ModeButton[];
+  defaultKey: ToolMode;
+  hasMenu: boolean;
+};
+
+type ActionButton = {
+  key: "run" | "prev" | "next";
+  label: string;
+  icon: LucideIcon;
+  locked?: boolean;
+};
+
+type ModeSelectionsByGroup = Record<ModeGroup["id"], ToolMode>;
+
+const TOOLBAR_ICON_SIZE = 21;
+const TOOLBAR_MENU_ICON_SIZE = 16;
+const TOOLBAR_MENU_CHECK_SIZE = 13;
+
+const TOOLBAR_ICON_STROKE_WIDTH = 1.2;
+
+const getModeIconClassName = (mode: ToolMode) => {
+  if (mode === "move") {
+    return "toolbar__chevrons-icon";
+  }
+
+  return undefined;
+};
+
+const MODE_GROUPS: ModeGroup[] = [
+  {
+    id: "navigation",
+    defaultKey: "navigationMove",
+    hasMenu: true,
+    items: [{ key: "navigationMove", label: "Move", icon: MousePointer2 }],
+  },
+  {
+    id: "entities",
+    defaultKey: "peer",
+    hasMenu: true,
+    items: [
+      { key: "peer", label: "Peer", icon: Radio },
+      { key: "link", label: "Link", icon: Link2 },
+      { key: "obstacle", label: "Obstacle", icon: SquareSlash },
+    ],
+  },
+  {
+    id: "steps",
+    defaultKey: "message",
+    hasMenu: true,
+    items: [
+      { key: "message", label: "Message", icon: Mail },
+      { key: "move", label: "Move", icon: ChevronsRight },
+      { key: "toggle", label: "Toggle", icon: Activity },
+    ],
+  },
+  {
+    id: "inspection",
+    defaultKey: "routingTable",
+    hasMenu: true,
+    items: [
+      { key: "routingTable", label: "Table", icon: TableProperties, locked: true },
+      { key: "packetStructure", label: "Packet", icon: PackageSearch, locked: true },
+    ],
+  },
+  {
+    id: "text",
+    defaultKey: "text",
+    hasMenu: false,
+    items: [{ key: "text", label: "Text", icon: Type }],
+  },
+];
+
+const ACTIONS: ActionButton[] = [
+  { key: "run", label: "Run", icon: Play },
+  { key: "prev", label: "Previous step", icon: ArrowLeftCircle, locked: true },
+  { key: "next", label: "Next step", icon: ArrowRightCircle, locked: true },
+];
+
+const DEFAULT_MODE_SELECTIONS: ModeSelectionsByGroup = {
+  navigation: "navigationMove",
+  entities: "peer",
+  steps: "message",
+  inspection: "routingTable",
+  text: "text",
+};
+
+const DEFAULT_SELECTED_GROUP: ModeGroup["id"] = "navigation";
+
 export default function Toolbar() {
-  return <></>;
+  const [selectedModesByGroup, setSelectedModesByGroup] = useLocalStorage<ModeSelectionsByGroup>(
+    "mesh_toolbar_modes_by_group",
+    DEFAULT_MODE_SELECTIONS,
+  );
+  const [selectedGroupId, setSelectedGroupId] = useLocalStorage<ModeGroup["id"]>(
+    "mesh_toolbar_selected_group",
+    DEFAULT_SELECTED_GROUP,
+  );
+  const [openedMenuGroup, setOpenedMenuGroup] = useState<ModeGroup["id"] | null>(null);
+  const toolbarRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!toolbarRef.current?.contains(event.target as Node)) {
+        setOpenedMenuGroup(null);
+      }
+    };
+
+    window.addEventListener("mousedown", handleOutsideClick);
+    return () => window.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  const activeItemsByGroup = useMemo(() => {
+    return MODE_GROUPS.reduce<Record<ModeGroup["id"], ModeButton>>(
+      (acc, group) => {
+        const selected = group.items.find((item) => item.key === selectedModesByGroup[group.id]);
+        const fallback =
+          group.items.find((item) => item.key === group.defaultKey) ?? group.items[0];
+
+        acc[group.id] = selected ?? fallback;
+        return acc;
+      },
+      {} as Record<ModeGroup["id"], ModeButton>,
+    );
+  }, [selectedModesByGroup]);
+
+  const normalizedSelectedGroupId = MODE_GROUPS.some((group) => group.id === selectedGroupId)
+    ? selectedGroupId
+    : DEFAULT_SELECTED_GROUP;
+
+  const setGroupMode = (groupId: ModeGroup["id"], mode: ToolMode) => {
+    setSelectedModesByGroup({
+      ...selectedModesByGroup,
+      [groupId]: mode,
+    });
+  };
+
+  return (
+    <div className="toolbar" role="toolbar" aria-label="Workspace toolbar" ref={toolbarRef}>
+      <div className="toolbar__cluster">
+        {MODE_GROUPS.map((group) => {
+          const activeItem = activeItemsByGroup[group.id];
+          const ActiveIcon = activeItem.icon;
+          const groupIsSelected = normalizedSelectedGroupId === group.id;
+          const canSelectActiveItem = activeItem.locked !== true;
+
+          if (!group.hasMenu) {
+            return (
+              <div className="toolbar__group" key={group.id}>
+                <TooltipAnchor content={`${activeItem.label}`} placement="top">
+                  <button
+                    className={`toolbar__button${groupIsSelected ? " toolbar__button--active" : ""}`}
+                    type="button"
+                    onClick={() => {
+                      if (canSelectActiveItem) {
+                        setGroupMode(group.id, activeItem.key);
+                        setSelectedGroupId(group.id);
+                      }
+                    }}
+                    aria-label={activeItem.label}
+                    aria-pressed={groupIsSelected}
+                    disabled={activeItem.locked}
+                  >
+                    <ActiveIcon
+                      size={TOOLBAR_ICON_SIZE}
+                      strokeWidth={TOOLBAR_ICON_STROKE_WIDTH}
+                      className={getModeIconClassName(activeItem.key)}
+                    />
+                  </button>
+                </TooltipAnchor>
+              </div>
+            );
+          }
+
+          return (
+            <div className="toolbar__group" key={group.id}>
+              <div className="toolbar__menu-group">
+                <TooltipAnchor content={activeItem.label} placement="top">
+                  <button
+                    className={`toolbar__button toolbar__menu-trigger${groupIsSelected ? " toolbar__button--active" : ""}`}
+                    type="button"
+                    onClick={() => {
+                      if (canSelectActiveItem) {
+                        setGroupMode(group.id, activeItem.key);
+                        setSelectedGroupId(group.id);
+                      }
+                    }}
+                    aria-label={activeItem.label}
+                    aria-pressed={groupIsSelected}
+                    disabled={activeItem.locked}
+                  >
+                    <ActiveIcon
+                      size={TOOLBAR_ICON_SIZE}
+                      strokeWidth={TOOLBAR_ICON_STROKE_WIDTH}
+                      className={getModeIconClassName(activeItem.key)}
+                    />
+                  </button>
+                </TooltipAnchor>
+
+                <TooltipAnchor
+                  content={`${group.id.charAt(0).toUpperCase() + group.id.slice(1)}`}
+                  placement="top"
+                >
+                  <button
+                    className={`toolbar__button toolbar__menu-toggle${openedMenuGroup === group.id ? " toolbar__menu-toggle--open" : ""}`}
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setOpenedMenuGroup((prev) => (prev === group.id ? null : group.id));
+                    }}
+                    aria-label={`Open ${group.id} menu`}
+                    aria-expanded={openedMenuGroup === group.id}
+                  >
+                    <ChevronDown size={10} strokeWidth={TOOLBAR_ICON_STROKE_WIDTH} />
+                  </button>
+                </TooltipAnchor>
+
+                {openedMenuGroup === group.id && (
+                  <div className="toolbar__menu" role="menu" onClick={(e) => e.stopPropagation()}>
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeItemsByGroup[group.id].key === item.key;
+
+                      return (
+                        <button
+                          className={`toolbar__menu-option${isActive ? " toolbar__menu-option--active" : ""}`}
+                          key={`${group.id}-${item.key}`}
+                          type="button"
+                          role="menuitem"
+                          disabled={item.locked}
+                          onClick={() => {
+                            if (item.locked) {
+                              return;
+                            }
+                            setGroupMode(group.id, item.key);
+                            setSelectedGroupId(group.id);
+                            setOpenedMenuGroup(null);
+                          }}
+                        >
+                          <span className="toolbar__menu-check" aria-hidden="true">
+                            {isActive ? (
+                              <Check
+                                size={TOOLBAR_MENU_CHECK_SIZE}
+                                strokeWidth={TOOLBAR_ICON_STROKE_WIDTH}
+                              />
+                            ) : null}
+                          </span>
+                          <Icon
+                            size={TOOLBAR_MENU_ICON_SIZE}
+                            strokeWidth={TOOLBAR_ICON_STROKE_WIDTH}
+                            className={getModeIconClassName(item.key)}
+                          />
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <span className="toolbar__delimiter" aria-hidden="true" />
+
+      <div className="toolbar__group">
+        {ACTIONS.map((item) => {
+          const Icon = item.icon;
+          const isRunAction = item.key === "run";
+
+          return (
+            <TooltipAnchor key={item.key} content={item.label} placement="top">
+              <button
+                className="toolbar__button"
+                type="button"
+                aria-label={item.label}
+                disabled={item.locked}
+              >
+                <Icon
+                  size={TOOLBAR_ICON_SIZE}
+                  strokeWidth={TOOLBAR_ICON_STROKE_WIDTH}
+                  className={isRunAction ? "toolbar__run-icon" : undefined}
+                  fill={isRunAction ? "currentColor" : "none"}
+                />
+              </button>
+            </TooltipAnchor>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
