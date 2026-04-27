@@ -220,7 +220,7 @@ export default function WorkspacePage() {
     setSelectedSource("entities");
   };
 
-  const handleWorkspacePeerSelect = (id: string) => {
+  const handleWorkspaceEntitySelect = (id: string) => {
     setSelectedId(id);
     setSelectedSource("entities");
   };
@@ -336,7 +336,7 @@ export default function WorkspacePage() {
           setEntities={setEntities}
           selectedId={selectedId}
           selectedSource={selectedSource}
-          onPeerSelect={handleWorkspacePeerSelect}
+          onEntitySelect={handleWorkspaceEntitySelect}
           onClearSelection={handleClearSelection}
         />
       </div>
