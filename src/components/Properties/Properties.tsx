@@ -821,7 +821,7 @@ export default function Properties({
                   value={selectedObstacle.width}
                   onChange={(event) =>
                     updateObstacle({
-                      width: parseNumberValue(event.target.value, selectedObstacle.width),
+                      width: parsePositiveNumberValue(event.target.value, selectedObstacle.width),
                     })
                   }
                 />
@@ -835,7 +835,7 @@ export default function Properties({
                   value={selectedObstacle.height}
                   onChange={(event) =>
                     updateObstacle({
-                      height: parseNumberValue(event.target.value, selectedObstacle.height),
+                      height: parsePositiveNumberValue(event.target.value, selectedObstacle.height),
                     })
                   }
                 />

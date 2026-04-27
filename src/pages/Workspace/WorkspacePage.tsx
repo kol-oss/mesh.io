@@ -75,7 +75,9 @@ const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
       isFiniteNumber(value.x) &&
       isFiniteNumber(value.y) &&
       isFiniteNumber(value.width) &&
-      isFiniteNumber(value.height)
+      value.width > 0 &&
+      isFiniteNumber(value.height) &&
+      value.height > 0
     );
   }
 

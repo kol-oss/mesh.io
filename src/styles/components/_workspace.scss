@@ -124,6 +124,41 @@
   }
 }
 
+.workspace__obstacle {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(26, 26, 26, 0.34);
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(26, 26, 26, 0.16),
+    rgba(26, 26, 26, 0.16) 8px,
+    rgba(26, 26, 26, 0.08) 8px,
+    rgba(26, 26, 26, 0.08) 16px
+  );
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  z-index: 3;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &--selected {
+    border-color: #0f7fd0;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+      0 0 0 1px rgba(15, 127, 208, 0.24),
+      0 0 10px rgba(15, 127, 208, 0.2);
+  }
+
+  &--dragging {
+    z-index: 5;
+  }
+}
+
 .workspace__peer {
   position: absolute;
   transform: translate(-50%, -50%);

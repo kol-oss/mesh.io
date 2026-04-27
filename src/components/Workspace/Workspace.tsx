@@ -7,7 +7,7 @@ import {
 } from "react";
 import { Radio } from "lucide-react";
 
-import type { LinkEntity, NetworkEntity, PeerEntity } from "../../types/navigation";
+import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../types/navigation";
 
 type WorkspaceProps = {
   entities: NetworkEntity[];
@@ -19,7 +19,8 @@ type WorkspaceProps = {
 };
 
 type DragState = {
-  peerId: string;
+  entityId: string;
+  entityType: "PEER" | "OBSTACLE";
   pointerId: number;
   startClientX: number;
   startClientY: number;
@@ -83,6 +84,10 @@ export default function Workspace({
     () => entities.filter((entity): entity is LinkEntity => entity.type === "LINK"),
     [entities],
   );
+  const obstacles = useMemo(
+    () => entities.filter((entity): entity is ObstacleEntity => entity.type === "OBSTACLE"),
+    [entities],
+  );
   const peerById = useMemo(() => new Map(peers.map((peer) => [peer.id, peer])), [peers]);
   const staticLinks = useMemo(() => {
     return links
@@ -111,7 +116,7 @@ export default function Workspace({
   const [workspaceSize, setWorkspaceSize] = useState({ width: 0, height: 0 });
 
   const dragStateRef = useRef<DragState | null>(null);
-  const [activeDragPeerId, setActiveDragPeerId] = useState<string | null>(null);
+  const [activeDragEntityId, setActiveDragEntityId] = useState<string | null>(null);
 
   useEffect(() => {
     const element = workspaceRef.current;
@@ -212,6 +217,22 @@ export default function Workspace({
     setEntities(nextEntities);
   };
 
+  const updateObstaclePosition = (obstacleId: string, x: number, y: number) => {
+    const nextEntities = entities.map((entity) => {
+      if (entity.type !== "OBSTACLE" || entity.id !== obstacleId) {
+        return entity;
+      }
+
+      return {
+        ...entity,
+        x,
+        y,
+      };
+    });
+
+    setEntities(nextEntities);
+  };
+
   const handlePeerPointerDown = (peer: PeerEntity, event: ReactPointerEvent<HTMLButtonElement>) => {
     if (event.button !== 0) {
       return;
@@ -225,14 +246,42 @@ export default function Workspace({
 
     event.currentTarget.setPointerCapture(event.pointerId);
     dragStateRef.current = {
-      peerId: peer.id,
+      entityId: peer.id,
+      entityType: "PEER",
       pointerId: event.pointerId,
       startClientX: event.clientX,
       startClientY: event.clientY,
       startX: peer.x,
       startY: peer.y,
     };
-    setActiveDragPeerId(peer.id);
+    setActiveDragEntityId(peer.id);
+  };
+
+  const handleObstaclePointerDown = (
+    obstacle: ObstacleEntity,
+    event: ReactPointerEvent<HTMLButtonElement>,
+  ) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    onEntitySelect(obstacle.id);
+
+    if (obstacle.locked) {
+      return;
+    }
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragStateRef.current = {
+      entityId: obstacle.id,
+      entityType: "OBSTACLE",
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startX: obstacle.x,
+      startY: obstacle.y,
+    };
+    setActiveDragEntityId(obstacle.id);
   };
 
   const handlePeerPointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -243,11 +292,15 @@ export default function Workspace({
 
     const deltaX = event.clientX - dragState.startClientX;
     const deltaY = event.clientY - dragState.startClientY;
-    updatePeerPosition(
-      dragState.peerId,
-      toInt(dragState.startX + deltaX),
-      toInt(dragState.startY + deltaY),
-    );
+    const nextX = toInt(dragState.startX + deltaX);
+    const nextY = toInt(dragState.startY + deltaY);
+
+    if (dragState.entityType === "PEER") {
+      updatePeerPosition(dragState.entityId, nextX, nextY);
+      return;
+    }
+
+    updateObstaclePosition(dragState.entityId, nextX, nextY);
   };
 
   const handlePeerPointerEnd = (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -263,7 +316,7 @@ export default function Workspace({
     }
 
     dragStateRef.current = null;
-    setActiveDragPeerId(null);
+    setActiveDragEntityId(null);
   };
 
   return (
@@ -333,6 +386,31 @@ export default function Workspace({
         })}
       </svg>
 
+      {obstacles.map((obstacle) => {
+        const isSelected = selectedSource === "entities" && selectedId === obstacle.id;
+        return (
+          <button
+            key={obstacle.id}
+            className={`workspace__obstacle${isSelected ? " workspace__obstacle--selected" : ""}${activeDragEntityId === obstacle.id ? " workspace__obstacle--dragging" : ""}`}
+            style={{
+              left: `calc(50% + ${obstacle.x}px)`,
+              top: `calc(50% + ${obstacle.y}px)`,
+              width: `${Math.max(1, obstacle.width)}px`,
+              height: `${Math.max(1, obstacle.height)}px`,
+            }}
+            type="button"
+            onPointerDown={(event) => {
+              event.stopPropagation();
+              handleObstaclePointerDown(obstacle, event);
+            }}
+            onPointerMove={handlePeerPointerMove}
+            onPointerUp={handlePeerPointerEnd}
+            onPointerCancel={handlePeerPointerEnd}
+            aria-label={`Obstacle ${obstacle.name}`}
+          />
+        );
+      })}
+
       {peers.map((peer) => {
         const isSelected = selectedSource === "entities" && selectedId === peer.id;
         return (
@@ -351,7 +429,7 @@ export default function Workspace({
             )}
 
             <button
-              className={`workspace__peer${isSelected ? " workspace__peer--selected" : ""}${activeDragPeerId === peer.id ? " workspace__peer--dragging" : ""}${peer.enabled ? "" : " workspace__peer--disabled"}`}
+              className={`workspace__peer${isSelected ? " workspace__peer--selected" : ""}${activeDragEntityId === peer.id ? " workspace__peer--dragging" : ""}${peer.enabled ? "" : " workspace__peer--disabled"}`}
               style={{
                 left: `calc(50% + ${peer.x}px)`,
                 top: `calc(50% + ${peer.y}px)`,

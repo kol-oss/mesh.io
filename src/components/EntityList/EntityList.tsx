@@ -80,7 +80,11 @@ const hasObstacleDefaults = (entity: NetworkEntity) => {
     typeof entity.x === "number" &&
     typeof entity.y === "number" &&
     typeof entity.width === "number" &&
-    typeof entity.height === "number"
+    Number.isFinite(entity.width) &&
+    entity.width > 0 &&
+    typeof entity.height === "number" &&
+    Number.isFinite(entity.height) &&
+    entity.height > 0
   );
 };
 
@@ -169,10 +173,21 @@ export default function EntityList({
         }
 
         if (entity.type === "OBSTACLE") {
+          const nextWidth =
+            typeof entity.width === "number" && entity.width > 0
+              ? entity.width
+              : OBSTACLE_DEFAULTS.width;
+          const nextHeight =
+            typeof entity.height === "number" && entity.height > 0
+              ? entity.height
+              : OBSTACLE_DEFAULTS.height;
+
           return {
             ...OBSTACLE_DEFAULTS,
             ...baseEntity,
             type: "OBSTACLE" as const,
+            width: nextWidth,
+            height: nextHeight,
           };
         }
 
@@ -377,8 +392,8 @@ export default function EntityList({
               type: "OBSTACLE",
               x: 0,
               y: 0,
-              width: 0,
-              height: 0,
+              width: OBSTACLE_DEFAULTS.width,
+              height: OBSTACLE_DEFAULTS.height,
             };
 
     const updatedEntities = [...entities, newEntity];
