@@ -72,6 +72,7 @@
     stroke: transparent;
     stroke-width: 14;
     pointer-events: stroke;
+    cursor: pointer;
   }
 }
 
@@ -269,6 +270,7 @@
   align-items: center;
   justify-content: center;
   color: inherit;
+  cursor: pointer;
   transition:
     color 0.2s ease,
     filter 0.2s ease,
