@@ -54,8 +54,23 @@ type Connection =
       targetY: number;
     };
 
+type ObstacleBounds = {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+};
+
+type RangePolygon = {
+  peerId: string;
+  enabled: boolean;
+  selected: boolean;
+  path: string;
+};
+
 const toInt = (value: number) => Math.round(value);
 const OBSTACLE_MIN_SIZE = 1;
+const RANGE_SAMPLES = 180;
 
 // Shorten a line segment by `amount` pixels from each endpoint so lines
 // terminate at the peer icon edge rather than the coordinate center.
@@ -72,6 +87,143 @@ const shortenLine = (x1: number, y1: number, x2: number, y2: number, amount: num
     x2: x2 - ux * amount,
     y2: y2 - uy * amount,
   };
+};
+
+const getObstacleBounds = (obstacle: ObstacleEntity): ObstacleBounds => {
+  const halfWidth = Math.max(OBSTACLE_MIN_SIZE, obstacle.width) / 2;
+  const halfHeight = Math.max(OBSTACLE_MIN_SIZE, obstacle.height) / 2;
+
+  return {
+    left: obstacle.x - halfWidth,
+    right: obstacle.x + halfWidth,
+    top: obstacle.y - halfHeight,
+    bottom: obstacle.y + halfHeight,
+  };
+};
+
+const rayObstacleIntersectionDistance = (
+  originX: number,
+  originY: number,
+  dirX: number,
+  dirY: number,
+  obstacle: ObstacleBounds,
+): number | null => {
+  let tMin = Number.NEGATIVE_INFINITY;
+  let tMax = Number.POSITIVE_INFINITY;
+
+  if (Math.abs(dirX) < Number.EPSILON) {
+    if (originX < obstacle.left || originX > obstacle.right) {
+      return null;
+    }
+  } else {
+    const tx1 = (obstacle.left - originX) / dirX;
+    const tx2 = (obstacle.right - originX) / dirX;
+    tMin = Math.max(tMin, Math.min(tx1, tx2));
+    tMax = Math.min(tMax, Math.max(tx1, tx2));
+  }
+
+  if (Math.abs(dirY) < Number.EPSILON) {
+    if (originY < obstacle.top || originY > obstacle.bottom) {
+      return null;
+    }
+  } else {
+    const ty1 = (obstacle.top - originY) / dirY;
+    const ty2 = (obstacle.bottom - originY) / dirY;
+    tMin = Math.max(tMin, Math.min(ty1, ty2));
+    tMax = Math.min(tMax, Math.max(ty1, ty2));
+  }
+
+  if (tMax < tMin || tMax < 0) {
+    return null;
+  }
+
+  if (tMin > 0) {
+    return tMin;
+  }
+
+  return tMax > 0 ? 0 : null;
+};
+
+const getRayDistanceWithObstacleBlocking = (
+  originX: number,
+  originY: number,
+  dirX: number,
+  dirY: number,
+  maxDistance: number,
+  obstacles: ObstacleBounds[],
+) => {
+  let minDistance = maxDistance;
+
+  for (const obstacle of obstacles) {
+    const hitDistance = rayObstacleIntersectionDistance(originX, originY, dirX, dirY, obstacle);
+    if (hitDistance === null) {
+      continue;
+    }
+
+    minDistance = Math.min(minDistance, hitDistance);
+    if (minDistance <= 0) {
+      break;
+    }
+  }
+
+  return Math.max(0, minDistance);
+};
+
+const pointInsideObstacle = (x: number, y: number, obstacle: ObstacleBounds) => {
+  return x >= obstacle.left && x <= obstacle.right && y >= obstacle.top && y <= obstacle.bottom;
+};
+
+const segmentIntersectsObstacle = (
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
+  obstacle: ObstacleBounds,
+) => {
+  if (pointInsideObstacle(startX, startY, obstacle) || pointInsideObstacle(endX, endY, obstacle)) {
+    return true;
+  }
+
+  const deltaX = endX - startX;
+  const deltaY = endY - startY;
+  let tMin = 0;
+  let tMax = 1;
+
+  if (Math.abs(deltaX) < Number.EPSILON) {
+    if (startX < obstacle.left || startX > obstacle.right) {
+      return false;
+    }
+  } else {
+    const tx1 = (obstacle.left - startX) / deltaX;
+    const tx2 = (obstacle.right - startX) / deltaX;
+    tMin = Math.max(tMin, Math.min(tx1, tx2));
+    tMax = Math.min(tMax, Math.max(tx1, tx2));
+  }
+
+  if (Math.abs(deltaY) < Number.EPSILON) {
+    if (startY < obstacle.top || startY > obstacle.bottom) {
+      return false;
+    }
+  } else {
+    const ty1 = (obstacle.top - startY) / deltaY;
+    const ty2 = (obstacle.bottom - startY) / deltaY;
+    tMin = Math.max(tMin, Math.min(ty1, ty2));
+    tMax = Math.min(tMax, Math.max(ty1, ty2));
+  }
+
+  return tMax >= tMin;
+};
+
+const hasLineOfSight = (
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
+  obstacles: ObstacleBounds[],
+) => {
+  return !obstacles.some((obstacle) =>
+    segmentIntersectsObstacle(startX, startY, endX, endY, obstacle),
+  );
 };
 
 export default function Workspace({
@@ -148,6 +300,8 @@ export default function Workspace({
     return () => observer.disconnect();
   }, []);
 
+  const obstacleBounds = useMemo(() => obstacles.map(getObstacleBounds), [obstacles]);
+
   const connections = useMemo(() => {
     const enabledPeers = peers.filter((peer) => peer.enabled);
     const result: Connection[] = [];
@@ -159,9 +313,10 @@ export default function Workspace({
         const deltaX = peerB.x - peerA.x;
         const deltaY = peerB.y - peerA.y;
         const distance = Math.hypot(deltaX, deltaY);
+        const clearLineOfSight = hasLineOfSight(peerA.x, peerA.y, peerB.x, peerB.y, obstacleBounds);
 
-        const aToB = distance <= peerA.range;
-        const bToA = distance <= peerB.range;
+        const aToB = distance <= peerA.range && clearLineOfSight;
+        const bToA = distance <= peerB.range && clearLineOfSight;
 
         if (aToB && bToA) {
           result.push({
@@ -203,10 +358,50 @@ export default function Workspace({
     }
 
     return result;
-  }, [peers]);
+  }, [obstacleBounds, peers]);
 
   const centerX = workspaceSize.width / 2;
   const centerY = workspaceSize.height / 2;
+
+  const rangePolygons = useMemo(() => {
+    if (workspaceSize.width <= 0 || workspaceSize.height <= 0) {
+      return [];
+    }
+
+    return peers
+      .filter((peer) => peer.range > 0)
+      .map<RangePolygon>((peer) => {
+        const points: string[] = [];
+        const baseX = centerX + peer.x;
+        const baseY = centerY + peer.y;
+
+        for (let index = 0; index <= RANGE_SAMPLES; index += 1) {
+          const angle = (index / RANGE_SAMPLES) * Math.PI * 2;
+          const dirX = Math.cos(angle);
+          const dirY = Math.sin(angle);
+          const distance = getRayDistanceWithObstacleBlocking(
+            peer.x,
+            peer.y,
+            dirX,
+            dirY,
+            peer.range,
+            obstacleBounds,
+          );
+          const pointX = baseX + dirX * distance;
+          const pointY = baseY + dirY * distance;
+          points.push(`${pointX.toFixed(2)},${pointY.toFixed(2)}`);
+        }
+
+        const path = points.length > 0 ? `M ${points[0]} L ${points.slice(1).join(" L ")} Z` : "";
+
+        return {
+          peerId: peer.id,
+          enabled: peer.enabled,
+          selected: selectedSource === "entities" && selectedId === peer.id,
+          path,
+        };
+      });
+  }, [centerX, centerY, obstacleBounds, peers, selectedId, selectedSource, workspaceSize]);
 
   const updatePeerPosition = (peerId: string, x: number, y: number) => {
     const nextEntities = entities.map((entity) => {
@@ -509,6 +704,15 @@ export default function Workspace({
           );
         })}
       </svg>
+      <svg className="workspace__ranges" aria-hidden="true">
+        {rangePolygons.map((polygon) => (
+          <path
+            key={polygon.peerId}
+            d={polygon.path}
+            className={`workspace__peer-range${polygon.selected ? " workspace__peer-range--selected" : ""}${polygon.enabled ? "" : " workspace__peer-range--disabled"}`}
+          />
+        ))}
+      </svg>
 
       {obstacles.map((obstacle) => {
         const isSelected = selectedSource === "entities" && selectedId === obstacle.id;
@@ -572,19 +776,6 @@ export default function Workspace({
         const isSelected = selectedSource === "entities" && selectedId === peer.id;
         return (
           <div key={peer.id}>
-            {peer.range > 0 && (
-              <div
-                className={`workspace__peer-range${isSelected ? " workspace__peer-range--selected" : ""}${peer.enabled ? "" : " workspace__peer-range--disabled"}`}
-                style={{
-                  left: `calc(50% + ${peer.x}px)`,
-                  top: `calc(50% + ${peer.y}px)`,
-                  width: `${peer.range * 2}px`,
-                  height: `${peer.range * 2}px`,
-                }}
-                aria-hidden="true"
-              />
-            )}
-
             <button
               className={`workspace__peer${isSelected ? " workspace__peer--selected" : ""}${activeDragEntityId === peer.id ? " workspace__peer--dragging" : ""}${peer.enabled ? "" : " workspace__peer--disabled"}`}
               style={{

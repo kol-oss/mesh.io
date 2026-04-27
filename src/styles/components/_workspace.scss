@@ -30,6 +30,15 @@
   z-index: 1;
 }
 
+.workspace__ranges {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
 .workspace__static-links {
   position: absolute;
   inset: 0;
@@ -105,22 +114,19 @@
 }
 
 .workspace__peer-range {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  border-radius: 999px;
-  border: 1px solid rgba(26, 26, 26, 0.14);
-  background: rgba(26, 26, 26, 0.02);
-  pointer-events: none;
-  z-index: 3;
+  fill: rgba(26, 26, 26, 0.02);
+  stroke: rgba(26, 26, 26, 0.14);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 
   &--selected {
-    border-color: rgba(15, 127, 208, 0.28);
-    background: rgba(15, 127, 208, 0.04);
+    fill: rgba(15, 127, 208, 0.04);
+    stroke: rgba(15, 127, 208, 0.28);
   }
 
   &--disabled {
-    border-color: rgba(227, 4, 4, 0.2);
-    background: rgba(227, 4, 4, 0.03);
+    fill: rgba(227, 4, 4, 0.03);
+    stroke: rgba(227, 4, 4, 0.2);
   }
 }
 
