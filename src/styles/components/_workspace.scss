@@ -21,6 +21,38 @@
   pointer-events: none;
 }
 
+.workspace__connections {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.workspace__connection {
+  line {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 6 6;
+    animation: workspace-connection-flow 1.8s linear infinite;
+  }
+}
+
+.workspace__connection--mutual {
+  line {
+    stroke: rgba(15, 127, 208, 0.45);
+    stroke-width: 1.3;
+  }
+}
+
+.workspace__connection--one-way {
+  line {
+    stroke: rgba(227, 4, 4, 0.48);
+    stroke-width: 1.2;
+  }
+}
+
 .workspace__peer-range {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -28,6 +60,7 @@
   border: 1px solid rgba(26, 26, 26, 0.14);
   background: rgba(26, 26, 26, 0.02);
   pointer-events: none;
+  z-index: 2;
 
   &--selected {
     border-color: rgba(15, 127, 208, 0.28);
@@ -52,6 +85,7 @@
   cursor: grab;
   user-select: none;
   touch-action: none;
+  z-index: 3;
 
   &:active {
     cursor: grabbing;
@@ -105,4 +139,14 @@
   color: $black-800;
   white-space: nowrap;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+@keyframes workspace-connection-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+
+  to {
+    stroke-dashoffset: -24;
+  }
 }

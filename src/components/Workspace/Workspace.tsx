@@ -1,4 +1,10 @@
-import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { Radio } from "lucide-react";
 
 import type { NetworkEntity, PeerEntity } from "../../types/navigation";
@@ -21,6 +27,26 @@ type DragState = {
   startY: number;
 };
 
+type Connection =
+  | {
+      type: "MUTUAL";
+      sourceId: string;
+      targetId: string;
+      sourceX: number;
+      sourceY: number;
+      targetX: number;
+      targetY: number;
+    }
+  | {
+      type: "ONE_WAY";
+      sourceId: string;
+      targetId: string;
+      sourceX: number;
+      sourceY: number;
+      targetX: number;
+      targetY: number;
+    };
+
 const toInt = (value: number) => Math.round(value);
 
 export default function Workspace({
@@ -31,13 +57,98 @@ export default function Workspace({
   onPeerSelect,
   onClearSelection,
 }: WorkspaceProps) {
+  const workspaceRef = useRef<HTMLElement | null>(null);
   const peers = useMemo(
     () => entities.filter((entity): entity is PeerEntity => entity.type === "PEER"),
     [entities],
   );
+  const [workspaceSize, setWorkspaceSize] = useState({ width: 0, height: 0 });
 
   const dragStateRef = useRef<DragState | null>(null);
   const [activeDragPeerId, setActiveDragPeerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const element = workspaceRef.current;
+    if (!element) {
+      return;
+    }
+
+    const updateSize = () => {
+      setWorkspaceSize({
+        width: element.clientWidth,
+        height: element.clientHeight,
+      });
+    };
+
+    updateSize();
+
+    const observer = new ResizeObserver(() => {
+      updateSize();
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  const connections = useMemo(() => {
+    const enabledPeers = peers.filter((peer) => peer.enabled);
+    const result: Connection[] = [];
+
+    for (let i = 0; i < enabledPeers.length; i += 1) {
+      for (let j = i + 1; j < enabledPeers.length; j += 1) {
+        const peerA = enabledPeers[i];
+        const peerB = enabledPeers[j];
+        const deltaX = peerB.x - peerA.x;
+        const deltaY = peerB.y - peerA.y;
+        const distance = Math.hypot(deltaX, deltaY);
+
+        const aToB = distance <= peerA.range;
+        const bToA = distance <= peerB.range;
+
+        if (aToB && bToA) {
+          result.push({
+            type: "MUTUAL",
+            sourceId: peerA.id,
+            targetId: peerB.id,
+            sourceX: peerA.x,
+            sourceY: peerA.y,
+            targetX: peerB.x,
+            targetY: peerB.y,
+          });
+          continue;
+        }
+
+        if (aToB) {
+          result.push({
+            type: "ONE_WAY",
+            sourceId: peerA.id,
+            targetId: peerB.id,
+            sourceX: peerA.x,
+            sourceY: peerA.y,
+            targetX: peerB.x,
+            targetY: peerB.y,
+          });
+        }
+
+        if (bToA) {
+          result.push({
+            type: "ONE_WAY",
+            sourceId: peerB.id,
+            targetId: peerA.id,
+            sourceX: peerB.x,
+            sourceY: peerB.y,
+            targetX: peerA.x,
+            targetY: peerA.y,
+          });
+        }
+      }
+    }
+
+    return result;
+  }, [peers]);
+
+  const centerX = workspaceSize.width / 2;
+  const centerY = workspaceSize.height / 2;
 
   const updatePeerPosition = (peerId: string, x: number, y: number) => {
     const nextEntities = entities.map((entity) => {
@@ -110,8 +221,28 @@ export default function Workspace({
   };
 
   return (
-    <section className="workspace" onPointerDown={onClearSelection}>
+    <section className="workspace" onPointerDown={onClearSelection} ref={workspaceRef}>
       <div className="workspace__grid" aria-hidden="true" />
+      <svg className="workspace__connections" aria-hidden="true">
+        {connections.map((connection) => {
+          const sourceX = centerX + connection.sourceX;
+          const sourceY = centerY + connection.sourceY;
+          const targetX = centerX + connection.targetX;
+          const targetY = centerY + connection.targetY;
+          const isMutual = connection.type === "MUTUAL";
+
+          return (
+            <g
+              key={`${connection.type}-${connection.sourceId}-${connection.targetId}`}
+              className={`workspace__connection ${
+                isMutual ? "workspace__connection--mutual" : "workspace__connection--one-way"
+              }`}
+            >
+              <line x1={sourceX} y1={sourceY} x2={targetX} y2={targetY} />
+            </g>
+          );
+        })}
+      </svg>
 
       {peers.map((peer) => {
         const isSelected = selectedSource === "entities" && selectedId === peer.id;
