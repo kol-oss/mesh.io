@@ -118,7 +118,7 @@ export default function Workspace({
         return (
           <button
             key={peer.id}
-            className={`workspace__peer${isSelected ? " workspace__peer--selected" : ""}${activeDragPeerId === peer.id ? " workspace__peer--dragging" : ""}`}
+            className={`workspace__peer${isSelected ? " workspace__peer--selected" : ""}${activeDragPeerId === peer.id ? " workspace__peer--dragging" : ""}${peer.enabled ? "" : " workspace__peer--disabled"}`}
             style={{
               left: `calc(50% + ${peer.x}px)`,
               top: `calc(50% + ${peer.y}px)`,
@@ -134,7 +134,7 @@ export default function Workspace({
             aria-label={`Peer ${peer.name}`}
           >
             <span className="workspace__peer-icon">
-              <Radio size={16} />
+              <Radio size={20} />
             </span>
             <span className="workspace__peer-name">{peer.name}</span>
           </button>

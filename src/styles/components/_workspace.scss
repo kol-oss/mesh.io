@@ -24,8 +24,8 @@
 .workspace__peer {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: 36px;
-  height: 36px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -42,24 +42,29 @@
     z-index: 3;
   }
 
+  &--disabled {
+    color: $red-400;
+  }
+
   &--selected .workspace__peer-icon {
-    border-color: #0f7fd0;
-    box-shadow: 0 0 0 4px rgba(15, 127, 208, 0.18);
+    color: #0f7fd0;
+    filter: drop-shadow(0 0 6px rgba(15, 127, 208, 0.35));
+  }
+
+  &--disabled.workspace__peer--selected .workspace__peer-icon {
+    color: $red-400;
+    filter: drop-shadow(0 0 6px rgba(227, 4, 4, 0.28));
   }
 }
 
 .workspace__peer-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  border: 1px solid rgba(26, 26, 26, 0.28);
-  background: rgba(255, 255, 255, 0.96);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  color: inherit;
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
+    color 0.2s ease,
+    filter 0.2s ease,
     transform 0.1s ease;
 }
 
