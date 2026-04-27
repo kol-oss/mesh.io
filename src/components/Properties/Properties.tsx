@@ -476,8 +476,8 @@ export default function Properties({
 
                     updateStep({
                       movePeerId: nextMovePeerId,
-                      x: Math.max(0, selectedPeer.x),
-                      y: Math.max(0, selectedPeer.y),
+                      x: selectedPeer.x,
+                      y: selectedPeer.y,
                     });
                   }}
                 />
@@ -491,11 +491,10 @@ export default function Properties({
                     <input
                       className="properties__input"
                       type="number"
-                      min="0"
                       value={selectedStep.x}
                       onChange={(event) =>
                         updateStep({
-                          x: Math.max(0, parseNumberValue(event.target.value, selectedStep.x)),
+                          x: parseNumberValue(event.target.value, selectedStep.x),
                         })
                       }
                     />
@@ -505,11 +504,10 @@ export default function Properties({
                     <input
                       className="properties__input"
                       type="number"
-                      min="0"
                       value={selectedStep.y}
                       onChange={(event) =>
                         updateStep({
-                          y: Math.max(0, parseNumberValue(event.target.value, selectedStep.y)),
+                          y: parseNumberValue(event.target.value, selectedStep.y),
                         })
                       }
                     />
@@ -782,11 +780,10 @@ export default function Properties({
                 <input
                   className="properties__input"
                   type="number"
-                  min="0"
                   value={selectedObstacle.x}
                   onChange={(event) =>
                     updateObstacle({
-                      x: Math.max(0, parseNumberValue(event.target.value, selectedObstacle.x)),
+                      x: parseNumberValue(event.target.value, selectedObstacle.x),
                     })
                   }
                 />
@@ -796,11 +793,10 @@ export default function Properties({
                 <input
                   className="properties__input"
                   type="number"
-                  min="0"
                   value={selectedObstacle.y}
                   onChange={(event) =>
                     updateObstacle({
-                      y: Math.max(0, parseNumberValue(event.target.value, selectedObstacle.y)),
+                      y: parseNumberValue(event.target.value, selectedObstacle.y),
                     })
                   }
                 />
@@ -926,11 +922,10 @@ export default function Properties({
               <input
                 className="properties__input"
                 type="number"
-                min="0"
                 value={selectedPeer.x}
                 onChange={(event) =>
                   updatePeer({
-                    x: Math.max(0, parseNumberValue(event.target.value, selectedPeer.x)),
+                    x: parseNumberValue(event.target.value, selectedPeer.x),
                   })
                 }
               />
@@ -940,11 +935,10 @@ export default function Properties({
               <input
                 className="properties__input"
                 type="number"
-                min="0"
                 value={selectedPeer.y}
                 onChange={(event) =>
                   updatePeer({
-                    y: Math.max(0, parseNumberValue(event.target.value, selectedPeer.y)),
+                    y: parseNumberValue(event.target.value, selectedPeer.y),
                   })
                 }
               />
