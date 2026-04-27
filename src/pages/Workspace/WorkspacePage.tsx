@@ -54,6 +54,7 @@ const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
       isFiniteNumber(value.x) &&
       isFiniteNumber(value.y) &&
       isFiniteNumber(value.range) &&
+      value.range > 0 &&
       typeof value.enabled === "boolean" &&
       isValidProtocolList(value.protocols) &&
       isFiniteNumber(value.batmanOgmInterval) &&

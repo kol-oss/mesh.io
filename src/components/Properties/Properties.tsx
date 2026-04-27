@@ -43,6 +43,11 @@ const parseNumberValue = (value: string, fallback: number) => {
   return Number.isFinite(parsedValue) ? parsedValue : fallback;
 };
 
+const parsePositiveNumberValue = (value: string, fallback: number, minimum = 1) => {
+  const parsedValue = Number(value);
+  return Number.isFinite(parsedValue) && parsedValue >= minimum ? parsedValue : fallback;
+};
+
 export default function Properties({
   selectedId,
   selectedSource,
@@ -957,7 +962,9 @@ export default function Properties({
                 min="1"
                 value={selectedPeer.range}
                 onChange={(event) =>
-                  updatePeer({ range: parseNumberValue(event.target.value, selectedPeer.range) })
+                  updatePeer({
+                    range: parsePositiveNumberValue(event.target.value, selectedPeer.range),
+                  })
                 }
               />
             </div>

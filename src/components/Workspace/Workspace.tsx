@@ -116,28 +116,42 @@ export default function Workspace({
       {peers.map((peer) => {
         const isSelected = selectedSource === "entities" && selectedId === peer.id;
         return (
-          <button
-            key={peer.id}
-            className={`workspace__peer${isSelected ? " workspace__peer--selected" : ""}${activeDragPeerId === peer.id ? " workspace__peer--dragging" : ""}${peer.enabled ? "" : " workspace__peer--disabled"}`}
-            style={{
-              left: `calc(50% + ${peer.x}px)`,
-              top: `calc(50% + ${peer.y}px)`,
-            }}
-            type="button"
-            onPointerDown={(event) => {
-              event.stopPropagation();
-              handlePeerPointerDown(peer, event);
-            }}
-            onPointerMove={handlePeerPointerMove}
-            onPointerUp={handlePeerPointerEnd}
-            onPointerCancel={handlePeerPointerEnd}
-            aria-label={`Peer ${peer.name}`}
-          >
-            <span className="workspace__peer-icon">
-              <Radio size={20} />
-            </span>
-            <span className="workspace__peer-name">{peer.name}</span>
-          </button>
+          <div key={peer.id}>
+            {peer.range > 0 && (
+              <div
+                className={`workspace__peer-range${isSelected ? " workspace__peer-range--selected" : ""}${peer.enabled ? "" : " workspace__peer-range--disabled"}`}
+                style={{
+                  left: `calc(50% + ${peer.x}px)`,
+                  top: `calc(50% + ${peer.y}px)`,
+                  width: `${peer.range * 2}px`,
+                  height: `${peer.range * 2}px`,
+                }}
+                aria-hidden="true"
+              />
+            )}
+
+            <button
+              className={`workspace__peer${isSelected ? " workspace__peer--selected" : ""}${activeDragPeerId === peer.id ? " workspace__peer--dragging" : ""}${peer.enabled ? "" : " workspace__peer--disabled"}`}
+              style={{
+                left: `calc(50% + ${peer.x}px)`,
+                top: `calc(50% + ${peer.y}px)`,
+              }}
+              type="button"
+              onPointerDown={(event) => {
+                event.stopPropagation();
+                handlePeerPointerDown(peer, event);
+              }}
+              onPointerMove={handlePeerPointerMove}
+              onPointerUp={handlePeerPointerEnd}
+              onPointerCancel={handlePeerPointerEnd}
+              aria-label={`Peer ${peer.name}`}
+            >
+              <span className="workspace__peer-icon">
+                <Radio size={20} />
+              </span>
+              <span className="workspace__peer-name">{peer.name}</span>
+            </button>
+          </div>
         );
       })}
     </section>

@@ -21,6 +21,25 @@
   pointer-events: none;
 }
 
+.workspace__peer-range {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  border: 1px solid rgba(26, 26, 26, 0.14);
+  background: rgba(26, 26, 26, 0.02);
+  pointer-events: none;
+
+  &--selected {
+    border-color: rgba(15, 127, 208, 0.28);
+    background: rgba(15, 127, 208, 0.04);
+  }
+
+  &--disabled {
+    border-color: rgba(227, 4, 4, 0.2);
+    background: rgba(227, 4, 4, 0.03);
+  }
+}
+
 .workspace__peer {
   position: absolute;
   transform: translate(-50%, -50%);

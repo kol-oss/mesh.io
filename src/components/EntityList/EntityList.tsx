@@ -51,6 +51,7 @@ const hasPeerDefaults = (entity: NetworkEntity) => {
     typeof entity.x === "number" &&
     typeof entity.y === "number" &&
     typeof entity.range === "number" &&
+    entity.range > 0 &&
     typeof entity.enabled === "boolean" &&
     Array.isArray(entity.protocols) &&
     typeof entity.batmanOgmInterval === "number" &&
@@ -357,13 +358,9 @@ export default function EntityList({
             id: generateUUID(),
             name: "Peer",
             type: "PEER",
+            ...PEER_DEFAULTS,
             x: 0,
             y: 0,
-            range: 0,
-            enabled: true,
-            protocols: [],
-            batmanOgmInterval: 0,
-            batmanPurgeTimeout: 0,
           }
         : type === "LINK"
           ? {
