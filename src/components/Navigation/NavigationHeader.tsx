@@ -46,8 +46,16 @@ export default function NavigationHeader({
   return (
     <div className="navigation__header">
       <div className="navigation__header-general">
-        <p className="navigation__header-general-title">Mesh IO</p>
-        <p className="navigation__header-general-moto">Design and Learn</p>
+        <img
+          className="navigation__header-logo"
+          src="/favicon.svg"
+          alt="Mesh IO logo"
+          aria-hidden
+        />
+        <div className="navigation__header-general-text">
+          <p className="navigation__header-general-title">Mesh IO</p>
+          <p className="navigation__header-general-moto">Design and Learn</p>
+        </div>
       </div>
 
       <div className="navigation__header-action">

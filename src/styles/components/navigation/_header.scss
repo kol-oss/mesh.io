@@ -7,9 +7,16 @@
   border-bottom: 1px solid $neutral-400;
 
   &-general {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     padding-left: 20px;
     margin-left: -20px;
     margin-right: -20px;
+
+    &-text {
+      min-width: 0;
+    }
 
     &-title {
       @extend .typo-h1;
@@ -21,6 +28,13 @@
       color: $black-400;
     }
   }
+}
+
+.navigation__header-logo {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: block;
 }
 
 .navigation__header-action {
