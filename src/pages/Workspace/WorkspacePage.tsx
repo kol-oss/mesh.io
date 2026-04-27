@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import Navigation from "../../components/Navigation/Navigation";
 import Properties from "../../components/Properties/Properties";
-import Toolbar from "../../components/Toolbar/Toolbar";
+import Toolbar, { type ToolbarPlacementMode } from "../../components/Toolbar/Toolbar";
 import Workspace from "../../components/Workspace/Workspace";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
@@ -177,6 +177,7 @@ const getExportFileName = () => {
 
 export default function WorkspacePage() {
   const { showToast } = useToast();
+  const [placementMode, setPlacementMode] = useState<ToolbarPlacementMode>(null);
   const [selectedId, setSelectedId] = useLocalStorage<string | null>("mesh_selected_id", null);
   const [selectedSource, setSelectedSource] = useLocalStorage<"entities" | "steps" | null>(
     "mesh_selected_source",
@@ -227,6 +228,11 @@ export default function WorkspacePage() {
     setSelectedSource("entities");
   };
 
+  const handleWorkspaceStepSelect = (id: string) => {
+    setSelectedId(id);
+    setSelectedSource("steps");
+  };
+
   const handleStepSelect = (id: string) => {
     if (selectedSource === "steps" && selectedId === id) {
       setSelectedId(null);
@@ -242,6 +248,13 @@ export default function WorkspacePage() {
     setSelectedId(null);
     setSelectedSource(null);
   };
+
+  const handlePlacementModeChange = useCallback((mode: ToolbarPlacementMode) => {
+    setPlacementMode(mode);
+  }, []);
+
+  const isStepPlacementMode =
+    placementMode === "message" || placementMode === "move" || placementMode === "toggle";
 
   const handleNewWorkspace = () => {
     const hasData = entities.length > 0 || manualSteps.length > 0;
@@ -336,19 +349,23 @@ export default function WorkspacePage() {
         <Workspace
           entities={entities}
           setEntities={setEntities}
+          steps={steps}
+          setSteps={setSteps}
           selectedId={selectedId}
           selectedSource={selectedSource}
+          placementMode={placementMode}
           onEntitySelect={handleWorkspaceEntitySelect}
+          onStepSelect={handleWorkspaceStepSelect}
           onClearSelection={handleClearSelection}
         />
       </div>
       <div className="workspace-page__toolbar">
-        <Toolbar />
+        <Toolbar onPlacementModeChange={handlePlacementModeChange} />
       </div>
       <div className="workspace-page__properties">
         <Properties
-          selectedId={selectedId}
-          selectedSource={selectedSource}
+          selectedId={isStepPlacementMode ? null : selectedId}
+          selectedSource={isStepPlacementMode ? null : selectedSource}
           entities={entities}
           setEntities={setEntities}
           steps={steps}

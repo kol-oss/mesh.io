@@ -11,6 +11,24 @@
     linear-gradient(180deg, #fbfbfb 0%, #f1f1f1 100%);
 }
 
+.workspace--placing {
+  cursor: crosshair;
+
+  .workspace__peer,
+  .workspace__peer-icon,
+  .workspace__obstacle,
+  .workspace__static-link-hit {
+    cursor: crosshair;
+  }
+}
+
+.workspace--linking {
+  .workspace__peer,
+  .workspace__peer-icon {
+    cursor: pointer;
+  }
+}
+
 .workspace__grid {
   position: absolute;
   inset: 0;
@@ -49,6 +67,48 @@
   overflow: visible;
   pointer-events: none;
   z-index: 2;
+}
+
+.workspace__step-indicators {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.workspace__step-indicator {
+  line {
+    stroke: rgba(15, 127, 208, 0.7);
+    stroke-width: 1.6;
+    stroke-dasharray: 5 4;
+  }
+
+  &--draft {
+    line {
+      stroke: rgba(15, 127, 208, 0.48);
+      stroke-dasharray: 4 5;
+    }
+  }
+}
+
+.workspace__step-indicator-target {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(15, 127, 208, 0.92);
+  filter: drop-shadow(0 0 4px rgba(15, 127, 208, 0.28));
+  pointer-events: none;
+  z-index: 4;
+
+  &--draft {
+    color: rgba(15, 127, 208, 0.62);
+    filter: drop-shadow(0 0 3px rgba(15, 127, 208, 0.2));
+  }
 }
 
 .workspace__static-links {

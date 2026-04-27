@@ -33,6 +33,15 @@ type ToolMode =
   | "packetStructure"
   | "text";
 
+export type ToolbarPlacementMode =
+  | "peer"
+  | "link"
+  | "obstacle"
+  | "message"
+  | "move"
+  | "toggle"
+  | null;
+
 type ModeButton = {
   key: ToolMode;
   label: string;
@@ -130,7 +139,11 @@ const DEFAULT_MODE_SELECTIONS: ModeSelectionsByGroup = {
 
 const DEFAULT_SELECTED_GROUP: ModeGroup["id"] = "navigation";
 
-export default function Toolbar() {
+type ToolbarProps = {
+  onPlacementModeChange: (mode: ToolbarPlacementMode) => void;
+};
+
+export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
   const [selectedModesByGroup, setSelectedModesByGroup] = useLocalStorage<ModeSelectionsByGroup>(
     "mesh_toolbar_modes_by_group",
     DEFAULT_MODE_SELECTIONS,
@@ -170,6 +183,21 @@ export default function Toolbar() {
   const normalizedSelectedGroupId = MODE_GROUPS.some((group) => group.id === selectedGroupId)
     ? selectedGroupId
     : DEFAULT_SELECTED_GROUP;
+
+  useEffect(() => {
+    const entitiesMode = activeItemsByGroup.entities.key;
+    const stepsMode = activeItemsByGroup.steps.key;
+    const nextPlacementMode: ToolbarPlacementMode =
+      normalizedSelectedGroupId === "entities" &&
+      (entitiesMode === "peer" || entitiesMode === "link" || entitiesMode === "obstacle")
+        ? entitiesMode
+        : normalizedSelectedGroupId === "steps" &&
+            (stepsMode === "message" || stepsMode === "move" || stepsMode === "toggle")
+          ? stepsMode
+          : null;
+
+    onPlacementModeChange(nextPlacementMode);
+  }, [activeItemsByGroup, normalizedSelectedGroupId, onPlacementModeChange]);
 
   const setGroupMode = (groupId: ModeGroup["id"], mode: ToolMode) => {
     setSelectedModesByGroup({

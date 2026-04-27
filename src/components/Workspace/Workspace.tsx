@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -8,14 +9,23 @@ import {
 import { Radio } from "lucide-react";
 
 import { clamp } from "../../utils/math/clamp";
+import { useToast } from "../../hooks/useToast";
+import { generateUUID } from "../../utils/uuid";
+import { isRefreshStep } from "../../utils/navigation/refreshSteps";
+import type { ToolbarPlacementMode } from "../Toolbar/Toolbar";
 import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../types/navigation";
+import type { WorkflowStep } from "../../types/steps";
 
 type WorkspaceProps = {
   entities: NetworkEntity[];
   setEntities: (value: NetworkEntity[]) => void;
+  steps: WorkflowStep[];
+  setSteps: (value: WorkflowStep[]) => void;
   selectedId: string | null;
   selectedSource: "entities" | "steps" | null;
+  placementMode: ToolbarPlacementMode;
   onEntitySelect: (id: string) => void;
+  onStepSelect: (id: string) => void;
   onClearSelection: () => void;
 };
 
@@ -73,6 +83,9 @@ const toInt = (value: number) => Math.round(value);
 const OBSTACLE_MIN_SIZE = 1;
 const RANGE_SAMPLES = 180;
 const PAN_LIMIT = 2000;
+const NEW_PEER_RANGE = 75;
+const NEW_OBSTACLE_WIDTH = 100;
+const NEW_OBSTACLE_HEIGHT = 60;
 
 // Shorten a line segment by `amount` pixels from each endpoint so lines
 // terminate at the peer icon edge rather than the coordinate center.
@@ -231,11 +244,16 @@ const hasLineOfSight = (
 export default function Workspace({
   entities,
   setEntities,
+  steps,
+  setSteps,
   selectedId,
   selectedSource,
+  placementMode,
   onEntitySelect,
+  onStepSelect,
   onClearSelection,
 }: WorkspaceProps) {
+  const { showToast, dismissToast } = useToast();
   const workspaceRef = useRef<HTMLElement | null>(null);
   const peers = useMemo(
     () => entities.filter((entity): entity is PeerEntity => entity.type === "PEER"),
@@ -279,6 +297,14 @@ export default function Workspace({
   const dragStateRef = useRef<DragState | null>(null);
   const [activeDragEntityId, setActiveDragEntityId] = useState<string | null>(null);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [creationSelectedEntityId, setCreationSelectedEntityId] = useState<string | null>(null);
+  const [moveTargetPreview, setMoveTargetPreview] = useState<{ x: number; y: number } | null>(null);
+  const linkSourcePeerIdRef = useRef<string | null>(null);
+  const stepMessageSourcePeerIdRef = useRef<string | null>(null);
+  const stepMovePeerIdRef = useRef<string | null>(null);
+  const placementModeRef = useRef<ToolbarPlacementMode>(placementMode);
+  const hintActiveRef = useRef(false);
+  const restoreHintTimerRef = useRef<number | null>(null);
   const panStateRef = useRef<{
     pointerId: number;
     startClientX: number;
@@ -286,6 +312,75 @@ export default function Workspace({
     startPanX: number;
     startPanY: number;
   } | null>(null);
+
+  const clearRestoreHintTimer = useCallback(() => {
+    if (restoreHintTimerRef.current === null) {
+      return;
+    }
+
+    window.clearTimeout(restoreHintTimerRef.current);
+    restoreHintTimerRef.current = null;
+  }, []);
+
+  const resolvedCreationSelectedEntityId = useMemo(() => {
+    if (!creationSelectedEntityId) {
+      return null;
+    }
+
+    return entities.some((entity) => entity.id === creationSelectedEntityId)
+      ? creationSelectedEntityId
+      : null;
+  }, [creationSelectedEntityId, entities]);
+
+  const showCreationToast = useCallback(
+    (text: string) => {
+      hintActiveRef.current = false;
+      showToast(text, 1800);
+    },
+    [showToast],
+  );
+
+  const showPlacementHint = useCallback(() => {
+    const mode = placementModeRef.current;
+    if (!mode) {
+      return;
+    }
+
+    const text =
+      mode === "peer"
+        ? "Click on workspace to place a peer"
+        : mode === "obstacle"
+          ? "Click on workspace to place an obstacle"
+          : mode === "link"
+            ? linkSourcePeerIdRef.current
+              ? "Select destination peer"
+              : "Select source peer"
+            : mode === "message"
+              ? stepMessageSourcePeerIdRef.current
+                ? "Select destination peer"
+                : "Select source peer"
+              : mode === "move"
+                ? resolvedCreationSelectedEntityId
+                  ? "Click destination point on workspace"
+                  : "Select peer to move"
+                : "Select a peer or link";
+
+    hintActiveRef.current = true;
+    showToast(text, null);
+  }, [resolvedCreationSelectedEntityId, showToast]);
+
+  const scheduleHintRestore = useCallback(
+    (mode: ToolbarPlacementMode) => {
+      clearRestoreHintTimer();
+      restoreHintTimerRef.current = window.setTimeout(() => {
+        if (placementModeRef.current !== mode) {
+          return;
+        }
+        showPlacementHint();
+      }, 1900);
+    },
+    [clearRestoreHintTimer, showPlacementHint],
+  );
 
   useEffect(() => {
     const element = workspaceRef.current;
@@ -309,6 +404,64 @@ export default function Workspace({
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    placementModeRef.current = placementMode;
+
+    if (placementMode !== "link") {
+      linkSourcePeerIdRef.current = null;
+    }
+
+    if (placementMode !== "message") {
+      stepMessageSourcePeerIdRef.current = null;
+    }
+
+    if (placementMode !== "move") {
+      stepMovePeerIdRef.current = null;
+    }
+
+    clearRestoreHintTimer();
+
+    if (!placementMode) {
+      if (hintActiveRef.current) {
+        dismissToast();
+        hintActiveRef.current = false;
+      }
+      return;
+    }
+
+    showPlacementHint();
+  }, [clearRestoreHintTimer, dismissToast, placementMode, showPlacementHint]);
+
+  useEffect(() => {
+    return () => {
+      clearRestoreHintTimer();
+    };
+  }, [clearRestoreHintTimer]);
+
+  useEffect(() => {
+    const sourcePeerId = linkSourcePeerIdRef.current;
+    if (!sourcePeerId) {
+      return;
+    }
+
+    const stillExists = peers.some((peer) => peer.id === sourcePeerId);
+    if (!stillExists) {
+      linkSourcePeerIdRef.current = null;
+    }
+
+    if (
+      stepMessageSourcePeerIdRef.current &&
+      !peers.some((peer) => peer.id === stepMessageSourcePeerIdRef.current)
+    ) {
+      stepMessageSourcePeerIdRef.current = null;
+    }
+
+    if (stepMovePeerIdRef.current && !peers.some((peer) => peer.id === stepMovePeerIdRef.current)) {
+      stepMovePeerIdRef.current = null;
+    }
+
+  }, [peers]);
 
   const obstacleBounds = useMemo(() => obstacles.map(getObstacleBounds), [obstacles]);
 
@@ -469,8 +622,285 @@ export default function Workspace({
     setEntities(nextEntities);
   };
 
+  const getWorkspaceCoords = (event: ReactPointerEvent<HTMLElement>) => {
+    const element = workspaceRef.current;
+    if (!element) {
+      return null;
+    }
+
+    const rect = element.getBoundingClientRect();
+    const localX = event.clientX - rect.left;
+    const localY = event.clientY - rect.top;
+
+    return {
+      x: toInt(localX - workspaceSize.width / 2 - panOffset.x),
+      y: toInt(localY - workspaceSize.height / 2 - panOffset.y),
+    };
+  };
+
+  const createPeerAt = (x: number, y: number) => {
+    const nextPeer: PeerEntity = {
+      id: generateUUID(),
+      name: `Peer`,
+      type: "PEER",
+      locked: false,
+      x,
+      y,
+      range: NEW_PEER_RANGE,
+      enabled: true,
+      protocols: ["BATMAN"],
+      batmanOgmInterval: 1,
+      batmanPurgeTimeout: 10,
+    };
+
+    setEntities([...entities, nextPeer]);
+    onEntitySelect(nextPeer.id);
+    showCreationToast(`Entity "${nextPeer.name}" added`);
+  };
+
+  const createObstacleAt = (x: number, y: number) => {
+    const nextObstacle: ObstacleEntity = {
+      id: generateUUID(),
+      name: `Obstacle`,
+      type: "OBSTACLE",
+      locked: false,
+      x,
+      y,
+      width: NEW_OBSTACLE_WIDTH,
+      height: NEW_OBSTACLE_HEIGHT,
+    };
+
+    setEntities([...entities, nextObstacle]);
+    onEntitySelect(nextObstacle.id);
+    showCreationToast(`Entity "${nextObstacle.name}" added`);
+  };
+
+  const createLink = (sourcePeerId: string, destinationPeerId: string) => {
+    const nextLink: LinkEntity = {
+      id: generateUUID(),
+      name: `Link`,
+      type: "LINK",
+      locked: false,
+      sourcePeerId,
+      destinationPeerId,
+      enabled: true,
+    };
+
+    setEntities([...entities, nextLink]);
+    onEntitySelect(nextLink.id);
+    showCreationToast(`Entity "${nextLink.name}" added`);
+  };
+
+  const createStep = (step: WorkflowStep) => {
+    setSteps([...steps, step]);
+    onStepSelect(step.id);
+    showCreationToast(`Step "${step.title}" added`);
+  };
+
+  const getNextManualStepTick = () => {
+    const manualSteps = steps.filter((step) => !isRefreshStep(step));
+    if (manualSteps.length === 0) {
+      return 1;
+    }
+
+    return Math.max(1, manualSteps[manualSteps.length - 1].tick);
+  };
+
+  const createMessageStep = (sourcePeerId: string, destinationPeerId: string) => {
+    createStep({
+      id: `step-${generateUUID()}`,
+      title: "Message",
+      type: "MESSAGE",
+      tick: getNextManualStepTick(),
+      sourcePeerId,
+      destinationPeerId,
+      targetEntityId: null,
+      movePeerId: null,
+      x: 0,
+      y: 0,
+    });
+  };
+
+  const createMoveStep = (movePeerId: string, x: number, y: number) => {
+    createStep({
+      id: `step-${generateUUID()}`,
+      title: "Move",
+      type: "MOVE",
+      tick: getNextManualStepTick(),
+      sourcePeerId: null,
+      destinationPeerId: null,
+      targetEntityId: null,
+      movePeerId,
+      x,
+      y,
+    });
+  };
+
+  const createToggleStep = (targetEntityId: string) => {
+    createStep({
+      id: `step-${generateUUID()}`,
+      title: "Toggle",
+      type: "TOGGLE",
+      tick: getNextManualStepTick(),
+      sourcePeerId: null,
+      destinationPeerId: null,
+      targetEntityId,
+      movePeerId: null,
+      x: 0,
+      y: 0,
+    });
+  };
+
+  const selectedMoveStep = useMemo(() => {
+    if (selectedSource !== "steps" || !selectedId) {
+      return null;
+    }
+
+    const step = steps.find((candidate) => candidate.id === selectedId);
+    if (!step || step.type !== "MOVE" || !step.movePeerId || isRefreshStep(step)) {
+      return null;
+    }
+
+    const sourcePeer = peerById.get(step.movePeerId);
+    if (!sourcePeer) {
+      return null;
+    }
+
+    return {
+      sourceX: sourcePeer.x,
+      sourceY: sourcePeer.y,
+      targetX: step.x,
+      targetY: step.y,
+      draft: false,
+    };
+  }, [peerById, selectedId, selectedSource, steps]);
+
+  const draftMoveStep = useMemo(() => {
+    if (placementMode !== "move" || !resolvedCreationSelectedEntityId || !moveTargetPreview) {
+      return null;
+    }
+
+    const sourcePeer = peerById.get(resolvedCreationSelectedEntityId);
+    if (!sourcePeer) {
+      return null;
+    }
+
+    return {
+      sourceX: sourcePeer.x,
+      sourceY: sourcePeer.y,
+      targetX: moveTargetPreview.x,
+      targetY: moveTargetPreview.y,
+      draft: true,
+    };
+  }, [moveTargetPreview, peerById, placementMode, resolvedCreationSelectedEntityId]);
+
+  const moveIndicators = [selectedMoveStep, draftMoveStep].filter(
+    (indicator): indicator is NonNullable<typeof indicator> => indicator !== null,
+  );
+
+  const selectedStepAffectedEntityIds = useMemo(() => {
+    if (selectedSource !== "steps" || !selectedId) {
+      return new Set<string>();
+    }
+
+    const step = steps.find((candidate) => candidate.id === selectedId);
+    if (!step) {
+      return new Set<string>();
+    }
+
+    const ids = new Set<string>();
+
+    if (step.type === "MESSAGE") {
+      if (step.sourcePeerId) ids.add(step.sourcePeerId);
+      if (step.destinationPeerId) ids.add(step.destinationPeerId);
+    }
+
+    if (step.type === "MOVE") {
+      if (step.movePeerId) ids.add(step.movePeerId);
+    }
+
+    if (step.type === "TOGGLE") {
+      if (step.targetEntityId) ids.add(step.targetEntityId);
+    }
+
+    if (step.type === "REFRESH") {
+      if (step.refreshPeerId) ids.add(step.refreshPeerId);
+    }
+
+    return ids;
+  }, [selectedId, selectedSource, steps]);
+
+  const handleStaticLinkPointerDown = (
+    linkId: string,
+    event: ReactPointerEvent<SVGLineElement>,
+  ) => {
+    event.stopPropagation();
+
+    if (placementMode === "toggle") {
+      setCreationSelectedEntityId(linkId);
+      createToggleStep(linkId);
+      setCreationSelectedEntityId(null);
+      scheduleHintRestore("toggle");
+      return;
+    }
+
+    onEntitySelect(linkId);
+  };
+
   const handlePeerPointerDown = (peer: PeerEntity, event: ReactPointerEvent<HTMLButtonElement>) => {
     if (event.button !== 0) {
+      return;
+    }
+
+    if (placementMode === "message") {
+      event.stopPropagation();
+      const messageSourcePeerId = stepMessageSourcePeerIdRef.current;
+
+      if (!messageSourcePeerId || messageSourcePeerId === peer.id) {
+        stepMessageSourcePeerIdRef.current = peer.id;
+        setCreationSelectedEntityId(peer.id);
+        showPlacementHint();
+        return;
+      }
+
+      createMessageStep(messageSourcePeerId, peer.id);
+      stepMessageSourcePeerIdRef.current = null;
+      setCreationSelectedEntityId(null);
+      scheduleHintRestore("message");
+      return;
+    }
+
+    if (placementMode === "move") {
+      event.stopPropagation();
+      stepMovePeerIdRef.current = peer.id;
+      setCreationSelectedEntityId(peer.id);
+      showPlacementHint();
+      return;
+    }
+
+    if (placementMode === "toggle") {
+      event.stopPropagation();
+      setCreationSelectedEntityId(peer.id);
+      createToggleStep(peer.id);
+      setCreationSelectedEntityId(null);
+      scheduleHintRestore("toggle");
+      return;
+    }
+
+    if (placementMode === "link") {
+      event.stopPropagation();
+      const linkSourcePeerId = linkSourcePeerIdRef.current;
+
+      if (!linkSourcePeerId || linkSourcePeerId === peer.id) {
+        linkSourcePeerIdRef.current = peer.id;
+        onEntitySelect(peer.id);
+        showPlacementHint();
+        return;
+      }
+
+      createLink(linkSourcePeerId, peer.id);
+      linkSourcePeerIdRef.current = null;
+      scheduleHintRestore("link");
       return;
     }
 
@@ -499,6 +929,14 @@ export default function Workspace({
     event: ReactPointerEvent<HTMLButtonElement>,
   ) => {
     if (event.button !== 0) {
+      return;
+    }
+
+    if (placementMode) {
+      event.stopPropagation();
+      if (placementMode === "toggle") {
+        showPlacementHint();
+      }
       return;
     }
 
@@ -532,6 +970,12 @@ export default function Workspace({
     }
 
     event.stopPropagation();
+
+    if (placementMode) {
+      onEntitySelect(obstacle.id);
+      return;
+    }
+
     onEntitySelect(obstacle.id);
 
     if (obstacle.locked) {
@@ -649,8 +1093,66 @@ export default function Workspace({
   };
 
   const handleBackgroundPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
-    onClearSelection();
     if (event.button !== 0) return;
+
+    if (placementMode === "peer" || placementMode === "obstacle") {
+      const coords = getWorkspaceCoords(event);
+      if (!coords) {
+        return;
+      }
+
+      if (placementMode === "peer") {
+        createPeerAt(coords.x, coords.y);
+        scheduleHintRestore("peer");
+      } else {
+        createObstacleAt(coords.x, coords.y);
+        scheduleHintRestore("obstacle");
+      }
+
+      return;
+    }
+
+    if (placementMode === "move") {
+      const movePeerId = stepMovePeerIdRef.current;
+      if (!movePeerId) {
+        onClearSelection();
+        showPlacementHint();
+        return;
+      }
+
+      const coords = getWorkspaceCoords(event);
+      if (!coords) {
+        return;
+      }
+
+      createMoveStep(movePeerId, coords.x, coords.y);
+      stepMovePeerIdRef.current = null;
+      setCreationSelectedEntityId(null);
+      setMoveTargetPreview(null);
+      scheduleHintRestore("move");
+      return;
+    }
+
+    onClearSelection();
+
+    if (placementMode === "link") {
+      linkSourcePeerIdRef.current = null;
+      showPlacementHint();
+      return;
+    }
+
+    if (placementMode === "message") {
+      stepMessageSourcePeerIdRef.current = null;
+      setCreationSelectedEntityId(null);
+      showPlacementHint();
+      return;
+    }
+
+    if (placementMode === "toggle") {
+      showPlacementHint();
+      return;
+    }
+
     event.currentTarget.setPointerCapture(event.pointerId);
     document.body.style.cursor = "grabbing";
     document.body.style.userSelect = "none";
@@ -664,6 +1166,14 @@ export default function Workspace({
   };
 
   const handleBackgroundPointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    if (placementMode === "move" && stepMovePeerIdRef.current) {
+      const coords = getWorkspaceCoords(event);
+      if (coords) {
+        setMoveTargetPreview(coords);
+      }
+      return;
+    }
+
     const pan = panStateRef.current;
     if (!pan || pan.pointerId !== event.pointerId) return;
     const deltaX = event.clientX - pan.startClientX;
@@ -689,7 +1199,7 @@ export default function Workspace({
 
   return (
     <section
-      className="workspace"
+      className={`workspace${placementMode ? " workspace--placing" : ""}${placementMode === "link" ? " workspace--linking" : ""}`}
       onPointerDown={handleBackgroundPointerDown}
       onPointerMove={handleBackgroundPointerMove}
       onPointerUp={handleBackgroundPointerEnd}
@@ -720,7 +1230,10 @@ export default function Workspace({
               rawTargetY,
               14,
             );
-            const isSelected = selectedSource === "entities" && selectedId === link.id;
+            const isSelected =
+              (selectedSource === "entities" && selectedId === link.id) ||
+              resolvedCreationSelectedEntityId === link.id ||
+              selectedStepAffectedEntityIds.has(link.id);
 
             return (
               <g
@@ -733,10 +1246,7 @@ export default function Workspace({
                   y1={y1}
                   x2={x2}
                   y2={y2}
-                  onPointerDown={(event) => {
-                    event.stopPropagation();
-                    onEntitySelect(link.id);
-                  }}
+                  onPointerDown={(event) => handleStaticLinkPointerDown(link.id, event)}
                 />
                 <line x1={x1} y1={y1} x2={x2} y2={y2} />
               </g>
@@ -780,8 +1290,44 @@ export default function Workspace({
           ))}
         </svg>
 
+        <svg className="workspace__step-indicators" aria-hidden="true">
+          {moveIndicators.map((indicator, index) => {
+            const sourceX = centerX + indicator.sourceX;
+            const sourceY = centerY + indicator.sourceY;
+            const targetX = centerX + indicator.targetX;
+            const targetY = centerY + indicator.targetY;
+            const { x1, y1, x2, y2 } = shortenLine(sourceX, sourceY, targetX, targetY, 14);
+
+            return (
+              <g
+                key={`${indicator.draft ? "draft" : "step"}-${index}`}
+                className={`workspace__step-indicator${indicator.draft ? " workspace__step-indicator--draft" : ""}`}
+              >
+                <line x1={x1} y1={y1} x2={x2} y2={y2} />
+              </g>
+            );
+          })}
+        </svg>
+
+        {moveIndicators.map((indicator, index) => (
+          <span
+            key={`target-${indicator.draft ? "draft" : "step"}-${index}`}
+            className={`workspace__step-indicator-target${indicator.draft ? " workspace__step-indicator-target--draft" : ""}`}
+            style={{
+              left: `calc(50% + ${indicator.targetX}px)`,
+              top: `calc(50% + ${indicator.targetY}px)`,
+            }}
+            aria-hidden="true"
+          >
+            <Radio size={20} />
+          </span>
+        ))}
+
         {obstacles.map((obstacle) => {
-          const isSelected = selectedSource === "entities" && selectedId === obstacle.id;
+          const isSelected =
+            (selectedSource === "entities" && selectedId === obstacle.id) ||
+            resolvedCreationSelectedEntityId === obstacle.id ||
+            selectedStepAffectedEntityIds.has(obstacle.id);
           return (
             <button
               key={obstacle.id}
@@ -839,7 +1385,10 @@ export default function Workspace({
         })}
 
         {peers.map((peer) => {
-          const isSelected = selectedSource === "entities" && selectedId === peer.id;
+          const isSelected =
+            (selectedSource === "entities" && selectedId === peer.id) ||
+            resolvedCreationSelectedEntityId === peer.id ||
+            selectedStepAffectedEntityIds.has(peer.id);
           return (
             <div key={peer.id}>
               <button

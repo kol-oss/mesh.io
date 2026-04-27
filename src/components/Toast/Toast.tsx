@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 export type ToastMessage = {
   id: string;
   text: string;
-  duration?: number;
+  duration?: number | null;
 };
 
 type ToastProps = {
@@ -26,9 +26,13 @@ export default function Toast({ message, onDismiss }: ToastProps) {
       return;
     }
 
+    if (message.duration === null) {
+      return;
+    }
+
     const hideTimer = setTimeout(() => {
       setIsVisible(false);
-    }, message.duration || 3000);
+    }, message.duration ?? 3000);
 
     return () => clearTimeout(hideTimer);
   }, [isVisible, message]);

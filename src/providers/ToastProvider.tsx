@@ -6,18 +6,18 @@ import Toast, { type ToastMessage } from "../components/Toast/Toast";
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
-  const showToast = useCallback((text: string, duration = 3000) => {
+  const showToast = useCallback((text: string, duration: number | null = 3000) => {
     const id = Date.now().toString();
     setToast({ id, text, duration });
   }, []);
 
-  const handleDismiss = useCallback(() => {
+  const dismissToast = useCallback(() => {
     setToast(null);
   }, []);
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
-      <Toast message={toast} onDismiss={handleDismiss} />
+    <ToastContext.Provider value={{ showToast, dismissToast }}>
+      <Toast message={toast} onDismiss={dismissToast} />
       {children}
     </ToastContext.Provider>
   );
