@@ -21,12 +21,18 @@ type WorkspaceProps = {
 type DragState = {
   entityId: string;
   entityType: "PEER" | "OBSTACLE";
+  mode: "move" | "resize";
+  resizeEdge?: "left" | "right" | "top" | "bottom";
   pointerId: number;
   startClientX: number;
   startClientY: number;
   startX: number;
   startY: number;
+  startWidth?: number;
+  startHeight?: number;
 };
+
+type ObstacleResizeEdge = "left" | "right" | "top" | "bottom";
 
 type Connection =
   | {
@@ -49,6 +55,7 @@ type Connection =
     };
 
 const toInt = (value: number) => Math.round(value);
+const OBSTACLE_MIN_SIZE = 1;
 
 // Shorten a line segment by `amount` pixels from each endpoint so lines
 // terminate at the peer icon edge rather than the coordinate center.
@@ -233,6 +240,30 @@ export default function Workspace({
     setEntities(nextEntities);
   };
 
+  const updateObstacleBounds = (
+    obstacleId: string,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) => {
+    const nextEntities = entities.map((entity) => {
+      if (entity.type !== "OBSTACLE" || entity.id !== obstacleId) {
+        return entity;
+      }
+
+      return {
+        ...entity,
+        x,
+        y,
+        width,
+        height,
+      };
+    });
+
+    setEntities(nextEntities);
+  };
+
   const handlePeerPointerDown = (peer: PeerEntity, event: ReactPointerEvent<HTMLButtonElement>) => {
     if (event.button !== 0) {
       return;
@@ -248,6 +279,7 @@ export default function Workspace({
     dragStateRef.current = {
       entityId: peer.id,
       entityType: "PEER",
+      mode: "move",
       pointerId: event.pointerId,
       startClientX: event.clientX,
       startClientY: event.clientY,
@@ -275,6 +307,7 @@ export default function Workspace({
     dragStateRef.current = {
       entityId: obstacle.id,
       entityType: "OBSTACLE",
+      mode: "move",
       pointerId: event.pointerId,
       startClientX: event.clientX,
       startClientY: event.clientY,
@@ -284,7 +317,40 @@ export default function Workspace({
     setActiveDragEntityId(obstacle.id);
   };
 
-  const handlePeerPointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const handleObstacleResizeStart = (
+    obstacle: ObstacleEntity,
+    edge: ObstacleResizeEdge,
+    event: ReactPointerEvent<HTMLSpanElement>,
+  ) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    event.stopPropagation();
+    onEntitySelect(obstacle.id);
+
+    if (obstacle.locked) {
+      return;
+    }
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragStateRef.current = {
+      entityId: obstacle.id,
+      entityType: "OBSTACLE",
+      mode: "resize",
+      resizeEdge: edge,
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startX: obstacle.x,
+      startY: obstacle.y,
+      startWidth: obstacle.width,
+      startHeight: obstacle.height,
+    };
+    setActiveDragEntityId(obstacle.id);
+  };
+
+  const handleEntityPointerMove = (event: ReactPointerEvent<HTMLElement>) => {
     const dragState = dragStateRef.current;
     if (!dragState || dragState.pointerId !== event.pointerId) {
       return;
@@ -295,15 +361,73 @@ export default function Workspace({
     const nextX = toInt(dragState.startX + deltaX);
     const nextY = toInt(dragState.startY + deltaY);
 
-    if (dragState.entityType === "PEER") {
+    if (dragState.mode === "move" && dragState.entityType === "PEER") {
       updatePeerPosition(dragState.entityId, nextX, nextY);
       return;
     }
 
-    updateObstaclePosition(dragState.entityId, nextX, nextY);
+    if (dragState.mode === "move") {
+      updateObstaclePosition(dragState.entityId, nextX, nextY);
+      return;
+    }
+
+    if (dragState.entityType !== "OBSTACLE") {
+      return;
+    }
+
+    const startWidth = dragState.startWidth ?? OBSTACLE_MIN_SIZE;
+    const startHeight = dragState.startHeight ?? OBSTACLE_MIN_SIZE;
+    const startLeft = dragState.startX - startWidth / 2;
+    const startRight = dragState.startX + startWidth / 2;
+    const startTop = dragState.startY - startHeight / 2;
+    const startBottom = dragState.startY + startHeight / 2;
+    const edge = dragState.resizeEdge;
+
+    if (!edge) {
+      return;
+    }
+
+    let nextObstacleX = dragState.startX;
+    let nextObstacleY = dragState.startY;
+    let nextObstacleWidth = startWidth;
+    let nextObstacleHeight = startHeight;
+
+    if (edge === "left") {
+      const nextLeft = Math.min(startRight - OBSTACLE_MIN_SIZE, startLeft + deltaX);
+      nextObstacleWidth = startRight - nextLeft;
+      nextObstacleX = (nextLeft + startRight) / 2;
+    }
+
+    if (edge === "right") {
+      const nextRight = Math.max(startLeft + OBSTACLE_MIN_SIZE, startRight + deltaX);
+      nextObstacleWidth = nextRight - startLeft;
+      nextObstacleX = (startLeft + nextRight) / 2;
+    }
+
+    if (edge === "top") {
+      const nextTop = Math.min(startBottom - OBSTACLE_MIN_SIZE, startTop + deltaY);
+      nextObstacleHeight = startBottom - nextTop;
+      nextObstacleY = (nextTop + startBottom) / 2;
+    }
+
+    if (edge === "bottom") {
+      const nextBottom = Math.max(startTop + OBSTACLE_MIN_SIZE, startBottom + deltaY);
+      nextObstacleHeight = nextBottom - startTop;
+      nextObstacleY = (startTop + nextBottom) / 2;
+    }
+
+    updateObstacleBounds(
+      dragState.entityId,
+      toInt(nextObstacleX),
+      toInt(nextObstacleY),
+      Math.max(OBSTACLE_MIN_SIZE, toInt(nextObstacleWidth)),
+      Math.max(OBSTACLE_MIN_SIZE, toInt(nextObstacleHeight)),
+    );
+
+    return;
   };
 
-  const handlePeerPointerEnd = (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const handleEntityPointerEnd = (event: ReactPointerEvent<HTMLElement>) => {
     const dragState = dragStateRef.current;
     if (!dragState || dragState.pointerId !== event.pointerId) {
       return;
@@ -403,11 +527,44 @@ export default function Workspace({
               event.stopPropagation();
               handleObstaclePointerDown(obstacle, event);
             }}
-            onPointerMove={handlePeerPointerMove}
-            onPointerUp={handlePeerPointerEnd}
-            onPointerCancel={handlePeerPointerEnd}
+            onPointerMove={handleEntityPointerMove}
+            onPointerUp={handleEntityPointerEnd}
+            onPointerCancel={handleEntityPointerEnd}
             aria-label={`Obstacle ${obstacle.name}`}
-          />
+          >
+            <span
+              className="workspace__obstacle-handle workspace__obstacle-handle--left"
+              onPointerDown={(event) => handleObstacleResizeStart(obstacle, "left", event)}
+              onPointerMove={handleEntityPointerMove}
+              onPointerUp={handleEntityPointerEnd}
+              onPointerCancel={handleEntityPointerEnd}
+              aria-hidden="true"
+            />
+            <span
+              className="workspace__obstacle-handle workspace__obstacle-handle--right"
+              onPointerDown={(event) => handleObstacleResizeStart(obstacle, "right", event)}
+              onPointerMove={handleEntityPointerMove}
+              onPointerUp={handleEntityPointerEnd}
+              onPointerCancel={handleEntityPointerEnd}
+              aria-hidden="true"
+            />
+            <span
+              className="workspace__obstacle-handle workspace__obstacle-handle--top"
+              onPointerDown={(event) => handleObstacleResizeStart(obstacle, "top", event)}
+              onPointerMove={handleEntityPointerMove}
+              onPointerUp={handleEntityPointerEnd}
+              onPointerCancel={handleEntityPointerEnd}
+              aria-hidden="true"
+            />
+            <span
+              className="workspace__obstacle-handle workspace__obstacle-handle--bottom"
+              onPointerDown={(event) => handleObstacleResizeStart(obstacle, "bottom", event)}
+              onPointerMove={handleEntityPointerMove}
+              onPointerUp={handleEntityPointerEnd}
+              onPointerCancel={handleEntityPointerEnd}
+              aria-hidden="true"
+            />
+          </button>
         );
       })}
 
@@ -439,9 +596,9 @@ export default function Workspace({
                 event.stopPropagation();
                 handlePeerPointerDown(peer, event);
               }}
-              onPointerMove={handlePeerPointerMove}
-              onPointerUp={handlePeerPointerEnd}
-              onPointerCancel={handlePeerPointerEnd}
+              onPointerMove={handleEntityPointerMove}
+              onPointerUp={handleEntityPointerEnd}
+              onPointerCancel={handleEntityPointerEnd}
               aria-label={`Peer ${peer.name}`}
             >
               <span className="workspace__peer-icon">

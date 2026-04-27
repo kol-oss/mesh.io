@@ -127,6 +127,8 @@
 .workspace__obstacle {
   position: absolute;
   transform: translate(-50%, -50%);
+  display: block;
+  padding: 0;
   border: 1px solid rgba(26, 26, 26, 0.34);
   background: repeating-linear-gradient(
     -45deg,
@@ -157,6 +159,53 @@
   &--dragging {
     z-index: 5;
   }
+}
+
+.workspace__obstacle-handle {
+  position: absolute;
+  background: #0f7fd0;
+  border-radius: 99px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.workspace__obstacle--selected .workspace__obstacle-handle {
+  opacity: 1;
+}
+
+.workspace__obstacle-handle--left,
+.workspace__obstacle-handle--right {
+  width: 6px;
+  height: 24px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  cursor: ew-resize;
+}
+
+.workspace__obstacle-handle--left {
+  left: 0;
+}
+
+.workspace__obstacle-handle--right {
+  left: 100%;
+}
+
+.workspace__obstacle-handle--top,
+.workspace__obstacle-handle--bottom {
+  width: 24px;
+  height: 6px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  cursor: ns-resize;
+}
+
+.workspace__obstacle-handle--top {
+  top: 0;
+}
+
+.workspace__obstacle-handle--bottom {
+  top: 100%;
 }
 
 .workspace__peer {
