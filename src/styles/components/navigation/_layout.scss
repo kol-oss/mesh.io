@@ -64,10 +64,14 @@
   }
 
   &--collapsed {
-    width: 280px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: auto;
     border-right: none;
     background: transparent;
     padding: 10px 12px;
+    z-index: 5;
   }
 }
 
