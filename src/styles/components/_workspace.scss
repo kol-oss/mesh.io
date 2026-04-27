@@ -1,0 +1,84 @@
+@use "../abstracts/variables" as *;
+
+.workspace {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.86) 0%, rgba(245, 245, 245, 1) 66%),
+    linear-gradient(180deg, #fbfbfb 0%, #f1f1f1 100%);
+}
+
+.workspace__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(26, 26, 26, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 26, 26, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: calc(50% - 24px) calc(50% - 24px);
+  pointer-events: none;
+}
+
+.workspace__peer {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: $black-800;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &--dragging {
+    z-index: 3;
+  }
+
+  &--selected .workspace__peer-icon {
+    border-color: #0f7fd0;
+    box-shadow: 0 0 0 4px rgba(15, 127, 208, 0.18);
+  }
+}
+
+.workspace__peer-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(26, 26, 26, 0.28);
+  background: rgba(255, 255, 255, 0.96);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.1s ease;
+}
+
+.workspace__peer:hover .workspace__peer-icon {
+  transform: translateY(-1px);
+}
+
+.workspace__peer-name {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 6px);
+  transform: translateX(-50%);
+  max-width: 140px;
+  min-width: 40px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: $black-800;
+  white-space: nowrap;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+}
