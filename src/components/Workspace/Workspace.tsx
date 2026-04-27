@@ -15,12 +15,15 @@ import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 import type { ToolbarPlacementMode } from "../Toolbar/Toolbar";
 import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../types/navigation";
 import type { WorkflowStep } from "../../types/steps";
+import type { WorkspaceTextItem } from "../../types/workspace";
 
 type WorkspaceProps = {
   entities: NetworkEntity[];
   setEntities: (value: NetworkEntity[]) => void;
   steps: WorkflowStep[];
   setSteps: (value: WorkflowStep[]) => void;
+  texts: WorkspaceTextItem[];
+  setTexts: (value: WorkspaceTextItem[]) => void;
   selectedId: string | null;
   selectedSource: "entities" | "steps" | null;
   placementMode: ToolbarPlacementMode;
@@ -31,7 +34,7 @@ type WorkspaceProps = {
 
 type DragState = {
   entityId: string;
-  entityType: "PEER" | "OBSTACLE";
+  entityType: "PEER" | "OBSTACLE" | "TEXT";
   mode: "move" | "resize";
   resizeEdge?: "left" | "right" | "top" | "bottom";
   pointerId: number;
@@ -246,6 +249,8 @@ export default function Workspace({
   setEntities,
   steps,
   setSteps,
+  texts,
+  setTexts,
   selectedId,
   selectedSource,
   placementMode,
@@ -299,6 +304,9 @@ export default function Workspace({
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [creationSelectedEntityId, setCreationSelectedEntityId] = useState<string | null>(null);
   const [moveTargetPreview, setMoveTargetPreview] = useState<{ x: number; y: number } | null>(null);
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const [editingTextDraft, setEditingTextDraft] = useState("");
+  const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
   const linkSourcePeerIdRef = useRef<string | null>(null);
   const stepMessageSourcePeerIdRef = useRef<string | null>(null);
   const stepMovePeerIdRef = useRef<string | null>(null);
@@ -363,7 +371,9 @@ export default function Workspace({
                 ? resolvedCreationSelectedEntityId
                   ? "Click destination point on workspace"
                   : "Select peer to move"
-                : "Select a peer or link";
+                : mode === "text"
+                  ? "Click on workspace to place text"
+                  : "Select a peer or link";
 
     hintActiveRef.current = true;
     showToast(text, null);
@@ -622,6 +632,20 @@ export default function Workspace({
     setEntities(nextEntities);
   };
 
+  const updateTextPosition = (textId: string, x: number, y: number) => {
+    const nextTexts = texts.map((item) =>
+      item.id === textId
+        ? {
+            ...item,
+            x,
+            y,
+          }
+        : item,
+    );
+
+    setTexts(nextTexts);
+  };
+
   const getWorkspaceCoords = (event: ReactPointerEvent<HTMLElement>) => {
     const element = workspaceRef.current;
     if (!element) {
@@ -749,6 +773,83 @@ export default function Workspace({
       x: 0,
       y: 0,
     });
+  };
+
+  const createTextAt = (x: number, y: number) => {
+    const nextText: WorkspaceTextItem = {
+      id: `text-${generateUUID()}`,
+      text: "Text",
+      x,
+      y,
+    };
+
+    setTexts([...texts, nextText]);
+    showCreationToast("Text added");
+  };
+
+  const handleTextDoubleClick = (item: WorkspaceTextItem) => {
+    setSelectedTextId(item.id);
+    setEditingTextId(item.id);
+    setEditingTextDraft(item.text);
+  };
+
+  const handleTextPointerDown = (item: WorkspaceTextItem, event: ReactPointerEvent<HTMLElement>) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    event.stopPropagation();
+    setSelectedTextId(item.id);
+
+    if (editingTextId === item.id) {
+      return;
+    }
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragStateRef.current = {
+      entityId: item.id,
+      entityType: "TEXT",
+      mode: "move",
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startX: item.x,
+      startY: item.y,
+    };
+    setActiveDragEntityId(item.id);
+  };
+
+  const commitTextEdit = () => {
+    if (!editingTextId) {
+      return;
+    }
+
+    const nextText = editingTextDraft.trim();
+    if (!nextText) {
+      setTexts(texts.filter((item) => item.id !== editingTextId));
+      setSelectedTextId(null);
+      setEditingTextId(null);
+      setEditingTextDraft("");
+      return;
+    }
+
+    const nextItems = texts.map((item) =>
+      item.id === editingTextId
+        ? {
+            ...item,
+            text: nextText,
+          }
+        : item,
+    );
+    setTexts(nextItems);
+    setSelectedTextId(editingTextId);
+    setEditingTextId(null);
+    setEditingTextDraft("");
+  };
+
+  const cancelTextEdit = () => {
+    setEditingTextId(null);
+    setEditingTextDraft("");
   };
 
   const selectedMoveStep = useMemo(() => {
@@ -1015,6 +1116,11 @@ export default function Workspace({
       return;
     }
 
+    if (dragState.mode === "move" && dragState.entityType === "TEXT") {
+      updateTextPosition(dragState.entityId, nextX, nextY);
+      return;
+    }
+
     if (dragState.mode === "move") {
       updateObstaclePosition(dragState.entityId, nextX, nextY);
       return;
@@ -1094,6 +1200,23 @@ export default function Workspace({
 
   const handleBackgroundPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     if (event.button !== 0) return;
+
+    setSelectedTextId(null);
+
+    if (editingTextId) {
+      commitTextEdit();
+    }
+
+    if (placementMode === "text") {
+      const coords = getWorkspaceCoords(event);
+      if (!coords) {
+        return;
+      }
+
+      createTextAt(coords.x, coords.y);
+      scheduleHintRestore("text");
+      return;
+    }
 
     if (placementMode === "peer" || placementMode === "obstacle") {
       const coords = getWorkspaceCoords(event);
@@ -1322,6 +1445,59 @@ export default function Workspace({
             <Radio size={20} />
           </span>
         ))}
+
+        {texts.map((item) => {
+          const isEditing = editingTextId === item.id;
+
+          if (isEditing) {
+            return (
+              <input
+                key={item.id}
+                className="workspace__text workspace__text--editing"
+                style={{
+                  left: `calc(50% + ${item.x}px)`,
+                  top: `calc(50% + ${item.y}px)`,
+                }}
+                value={editingTextDraft}
+                onPointerDown={(event) => event.stopPropagation()}
+                onChange={(event) => setEditingTextDraft(event.target.value)}
+                onBlur={commitTextEdit}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    commitTextEdit();
+                  }
+
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    cancelTextEdit();
+                  }
+                }}
+                autoFocus
+              />
+            );
+          }
+
+          return (
+            <button
+              key={item.id}
+              className={`workspace__text${selectedTextId === item.id ? " workspace__text--selected" : ""}${activeDragEntityId === item.id ? " workspace__text--dragging" : ""}`}
+              style={{
+                left: `calc(50% + ${item.x}px)`,
+                top: `calc(50% + ${item.y}px)`,
+              }}
+              type="button"
+              onPointerDown={(event) => handleTextPointerDown(item, event)}
+              onPointerMove={handleEntityPointerMove}
+              onPointerUp={handleEntityPointerEnd}
+              onPointerCancel={handleEntityPointerEnd}
+              onDoubleClick={() => handleTextDoubleClick(item)}
+              aria-label={`Text ${item.text}`}
+            >
+              {item.text}
+            </button>
+          );
+        })}
 
         {obstacles.map((obstacle) => {
           const isSelected =

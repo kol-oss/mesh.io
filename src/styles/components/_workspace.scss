@@ -43,7 +43,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-
+  cursor: pointer;
   > * {
     pointer-events: auto;
   }
@@ -109,6 +109,41 @@
     color: rgba(15, 127, 208, 0.62);
     filter: drop-shadow(0 0 3px rgba(15, 127, 208, 0.2));
   }
+}
+
+.workspace__text {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border: none;
+  background: rgba(255, 255, 255, 0.75);
+  color: $black-800;
+  font-size: 14px;
+  line-height: 1.2;
+  padding: 3px 6px;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  z-index: 4;
+}
+
+.workspace__text--selected {
+  outline: 1px solid rgba(15, 127, 208, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(15, 127, 208, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+button.workspace__text {
+  cursor: pointer;
+}
+
+.workspace__text--dragging {
+  cursor: pointer;
+}
+
+.workspace__text--editing {
+  min-width: 80px;
+  outline: 1px solid rgba(15, 127, 208, 0.48);
 }
 
 .workspace__static-links {
@@ -219,14 +254,10 @@
   );
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
   border-radius: 4px;
-  cursor: grab;
+  cursor: pointer;
   touch-action: none;
   user-select: none;
   z-index: 3;
-
-  &:active {
-    cursor: grabbing;
-  }
 
   &--selected {
     border-color: #0f7fd0;
@@ -238,6 +269,7 @@
 
   &--dragging {
     z-index: 5;
+    cursor: pointer;
   }
 }
 

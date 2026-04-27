@@ -9,6 +9,7 @@ import { useToast } from "../../hooks/useToast";
 import type { NetworkEntity } from "../../types/navigation";
 import type { PeerRoutingProtocol } from "../../types/navigation";
 import type { WorkflowStep } from "../../types/steps";
+import type { WorkspaceTextItem } from "../../types/workspace";
 import { INITIAL_NETWORK_ENTITIES } from "../../utils/navigation/entities";
 import { composeStepsWithRefresh, sanitizeManualSteps } from "../../utils/navigation/refreshSteps";
 import { INITIAL_WORKFLOW_STEPS } from "../../utils/navigation/steps";
@@ -196,6 +197,7 @@ export default function WorkspacePage() {
     "mesh_steps",
     INITIAL_WORKFLOW_STEPS,
   );
+  const [texts, setTexts] = useLocalStorage<WorkspaceTextItem[]>("mesh_text_items", []);
   const normalizedManualSteps = useMemo(() => sanitizeManualSteps(manualSteps), [manualSteps]);
   const steps = useMemo(
     () => composeStepsWithRefresh(normalizedManualSteps, entities),
@@ -268,6 +270,7 @@ export default function WorkspacePage() {
 
     setEntities([]);
     setManualSteps([]);
+    setTexts([]);
     handleClearSelection();
     showToast("Started a new simulation");
   };
@@ -351,6 +354,8 @@ export default function WorkspacePage() {
           setEntities={setEntities}
           steps={steps}
           setSteps={setSteps}
+          texts={texts}
+          setTexts={setTexts}
           selectedId={selectedId}
           selectedSource={selectedSource}
           placementMode={placementMode}

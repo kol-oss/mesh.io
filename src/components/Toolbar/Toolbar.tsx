@@ -40,6 +40,7 @@ export type ToolbarPlacementMode =
   | "message"
   | "move"
   | "toggle"
+  | "text"
   | null;
 
 type ModeButton = {
@@ -187,6 +188,7 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
   useEffect(() => {
     const entitiesMode = activeItemsByGroup.entities.key;
     const stepsMode = activeItemsByGroup.steps.key;
+    const textMode = activeItemsByGroup.text.key;
     const nextPlacementMode: ToolbarPlacementMode =
       normalizedSelectedGroupId === "entities" &&
       (entitiesMode === "peer" || entitiesMode === "link" || entitiesMode === "obstacle")
@@ -194,7 +196,9 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
         : normalizedSelectedGroupId === "steps" &&
             (stepsMode === "message" || stepsMode === "move" || stepsMode === "toggle")
           ? stepsMode
-          : null;
+          : normalizedSelectedGroupId === "text" && textMode === "text"
+            ? "text"
+            : null;
 
     onPlacementModeChange(nextPlacementMode);
   }, [activeItemsByGroup, normalizedSelectedGroupId, onPlacementModeChange]);
