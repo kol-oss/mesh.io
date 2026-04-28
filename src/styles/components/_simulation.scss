@@ -99,6 +99,48 @@
   line-height: 1.3;
 }
 
+.simulation-panel__description--secondary {
+  color: $black-400;
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 400;
+}
+
+.simulation-panel__tq-disclosure {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.simulation-panel__tq-toggle {
+  padding: 0;
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: $black-400;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.simulation-panel__tq-toggle-icon {
+  flex: 0 0 auto;
+  color: $black-400;
+  transition: transform 0.18s ease;
+}
+
+.simulation-panel__tq-toggle-icon--open {
+  transform: rotate(90deg);
+}
+
+.simulation-panel__tq-toggle-label {
+  color: inherit;
+}
+
 .simulation-panel__section-header {
   display: flex;
   align-items: center;
@@ -215,7 +257,7 @@
   }
 
   th {
-    background: rgba(15, 127, 208, 0.22);
+    background: #a5d9ff;
     font-weight: 500;
   }
 
@@ -247,6 +289,56 @@
   margin: 0;
   text-align: right;
   word-break: break-word;
+}
+
+.simulation-panel__quality-window {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid $neutral-400;
+  background: rgba(255, 255, 255, 0.84);
+  overflow: hidden;
+}
+
+.simulation-panel__quality-window-label {
+  margin: 0;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: $black-800;
+  text-align: center;
+  background: #a5d9ff;
+  border-bottom: 1px solid $neutral-400;
+}
+
+.simulation-panel__quality-window-bits {
+  display: grid;
+  grid-template-columns: repeat(64, minmax(0, 1fr));
+  width: 100%;
+}
+
+.simulation-panel__quality-window-bit {
+  min-width: 0;
+  padding: 2px 0;
+  border-right: 1px solid $neutral-400;
+  border-bottom: 1px solid $neutral-400;
+  background: rgba(255, 255, 255, 0.84);
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 700;
+  font-family: "IBM Plex Mono", "Consolas", monospace;
+  text-align: center;
+  color: rgba(74, 83, 97, 0.72);
+
+  &:nth-child(64n) {
+    border-right: none;
+  }
+}
+
+.simulation-panel__quality-window-bit--active {
+  background: #a5d9ff;
+  color: #0e99ff;
 }
 
 .simulation-panel__event-meta {

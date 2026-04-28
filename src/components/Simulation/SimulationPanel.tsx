@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
-import type { ReactNode, PointerEvent as ReactPointerEvent } from "react";
+import { useState, type ReactNode, type PointerEvent as ReactPointerEvent } from "react";
 
 import { ToolbarMode } from "../../types/enums";
 import {
@@ -41,6 +41,11 @@ export default function SimulationPanel({
   onNextEvent,
   onPrevEvent,
 }: SimulationPanelProps) {
+  const [tqDisclosureState, setTqDisclosureState] = useState<{
+    eventId: string;
+    isOpen: boolean;
+  } | null>(null);
+
   if (!currentStepResult || !currentEvent) {
     return null;
   }
@@ -57,9 +62,20 @@ export default function SimulationPanel({
     onPeerHoverChange,
   );
   const routeRows = routeChange ? getRouteRows(routeChange) : [];
+  const routeTqExplanation = routeChange ? getRouteTqExplanation(currentEvent) : null;
+  const isTqDisclosureOpen =
+    routeTqExplanation !== null && tqDisclosureState?.eventId === currentEvent.id
+      ? tqDisclosureState.isOpen
+      : false;
   const messageSummary = routeChange ? null : getMessageSummary(currentEvent, peerNameById);
   const handlePointerDownCapture = (event: ReactPointerEvent<HTMLElement>) => {
     event.stopPropagation();
+  };
+  const handleTqDisclosureToggle = () => {
+    setTqDisclosureState((prev) => ({
+      eventId: currentEvent.id,
+      isOpen: prev?.eventId === currentEvent.id ? !prev.isOpen : true,
+    }));
   };
 
   return (
@@ -85,7 +101,6 @@ export default function SimulationPanel({
                   <th>Originator</th>
                   <th>Next Hop</th>
                   <th>TQ</th>
-                  <th>Window</th>
                   <th>Last Seen</th>
                 </tr>
               </thead>
@@ -95,12 +110,59 @@ export default function SimulationPanel({
                     <td>{getPeerLabel(row.originatorPeerId, peerNameById)}</td>
                     <td>{getPeerLabel(row.hopPeerId, peerNameById)}</td>
                     <td>{row.quality}</td>
-                    <td>{row.qualityWindow}</td>
                     <td>{row.lastTick}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {routeTqExplanation ? (
+              <div className="simulation-panel__tq-disclosure">
+                <button
+                  className="simulation-panel__tq-toggle"
+                  type="button"
+                  onClick={handleTqDisclosureToggle}
+                  aria-expanded={isTqDisclosureOpen}
+                >
+                  <ChevronRight
+                    size={12}
+                    className={`simulation-panel__tq-toggle-icon${isTqDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
+                  />
+                  <span className="simulation-panel__tq-toggle-label">
+                    {getRouteTqQuestion(currentEvent)}
+                  </span>
+                </button>
+                {isTqDisclosureOpen ? (
+                  <p className="simulation-panel__description simulation-panel__description--secondary">
+                    {routeTqExplanation}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+            {isTqDisclosureOpen
+              ? routeRows.map((row, index) => (
+                  <div
+                    className="simulation-panel__quality-window"
+                    key={`window-${row.originatorPeerId}-${row.hopPeerId}-${index}`}
+                  >
+                    <p className="simulation-panel__quality-window-label">
+                      Transaction Quality (TQ) Window
+                    </p>
+                    <div
+                      className="simulation-panel__quality-window-bits"
+                      aria-label="Quality window bits"
+                    >
+                      {row.qualityWindow.split("").map((bit, bitIndex) => (
+                        <span
+                          className={`simulation-panel__quality-window-bit${bit === "1" ? " simulation-panel__quality-window-bit--active" : ""}`}
+                          key={`${row.originatorPeerId}-${row.hopPeerId}-${bitIndex}`}
+                        >
+                          {bit}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              : null}
           </div>
         ) : messageSummary ? (
           <div className="simulation-panel__table-block">
@@ -493,6 +555,26 @@ const getRouteUpdateDescription = (
       stays current.
     </>
   );
+};
+
+const getRouteTqExplanation = (event: SimulationEvent) => {
+  if (event.type === SimulationEventType.RoutingTableInsert) {
+    return "Transaction Quality (TQ) comes from the 64-bit window below: accepted OGMs write 1s, missed progress shifts in 0s, and the total is scaled to BATMAN's 0-255 quality score.";
+  }
+
+  if (event.type === SimulationEventType.RoutingTableUpdate) {
+    return "Transaction Quality (TQ) is recalculated from the same 64-bit window: BATMAN counts the 1s in that history and scales the result to the 0-255 quality range.";
+  }
+
+  return null;
+};
+
+const getRouteTqQuestion = (event: SimulationEvent) => {
+  if (event.type === SimulationEventType.RoutingTableUpdate) {
+    return "How Transaction Quality (TQ) changed?";
+  }
+
+  return "What is Transaction Quality (TQ)?";
 };
 
 const getRouteRemoveDescription = (
