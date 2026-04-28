@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export type ToastMessage = {
   id: string;
@@ -12,14 +12,7 @@ type ToastProps = {
 };
 
 export default function Toast({ message, onDismiss }: ToastProps) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useLayoutEffect(() => {
-    if (message) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsVisible(true);
-    }
-  }, [message]);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     if (!isVisible || !message) {
