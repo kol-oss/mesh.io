@@ -54,6 +54,7 @@ export type RoutingTableChangeDetails = {
   hopPeerId: string;
   previousRoute: BatmanRouteRecord | null;
   nextRoute: BatmanRouteRecord | null;
+  message?: SimulationMessage;
   reason: string;
 };
 

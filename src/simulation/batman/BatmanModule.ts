@@ -107,13 +107,13 @@ class BatmanOriginatorTable {
     this.purgeTimeout = purgeTimeout;
   }
 
-  process(originatorPeerId: string, hopPeerId: string, sequence: number) {
+  process(originatorPeerId: string, hopPeerId: string, message: BatmanOriginatorMessage) {
     const routes = this.originators.get(originatorPeerId);
     if (!routes || !routes.has(hopPeerId)) {
-      this.insert(originatorPeerId, hopPeerId);
+      this.insert(originatorPeerId, hopPeerId, message);
     }
 
-    return this.update(originatorPeerId, hopPeerId, sequence);
+    return this.update(originatorPeerId, hopPeerId, message);
   }
 
   tick() {
@@ -202,7 +202,7 @@ class BatmanOriginatorTable {
     });
   }
 
-  private insert(originatorPeerId: string, hopPeerId: string) {
+  private insert(originatorPeerId: string, hopPeerId: string, message: BatmanOriginatorMessage) {
     const route: BatmanRoute = {
       hopPeerId,
       qualityWindow: new BatmanQualityWindow(),
@@ -218,11 +218,12 @@ class BatmanOriginatorTable {
       hopPeerId,
       previousRoute: null,
       nextRoute: this.toRouteRecord(originatorPeerId, route),
+      message: cloneMessage(message),
       reason: "First OGM discovered a new originator via this hop",
     });
   }
 
-  private update(originatorPeerId: string, hopPeerId: string, sequence: number) {
+  private update(originatorPeerId: string, hopPeerId: string, message: BatmanOriginatorMessage) {
     const route = this.originators.get(originatorPeerId)?.get(hopPeerId);
     if (!route) {
       return false;
@@ -230,13 +231,14 @@ class BatmanOriginatorTable {
 
     const previousRoute = this.toRouteRecord(originatorPeerId, route);
     route.lastTick = this.eventRecorder.getCurrentTick();
-    const processed = route.qualityWindow.process(sequence);
+    const processed = route.qualityWindow.process(message.sequence);
     if (processed) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableUpdate, {
         originatorPeerId,
         hopPeerId,
         previousRoute,
         nextRoute: this.toRouteRecord(originatorPeerId, route),
+        message: cloneMessage(message),
         reason: "OGM updated the BATMAN quality window",
       });
     }
@@ -359,7 +361,7 @@ export class BatmanModule implements PacketCapableModule {
     const processed = this.originatorTable.process(
       message.sourcePeerId,
       message.senderPeerId,
-      message.sequence,
+      message,
     );
     if (!processed) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {

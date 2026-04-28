@@ -558,15 +558,48 @@ const getRouteUpdateDescription = (
 };
 
 const getRouteTqExplanation = (event: SimulationEvent) => {
+  const routeChange = getRouteChange(event);
+  if (!routeChange) {
+    return null;
+  }
+
+  const message = getEventMessage(event);
+
   if (event.type === SimulationEventType.RoutingTableInsert) {
-    return "Transaction Quality (TQ) comes from the 64-bit window below: accepted OGMs write 1s, missed progress shifts in 0s, and the total is scaled to BATMAN's 0-255 quality score.";
+    const nextRoute = routeChange.nextRoute;
+    if (!nextRoute || message?.kind !== SimulationMessageKind.BatmanOriginatorMessage) {
+      return "Transaction Quality (TQ) is initialized from the first accepted OGM and then continuously adjusted as the 64-bit history window shifts, adding 1s for received OGMs and 0s for missed ones.";
+    }
+
+    return `Received OGM with sequence ${message.sequence} initializes the window: BATMAN inserts a 1 at the newest position and shifts other elements. The window was just initialized and currently has ${countQualityWindowOnes(nextRoute.qualityWindow)} successful receptions, resulting in TQ ${nextRoute.quality}.`;
   }
 
   if (event.type === SimulationEventType.RoutingTableUpdate) {
-    return "Transaction Quality (TQ) is recalculated from the same 64-bit window: BATMAN counts the 1s in that history and scales the result to the 0-255 quality range.";
+    const previousRoute = routeChange.previousRoute;
+    const nextRoute = routeChange.nextRoute;
+
+    if (!previousRoute || !nextRoute) {
+      return null;
+    }
+
+    const isDecayUpdate = routeChange.reason.includes("no OGM was received during the tick");
+
+    if (!isDecayUpdate) {
+      if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
+        return `Received OGM with sequence ${message.sequence} updated the window by adding a new entry to the first position. The calculated quality changed from ${previousRoute.quality} to ${nextRoute.quality}.`;
+      }
+
+      return `A new OGM updated the route: the window changed from ${countQualityWindowOnes(previousRoute.qualityWindow)} (TQ ${previousRoute.quality}) to ${countQualityWindowOnes(nextRoute.qualityWindow)} (TQ ${nextRoute.quality}).`;
+    }
+
+    return `No OGM arrived, so BATMAN shifted in a 0: the window changed from ${countQualityWindowOnes(previousRoute.qualityWindow)} (TQ ${previousRoute.quality}) to ${countQualityWindowOnes(nextRoute.qualityWindow)} (TQ ${nextRoute.quality}).`;
   }
 
   return null;
+};
+
+const countQualityWindowOnes = (qualityWindow: string) => {
+  return qualityWindow.split("").reduce((count, bit) => count + Number(bit === "1"), 0);
 };
 
 const getRouteTqQuestion = (event: SimulationEvent) => {
