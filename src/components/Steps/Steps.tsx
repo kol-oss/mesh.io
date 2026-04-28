@@ -15,7 +15,12 @@ import { useListReorder } from "../../hooks/useListReorder";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
 import { StepType } from "../../types/enums";
-import type { WorkflowStep } from "../../types/workspace/steps";
+import type {
+  MessageStep,
+  MoveStep,
+  ToggleStatusStep,
+  WorkflowStep,
+} from "../../types/workspace/steps";
 import { migrateSteps } from "../../utils/navigation/stepMigration";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 import Tooltip from "../Tooltip/Tooltip";
@@ -185,19 +190,33 @@ export default function Steps({
     const manualSteps = steps.filter((step) => !isRefreshStep(step));
     const nextTick =
       manualSteps.length > 0 ? Math.max(1, manualSteps[manualSteps.length - 1].tick) : 1;
-    const newStep: WorkflowStep = {
-      id: `step-${Date.now()}`,
-      title:
-        type === StepType.ToggleStatus ? "Toggle" : type === StepType.Message ? "Message" : "Move",
-      type,
-      tick: nextTick,
-      sourcePeerId: null,
-      destinationPeerId: null,
-      targetEntityId: null,
-      movePeerId: null,
-      x: 0,
-      y: 0,
-    };
+    const newStep: WorkflowStep =
+      type === StepType.Message
+        ? ({
+            id: `step-${Date.now()}`,
+            title: "Message",
+            type: StepType.Message,
+            tick: nextTick,
+            sourcePeerId: "",
+            destinationPeerId: "",
+          } satisfies MessageStep)
+        : type === StepType.ToggleStatus
+          ? ({
+              id: `step-${Date.now()}`,
+              title: "Toggle",
+              type: StepType.ToggleStatus,
+              tick: nextTick,
+              targetEntityId: "",
+            } satisfies ToggleStatusStep)
+          : ({
+              id: `step-${Date.now()}`,
+              title: "Move",
+              type: StepType.Move,
+              tick: nextTick,
+              movePeerId: "",
+              x: 0,
+              y: 0,
+            } satisfies MoveStep);
     const updatedSteps = [...steps, newStep];
     setSteps(updatedSteps);
     onSelect(newStep.id);

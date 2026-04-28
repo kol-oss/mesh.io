@@ -7,7 +7,13 @@ import {
 } from "../../constants/workspace";
 import { EntityType, RoutingProtocol, StepType } from "../../types/enums";
 import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../types/navigation";
-import type { WorkflowStep } from "../../types/workspace/steps";
+import type {
+  ManualWorkflowStep,
+  MessageStep,
+  MoveStep,
+  ToggleStatusStep,
+  WorkflowStep,
+} from "../../types/workspace/steps";
 import type { WorkspaceTextItem } from "../../types/workspace";
 import type {
   WorkspaceCreationCallbacks,
@@ -94,7 +100,7 @@ export function useWorkspaceCreation({
   );
 
   const createStep = useCallback(
-    (step: WorkflowStep) => {
+    (step: ManualWorkflowStep) => {
       setters.setSteps([...steps, step]);
       callbacks.onStepSelect(step.id);
       callbacks.showCreationToast(`Step "${step.title}" added`);
@@ -113,54 +119,48 @@ export function useWorkspaceCreation({
 
   const createMessageStep = useCallback(
     (sourcePeerId: string, destinationPeerId: string) => {
-      createStep({
+      const step: MessageStep = {
         id: `step-${generateUUID()}`,
         title: "Message",
         type: StepType.Message,
         tick: getNextManualStepTick(),
         sourcePeerId,
         destinationPeerId,
-        targetEntityId: null,
-        movePeerId: null,
-        x: 0,
-        y: 0,
-      });
+      };
+
+      createStep(step);
     },
     [createStep, getNextManualStepTick],
   );
 
   const createMoveStep = useCallback(
     (movePeerId: string, x: number, y: number) => {
-      createStep({
+      const step: MoveStep = {
         id: `step-${generateUUID()}`,
         title: "Move",
         type: StepType.Move,
         tick: getNextManualStepTick(),
-        sourcePeerId: null,
-        destinationPeerId: null,
-        targetEntityId: null,
         movePeerId,
         x,
         y,
-      });
+      };
+
+      createStep(step);
     },
     [createStep, getNextManualStepTick],
   );
 
   const createToggleStep = useCallback(
     (targetEntityId: string) => {
-      createStep({
+      const step: ToggleStatusStep = {
         id: `step-${generateUUID()}`,
         title: "Toggle",
         type: StepType.ToggleStatus,
         tick: getNextManualStepTick(),
-        sourcePeerId: null,
-        destinationPeerId: null,
         targetEntityId,
-        movePeerId: null,
-        x: 0,
-        y: 0,
-      });
+      };
+
+      createStep(step);
     },
     [createStep, getNextManualStepTick],
   );

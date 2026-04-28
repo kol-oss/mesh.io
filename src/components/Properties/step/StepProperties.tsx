@@ -2,7 +2,13 @@ import { Activity, ChevronsRight, Clock3, ExternalLink, Mail } from "lucide-reac
 
 import { EntityType, StepType } from "../../../types/enums";
 import type { LinkEntity, PeerEntity } from "../../../types/navigation";
-import type { WorkflowStep } from "../../../types/workspace/steps";
+import type {
+  ManualWorkflowStep,
+  MessageStep,
+  MoveStep,
+  ToggleStatusStep,
+  WorkflowStep,
+} from "../../../types/workspace/steps";
 import type { StepPropertiesPanelProps } from "../../../types/properties";
 import { isRefreshStep } from "../../../utils/navigation/refreshSteps";
 import { parseNumberValue } from "../../../utils/properties";
@@ -45,25 +51,26 @@ export default function StepProperties({
   ] as const;
 
   const messageSourceValue =
-    selectedStep.sourcePeerId && peers.some((peer) => peer.id === selectedStep.sourcePeerId)
+    selectedStep.type === StepType.Message &&
+    peers.some((peer) => peer.id === selectedStep.sourcePeerId)
       ? selectedStep.sourcePeerId
       : "";
 
   const messageDestinationValue =
-    selectedStep.destinationPeerId &&
+    selectedStep.type === StepType.Message &&
     selectedStep.destinationPeerId !== messageSourceValue &&
     peers.some((peer) => peer.id === selectedStep.destinationPeerId)
       ? selectedStep.destinationPeerId
       : "";
 
   const toggleTargetValue =
-    selectedStep.targetEntityId &&
+    selectedStep.type === StepType.ToggleStatus &&
     toggleTargets.some((entity) => entity.id === selectedStep.targetEntityId)
       ? selectedStep.targetEntityId
       : "";
 
   const moveTargetValue =
-    selectedStep.movePeerId && peers.some((peer) => peer.id === selectedStep.movePeerId)
+    selectedStep.type === StepType.Move && peers.some((peer) => peer.id === selectedStep.movePeerId)
       ? selectedStep.movePeerId
       : "";
 
@@ -83,19 +90,74 @@ export default function StepProperties({
     selectedStep.type === StepType.ToggleStatus && toggleTargetValue === "";
   const isStepMoveEntityMissing = selectedStep.type === StepType.Move && moveTargetValue === "";
 
-  const updateStep = (changes: Partial<WorkflowStep>) => {
+  const updateSelectedManualStep = (changes: Partial<ManualWorkflowStep>) => {
     const updatedSteps = steps.map((step) => {
       if (step.id !== selectedStep.id) {
         return step;
       }
 
-      return {
-        ...step,
-        ...changes,
-      };
+      if (step.type === StepType.Message) {
+        return {
+          ...step,
+          ...(changes as Partial<MessageStep>),
+        } satisfies MessageStep;
+      }
+
+      if (step.type === StepType.Move) {
+        return {
+          ...step,
+          ...(changes as Partial<MoveStep>),
+        } satisfies MoveStep;
+      }
+
+      if (step.type === StepType.ToggleStatus) {
+        return {
+          ...step,
+          ...(changes as Partial<ToggleStatusStep>),
+        } satisfies ToggleStatusStep;
+      }
+
+      return step;
     });
 
     setSteps(updatedSteps);
+  };
+
+  const convertStepType = (step: WorkflowStep, nextType: ManualWorkflowStep["type"]) => {
+    if (step.type === nextType || isRefreshStep(step)) {
+      return step;
+    }
+
+    const base = {
+      id: step.id,
+      title: step.title,
+      tick: step.tick,
+    };
+
+    if (nextType === StepType.Message) {
+      return {
+        ...base,
+        type: StepType.Message,
+        sourcePeerId: "",
+        destinationPeerId: "",
+      } satisfies MessageStep;
+    }
+
+    if (nextType === StepType.ToggleStatus) {
+      return {
+        ...base,
+        type: StepType.ToggleStatus,
+        targetEntityId: "",
+      } satisfies ToggleStatusStep;
+    }
+
+    return {
+      ...base,
+      type: StepType.Move,
+      movePeerId: "",
+      x: 0,
+      y: 0,
+    } satisfies MoveStep;
   };
 
   const updateStepTick = (nextTick: number) => {
@@ -162,7 +224,7 @@ export default function StepProperties({
             className={`properties__input ${isStepNameMissing ? "properties__required-outline" : ""}`}
             type="text"
             value={selectedStep.title}
-            onChange={(event) => updateStep({ title: event.target.value })}
+            onChange={(event) => updateSelectedManualStep({ title: event.target.value })}
           />
         </label>
 
@@ -180,33 +242,11 @@ export default function StepProperties({
                   icon: stepType.icon,
                 }))}
                 onChange={(value) => {
-                  const nextType = value as WorkflowStep["type"];
-
-                  if (nextType === StepType.Message) {
-                    updateStep({
-                      type: nextType,
-                      targetEntityId: null,
-                      movePeerId: null,
-                    });
-                    return;
-                  }
-
-                  if (nextType === StepType.ToggleStatus) {
-                    updateStep({
-                      type: nextType,
-                      sourcePeerId: null,
-                      destinationPeerId: null,
-                      movePeerId: null,
-                    });
-                    return;
-                  }
-
-                  updateStep({
-                    type: nextType,
-                    sourcePeerId: null,
-                    destinationPeerId: null,
-                    targetEntityId: null,
-                  });
+                  const nextType = value as ManualWorkflowStep["type"];
+                  const updatedSteps = steps.map((step) =>
+                    step.id === selectedStep.id ? convertStepType(step, nextType) : step,
+                  );
+                  setSteps(updatedSteps);
                 }}
               />
             </label>
@@ -237,7 +277,7 @@ export default function StepProperties({
             messageDestinationValue={messageDestinationValue}
             isStepMessageSourceMissing={isStepMessageSourceMissing}
             isStepMessageDestinationMissing={isStepMessageDestinationMissing}
-            updateStep={updateStep}
+            updateStep={updateSelectedManualStep}
           />
         )}
 
@@ -247,7 +287,7 @@ export default function StepProperties({
             toggleTargetValue={toggleTargetValue}
             isStepToggleEntityMissing={isStepToggleEntityMissing}
             reverseStatusLabel={reverseStatusLabel}
-            updateStep={updateStep}
+            updateStep={updateSelectedManualStep}
           />
         )}
 
@@ -257,7 +297,7 @@ export default function StepProperties({
             peers={peers}
             moveTargetValue={moveTargetValue}
             isStepMoveEntityMissing={isStepMoveEntityMissing}
-            updateStep={updateStep}
+            updateStep={updateSelectedManualStep}
           />
         )}
       </section>

@@ -200,7 +200,7 @@ export function useWorkspaceDerived({
     }
 
     const step = steps.find((candidate) => candidate.id === selectedId);
-    if (!step || step.type !== StepType.Move || !step.movePeerId || isRefreshStep(step)) {
+    if (!step || step.type !== StepType.Move || isRefreshStep(step) || step.movePeerId === "") {
       return null;
     }
 
@@ -258,20 +258,20 @@ export function useWorkspaceDerived({
     const ids = new Set<string>();
 
     if (step.type === StepType.Message) {
-      if (step.sourcePeerId) ids.add(step.sourcePeerId);
-      if (step.destinationPeerId) ids.add(step.destinationPeerId);
+      if (step.sourcePeerId !== "") ids.add(step.sourcePeerId);
+      if (step.destinationPeerId !== "") ids.add(step.destinationPeerId);
     }
 
     if (step.type === StepType.Move) {
-      if (step.movePeerId) ids.add(step.movePeerId);
+      if (step.movePeerId !== "") ids.add(step.movePeerId);
     }
 
     if (step.type === StepType.ToggleStatus) {
-      if (step.targetEntityId) ids.add(step.targetEntityId);
+      if (step.targetEntityId !== "") ids.add(step.targetEntityId);
     }
 
     if (step.type === StepType.Refresh) {
-      if (step.refreshPeerId) ids.add(step.refreshPeerId);
+      ids.add(step.refreshPeerId);
     }
 
     return ids;

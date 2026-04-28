@@ -1,17 +1,17 @@
 import { Radio } from "lucide-react";
 
 import type { PeerEntity } from "../../../types/navigation";
-import type { WorkflowStep } from "../../../types/workspace/steps";
+import type { MessageStep } from "../../../types/workspace/steps";
 import Select from "../../Select/Select";
 
 type MessageStepPropertiesProps = {
-  selectedStep: WorkflowStep;
+  selectedStep: MessageStep;
   peers: PeerEntity[];
   messageSourceValue: string;
   messageDestinationValue: string;
   isStepMessageSourceMissing: boolean;
   isStepMessageDestinationMissing: boolean;
-  updateStep: (changes: Partial<WorkflowStep>) => void;
+  updateStep: (changes: Partial<MessageStep>) => void;
 };
 
 export default function MessageStepProperties({
@@ -43,10 +43,10 @@ export default function MessageStepProperties({
             invalid={isStepMessageSourceMissing}
             options={peerSelectOptions}
             onChange={(value) => {
-              const nextSource = value || null;
+              const nextSource = value || "";
               const nextDestination =
                 nextSource && selectedStep.destinationPeerId === nextSource
-                  ? null
+                  ? ""
                   : selectedStep.destinationPeerId;
 
               updateStep({
@@ -68,7 +68,7 @@ export default function MessageStepProperties({
             invalid={isStepMessageDestinationMissing}
             options={peerSelectOptions.filter((peer) => peer.value !== messageSourceValue)}
             onChange={(value) => {
-              const nextDestination = value || null;
+              const nextDestination = value || "";
               if (nextDestination && nextDestination === messageSourceValue) {
                 return;
               }

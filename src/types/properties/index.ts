@@ -1,7 +1,7 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../navigation";
-import type { WorkflowStep } from "../workspace/steps";
+import type { RefreshStep, WorkflowStep } from "../workspace/steps";
 
 export type PropertiesResizeHandler = (event: ReactPointerEvent<HTMLDivElement>) => void;
 
@@ -17,7 +17,7 @@ export type StepPropertiesPanelProps = {
 export type RefreshStepPropertiesPanelProps = {
   widthPercent: number;
   onResizeStart: PropertiesResizeHandler;
-  selectedStep: WorkflowStep;
+  selectedStep: RefreshStep;
   peers: PeerEntity[];
 };
 

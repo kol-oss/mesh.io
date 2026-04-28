@@ -2,7 +2,7 @@ import { Activity, Link2, Radio } from "lucide-react";
 
 import { EntityType } from "../../../types/enums";
 import type { LinkEntity, PeerEntity } from "../../../types/navigation";
-import type { WorkflowStep } from "../../../types/workspace/steps";
+import type { ToggleStatusStep } from "../../../types/workspace/steps";
 import Select from "../../Select/Select";
 
 type ToggleStepPropertiesProps = {
@@ -10,7 +10,7 @@ type ToggleStepPropertiesProps = {
   toggleTargetValue: string;
   isStepToggleEntityMissing: boolean;
   reverseStatusLabel: string;
-  updateStep: (changes: Partial<WorkflowStep>) => void;
+  updateStep: (changes: Partial<ToggleStatusStep>) => void;
 };
 
 export default function ToggleStepProperties({
@@ -39,7 +39,7 @@ export default function ToggleStepProperties({
             value={toggleTargetValue}
             invalid={isStepToggleEntityMissing}
             options={toggleTargetOptions}
-            onChange={(value) => updateStep({ targetEntityId: value || null })}
+            onChange={(value) => updateStep({ targetEntityId: value || "" })}
           />
         </div>
 

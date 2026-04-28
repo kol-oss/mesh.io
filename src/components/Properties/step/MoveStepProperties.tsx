@@ -1,16 +1,16 @@
 import { Radio } from "lucide-react";
 
 import type { PeerEntity } from "../../../types/navigation";
-import type { WorkflowStep } from "../../../types/workspace/steps";
+import type { MoveStep } from "../../../types/workspace/steps";
 import { parseNumberValue } from "../../../utils/properties";
 import Select from "../../Select/Select";
 
 type MoveStepPropertiesProps = {
-  selectedStep: WorkflowStep;
+  selectedStep: MoveStep;
   peers: PeerEntity[];
   moveTargetValue: string;
   isStepMoveEntityMissing: boolean;
-  updateStep: (changes: Partial<WorkflowStep>) => void;
+  updateStep: (changes: Partial<MoveStep>) => void;
 };
 
 export default function MoveStepProperties({
@@ -39,7 +39,7 @@ export default function MoveStepProperties({
           invalid={isStepMoveEntityMissing}
           options={peerSelectOptions}
           onChange={(value) => {
-            const nextMovePeerId = value || null;
+            const nextMovePeerId = value || "";
             const selectedPeer = peers.find((peer) => peer.id === nextMovePeerId);
             const hasMoveCoordinates = selectedStep.x !== 0 || selectedStep.y !== 0;
 

@@ -56,7 +56,7 @@ export default function RefreshStepProperties({
             <input
               className="properties__input"
               type="text"
-              value={selectedStep.refreshProtocol ?? "Unknown protocol"}
+              value={selectedStep.refreshProtocol}
               disabled
             />
           </label>
@@ -70,7 +70,7 @@ export default function RefreshStepProperties({
               <input
                 className="properties__input"
                 type="number"
-                value={selectedStep.refreshStartTick ?? selectedStep.tick}
+                value={selectedStep.refreshStartTick}
                 disabled
               />
             </div>
@@ -83,7 +83,7 @@ export default function RefreshStepProperties({
               <input
                 className="properties__input"
                 type="number"
-                value={selectedStep.refreshInterval ?? 1}
+                value={selectedStep.refreshInterval}
                 disabled
               />
             </div>

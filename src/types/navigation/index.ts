@@ -6,11 +6,14 @@ export type NavigationMenuItem = {
 
 export type PeerRoutingProtocol = RoutingProtocol;
 
-export type PeerEntity = {
+export type BaseEntity = {
   id: string;
   name: string;
-  type: typeof EntityType.Peer;
   locked?: boolean;
+};
+
+export type PeerEntity = BaseEntity & {
+  type: typeof EntityType.Peer;
   x: number;
   y: number;
   range: number;
@@ -20,21 +23,15 @@ export type PeerEntity = {
   batmanPurgeTimeout: number;
 };
 
-export type LinkEntity = {
-  id: string;
-  name: string;
+export type LinkEntity = BaseEntity & {
   type: typeof EntityType.Link;
-  locked?: boolean;
   sourcePeerId: string | null;
   destinationPeerId: string | null;
   enabled: boolean;
 };
 
-export type ObstacleEntity = {
-  id: string;
-  name: string;
+export type ObstacleEntity = BaseEntity & {
   type: typeof EntityType.Obstacle;
-  locked?: boolean;
   x: number;
   y: number;
   width: number;
@@ -42,3 +39,15 @@ export type ObstacleEntity = {
 };
 
 export type NetworkEntity = PeerEntity | LinkEntity | ObstacleEntity;
+
+export const isPeerEntity = (entity: NetworkEntity): entity is PeerEntity => {
+  return entity.type === EntityType.Peer;
+};
+
+export const isLinkEntity = (entity: NetworkEntity): entity is LinkEntity => {
+  return entity.type === EntityType.Link;
+};
+
+export const isObstacleEntity = (entity: NetworkEntity): entity is ObstacleEntity => {
+  return entity.type === EntityType.Obstacle;
+};
