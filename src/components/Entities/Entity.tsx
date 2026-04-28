@@ -4,7 +4,7 @@ import { EntityType } from "../../types/enums";
 import type { NetworkEntity } from "../../types/navigation";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
 
-type EntityListItemProps = {
+type EntityProps = {
   entity: NetworkEntity;
   isSelected: boolean;
   isDragging?: boolean;
@@ -13,14 +13,14 @@ type EntityListItemProps = {
   onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
 };
 
-export default function EntityListItem({
+export default function Entity({
   entity,
   isSelected,
   isDragging,
   onSelect,
   onToggleLock,
   onPointerDown,
-}: EntityListItemProps) {
+}: EntityProps) {
   const entityTypeTooltip = {
     [EntityType.Peer]: "Peer",
     [EntityType.Link]: "Link",

@@ -1,5 +1,5 @@
-import EntityList from "../EntityList/EntityList";
-import StepsList from "../StepsList/StepsList";
+import Entities from "../Entities/Entities";
+import Steps from "../Steps/Steps";
 import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
 import { SelectionSource } from "../../types/enums";
 import type { NetworkEntity } from "../../types/navigation";
@@ -58,14 +58,14 @@ export default function Navigation({
         <>
           <NavigationMenu onNew={onFileNew} onExport={onFileExport} onImport={onFileImport} />
           <div className="navigation__lists">
-            <EntityList
+            <Entities
               entities={entities}
               setEntities={setEntities}
               selectedId={selectedSource === SelectionSource.Entities ? selectedId : null}
               onSelect={onEntitySelect}
               onClearSelection={onClearSelection}
             />
-            <StepsList
+            <Steps
               steps={steps}
               setSteps={setSteps}
               selectedId={selectedSource === SelectionSource.Steps ? selectedId : null}

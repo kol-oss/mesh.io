@@ -23,9 +23,9 @@ import {
   peerDefaults,
 } from "../../utils/navigation/entityMigration";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
-import EntityListItem from "./EntityListItem";
+import Entity from "./Entity";
 
-type EntityListProps = {
+type EntitiesProps = {
   entities: NetworkEntity[];
   setEntities: (value: NetworkEntity[]) => void;
   selectedId: string | null;
@@ -33,13 +33,13 @@ type EntityListProps = {
   onClearSelection: () => void;
 };
 
-export default function EntityList({
+export default function Entities({
   entities,
   setEntities,
   selectedId,
   onSelect,
   onClearSelection,
-}: EntityListProps) {
+}: EntitiesProps) {
   const [isOpened, setIsOpened] = useLocalStorage<boolean>(storageKeys.entitiesOpened, false);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
   const [addMenuPosition, setAddMenuPosition] = useState<{ top: number; left: number } | null>(
@@ -267,7 +267,7 @@ export default function EntityList({
               {dragIndex !== null && dropIndex === index && (
                 <div className="navigation__entity-drop-indicator" />
               )}
-              <EntityListItem
+              <Entity
                 entity={networkEntity}
                 isSelected={selectedId === networkEntity.id}
                 isDragging={dragIndex === index}

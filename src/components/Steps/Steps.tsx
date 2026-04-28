@@ -19,9 +19,9 @@ import type { WorkflowStep } from "../../types/steps";
 import { migrateSteps } from "../../utils/navigation/stepMigration";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
-import StepsListItem from "./StepsListItem";
+import Step from "./Step";
 
-type StepsListProps = {
+type StepsProps = {
   steps: WorkflowStep[];
   setSteps: (value: WorkflowStep[]) => void;
   selectedId: string | null;
@@ -29,13 +29,13 @@ type StepsListProps = {
   onClearSelection: () => void;
 };
 
-export default function StepsList({
+export default function Steps({
   steps,
   setSteps,
   selectedId,
   onSelect,
   onClearSelection,
-}: StepsListProps) {
+}: StepsProps) {
   const [isOpened, setIsOpened] = useLocalStorage<boolean>(storageKeys.stepsOpened, false);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
   const [isRefreshHidden, setIsRefreshHidden] = useLocalStorage<boolean>(
@@ -299,7 +299,7 @@ export default function StepsList({
               {dragIndex !== null && dropIndex === index && (
                 <div className="navigation__step-drop-indicator" />
               )}
-              <StepsListItem
+              <Step
                 step={step}
                 isSelected={selectedId === step.id}
                 isDragging={dragIndex === index}

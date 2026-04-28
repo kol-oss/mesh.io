@@ -5,7 +5,7 @@ import type { WorkflowStep } from "../../types/steps";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
 
-type StepsListItemProps = {
+type StepProps = {
   step: WorkflowStep;
   isSelected: boolean;
   isDragging?: boolean;
@@ -13,13 +13,7 @@ type StepsListItemProps = {
   onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
 };
 
-export default function StepsListItem({
-  step,
-  isSelected,
-  isDragging,
-  onSelect,
-  onPointerDown,
-}: StepsListItemProps) {
+export default function Step({ step, isSelected, isDragging, onSelect, onPointerDown }: StepProps) {
   const stepTypeTooltip = {
     [StepType.Move]: "Move",
     [StepType.Message]: "Message",
