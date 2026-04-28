@@ -1,13 +1,9 @@
 import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
-import { EntityType, SelectionSource, SidebarResizeSide } from "../../types/enums";
-import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../types/navigation";
+import { SelectionSource, SidebarResizeSide } from "../../types/enums";
+import type { NetworkEntity } from "../../types/navigation";
 import type { WorkflowStep } from "../../types/steps";
-import { isRefreshStep } from "../../utils/navigation/refreshSteps";
-import LinkProperties from "./LinkProperties";
-import ObstacleProperties from "./ObstacleProperties";
-import PeerProperties from "./PeerProperties";
-import RefreshStepProperties from "./RefreshStepProperties";
-import StepProperties from "./StepProperties";
+import EntityProperties from "./entity/EntityProperties";
+import StepProperties from "./step/StepProperties";
 
 type PropertiesProps = {
   selectedId: string | null;
@@ -17,21 +13,6 @@ type PropertiesProps = {
   steps: WorkflowStep[];
   setSteps: (value: WorkflowStep[]) => void;
   isNavCollapsed: boolean;
-};
-
-const entityHeader: Record<NetworkEntity["type"], { title: string; description: string }> = {
-  [EntityType.Peer]: {
-    title: "Peer",
-    description: "A mesh network node with built-in support for specific routing protocols.",
-  },
-  [EntityType.Link]: {
-    title: "Link",
-    description: "A persistent bidirectional connection between two nodes in the network.",
-  },
-  [EntityType.Obstacle]: {
-    title: "Obstacle",
-    description: "A physical barrier that blocks signal propagation between nearby nodes.",
-  },
 };
 
 export default function Properties({
@@ -55,20 +36,6 @@ export default function Properties({
       return null;
     }
 
-    if (isRefreshStep(selectedStep)) {
-      const peers = entities.filter(
-        (entity): entity is PeerEntity => entity.type === EntityType.Peer,
-      );
-      return (
-        <RefreshStepProperties
-          widthPercent={widthPercent}
-          onResizeStart={onResizeStart}
-          selectedStep={selectedStep}
-          peers={peers}
-        />
-      );
-    }
-
     return (
       <StepProperties
         widthPercent={widthPercent}
@@ -86,48 +53,13 @@ export default function Properties({
     return null;
   }
 
-  const header = entityHeader[selectedEntity.type];
-
-  if (selectedEntity.type === EntityType.Link) {
-    const selectedLink: LinkEntity = selectedEntity;
-    return (
-      <LinkProperties
-        widthPercent={widthPercent}
-        onResizeStart={onResizeStart}
-        selectedLink={selectedLink}
-        entities={entities}
-        setEntities={setEntities}
-        title={header.title}
-        description={header.description}
-      />
-    );
-  }
-
-  if (selectedEntity.type === EntityType.Obstacle) {
-    const selectedObstacle: ObstacleEntity = selectedEntity;
-    return (
-      <ObstacleProperties
-        widthPercent={widthPercent}
-        onResizeStart={onResizeStart}
-        selectedObstacle={selectedObstacle}
-        entities={entities}
-        setEntities={setEntities}
-        title={header.title}
-        description={header.description}
-      />
-    );
-  }
-
-  const selectedPeer: PeerEntity = selectedEntity;
   return (
-    <PeerProperties
+    <EntityProperties
       widthPercent={widthPercent}
       onResizeStart={onResizeStart}
-      selectedPeer={selectedPeer}
+      selectedEntity={selectedEntity}
       entities={entities}
       setEntities={setEntities}
-      title={header.title}
-      description={header.description}
     />
   );
 }

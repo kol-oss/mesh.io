@@ -1,11 +1,16 @@
-import { Activity, ChevronsRight, Clock3, ExternalLink, Link2, Mail, Radio } from "lucide-react";
+import { Activity, ChevronsRight, Clock3, ExternalLink, Mail } from "lucide-react";
 
-import { EntityType, StepType } from "../../types/enums";
-import type { LinkEntity, PeerEntity } from "../../types/navigation";
-import type { WorkflowStep } from "../../types/steps";
-import type { StepPropertiesPanelProps } from "../../types/properties";
-import { parseNumberValue } from "../../utils/properties";
-import StyledSelect from "../Select/StyledSelect";
+import { EntityType, StepType } from "../../../types/enums";
+import type { LinkEntity, PeerEntity } from "../../../types/navigation";
+import type { WorkflowStep } from "../../../types/steps";
+import type { StepPropertiesPanelProps } from "../../../types/properties";
+import { isRefreshStep } from "../../../utils/navigation/refreshSteps";
+import { parseNumberValue } from "../../../utils/properties";
+import StyledSelect from "../../Select/StyledSelect";
+import MessageStepProperties from "./MessageStepProperties";
+import MoveStepProperties from "./MoveStepProperties";
+import RefreshStepProperties from "./RefreshStepProperties";
+import ToggleStepProperties from "./ToggleStepProperties";
 
 export default function StepProperties({
   widthPercent,
@@ -16,6 +21,18 @@ export default function StepProperties({
   setSteps,
 }: StepPropertiesPanelProps) {
   const peers = entities.filter((entity): entity is PeerEntity => entity.type === EntityType.Peer);
+
+  if (isRefreshStep(selectedStep)) {
+    return (
+      <RefreshStepProperties
+        widthPercent={widthPercent}
+        onResizeStart={onResizeStart}
+        selectedStep={selectedStep}
+        peers={peers}
+      />
+    );
+  }
+
   const toggleTargets = entities.filter(
     (entity): entity is PeerEntity | LinkEntity =>
       entity.type === EntityType.Peer || entity.type === EntityType.Link,
@@ -26,18 +43,6 @@ export default function StepProperties({
     { value: StepType.Message, label: "Message", icon: <Mail size={12} /> },
     { value: StepType.ToggleStatus, label: "Toggle", icon: <Activity size={12} /> },
   ] as const;
-
-  const peerSelectOptions = peers.map((peer) => ({
-    value: peer.id,
-    label: peer.name,
-    icon: <Radio size={12} />,
-  }));
-
-  const toggleTargetOptions = toggleTargets.map((entity) => ({
-    value: entity.id,
-    label: entity.name,
-    icon: entity.type === EntityType.Peer ? <Radio size={12} /> : <Link2 size={12} />,
-  }));
 
   const messageSourceValue =
     selectedStep.sourcePeerId && peers.some((peer) => peer.id === selectedStep.sourcePeerId)
@@ -225,155 +230,35 @@ export default function StepProperties({
         </div>
 
         {selectedStep.type === StepType.Message && (
-          <div className="properties__field">
-            <div className="properties__inline-group">
-              <div className="properties__field">
-                <span
-                  className={`properties__field-label ${isStepMessageSourceMissing ? "properties__field-label--required" : ""}`}
-                >
-                  Source
-                </span>
-                <StyledSelect
-                  value={messageSourceValue}
-                  invalid={isStepMessageSourceMissing}
-                  options={peerSelectOptions}
-                  onChange={(value) => {
-                    const nextSource = value || null;
-                    const nextDestination =
-                      nextSource && selectedStep.destinationPeerId === nextSource
-                        ? null
-                        : selectedStep.destinationPeerId;
-
-                    updateStep({
-                      sourcePeerId: nextSource,
-                      destinationPeerId: nextDestination,
-                    });
-                  }}
-                />
-              </div>
-
-              <div className="properties__field">
-                <span
-                  className={`properties__field-label ${isStepMessageDestinationMissing ? "properties__field-label--required" : ""}`}
-                >
-                  Destination
-                </span>
-                <StyledSelect
-                  value={messageDestinationValue}
-                  invalid={isStepMessageDestinationMissing}
-                  options={peerSelectOptions.filter((peer) => peer.value !== messageSourceValue)}
-                  onChange={(value) => {
-                    const nextDestination = value || null;
-                    if (nextDestination && nextDestination === messageSourceValue) {
-                      return;
-                    }
-                    updateStep({ destinationPeerId: nextDestination });
-                  }}
-                />
-              </div>
-            </div>
-          </div>
+          <MessageStepProperties
+            selectedStep={selectedStep}
+            peers={peers}
+            messageSourceValue={messageSourceValue}
+            messageDestinationValue={messageDestinationValue}
+            isStepMessageSourceMissing={isStepMessageSourceMissing}
+            isStepMessageDestinationMissing={isStepMessageDestinationMissing}
+            updateStep={updateStep}
+          />
         )}
 
         {selectedStep.type === StepType.ToggleStatus && (
-          <div className="properties__field">
-            <div className="properties__inline-group">
-              <div className="properties__field">
-                <span
-                  className={`properties__field-label ${isStepToggleEntityMissing ? "properties__field-label--required" : ""}`}
-                >
-                  Entity
-                </span>
-                <StyledSelect
-                  value={toggleTargetValue}
-                  invalid={isStepToggleEntityMissing}
-                  options={toggleTargetOptions}
-                  onChange={(value) => updateStep({ targetEntityId: value || null })}
-                />
-              </div>
-
-              <label className="properties__field">
-                <span
-                  className={`properties__field-label ${isStepToggleEntityMissing ? "properties__field-label--required" : ""}`}
-                >
-                  New status
-                </span>
-                <button
-                  className={`properties__status ${isStepToggleEntityMissing ? "properties__required-outline" : ""}`}
-                  type="button"
-                  disabled
-                >
-                  <Activity size={12} />
-                  {reverseStatusLabel}
-                </button>
-              </label>
-            </div>
-          </div>
+          <ToggleStepProperties
+            toggleTargets={toggleTargets}
+            toggleTargetValue={toggleTargetValue}
+            isStepToggleEntityMissing={isStepToggleEntityMissing}
+            reverseStatusLabel={reverseStatusLabel}
+            updateStep={updateStep}
+          />
         )}
 
         {selectedStep.type === StepType.Move && (
-          <>
-            <label className="properties__field">
-              <span
-                className={`properties__field-label ${isStepMoveEntityMissing ? "properties__field-label--required" : ""}`}
-              >
-                Peer
-              </span>
-              <StyledSelect
-                value={moveTargetValue}
-                invalid={isStepMoveEntityMissing}
-                options={peerSelectOptions}
-                onChange={(value) => {
-                  const nextMovePeerId = value || null;
-                  const selectedPeer = peers.find((peer) => peer.id === nextMovePeerId);
-                  const hasMoveCoordinates = selectedStep.x !== 0 || selectedStep.y !== 0;
-
-                  if (!selectedPeer || hasMoveCoordinates) {
-                    updateStep({ movePeerId: nextMovePeerId });
-                    return;
-                  }
-
-                  updateStep({
-                    movePeerId: nextMovePeerId,
-                    x: selectedPeer.x,
-                    y: selectedPeer.y,
-                  });
-                }}
-              />
-            </label>
-
-            <label className="properties__field">
-              <span className="properties__field-label">Position</span>
-              <div className="properties__inline-group">
-                <div className="properties__input-with-icon">
-                  <span className="properties__input-icon">X</span>
-                  <input
-                    className="properties__input"
-                    type="number"
-                    value={selectedStep.x}
-                    onChange={(event) =>
-                      updateStep({
-                        x: parseNumberValue(event.target.value, selectedStep.x),
-                      })
-                    }
-                  />
-                </div>
-                <div className="properties__input-with-icon">
-                  <span className="properties__input-icon">Y</span>
-                  <input
-                    className="properties__input"
-                    type="number"
-                    value={selectedStep.y}
-                    onChange={(event) =>
-                      updateStep({
-                        y: parseNumberValue(event.target.value, selectedStep.y),
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            </label>
-          </>
+          <MoveStepProperties
+            selectedStep={selectedStep}
+            peers={peers}
+            moveTargetValue={moveTargetValue}
+            isStepMoveEntityMissing={isStepMoveEntityMissing}
+            updateStep={updateStep}
+          />
         )}
       </section>
     </aside>

@@ -1,10 +1,10 @@
 import { CircleDot, Clock3, Diamond, ExternalLink, Lock } from "lucide-react";
 
-import { peerRoutingProtocols } from "../../constants/protocol";
-import { EntityType, RoutingProtocol } from "../../types/enums";
-import type { PeerEntity } from "../../types/navigation";
-import type { PeerPropertiesPanelProps } from "../../types/properties";
-import { parseNumberValue, parsePositiveNumberValue } from "../../utils/properties";
+import { peerRoutingProtocols } from "../../../constants/protocol";
+import { EntityType, RoutingProtocol } from "../../../types/enums";
+import type { PeerEntity } from "../../../types/navigation";
+import type { PeerPropertiesPanelProps } from "../../../types/properties";
+import { parseNumberValue, parsePositiveNumberValue } from "../../../utils/properties";
 
 const protocols = peerRoutingProtocols;
 

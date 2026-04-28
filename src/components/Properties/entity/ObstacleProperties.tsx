@@ -1,9 +1,9 @@
 import { ExternalLink, Lock, MoveHorizontal, MoveVertical } from "lucide-react";
 
-import { EntityType } from "../../types/enums";
-import type { ObstacleEntity } from "../../types/navigation";
-import type { ObstaclePropertiesPanelProps } from "../../types/properties";
-import { parseNumberValue, parsePositiveNumberValue } from "../../utils/properties";
+import { EntityType } from "../../../types/enums";
+import type { ObstacleEntity } from "../../../types/navigation";
+import type { ObstaclePropertiesPanelProps } from "../../../types/properties";
+import { parseNumberValue, parsePositiveNumberValue } from "../../../utils/properties";
 
 export default function ObstacleProperties({
   widthPercent,

@@ -1,9 +1,9 @@
 import { Diamond, ExternalLink, Lock, Radio } from "lucide-react";
 
-import { EntityType } from "../../types/enums";
-import type { LinkEntity, PeerEntity } from "../../types/navigation";
-import type { LinkPropertiesPanelProps } from "../../types/properties";
-import StyledSelect from "../Select/StyledSelect";
+import { EntityType } from "../../../types/enums";
+import type { LinkEntity, PeerEntity } from "../../../types/navigation";
+import type { LinkPropertiesPanelProps } from "../../../types/properties";
+import StyledSelect from "../../Select/StyledSelect";
 
 export default function LinkProperties({
   widthPercent,
