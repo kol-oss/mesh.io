@@ -32,6 +32,7 @@ export type WorkspaceSceneProps = {
   peers: PeerEntity[];
   selectedSource: SelectionSource | null;
   selectedId: string | null;
+  hoveredSimulationPeerId: string | null;
   resolvedCreationSelectedEntityId: string | null;
   selectedStepAffectedEntityIds: Set<string>;
   editingTextId: string | null;

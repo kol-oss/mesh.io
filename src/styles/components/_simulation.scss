@@ -2,6 +2,8 @@
 @use "../base/typography";
 
 .simulation-panel {
+  position: relative;
+  isolation: isolate;
   width: min(360px, calc(100vw - 36px));
   max-width: 360px;
   border: 1px solid $neutral-400;
@@ -25,12 +27,13 @@
     content: "";
     position: absolute;
     left: 50%;
-    bottom: -11px;
+    bottom: -9px;
     width: 18px;
     height: 18px;
     background: rgba(255, 255, 255, 0.96);
     border-right: 1px solid $neutral-400;
     border-bottom: 1px solid $neutral-400;
+    z-index: -1;
     transform: translateX(-50%) rotate(45deg);
   }
 }
@@ -49,10 +52,14 @@
 }
 
 .simulation-panel__title,
-.simulation-panel__section-title,
-.simulation-panel__peer-name {
+.simulation-panel__section-title {
   @extend .typo-button;
   color: $black-800;
+}
+
+.simulation-panel__peer-name {
+  font-weight: 600;
+  color: inherit;
 }
 
 .simulation-panel__title {

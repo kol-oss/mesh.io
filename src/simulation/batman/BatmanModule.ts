@@ -279,11 +279,6 @@ export class BatmanModule implements PacketCapableModule {
       return false;
     }
 
-    this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageReceived, {
-      hopPeerId: this.routingPeer.id,
-      message: cloneMessage(message),
-    });
-
     if (message.kind === SimulationMessageKind.Packet) {
       if (message.destinationPeerId === this.routingPeer.id) {
         return true;
@@ -425,11 +420,6 @@ export class BatmanModule implements PacketCapableModule {
       message.kind === SimulationMessageKind.Packet && message.sourcePeerId === null
         ? { ...message, sourcePeerId: this.routingPeer.id }
         : cloneMessage(message);
-
-    this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageSent, {
-      hopPeerId: hop.id,
-      message: cloneMessage(forwardedMessage),
-    });
 
     const targetModule = hop.getModule(RoutingProtocol.BATMAN);
     return targetModule?.read(forwardedMessage) ?? false;

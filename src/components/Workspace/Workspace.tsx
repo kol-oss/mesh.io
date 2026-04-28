@@ -82,6 +82,10 @@ export default function Workspace({
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [editingTextDraft, setEditingTextDraft] = useState("");
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+  const [hoveredSimulationPeerState, setHoveredSimulationPeerState] = useState<{
+    eventId: string;
+    peerId: string | null;
+  } | null>(null);
   const linkSourcePeerIdRef = useRef<string | null>(null);
   const stepMessageSourcePeerIdRef = useRef<string | null>(null);
   const stepMovePeerIdRef = useRef<string | null>(null);
@@ -323,6 +327,25 @@ export default function Workspace({
           ) - panOffset.y,
       }
     : null;
+  const hoveredSimulationPeerId =
+    currentSimulationEvent && hoveredSimulationPeerState?.eventId === currentSimulationEvent.id
+      ? hoveredSimulationPeerState.peerId
+      : null;
+
+  const handleSimulationPeerHoverChange = useCallback(
+    (peerId: string | null) => {
+      if (!currentSimulationEvent) {
+        setHoveredSimulationPeerState(null);
+        return;
+      }
+
+      setHoveredSimulationPeerState({
+        eventId: currentSimulationEvent.id,
+        peerId,
+      });
+    },
+    [currentSimulationEvent],
+  );
 
   const handleSimulationStaticLinkPointerDown = useCallback(
     (linkId: string, event: ReactPointerEvent<SVGLineElement>) => {
@@ -438,6 +461,7 @@ export default function Workspace({
             currentEventsTotal={currentSimulationEventsTotal}
             currentStepResult={currentSimulationStepResult}
             inspectionMode={simulationInspectionMode}
+            onPeerHoverChange={handleSimulationPeerHoverChange}
             onNextEvent={onNextSimulationEvent}
             onPrevEvent={onPrevSimulationEvent}
           />
@@ -454,6 +478,7 @@ export default function Workspace({
           peers={peers}
           selectedSource={selectedSource}
           selectedId={selectedId}
+          hoveredSimulationPeerId={hoveredSimulationPeerId}
           resolvedCreationSelectedEntityId={resolvedCreationSelectedEntityId}
           selectedStepAffectedEntityIds={selectedStepAffectedEntityIds}
           editingTextId={editingTextId}

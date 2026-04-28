@@ -16,6 +16,7 @@ export default function WorkspaceScene({
   peers,
   selectedSource,
   selectedId,
+  hoveredSimulationPeerId,
   resolvedCreationSelectedEntityId,
   selectedStepAffectedEntityIds,
   editingTextId,
@@ -104,7 +105,7 @@ export default function WorkspaceScene({
           <path
             key={polygon.peerId}
             d={polygon.path}
-            className={`workspace__peer-range${polygon.selected ? " workspace__peer-range--selected" : ""}${polygon.enabled ? "" : " workspace__peer-range--disabled"}`}
+            className={`workspace__peer-range${polygon.selected || hoveredSimulationPeerId === polygon.peerId ? " workspace__peer-range--selected" : ""}${polygon.enabled ? "" : " workspace__peer-range--disabled"}`}
           />
         ))}
       </svg>
@@ -263,6 +264,7 @@ export default function WorkspaceScene({
       {peers.map((peer) => {
         const isSelected =
           (selectedSource === SelectionSource.Entities && selectedId === peer.id) ||
+          hoveredSimulationPeerId === peer.id ||
           resolvedCreationSelectedEntityId === peer.id ||
           selectedStepAffectedEntityIds.has(peer.id);
         return (
