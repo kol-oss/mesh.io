@@ -1,92 +1,28 @@
 import {
   Fragment,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
   useCallback,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
-  type PointerEvent as ReactPointerEvent,
 } from "react";
 import { ChevronRight, Link, Plus, Radio, SquareSlash } from "lucide-react";
 import { createPortal } from "react-dom";
 
+import { storageKeys } from "../../constants/storage";
+import { useListReorder } from "../../hooks/useListReorder";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
 import type { NetworkEntity } from "../../types/navigation";
 import { generateUUID } from "../../utils/uuid";
+import {
+  migrateEntities,
+  obstacleDefaults,
+  peerDefaults,
+} from "../../utils/navigation/entityMigration";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
 import EntityListItem from "./EntityListItem";
-
-const PEER_DEFAULTS = {
-  x: 300,
-  y: 100,
-  range: 75,
-  enabled: true,
-  protocols: ["BATMAN" as const],
-  batmanOgmInterval: 1,
-  batmanPurgeTimeout: 10,
-};
-
-const LINK_DEFAULTS = {
-  sourcePeerId: null,
-  destinationPeerId: null,
-  enabled: true,
-};
-
-const OBSTACLE_DEFAULTS = {
-  x: 200,
-  y: 200,
-  width: 100,
-  height: 60,
-};
-
-const hasPeerDefaults = (entity: NetworkEntity) => {
-  if (entity.type !== "PEER") {
-    return true;
-  }
-
-  return (
-    typeof entity.x === "number" &&
-    typeof entity.y === "number" &&
-    typeof entity.range === "number" &&
-    entity.range > 0 &&
-    typeof entity.enabled === "boolean" &&
-    Array.isArray(entity.protocols) &&
-    typeof entity.batmanOgmInterval === "number" &&
-    typeof entity.batmanPurgeTimeout === "number"
-  );
-};
-
-const hasLinkDefaults = (entity: NetworkEntity) => {
-  if (entity.type !== "LINK") {
-    return true;
-  }
-
-  return (
-    (entity.sourcePeerId === null || typeof entity.sourcePeerId === "string") &&
-    (entity.destinationPeerId === null || typeof entity.destinationPeerId === "string") &&
-    typeof entity.enabled === "boolean"
-  );
-};
-
-const hasObstacleDefaults = (entity: NetworkEntity) => {
-  if (entity.type !== "OBSTACLE") {
-    return true;
-  }
-
-  return (
-    typeof entity.x === "number" &&
-    typeof entity.y === "number" &&
-    typeof entity.width === "number" &&
-    Number.isFinite(entity.width) &&
-    entity.width > 0 &&
-    typeof entity.height === "number" &&
-    Number.isFinite(entity.height) &&
-    entity.height > 0
-  );
-};
 
 type EntityListProps = {
   entities: NetworkEntity[];
@@ -103,103 +39,29 @@ export default function EntityList({
   onSelect,
   onClearSelection,
 }: EntityListProps) {
-  const [isOpened, setIsOpened] = useLocalStorage<boolean>("mesh_entities_opened", false);
+  const [isOpened, setIsOpened] = useLocalStorage<boolean>(storageKeys.entitiesOpened, false);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
   const [addMenuPosition, setAddMenuPosition] = useState<{ top: number; left: number } | null>(
     null,
   );
   const { showToast } = useToast();
-
-  // Drag-to-reorder
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [dropIndex, setDropIndex] = useState<number | null>(null);
-  const dragIndexRef = useRef<number | null>(null);
-  const dropIndexRef = useRef<number | null>(null);
-  const isDraggingRef = useRef(false);
-  const pointerStartYRef = useRef(0);
-  const suppressNextClickRef = useRef(false);
   const itemsContainerRef = useRef<HTMLDivElement | null>(null);
   const addMenuRef = useRef<HTMLDivElement | null>(null);
   const addMenuFloatingRef = useRef<HTMLDivElement | null>(null);
   const addButtonRef = useRef<HTMLButtonElement | null>(null);
-  const entitiesRef = useRef(entities);
 
-  useLayoutEffect(() => {
-    entitiesRef.current = entities;
-  });
-
-  useLayoutEffect(() => {
-    dropIndexRef.current = dropIndex;
+  const { dragIndex, dropIndex, suppressNextClickRef, handleItemPointerDown } = useListReorder({
+    items: entities,
+    setItems: setEntities,
+    containerRef: itemsContainerRef,
+    itemSelector: ".navigation__entity-item",
   });
 
   useEffect(() => {
-    const requiresMigration = entities.some((entity) => {
-      const normalizedType = (entity as NetworkEntity | { type: string }).type;
-      const hasId = "id" in entity;
-      return (
-        normalizedType === "ROUTER" ||
-        !hasPeerDefaults(entity) ||
-        !hasLinkDefaults(entity) ||
-        !hasObstacleDefaults(entity) ||
-        !hasId
-      );
-    });
-    if (!requiresMigration) {
+    const migratedEntities = migrateEntities(entities);
+    if (!migratedEntities) {
       return;
     }
-
-    const migratedEntities = entities.map((entity) => {
-      const normalizedType = (entity as NetworkEntity | { type: string }).type;
-      const baseEntity = {
-        ...entity,
-        id: "id" in entity ? entity.id : generateUUID(),
-      };
-
-      if (normalizedType === "ROUTER") {
-        return {
-          ...baseEntity,
-          type: "PEER" as const,
-          ...PEER_DEFAULTS,
-        };
-      }
-
-      if (entity.type !== "PEER") {
-        if (entity.type === "LINK") {
-          return {
-            ...LINK_DEFAULTS,
-            ...baseEntity,
-            type: "LINK" as const,
-          };
-        }
-
-        if (entity.type === "OBSTACLE") {
-          const nextWidth =
-            typeof entity.width === "number" && entity.width > 0
-              ? entity.width
-              : OBSTACLE_DEFAULTS.width;
-          const nextHeight =
-            typeof entity.height === "number" && entity.height > 0
-              ? entity.height
-              : OBSTACLE_DEFAULTS.height;
-
-          return {
-            ...OBSTACLE_DEFAULTS,
-            ...baseEntity,
-            type: "OBSTACLE" as const,
-            width: nextWidth,
-            height: nextHeight,
-          };
-        }
-
-        return baseEntity;
-      }
-
-      return {
-        ...PEER_DEFAULTS,
-        ...baseEntity,
-        type: "PEER" as const,
-      };
-    });
     setEntities(migratedEntities);
   }, [entities, setEntities]);
 
@@ -229,84 +91,6 @@ export default function EntityList({
     },
     [entities, setEntities],
   );
-
-  const handleItemPointerDown = useCallback(
-    (index: number, event: ReactPointerEvent<HTMLDivElement>) => {
-      if (event.button !== 0) return;
-      dragIndexRef.current = index;
-      isDraggingRef.current = false;
-      pointerStartYRef.current = event.clientY;
-    },
-    [],
-  );
-
-  useEffect(() => {
-    const DRAG_THRESHOLD = 5;
-
-    const onPointerMove = (event: PointerEvent) => {
-      if (dragIndexRef.current === null) return;
-
-      if (
-        !isDraggingRef.current &&
-        Math.abs(event.clientY - pointerStartYRef.current) < DRAG_THRESHOLD
-      ) {
-        return;
-      }
-
-      if (!isDraggingRef.current) {
-        isDraggingRef.current = true;
-        document.body.style.cursor = "grabbing";
-        document.body.style.userSelect = "none";
-        setDragIndex(dragIndexRef.current);
-      }
-
-      const container = itemsContainerRef.current;
-      if (!container) return;
-
-      const items = Array.from(container.querySelectorAll<HTMLElement>(".navigation__entity-item"));
-      let newDropIndex = items.length;
-
-      for (let i = 0; i < items.length; i++) {
-        const rect = items[i].getBoundingClientRect();
-        if (event.clientY < rect.top + rect.height / 2) {
-          newDropIndex = i;
-          break;
-        }
-      }
-
-      setDropIndex(newDropIndex);
-      dropIndexRef.current = newDropIndex;
-    };
-
-    const onPointerUp = () => {
-      if (dragIndexRef.current === null) return;
-
-      if (isDraggingRef.current && dropIndexRef.current !== null) {
-        const from = dragIndexRef.current;
-        const to = dropIndexRef.current;
-        const current = entitiesRef.current;
-        const next = [...current];
-        const [removed] = next.splice(from, 1);
-        next.splice(to > from ? to - 1 : to, 0, removed);
-        setEntities(next);
-        suppressNextClickRef.current = true;
-      }
-
-      dragIndexRef.current = null;
-      isDraggingRef.current = false;
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-      setDragIndex(null);
-      setDropIndex(null);
-    };
-
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-    return () => {
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
-    };
-  }, [setEntities]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -373,7 +157,7 @@ export default function EntityList({
             id: generateUUID(),
             name: "Peer",
             type: "PEER",
-            ...PEER_DEFAULTS,
+            ...peerDefaults,
             x: 0,
             y: 0,
           }
@@ -392,8 +176,8 @@ export default function EntityList({
               type: "OBSTACLE",
               x: 0,
               y: 0,
-              width: OBSTACLE_DEFAULTS.width,
-              height: OBSTACLE_DEFAULTS.height,
+              width: obstacleDefaults.width,
+              height: obstacleDefaults.height,
             };
 
     const updatedEntities = [...entities, newEntity];

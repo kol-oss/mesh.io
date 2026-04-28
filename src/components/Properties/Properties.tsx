@@ -15,14 +15,9 @@ import {
 } from "lucide-react";
 
 import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
+import { peerRoutingProtocols } from "../../constants/protocol";
 import StyledSelect from "../Select/StyledSelect";
-import type {
-  LinkEntity,
-  NetworkEntity,
-  ObstacleEntity,
-  PeerEntity,
-  PeerRoutingProtocol,
-} from "../../types/navigation";
+import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../types/navigation";
 import type { WorkflowStep } from "../../types/steps";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 
@@ -36,7 +31,7 @@ type PropertiesProps = {
   isNavCollapsed: boolean;
 };
 
-const PROTOCOLS: PeerRoutingProtocol[] = ["HWMP", "BATMAN", "OLSR", "AODV", "DSR"];
+const PROTOCOLS = peerRoutingProtocols;
 
 const parseNumberValue = (value: string, fallback: number) => {
   const parsedValue = Number(value);

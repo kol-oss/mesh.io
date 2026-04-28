@@ -18,7 +18,9 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+import { storageKeys } from "../../constants/storage";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
+import type { ToolbarPlacementMode } from "../../types/toolbar";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
 
 type ToolMode =
@@ -32,16 +34,6 @@ type ToolMode =
   | "routingTable"
   | "packetStructure"
   | "text";
-
-export type ToolbarPlacementMode =
-  | "peer"
-  | "link"
-  | "obstacle"
-  | "message"
-  | "move"
-  | "toggle"
-  | "text"
-  | null;
 
 type ModeButton = {
   key: ToolMode;
@@ -146,11 +138,11 @@ type ToolbarProps = {
 
 export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
   const [selectedModesByGroup, setSelectedModesByGroup] = useLocalStorage<ModeSelectionsByGroup>(
-    "mesh_toolbar_modes_by_group",
+    storageKeys.toolbarModesByGroup,
     DEFAULT_MODE_SELECTIONS,
   );
   const [selectedGroupId, setSelectedGroupId] = useLocalStorage<ModeGroup["id"]>(
-    "mesh_toolbar_selected_group",
+    storageKeys.toolbarSelectedGroup,
     DEFAULT_SELECTED_GROUP,
   );
   const [openedMenuGroup, setOpenedMenuGroup] = useState<ModeGroup["id"] | null>(null);

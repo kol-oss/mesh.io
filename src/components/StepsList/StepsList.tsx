@@ -1,25 +1,24 @@
 import {
   Fragment,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
   useCallback,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
-  type PointerEvent as ReactPointerEvent,
 } from "react";
 import { Activity, ChevronRight, ChevronsRight, Eye, EyeOff, Mail, Plus } from "lucide-react";
 import { createPortal } from "react-dom";
 
+import { storageKeys } from "../../constants/storage";
+import { useListReorder } from "../../hooks/useListReorder";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
 import type { WorkflowStep } from "../../types/steps";
+import { migrateSteps } from "../../utils/navigation/stepMigration";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
 import StepsListItem from "./StepsListItem";
-
-const STEP_TYPES = ["MOVE", "MESSAGE", "TOGGLE", "REFRESH"] as const;
 
 type StepsListProps = {
   steps: WorkflowStep[];
@@ -36,202 +35,61 @@ export default function StepsList({
   onSelect,
   onClearSelection,
 }: StepsListProps) {
-  const [isOpened, setIsOpened] = useLocalStorage<boolean>("mesh_steps_opened", false);
+  const [isOpened, setIsOpened] = useLocalStorage<boolean>(storageKeys.stepsOpened, false);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
   const [isRefreshHidden, setIsRefreshHidden] = useLocalStorage<boolean>(
-    "mesh_steps_refresh_hidden",
+    storageKeys.stepsRefreshHidden,
     false,
   );
   const [addMenuPosition, setAddMenuPosition] = useState<{ top: number; left: number } | null>(
     null,
   );
   const { showToast } = useToast();
-
-  // Drag-to-reorder
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [dropIndex, setDropIndex] = useState<number | null>(null);
-  const dragIndexRef = useRef<number | null>(null);
-  const dropIndexRef = useRef<number | null>(null);
-  const validRangeRef = useRef<{ min: number; max: number } | null>(null);
-  const isDraggingRef = useRef(false);
-  const pointerStartYRef = useRef(0);
-  const suppressNextClickRef = useRef(false);
   const itemsContainerRef = useRef<HTMLDivElement | null>(null);
   const addMenuRef = useRef<HTMLDivElement | null>(null);
   const addMenuFloatingRef = useRef<HTMLDivElement | null>(null);
   const addButtonRef = useRef<HTMLButtonElement | null>(null);
   const visibleSteps = isRefreshHidden ? steps.filter((step) => !isRefreshStep(step)) : steps;
-  const stepsRef = useRef(visibleSteps);
 
-  useLayoutEffect(() => {
-    stepsRef.current = visibleSteps;
-  }, [visibleSteps]);
-
-  useLayoutEffect(() => {
-    dropIndexRef.current = dropIndex;
-  });
-
-  useEffect(() => {
-    const requiresMigration = steps.some((step) => {
-      const rawStep = step as WorkflowStep & {
-        tick?: number;
-        type?: string;
-        sourcePeerId?: string | null;
-        destinationPeerId?: string | null;
-        targetEntityId?: string | null;
-        movePeerId?: string | null;
-        x?: number;
-        y?: number;
-      };
-
-      return (
-        typeof rawStep.tick !== "number" ||
-        !STEP_TYPES.includes(rawStep.type as (typeof STEP_TYPES)[number]) ||
-        (rawStep.sourcePeerId !== null && typeof rawStep.sourcePeerId !== "string") ||
-        (rawStep.destinationPeerId !== null && typeof rawStep.destinationPeerId !== "string") ||
-        (rawStep.targetEntityId !== null && typeof rawStep.targetEntityId !== "string") ||
-        (rawStep.movePeerId !== null && typeof rawStep.movePeerId !== "string") ||
-        typeof rawStep.x !== "number" ||
-        typeof rawStep.y !== "number"
-      );
-    });
-
-    if (!requiresMigration) {
-      return;
-    }
-
-    const migratedSteps = steps.map((step, index) => {
-      const rawStep = step as WorkflowStep & {
-        tick?: number;
-        type?: string;
-        sourcePeerId?: string | null;
-        destinationPeerId?: string | null;
-        targetEntityId?: string | null;
-        movePeerId?: string | null;
-        x?: number;
-        y?: number;
-      };
-
-      return {
-        ...step,
-        type: STEP_TYPES.includes(rawStep.type as (typeof STEP_TYPES)[number])
-          ? (rawStep.type as WorkflowStep["type"])
-          : "MOVE",
-        tick: typeof rawStep.tick === "number" ? rawStep.tick : index + 1,
-        sourcePeerId: typeof rawStep.sourcePeerId === "string" ? rawStep.sourcePeerId : null,
-        destinationPeerId:
-          typeof rawStep.destinationPeerId === "string" ? rawStep.destinationPeerId : null,
-        targetEntityId: typeof rawStep.targetEntityId === "string" ? rawStep.targetEntityId : null,
-        movePeerId: typeof rawStep.movePeerId === "string" ? rawStep.movePeerId : null,
-        x: typeof rawStep.x === "number" ? rawStep.x : 0,
-        y: typeof rawStep.y === "number" ? rawStep.y : 0,
-      };
-    });
-    setSteps(migratedSteps);
-  }, [steps, setSteps]);
-
-  const handleItemPointerDown = useCallback(
-    (index: number, event: ReactPointerEvent<HTMLDivElement>) => {
-      if (event.button !== 0) return;
-      dragIndexRef.current = index;
-      isDraggingRef.current = false;
-      pointerStartYRef.current = event.clientY;
-
-      const draggedStep = stepsRef.current[index];
+  const { dragIndex, dropIndex, suppressNextClickRef, handleItemPointerDown } = useListReorder({
+    items: visibleSteps,
+    setItems: setSteps,
+    containerRef: itemsContainerRef,
+    itemSelector: ".navigation__step-item",
+    canStartDrag: ({ index, items }) => {
+      const step = items[index];
+      return Boolean(step) && !isRefreshStep(step);
+    },
+    getDropBounds: ({ index, items }) => {
+      const draggedStep = items[index];
       if (!draggedStep || isRefreshStep(draggedStep)) {
-        dragIndexRef.current = null;
-        return;
+        return null;
       }
 
-      const draggedTick = draggedStep.tick;
-      const sameTickIndices = stepsRef.current
-        .map((s, i) => (s.tick === draggedTick && !isRefreshStep(s) ? i : -1))
-        .filter((i) => i !== -1);
+      const sameTickIndices = items
+        .map((step, itemIndex) =>
+          step.tick === draggedStep.tick && !isRefreshStep(step) ? itemIndex : -1,
+        )
+        .filter((itemIndex) => itemIndex !== -1);
 
       if (sameTickIndices.length === 0) {
-        dragIndexRef.current = null;
-        return;
+        return null;
       }
 
-      validRangeRef.current = {
+      return {
         min: sameTickIndices[0],
         max: sameTickIndices[sameTickIndices.length - 1] + 1,
       };
     },
-    [],
-  );
+  });
 
   useEffect(() => {
-    const DRAG_THRESHOLD = 5;
-
-    const onPointerMove = (event: PointerEvent) => {
-      if (dragIndexRef.current === null) return;
-
-      if (
-        !isDraggingRef.current &&
-        Math.abs(event.clientY - pointerStartYRef.current) < DRAG_THRESHOLD
-      ) {
-        return;
-      }
-
-      if (!isDraggingRef.current) {
-        isDraggingRef.current = true;
-        document.body.style.cursor = "grabbing";
-        document.body.style.userSelect = "none";
-        setDragIndex(dragIndexRef.current);
-      }
-
-      const container = itemsContainerRef.current;
-      if (!container) return;
-
-      const items = Array.from(container.querySelectorAll<HTMLElement>(".navigation__step-item"));
-      let rawDrop = items.length;
-
-      for (let i = 0; i < items.length; i++) {
-        const rect = items[i].getBoundingClientRect();
-        if (event.clientY < rect.top + rect.height / 2) {
-          rawDrop = i;
-          break;
-        }
-      }
-
-      const range = validRangeRef.current;
-      const newDropIndex = range ? Math.min(Math.max(rawDrop, range.min), range.max) : rawDrop;
-
-      setDropIndex(newDropIndex);
-      dropIndexRef.current = newDropIndex;
-    };
-
-    const onPointerUp = () => {
-      if (dragIndexRef.current === null) return;
-
-      if (isDraggingRef.current && dropIndexRef.current !== null) {
-        const from = dragIndexRef.current;
-        const to = dropIndexRef.current;
-        const current = stepsRef.current;
-        const next = [...current];
-        const [removed] = next.splice(from, 1);
-        next.splice(to > from ? to - 1 : to, 0, removed);
-        setSteps(next);
-        suppressNextClickRef.current = true;
-      }
-
-      dragIndexRef.current = null;
-      isDraggingRef.current = false;
-      validRangeRef.current = null;
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-      setDragIndex(null);
-      setDropIndex(null);
-    };
-
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-    return () => {
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
-    };
-  }, [setSteps]);
+    const migratedSteps = migrateSteps(steps);
+    if (!migratedSteps) {
+      return;
+    }
+    setSteps(migratedSteps);
+  }, [steps, setSteps]);
 
   const handleDeleteStep = useCallback(() => {
     if (!selectedId) return;
