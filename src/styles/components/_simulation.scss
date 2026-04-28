@@ -2,29 +2,50 @@
 @use "../base/typography";
 
 .simulation-panel {
-  width: min(420px, calc(100vw - 48px));
-  max-height: min(70vh, 720px);
-  overflow: auto;
+  width: min(360px, calc(100vw - 36px));
+  max-width: 360px;
   border: 1px solid $neutral-400;
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.96);
+  cursor: default;
+  user-select: text;
   box-shadow:
     0 14px 36px rgba(0, 0, 0, 0.16),
     0 2px 8px rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(8px);
 }
 
+.simulation-panel--tooltip {
+  position: absolute;
+  z-index: 8;
+  transform: translate(-50%, calc(-100% - 28px));
+  pointer-events: auto;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -11px;
+    width: 18px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.96);
+    border-right: 1px solid $neutral-400;
+    border-bottom: 1px solid $neutral-400;
+    transform: translateX(-50%) rotate(45deg);
+  }
+}
+
 .simulation-panel__header,
 .simulation-panel__section {
-  padding: 14px 16px;
+  padding: 11px 14px;
 }
 
 .simulation-panel__header {
   border-bottom: 1px solid $neutral-400;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
 .simulation-panel__title,
@@ -32,6 +53,18 @@
 .simulation-panel__peer-name {
   @extend .typo-button;
   color: $black-800;
+}
+
+.simulation-panel__title {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .simulation-panel__subtitle,
@@ -46,11 +79,24 @@
   border-bottom: 1px solid $neutral-400;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 
   &:last-child {
     border-bottom: none;
   }
+}
+
+.simulation-panel__description {
+  color: $black-800;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.simulation-panel__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .simulation-panel__events,
@@ -60,12 +106,140 @@
   gap: 10px;
 }
 
+.simulation-panel__footer {
+  padding: 8px 14px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+}
+
+.simulation-panel__pager {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.simulation-panel__pager--footer {
+  gap: 2px;
+}
+
+.simulation-panel__pager-button {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: $black-800;
+  cursor: pointer;
+
+  &:disabled {
+    color: $neutral-400;
+    cursor: not-allowed;
+  }
+}
+
+.simulation-panel__pager-label {
+  @extend .typo-caption;
+  color: $black-400;
+  min-width: 32px;
+  text-align: center;
+}
+
+.simulation-panel__read-more {
+  @extend .typo-caption;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #0e99ff;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .simulation-panel__event,
 .simulation-panel__table {
   border: 1px solid $neutral-400;
-  border-radius: 8px;
+  border-radius: 7px;
   background: $neutral-200;
-  padding: 10px;
+  padding: 8px;
+}
+
+.simulation-panel__table-block,
+.simulation-panel__message-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.simulation-panel__table-label,
+.simulation-panel__reason,
+.simulation-panel__message-key,
+.simulation-panel__message-value {
+  font-size: 12px;
+  line-height: 1.3;
+  color: $black-800;
+}
+
+.simulation-panel__reason {
+  color: $black-400;
+}
+
+.simulation-panel__table-view {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  line-height: 1.2;
+  table-layout: fixed;
+
+  th,
+  td {
+    border: 1px solid $neutral-400;
+    padding: 3px 6px;
+    text-align: center;
+  }
+
+  th {
+    background: rgba(15, 127, 208, 0.22);
+    font-weight: 500;
+  }
+
+  td {
+    background: rgba(255, 255, 255, 0.84);
+  }
+}
+
+.simulation-panel__message-block {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid $neutral-400;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.simulation-panel__message-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 6px;
+}
+
+.simulation-panel__message-key {
+  margin: 0;
+  color: $black-400;
+}
+
+.simulation-panel__message-value {
+  margin: 0;
+  text-align: right;
+  word-break: break-word;
 }
 
 .simulation-panel__event-meta {

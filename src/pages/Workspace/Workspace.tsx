@@ -1,16 +1,21 @@
 import Navigation from "../../components/Navigation/Navigation";
 import Properties from "../../components/Properties/Properties";
-import SimulationPanel from "../../components/Simulation/SimulationPanel";
 import Toolbar from "../../components/Toolbar/Toolbar";
 import WorkspaceCanvas from "../../components/Workspace/Workspace";
 import { useWorkspaceStore } from "../../store/workspace";
 
 export default function Workspace() {
   const {
+    canGoNextEvent,
     canGoNextStep,
+    canGoPrevEvent,
     canGoPrevStep,
+    currentSimulationEvent,
+    currentSimulationEventIndex,
+    currentSimulationEvents,
     currentSimulationStepResult,
     entities,
+    handleNextSimulationEvent,
     handleNextSimulationStep,
     isNavCollapsed,
     isSimulationActive,
@@ -18,7 +23,6 @@ export default function Workspace() {
     placementMode,
     setSimulationInspectionMode,
     simulationInspectionMode,
-    simulationPlayback,
     selectedId,
     selectedSource,
     setEntities,
@@ -30,6 +34,7 @@ export default function Workspace() {
     handleEntitySelect,
     handleExportWorkspace,
     handleImportWorkspace,
+    handlePrevSimulationEvent,
     handlePrevSimulationStep,
     handleNewWorkspace,
     handlePlacementModeChange,
@@ -69,6 +74,16 @@ export default function Workspace() {
           setSteps={setSteps}
           texts={texts}
           setTexts={setTexts}
+          simulationInspectionMode={simulationInspectionMode}
+          currentSimulationEvent={currentSimulationEvent}
+          currentSimulationEventIndex={currentSimulationEventIndex}
+          currentSimulationEventsTotal={currentSimulationEvents.length}
+          currentSimulationStepResult={currentSimulationStepResult}
+          canGoPrevSimulationEvent={canGoPrevEvent}
+          canGoNextSimulationEvent={canGoNextEvent}
+          isSimulationActive={isSimulationActive}
+          onPrevSimulationEvent={handlePrevSimulationEvent}
+          onNextSimulationEvent={handleNextSimulationEvent}
           selectedId={selectedId}
           selectedSource={selectedSource}
           placementMode={placementMode}
@@ -90,14 +105,6 @@ export default function Workspace() {
           isSimulationActive={isSimulationActive}
         />
       </div>
-      <div className="workspace-page__simulation">
-        <SimulationPanel
-          currentStepResult={currentSimulationStepResult}
-          currentStepIndex={simulationPlayback.currentStepIndex}
-          totalSteps={simulationPlayback.result?.stepResults.length ?? 0}
-          showRoutingTables={simulationInspectionMode === "routingTable"}
-        />
-      </div>
       <div className="workspace-page__properties">
         <Properties
           selectedId={
@@ -117,6 +124,7 @@ export default function Workspace() {
           steps={steps}
           setSteps={setSteps}
           isNavCollapsed={isNavCollapsed}
+          isEntityReadOnly={isSimulationActive}
         />
       </div>
     </div>

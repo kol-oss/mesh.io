@@ -6,7 +6,7 @@ import { useToast } from "../hooks/useToast";
 import { runSimulation } from "../simulation/runSimulation";
 import { PlacementMode, SelectionSource, ToolbarMode } from "../types/enums";
 import type { NetworkEntity } from "../types/entities";
-import type { SimulationPlaybackState } from "../types/simulation";
+import { SimulationEventType, type SimulationPlaybackState } from "../types/simulation";
 import type { WorkflowStep } from "../types/steps";
 import type { ToolbarPlacementMode } from "../types/toolbar";
 import type { WorkspaceTextItem } from "../types/workspace";
@@ -298,6 +298,14 @@ export function useWorkspaceStore() {
     navigateSimulationStep(1);
   }, [navigateSimulationStep]);
 
+  const handleSimulationInspectionModeChange = useCallback((mode: ToolbarMode) => {
+    setSimulationInspectionMode(mode);
+    setSimulationPlayback((prev) => ({
+      ...prev,
+      currentEventIndex: 0,
+    }));
+  }, []);
+
   const handleStopSimulation = useCallback(() => {
     invalidateSimulation();
     showToast("Simulation stopped");
@@ -322,15 +330,61 @@ export function useWorkspaceStore() {
   const currentSimulationStepResult =
     simulationPlayback.result?.stepResults[simulationPlayback.currentStepIndex] ?? null;
   const isSimulationActive = simulationPlayback.result !== null;
+  const currentSimulationEvents = useMemo(() => {
+    if (!currentSimulationStepResult) {
+      return [];
+    }
+
+    if (simulationInspectionMode === ToolbarMode.RoutingTable) {
+      return currentSimulationStepResult.events.filter(
+        (event) =>
+          event.type === SimulationEventType.RoutingTableInsert ||
+          event.type === SimulationEventType.RoutingTableUpdate ||
+          event.type === SimulationEventType.RoutingTableRemove,
+      );
+    }
+
+    return currentSimulationStepResult.events;
+  }, [currentSimulationStepResult, simulationInspectionMode]);
+  const normalizedCurrentEventIndex =
+    currentSimulationEvents.length === 0
+      ? 0
+      : Math.min(simulationPlayback.currentEventIndex, currentSimulationEvents.length - 1);
+  const currentSimulationEvent = currentSimulationEvents[normalizedCurrentEventIndex] ?? null;
+
+  const handlePrevSimulationEvent = useCallback(() => {
+    setSimulationPlayback((prev) => ({
+      ...prev,
+      currentEventIndex: Math.max(0, prev.currentEventIndex - 1),
+    }));
+  }, []);
+
+  const handleNextSimulationEvent = useCallback(() => {
+    setSimulationPlayback((prev) => ({
+      ...prev,
+      currentEventIndex:
+        currentSimulationEvents.length === 0
+          ? 0
+          : Math.min(currentSimulationEvents.length - 1, prev.currentEventIndex + 1),
+    }));
+  }, [currentSimulationEvents.length]);
 
   return {
+    canGoNextEvent:
+      currentSimulationEvents.length > 0 &&
+      normalizedCurrentEventIndex < currentSimulationEvents.length - 1,
     canGoNextStep:
       simulationPlayback.result !== null &&
       simulationPlayback.currentStepIndex < simulationPlayback.result.stepResults.length - 1,
+    canGoPrevEvent: normalizedCurrentEventIndex > 0,
     canGoPrevStep: simulationPlayback.currentStepIndex > 0,
     canRunSimulation: !simulationPlayback.isRunning,
+    currentSimulationEvent,
+    currentSimulationEventIndex: normalizedCurrentEventIndex,
+    currentSimulationEvents,
     currentSimulationStepResult,
     entities,
+    handleNextSimulationEvent,
     handleNextSimulationStep,
     isNavCollapsed,
     isStepPlacementMode,
@@ -349,6 +403,7 @@ export function useWorkspaceStore() {
     handleExportWorkspace,
     handleImportWorkspace,
     handlePrevSimulationStep,
+    handlePrevSimulationEvent,
     handleNewWorkspace,
     handlePlacementModeChange,
     handleRunSimulation,
@@ -357,7 +412,7 @@ export function useWorkspaceStore() {
     isSimulationActive,
     handleWorkspaceEntitySelect,
     handleWorkspaceStepSelect,
-    setSimulationInspectionMode,
+    setSimulationInspectionMode: handleSimulationInspectionModeChange,
     simulationInspectionMode,
     clearSelection,
   };

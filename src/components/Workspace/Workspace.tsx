@@ -1,10 +1,12 @@
 import type { DragState } from "../../types/workspace/interaction";
-import { PlacementMode, SelectionSource } from "../../types/enums";
+import { PlacementMode, SelectionSource, ToolbarMode } from "../../types/enums";
 import type { NetworkEntity } from "../../types/entities";
+import type { SimulationEvent, SimulationStepResult } from "../../types/simulation";
 import type { WorkspacePanState } from "../../types/workspace/background";
 import type { WorkflowStep } from "../../types/steps";
 import type { ToolbarPlacementMode } from "../../types/toolbar";
 import type { WorkspaceTextItem } from "../../types/workspace";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useWorkspaceBackground } from "../../hooks/workspace/useBackground";
@@ -15,6 +17,8 @@ import { useWorkspacePlacement } from "../../hooks/workspace/usePlacement";
 import { useWorkspaceTextEdit } from "../../hooks/workspace/useTextEdit";
 import { useWorkspaceDerived } from "../../hooks/workspace/useDerived";
 import { useToast } from "../../hooks/useToast";
+import { clamp } from "../../utils/math/clamp";
+import SimulationPanel from "../Simulation/SimulationPanel";
 import WorkspaceScene from "./WorkspaceScene";
 
 type WorkspaceProps = {
@@ -27,6 +31,16 @@ type WorkspaceProps = {
   selectedId: string | null;
   selectedSource: SelectionSource | null;
   placementMode: ToolbarPlacementMode;
+  simulationInspectionMode: ToolbarMode;
+  currentSimulationEvent: SimulationEvent | null;
+  currentSimulationEventIndex: number;
+  currentSimulationEventsTotal: number;
+  currentSimulationStepResult: SimulationStepResult | null;
+  canGoPrevSimulationEvent: boolean;
+  canGoNextSimulationEvent: boolean;
+  isSimulationActive: boolean;
+  onPrevSimulationEvent: () => void;
+  onNextSimulationEvent: () => void;
   onEntitySelect: (id: string) => void;
   onStepSelect: (id: string) => void;
   onClearSelection: () => void;
@@ -42,6 +56,16 @@ export default function Workspace({
   selectedId,
   selectedSource,
   placementMode,
+  simulationInspectionMode,
+  currentSimulationEvent,
+  currentSimulationEventIndex,
+  currentSimulationEventsTotal,
+  currentSimulationStepResult,
+  canGoPrevSimulationEvent,
+  canGoNextSimulationEvent,
+  isSimulationActive,
+  onPrevSimulationEvent,
+  onNextSimulationEvent,
   onEntitySelect,
   onStepSelect,
   onClearSelection,
@@ -194,7 +218,7 @@ export default function Workspace({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Delete" || !selectedTextId || editingTextId) {
+      if (isSimulationActive || event.key !== "Delete" || !selectedTextId || editingTextId) {
         return;
       }
 
@@ -205,7 +229,7 @@ export default function Workspace({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [editingTextId, selectedTextId, setTexts, showToast, texts]);
+  }, [editingTextId, isSimulationActive, selectedTextId, setTexts, showToast, texts]);
 
   const { handleTextDoubleClick, commitTextEdit, cancelTextEdit } = useWorkspaceTextEdit({
     texts,
@@ -275,6 +299,114 @@ export default function Workspace({
       },
     });
 
+  const simulationAnchorPeer = currentSimulationEvent
+    ? (currentSimulationStepResult?.snapshot.peers.find(
+        (peer) => peer.id === currentSimulationEvent.peerId,
+      ) ??
+      peers.find((peer) => peer.id === currentSimulationEvent.peerId) ??
+      null)
+    : null;
+
+  const simulationAnchorPosition = simulationAnchorPeer
+    ? {
+        x:
+          clamp(
+            centerX + simulationAnchorPeer.x + panOffset.x,
+            220,
+            Math.max(220, workspaceSize.width - 220),
+          ) - panOffset.x,
+        y:
+          clamp(
+            centerY + simulationAnchorPeer.y + panOffset.y,
+            168,
+            Math.max(168, workspaceSize.height - 40),
+          ) - panOffset.y,
+      }
+    : null;
+
+  const handleSimulationStaticLinkPointerDown = useCallback(
+    (linkId: string, event: ReactPointerEvent<SVGLineElement>) => {
+      if (!isSimulationActive) {
+        handleStaticLinkPointerDown(linkId, event);
+        return;
+      }
+
+      event.stopPropagation();
+      onEntitySelect(linkId);
+    },
+    [handleStaticLinkPointerDown, isSimulationActive, onEntitySelect],
+  );
+
+  const handleSimulationTextPointerDown = useCallback(
+    (item: WorkspaceTextItem, event: ReactPointerEvent<HTMLElement>) => {
+      if (!isSimulationActive) {
+        handleTextPointerDown(item, event);
+        return;
+      }
+
+      event.stopPropagation();
+      setSelectedTextId(item.id);
+    },
+    [handleTextPointerDown, isSimulationActive],
+  );
+
+  const handleSimulationTextDoubleClick = useCallback(
+    (item: WorkspaceTextItem) => {
+      if (isSimulationActive) {
+        return;
+      }
+
+      handleTextDoubleClick(item);
+    },
+    [handleTextDoubleClick, isSimulationActive],
+  );
+
+  const handleSimulationObstaclePointerDown = useCallback(
+    (
+      obstacle: NetworkEntity & { type: "OBSTACLE" },
+      event: ReactPointerEvent<HTMLButtonElement>,
+    ) => {
+      if (!isSimulationActive) {
+        handleObstaclePointerDown(obstacle, event);
+        return;
+      }
+
+      event.stopPropagation();
+      onEntitySelect(obstacle.id);
+    },
+    [handleObstaclePointerDown, isSimulationActive, onEntitySelect],
+  );
+
+  const handleSimulationObstacleResizeStart = useCallback(
+    (
+      obstacle: NetworkEntity & { type: "OBSTACLE" },
+      edge: Parameters<typeof handleObstacleResizeStart>[1],
+      event: ReactPointerEvent<HTMLSpanElement>,
+    ) => {
+      if (!isSimulationActive) {
+        handleObstacleResizeStart(obstacle, edge, event);
+        return;
+      }
+
+      event.stopPropagation();
+      onEntitySelect(obstacle.id);
+    },
+    [handleObstacleResizeStart, isSimulationActive, onEntitySelect],
+  );
+
+  const handleSimulationPeerPointerDown = useCallback(
+    (peer: NetworkEntity & { type: "PEER" }, event: ReactPointerEvent<HTMLButtonElement>) => {
+      if (!isSimulationActive) {
+        handlePeerPointerDown(peer, event);
+        return;
+      }
+
+      event.stopPropagation();
+      onEntitySelect(peer.id);
+    },
+    [handlePeerPointerDown, isSimulationActive, onEntitySelect],
+  );
+
   return (
     <section
       className={`workspace${placementMode ? " workspace--placing" : ""}${placementMode === PlacementMode.Link ? " workspace--linking" : ""}`}
@@ -295,6 +427,21 @@ export default function Workspace({
         className="workspace__scene"
         style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)` }}
       >
+        {currentSimulationStepResult && currentSimulationEvent && simulationAnchorPosition ? (
+          <SimulationPanel
+            anchorX={simulationAnchorPosition.x}
+            anchorY={simulationAnchorPosition.y}
+            canGoNextEvent={canGoNextSimulationEvent}
+            canGoPrevEvent={canGoPrevSimulationEvent}
+            currentEvent={currentSimulationEvent}
+            currentEventIndex={currentSimulationEventIndex}
+            currentEventsTotal={currentSimulationEventsTotal}
+            currentStepResult={currentSimulationStepResult}
+            inspectionMode={simulationInspectionMode}
+            onNextEvent={onNextSimulationEvent}
+            onPrevEvent={onPrevSimulationEvent}
+          />
+        ) : null}
         <WorkspaceScene
           centerX={centerX}
           centerY={centerY}
@@ -316,14 +463,14 @@ export default function Workspace({
           setEditingTextDraft={setEditingTextDraft}
           commitTextEdit={commitTextEdit}
           cancelTextEdit={cancelTextEdit}
-          handleStaticLinkPointerDown={handleStaticLinkPointerDown}
-          handleTextPointerDown={handleTextPointerDown}
-          handleTextDoubleClick={handleTextDoubleClick}
+          handleStaticLinkPointerDown={handleSimulationStaticLinkPointerDown}
+          handleTextPointerDown={handleSimulationTextPointerDown}
+          handleTextDoubleClick={handleSimulationTextDoubleClick}
           handleEntityPointerMove={handleEntityPointerMove}
           handleEntityPointerEnd={handleEntityPointerEnd}
-          handleObstaclePointerDown={handleObstaclePointerDown}
-          handleObstacleResizeStart={handleObstacleResizeStart}
-          handlePeerPointerDown={handlePeerPointerDown}
+          handleObstaclePointerDown={handleSimulationObstaclePointerDown}
+          handleObstacleResizeStart={handleSimulationObstacleResizeStart}
+          handlePeerPointerDown={handleSimulationPeerPointerDown}
         />
       </div>
     </section>

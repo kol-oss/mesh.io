@@ -13,6 +13,7 @@ type PropertiesProps = {
   steps: WorkflowStep[];
   setSteps: (value: WorkflowStep[]) => void;
   isNavCollapsed: boolean;
+  isEntityReadOnly?: boolean;
 };
 
 export default function Properties({
@@ -23,6 +24,7 @@ export default function Properties({
   steps,
   setSteps,
   isNavCollapsed,
+  isEntityReadOnly = false,
 }: PropertiesProps) {
   const { widthPercent, onResizeStart } = useSidebarResize({ side: SidebarResizeSide.Right });
 
@@ -53,11 +55,18 @@ export default function Properties({
     return null;
   }
 
+  const effectiveSelectedEntity = isEntityReadOnly
+    ? {
+        ...selectedEntity,
+        locked: true,
+      }
+    : selectedEntity;
+
   return (
     <EntityProperties
       widthPercent={widthPercent}
       onResizeStart={onResizeStart}
-      selectedEntity={selectedEntity}
+      selectedEntity={effectiveSelectedEntity}
       entities={entities}
       setEntities={setEntities}
     />
