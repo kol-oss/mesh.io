@@ -77,11 +77,9 @@ const buildRefreshStepsForPeer = (
 
   const interval = Math.max(1, Math.floor(peer.batmanOgmInterval));
   return buildBatmanRefreshTicks(manualSteps, peer, maxTick).map(({ tick, startTick }) => ({
-    ...createStepBase({
-      id: `refresh-batman-${peer.id}-${tick}`,
-      title: `BATMAN Refresh on ${peer.name}`,
-      tick,
-    }),
+    id: `refresh-batman-${peer.id}-${tick}`,
+    title: `BATMAN Refresh on ${peer.name}`,
+    tick: Math.max(0, Math.floor(tick)),
     type: StepType.Refresh,
     refreshPeerId: peer.id,
     refreshProtocol: RoutingProtocol.BATMAN,
@@ -136,47 +134,55 @@ const normalizeManualStep = (step: WorkflowStep, index: number): ManualWorkflowS
   }
 
   if (isMessageStep(step)) {
-    if (
-      !step.sourcePeerId ||
-      !step.destinationPeerId ||
-      step.sourcePeerId === step.destinationPeerId
-    ) {
-      return null;
-    }
     return normalizeMessageStep(step, index);
   }
 
   if (isMoveStep(step)) {
-    if (!step.movePeerId) {
-      return null;
-    }
     return normalizeMoveStep(step, index);
   }
 
   if (isToggleStatusStep(step)) {
-    if (!step.targetEntityId) {
-      return null;
-    }
     return normalizeToggleStep(step, index);
   }
 
   return null;
 };
 
-export const sanitizeManualSteps = (steps: WorkflowStep[]) => {
+export const normalizeManualSteps = (steps: WorkflowStep[]) => {
   return steps
     .map((step, index) => normalizeManualStep(step, index))
     .filter((step): step is ManualWorkflowStep => step !== null);
 };
 
+const isExecutableManualStep = (step: ManualWorkflowStep) => {
+  if (isMessageStep(step)) {
+    return (
+      step.sourcePeerId.length > 0 &&
+      step.destinationPeerId.length > 0 &&
+      step.sourcePeerId !== step.destinationPeerId
+    );
+  }
+
+  if (isMoveStep(step)) {
+    return step.movePeerId.length > 0;
+  }
+
+  return step.targetEntityId.length > 0;
+};
+
+export const sanitizeManualSteps = (steps: WorkflowStep[]) => {
+  return normalizeManualSteps(steps).filter(isExecutableManualStep);
+};
+
 export const composeStepsWithRefresh = (steps: WorkflowStep[], entities: NetworkEntity[]) => {
-  const manualSteps = sanitizeManualSteps(sortStepsByTick(steps));
+  const manualSteps = normalizeManualSteps(sortStepsByTick(steps));
+  const executableManualSteps = manualSteps.filter(isExecutableManualStep);
   const peers = entities.filter((entity): entity is PeerEntity => entity.type === EntityType.Peer);
-  const maxTick = Math.max(1, ...manualSteps.map((step) => step.tick));
+  const maxTick = manualSteps.length === 0 ? 0 : Math.max(...manualSteps.map((step) => step.tick));
 
   const refreshByTick = new Map<number, WorkflowStep[]>();
   for (const peer of peers) {
-    const refreshSteps = buildRefreshStepsForPeer(manualSteps, peer, maxTick);
+    const refreshSteps = buildRefreshStepsForPeer(executableManualSteps, peer, maxTick);
     for (const refreshStep of refreshSteps) {
       const bucket = refreshByTick.get(refreshStep.tick) ?? [];
       bucket.push(refreshStep);

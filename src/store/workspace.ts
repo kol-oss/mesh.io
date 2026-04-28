@@ -10,7 +10,11 @@ import { SimulationEventType, type SimulationPlaybackState } from "../types/simu
 import type { WorkflowStep } from "../types/steps";
 import type { ToolbarPlacementMode } from "../types/toolbar";
 import type { WorkspaceTextItem } from "../types/workspace";
-import { composeStepsWithRefresh, sanitizeManualSteps } from "../utils/navigation/refreshSteps";
+import {
+  composeStepsWithRefresh,
+  normalizeManualSteps,
+  sanitizeManualSteps,
+} from "../utils/navigation/refreshSteps";
 import {
   getWorkspaceExportFileName,
   parseWorkspaceImportPayload,
@@ -65,7 +69,7 @@ export function useWorkspaceStore() {
   const entities = rawEntities;
   const texts = rawTexts;
 
-  const normalizedManualSteps = useMemo(() => sanitizeManualSteps(manualSteps), [manualSteps]);
+  const normalizedManualSteps = useMemo(() => normalizeManualSteps(manualSteps), [manualSteps]);
   const steps = useMemo(
     () => composeStepsWithRefresh(normalizedManualSteps, entities),
     [normalizedManualSteps, entities],
@@ -80,7 +84,7 @@ export function useWorkspaceStore() {
   const setSteps = useCallback(
     (nextSteps: WorkflowStep[]) => {
       invalidateSimulation();
-      setManualSteps(sanitizeManualSteps(nextSteps));
+      setManualSteps(normalizeManualSteps(nextSteps));
     },
     [invalidateSimulation, setManualSteps],
   );

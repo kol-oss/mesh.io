@@ -97,13 +97,12 @@ export const migrateSteps = (steps: WorkflowStep[]) => {
       !hasNonEmptyString(rawStep.id) ||
       !hasNonEmptyString(rawStep.title) ||
       (normalizedType === StepType.Message &&
-        (!hasNonEmptyString(rawStep.sourcePeerId) ||
-          !hasNonEmptyString(rawStep.destinationPeerId))) ||
+        (rawStep.sourcePeerId == null || rawStep.destinationPeerId == null)) ||
       (normalizedType === StepType.Move &&
-        (!hasNonEmptyString(rawStep.movePeerId) ||
+        (rawStep.movePeerId == null ||
           typeof rawStep.x !== "number" ||
           typeof rawStep.y !== "number")) ||
-      (normalizedType === StepType.ToggleStatus && !hasNonEmptyString(rawStep.targetEntityId))
+      (normalizedType === StepType.ToggleStatus && rawStep.targetEntityId == null)
     );
   });
 
@@ -114,6 +113,10 @@ export const migrateSteps = (steps: WorkflowStep[]) => {
   return steps.map((step, index) => {
     const rawStep = step as LegacyStep;
     const normalizedType = normalizeRawStepType(rawStep.type) ?? StepType.Move;
+
+    if (normalizedType === StepType.Refresh) {
+      return step;
+    }
 
     if (normalizedType === StepType.Message) {
       return normalizeMessageStep(rawStep, index);
