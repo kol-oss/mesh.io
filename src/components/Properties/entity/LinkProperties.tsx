@@ -3,7 +3,7 @@ import { Diamond, ExternalLink, Lock, Radio } from "lucide-react";
 import { EntityType } from "../../../types/enums";
 import type { LinkEntity, PeerEntity } from "../../../types/navigation";
 import type { LinkPropertiesPanelProps } from "../../../types/properties";
-import StyledSelect from "../../Select/StyledSelect";
+import Select from "../../Select/Select";
 
 export default function LinkProperties({
   widthPercent,
@@ -122,7 +122,7 @@ export default function LinkProperties({
               >
                 Source
               </span>
-              <StyledSelect
+              <Select
                 value={sourceValue}
                 invalid={isLinkSourceMissing}
                 options={linkPeerOptions}
@@ -147,7 +147,7 @@ export default function LinkProperties({
               >
                 Destination
               </span>
-              <StyledSelect
+              <Select
                 value={destinationValue}
                 invalid={isLinkDestinationMissing}
                 options={linkPeerOptions.filter((peer) => peer.value !== sourceValue)}

@@ -3,7 +3,7 @@ import { Activity, Link2, Radio } from "lucide-react";
 import { EntityType } from "../../../types/enums";
 import type { LinkEntity, PeerEntity } from "../../../types/navigation";
 import type { WorkflowStep } from "../../../types/steps";
-import StyledSelect from "../../Select/StyledSelect";
+import Select from "../../Select/Select";
 
 type ToggleStepPropertiesProps = {
   toggleTargets: Array<PeerEntity | LinkEntity>;
@@ -35,7 +35,7 @@ export default function ToggleStepProperties({
           >
             Entity
           </span>
-          <StyledSelect
+          <Select
             value={toggleTargetValue}
             invalid={isStepToggleEntityMissing}
             options={toggleTargetOptions}

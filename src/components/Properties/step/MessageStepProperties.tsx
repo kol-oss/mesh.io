@@ -2,7 +2,7 @@ import { Radio } from "lucide-react";
 
 import type { PeerEntity } from "../../../types/navigation";
 import type { WorkflowStep } from "../../../types/steps";
-import StyledSelect from "../../Select/StyledSelect";
+import Select from "../../Select/Select";
 
 type MessageStepPropertiesProps = {
   selectedStep: WorkflowStep;
@@ -38,7 +38,7 @@ export default function MessageStepProperties({
           >
             Source
           </span>
-          <StyledSelect
+          <Select
             value={messageSourceValue}
             invalid={isStepMessageSourceMissing}
             options={peerSelectOptions}
@@ -63,7 +63,7 @@ export default function MessageStepProperties({
           >
             Destination
           </span>
-          <StyledSelect
+          <Select
             value={messageDestinationValue}
             invalid={isStepMessageDestinationMissing}
             options={peerSelectOptions.filter((peer) => peer.value !== messageSourceValue)}

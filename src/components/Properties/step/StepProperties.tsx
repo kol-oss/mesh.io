@@ -6,7 +6,7 @@ import type { WorkflowStep } from "../../../types/steps";
 import type { StepPropertiesPanelProps } from "../../../types/properties";
 import { isRefreshStep } from "../../../utils/navigation/refreshSteps";
 import { parseNumberValue } from "../../../utils/properties";
-import StyledSelect from "../../Select/StyledSelect";
+import Select from "../../Select/Select";
 import MessageStepProperties from "./MessageStepProperties";
 import MoveStepProperties from "./MoveStepProperties";
 import RefreshStepProperties from "./RefreshStepProperties";
@@ -170,7 +170,7 @@ export default function StepProperties({
           <div className="properties__inline-group">
             <label className="properties__field">
               <span className="properties__field-label">Type</span>
-              <StyledSelect
+              <Select
                 allowEmpty={false}
                 value={selectedStep.type}
                 invalid={false}

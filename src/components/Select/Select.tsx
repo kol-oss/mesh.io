@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 
-type StyledSelectOption = {
+type SelectOption = {
   value: string;
   label: string;
   icon?: ReactNode;
 };
 
-type StyledSelectProps = {
+type SelectProps = {
   value: string;
-  options: StyledSelectOption[];
+  options: SelectOption[];
   placeholder?: string;
   onChange: (value: string) => void;
   disabled?: boolean;
@@ -17,7 +17,7 @@ type StyledSelectProps = {
   invalid?: boolean;
 };
 
-export default function StyledSelect({
+export default function Select({
   value,
   options,
   placeholder = "Select",
@@ -25,7 +25,7 @@ export default function StyledSelect({
   disabled = false,
   allowEmpty = true,
   invalid = false,
-}: StyledSelectProps) {
+}: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
 

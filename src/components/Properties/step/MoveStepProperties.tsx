@@ -3,7 +3,7 @@ import { Radio } from "lucide-react";
 import type { PeerEntity } from "../../../types/navigation";
 import type { WorkflowStep } from "../../../types/steps";
 import { parseNumberValue } from "../../../utils/properties";
-import StyledSelect from "../../Select/StyledSelect";
+import Select from "../../Select/Select";
 
 type MoveStepPropertiesProps = {
   selectedStep: WorkflowStep;
@@ -34,7 +34,7 @@ export default function MoveStepProperties({
         >
           Peer
         </span>
-        <StyledSelect
+        <Select
           value={moveTargetValue}
           invalid={isStepMoveEntityMissing}
           options={peerSelectOptions}
