@@ -1,0 +1,291 @@
+import { Radio } from "lucide-react";
+
+import type { WorkspaceSceneProps } from "../../types/workspaceScene";
+import { shortenLine } from "../../utils/geometry";
+
+export default function WorkspaceScene({
+  centerX,
+  centerY,
+  staticLinks,
+  connections,
+  rangePolygons,
+  moveIndicators,
+  texts,
+  obstacles,
+  peers,
+  selectedSource,
+  selectedId,
+  resolvedCreationSelectedEntityId,
+  selectedStepAffectedEntityIds,
+  editingTextId,
+  editingTextDraft,
+  selectedTextId,
+  activeDragEntityId,
+  setEditingTextDraft,
+  commitTextEdit,
+  cancelTextEdit,
+  handleStaticLinkPointerDown,
+  handleTextPointerDown,
+  handleTextDoubleClick,
+  handleEntityPointerMove,
+  handleEntityPointerEnd,
+  handleObstaclePointerDown,
+  handleObstacleResizeStart,
+  handlePeerPointerDown,
+}: WorkspaceSceneProps) {
+  return (
+    <>
+      <svg className="workspace__static-links" aria-hidden="true">
+        {staticLinks.map((link) => {
+          const rawSourceX = centerX + link.sourceX;
+          const rawSourceY = centerY + link.sourceY;
+          const rawTargetX = centerX + link.destinationX;
+          const rawTargetY = centerY + link.destinationY;
+          const { x1, y1, x2, y2 } = shortenLine(
+            rawSourceX,
+            rawSourceY,
+            rawTargetX,
+            rawTargetY,
+            14,
+          );
+          const isSelected =
+            (selectedSource === "entities" && selectedId === link.id) ||
+            resolvedCreationSelectedEntityId === link.id ||
+            selectedStepAffectedEntityIds.has(link.id);
+
+          return (
+            <g
+              key={link.id}
+              className={`workspace__static-link ${link.enabled ? "workspace__static-link--enabled" : "workspace__static-link--disabled"}${isSelected ? " workspace__static-link--selected" : ""}`}
+            >
+              <line
+                className="workspace__static-link-hit"
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                onPointerDown={(event) => handleStaticLinkPointerDown(link.id, event)}
+              />
+              <line x1={x1} y1={y1} x2={x2} y2={y2} />
+            </g>
+          );
+        })}
+      </svg>
+      <svg className="workspace__connections" aria-hidden="true">
+        {connections.map((connection) => {
+          const rawSourceX = centerX + connection.sourceX;
+          const rawSourceY = centerY + connection.sourceY;
+          const rawTargetX = centerX + connection.targetX;
+          const rawTargetY = centerY + connection.targetY;
+          const { x1, y1, x2, y2 } = shortenLine(
+            rawSourceX,
+            rawSourceY,
+            rawTargetX,
+            rawTargetY,
+            14,
+          );
+          const isMutual = connection.type === "MUTUAL";
+
+          return (
+            <g
+              key={`${connection.type}-${connection.sourceId}-${connection.targetId}`}
+              className={`workspace__connection ${
+                isMutual ? "workspace__connection--mutual" : "workspace__connection--one-way"
+              }`}
+            >
+              <line x1={x1} y1={y1} x2={x2} y2={y2} />
+            </g>
+          );
+        })}
+      </svg>
+      <svg className="workspace__ranges" aria-hidden="true">
+        {rangePolygons.map((polygon) => (
+          <path
+            key={polygon.peerId}
+            d={polygon.path}
+            className={`workspace__peer-range${polygon.selected ? " workspace__peer-range--selected" : ""}${polygon.enabled ? "" : " workspace__peer-range--disabled"}`}
+          />
+        ))}
+      </svg>
+
+      <svg className="workspace__step-indicators" aria-hidden="true">
+        {moveIndicators.map((indicator, index) => {
+          const sourceX = centerX + indicator.sourceX;
+          const sourceY = centerY + indicator.sourceY;
+          const targetX = centerX + indicator.targetX;
+          const targetY = centerY + indicator.targetY;
+          const { x1, y1, x2, y2 } = shortenLine(sourceX, sourceY, targetX, targetY, 14);
+
+          return (
+            <g
+              key={`${indicator.draft ? "draft" : "step"}-${index}`}
+              className={`workspace__step-indicator${indicator.draft ? " workspace__step-indicator--draft" : ""}`}
+            >
+              <line x1={x1} y1={y1} x2={x2} y2={y2} />
+            </g>
+          );
+        })}
+      </svg>
+
+      {moveIndicators.map((indicator, index) => (
+        <span
+          key={`target-${indicator.draft ? "draft" : "step"}-${index}`}
+          className={`workspace__step-indicator-target${indicator.draft ? " workspace__step-indicator-target--draft" : ""}`}
+          style={{
+            left: `calc(50% + ${indicator.targetX}px)`,
+            top: `calc(50% + ${indicator.targetY}px)`,
+          }}
+          aria-hidden="true"
+        >
+          <Radio size={20} />
+        </span>
+      ))}
+
+      {texts.map((item) => {
+        const isEditing = editingTextId === item.id;
+
+        if (isEditing) {
+          return (
+            <input
+              key={item.id}
+              className="workspace__text workspace__text--editing"
+              style={{
+                left: `calc(50% + ${item.x}px)`,
+                top: `calc(50% + ${item.y}px)`,
+              }}
+              value={editingTextDraft}
+              onPointerDown={(event) => event.stopPropagation()}
+              onChange={(event) => setEditingTextDraft(event.target.value)}
+              onBlur={commitTextEdit}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  commitTextEdit();
+                }
+
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  cancelTextEdit();
+                }
+              }}
+              autoFocus
+            />
+          );
+        }
+
+        return (
+          <button
+            key={item.id}
+            className={`workspace__text${selectedTextId === item.id ? " workspace__text--selected" : ""}${activeDragEntityId === item.id ? " workspace__text--dragging" : ""}`}
+            style={{
+              left: `calc(50% + ${item.x}px)`,
+              top: `calc(50% + ${item.y}px)`,
+            }}
+            type="button"
+            onPointerDown={(event) => handleTextPointerDown(item, event)}
+            onPointerMove={handleEntityPointerMove}
+            onPointerUp={handleEntityPointerEnd}
+            onPointerCancel={handleEntityPointerEnd}
+            onDoubleClick={() => handleTextDoubleClick(item)}
+            aria-label={`Text ${item.text}`}
+          >
+            {item.text}
+          </button>
+        );
+      })}
+
+      {obstacles.map((obstacle) => {
+        const isSelected =
+          (selectedSource === "entities" && selectedId === obstacle.id) ||
+          resolvedCreationSelectedEntityId === obstacle.id ||
+          selectedStepAffectedEntityIds.has(obstacle.id);
+        return (
+          <button
+            key={obstacle.id}
+            className={`workspace__obstacle${isSelected ? " workspace__obstacle--selected" : ""}${activeDragEntityId === obstacle.id ? " workspace__obstacle--dragging" : ""}`}
+            style={{
+              left: `calc(50% + ${obstacle.x}px)`,
+              top: `calc(50% + ${obstacle.y}px)`,
+              width: `${Math.max(1, obstacle.width)}px`,
+              height: `${Math.max(1, obstacle.height)}px`,
+            }}
+            type="button"
+            onPointerDown={(event) => {
+              event.stopPropagation();
+              handleObstaclePointerDown(obstacle, event);
+            }}
+            onPointerMove={handleEntityPointerMove}
+            onPointerUp={handleEntityPointerEnd}
+            onPointerCancel={handleEntityPointerEnd}
+            aria-label={`Obstacle ${obstacle.name}`}
+          >
+            <span
+              className="workspace__obstacle-handle workspace__obstacle-handle--left"
+              onPointerDown={(event) => handleObstacleResizeStart(obstacle, "left", event)}
+              onPointerMove={handleEntityPointerMove}
+              onPointerUp={handleEntityPointerEnd}
+              onPointerCancel={handleEntityPointerEnd}
+              aria-hidden="true"
+            />
+            <span
+              className="workspace__obstacle-handle workspace__obstacle-handle--right"
+              onPointerDown={(event) => handleObstacleResizeStart(obstacle, "right", event)}
+              onPointerMove={handleEntityPointerMove}
+              onPointerUp={handleEntityPointerEnd}
+              onPointerCancel={handleEntityPointerEnd}
+              aria-hidden="true"
+            />
+            <span
+              className="workspace__obstacle-handle workspace__obstacle-handle--top"
+              onPointerDown={(event) => handleObstacleResizeStart(obstacle, "top", event)}
+              onPointerMove={handleEntityPointerMove}
+              onPointerUp={handleEntityPointerEnd}
+              onPointerCancel={handleEntityPointerEnd}
+              aria-hidden="true"
+            />
+            <span
+              className="workspace__obstacle-handle workspace__obstacle-handle--bottom"
+              onPointerDown={(event) => handleObstacleResizeStart(obstacle, "bottom", event)}
+              onPointerMove={handleEntityPointerMove}
+              onPointerUp={handleEntityPointerEnd}
+              onPointerCancel={handleEntityPointerEnd}
+              aria-hidden="true"
+            />
+          </button>
+        );
+      })}
+
+      {peers.map((peer) => {
+        const isSelected =
+          (selectedSource === "entities" && selectedId === peer.id) ||
+          resolvedCreationSelectedEntityId === peer.id ||
+          selectedStepAffectedEntityIds.has(peer.id);
+        return (
+          <div key={peer.id}>
+            <button
+              className={`workspace__peer${isSelected ? " workspace__peer--selected" : ""}${activeDragEntityId === peer.id ? " workspace__peer--dragging" : ""}${peer.enabled ? "" : " workspace__peer--disabled"}`}
+              style={{
+                left: `calc(50% + ${peer.x}px)`,
+                top: `calc(50% + ${peer.y}px)`,
+              }}
+              type="button"
+              onPointerDown={(event) => {
+                event.stopPropagation();
+                handlePeerPointerDown(peer, event);
+              }}
+              onPointerMove={handleEntityPointerMove}
+              onPointerUp={handleEntityPointerEnd}
+              onPointerCancel={handleEntityPointerEnd}
+              aria-label={`Peer ${peer.name}`}
+            >
+              <span className="workspace__peer-icon">
+                <Radio size={20} />
+              </span>
+              <span className="workspace__peer-name">{peer.name}</span>
+            </button>
+          </div>
+        );
+      })}
+    </>
+  );
+}
