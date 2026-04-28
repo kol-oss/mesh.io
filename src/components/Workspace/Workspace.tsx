@@ -7,13 +7,13 @@ import type { ToolbarPlacementMode } from "../../types/toolbar";
 import type { WorkspaceTextItem } from "../../types/workspace";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { useWorkspaceBackground } from "../../hooks/workspace/useWorkspaceBackground";
-import { useWorkspaceCreation } from "../../hooks/workspace/useWorkspaceCreation";
-import { useWorkspaceDrag } from "../../hooks/workspace/useWorkspaceDrag";
-import { useWorkspaceHints } from "../../hooks/workspace/useWorkspaceHints";
-import { useWorkspacePlacement } from "../../hooks/workspace/useWorkspacePlacement";
-import { useWorkspaceTextEdit } from "../../hooks/workspace/useWorkspaceTextEdit";
-import { useWorkspaceDerived } from "../../hooks/workspace/useWorkspaceDerived";
+import { useWorkspaceBackground } from "../../hooks/workspace/useBackground";
+import { useWorkspaceCreation } from "../../hooks/workspace/useCreation";
+import { useWorkspaceDrag } from "../../hooks/workspace/useDrag";
+import { useWorkspaceHints } from "../../hooks/workspace/useHints";
+import { useWorkspacePlacement } from "../../hooks/workspace/usePlacement";
+import { useWorkspaceTextEdit } from "../../hooks/workspace/useTextEdit";
+import { useWorkspaceDerived } from "../../hooks/workspace/useDerived";
 import { useToast } from "../../hooks/useToast";
 import WorkspaceScene from "./WorkspaceScene";
 
