@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import type {
   WorkspaceTextEditHandlers,
   WorkspaceTextEditSetters,
-} from "../../types/workspaceTextEdit";
+} from "../../types/workspace/textEdit";
 import type { WorkspaceTextItem } from "../../types/workspace";
 
 type UseWorkspaceTextEditParams = {

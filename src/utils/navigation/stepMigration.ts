@@ -1,5 +1,5 @@
 import { StepType } from "../../types/enums";
-import type { WorkflowStep } from "../../types/steps";
+import type { WorkflowStep } from "../../types/workspace/steps";
 
 export const stepTypes = [
   StepType.Move,

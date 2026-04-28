@@ -1,5 +1,5 @@
-import { StepType } from "./enums";
-import type { PeerRoutingProtocol } from "./navigation";
+import { StepType } from "../enums";
+import type { PeerRoutingProtocol } from "../navigation";
 
 export type WorkflowStep = {
   id: string;

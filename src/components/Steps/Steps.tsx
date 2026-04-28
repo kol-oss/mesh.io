@@ -15,7 +15,7 @@ import { useListReorder } from "../../hooks/useListReorder";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
 import { StepType } from "../../types/enums";
-import type { WorkflowStep } from "../../types/steps";
+import type { WorkflowStep } from "../../types/workspace/steps";
 import { migrateSteps } from "../../utils/navigation/stepMigration";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 import Tooltip from "../Tooltip/Tooltip";

@@ -9,7 +9,7 @@ import type {
   WorkspacePlacementRefs,
   WorkspacePlacementSetters,
   WorkspacePlacementState,
-} from "../../types/workspacePlacement";
+} from "../../types/workspace/placement";
 
 type UseWorkspacePlacementParams = {
   refs: WorkspacePlacementRefs;

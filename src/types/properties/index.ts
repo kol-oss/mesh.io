@@ -1,7 +1,7 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "./navigation";
-import type { WorkflowStep } from "./steps";
+import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../navigation";
+import type { WorkflowStep } from "../workspace/steps";
 
 export type PropertiesResizeHandler = (event: ReactPointerEvent<HTMLDivElement>) => void;
 

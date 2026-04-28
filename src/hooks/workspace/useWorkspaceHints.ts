@@ -5,7 +5,7 @@ import type {
   WorkspaceHintActions,
   WorkspaceHintRefs,
   WorkspaceHintState,
-} from "../../types/workspaceHints";
+} from "../../types/workspace/hints";
 import type { ToolbarPlacementMode } from "../../types/toolbar";
 
 type UseWorkspaceHintsParams = {

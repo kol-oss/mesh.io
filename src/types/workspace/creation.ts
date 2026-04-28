@@ -1,6 +1,6 @@
-import type { NetworkEntity } from "./navigation";
+import type { NetworkEntity } from "../navigation";
 import type { WorkflowStep } from "./steps";
-import type { WorkspaceTextItem } from "./workspace";
+import type { WorkspaceTextItem } from "./index";
 
 export type WorkspaceCreationSetters = {
   setEntities: (value: NetworkEntity[]) => void;

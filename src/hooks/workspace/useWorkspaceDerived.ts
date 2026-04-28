@@ -8,10 +8,10 @@ import {
   SelectionSource,
   StepType,
 } from "../../types/enums";
-import type { MoveIndicator } from "../../types/workspaceScene";
-import type { RangePolygon } from "../../types/interaction";
+import type { MoveIndicator } from "../../types/workspace/scene";
+import type { RangePolygon } from "../../types/workspace/interaction";
 import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../types/navigation";
-import type { WorkflowStep } from "../../types/steps";
+import type { WorkflowStep } from "../../types/workspace/steps";
 import type { ToolbarPlacementMode } from "../../types/toolbar";
 import {
   getObstacleBounds,

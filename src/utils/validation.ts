@@ -1,7 +1,7 @@
 import { peerRoutingProtocols, workflowStepTypes } from "../constants/protocol";
 import { EntityType } from "../types/enums";
 import type { NetworkEntity, PeerRoutingProtocol } from "../types/navigation";
-import type { WorkflowStep } from "../types/steps";
+import type { WorkflowStep } from "../types/workspace/steps";
 
 export type WorkspaceImportPayload = {
   entities: NetworkEntity[];

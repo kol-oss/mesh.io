@@ -7,12 +7,12 @@ import {
 } from "../../constants/workspace";
 import { EntityType, RoutingProtocol, StepType } from "../../types/enums";
 import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../types/navigation";
-import type { WorkflowStep } from "../../types/steps";
+import type { WorkflowStep } from "../../types/workspace/steps";
 import type { WorkspaceTextItem } from "../../types/workspace";
 import type {
   WorkspaceCreationCallbacks,
   WorkspaceCreationSetters,
-} from "../../types/workspaceCreation";
+} from "../../types/workspace/creation";
 import { generateUUID } from "../../utils/uuid";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 

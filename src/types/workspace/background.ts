@@ -6,7 +6,7 @@ import type {
   SetStateAction,
 } from "react";
 
-import type { ToolbarPlacementMode } from "./toolbar";
+import type { ToolbarPlacementMode } from "../toolbar";
 
 export type WorkspacePanState = {
   pointerId: number;

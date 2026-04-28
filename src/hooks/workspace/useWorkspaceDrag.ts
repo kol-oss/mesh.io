@@ -12,8 +12,8 @@ import type {
   WorkspaceDragRefs,
   WorkspaceDragSetters,
   WorkspaceDragState,
-} from "../../types/workspaceInteraction";
-import type { ObstacleResizeEdge } from "../../types/interaction";
+} from "../../types/workspace/drag";
+import type { ObstacleResizeEdge } from "../../types/workspace/interaction";
 import type { ObstacleEntity, PeerEntity } from "../../types/navigation";
 import type { ToolbarPlacementMode } from "../../types/toolbar";
 import type { WorkspaceTextItem } from "../../types/workspace";

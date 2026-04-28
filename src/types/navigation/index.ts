@@ -1,4 +1,4 @@
-import { EntityType, RoutingProtocol } from "./enums";
+import { EntityType, RoutingProtocol } from "../enums";
 
 export type NavigationMenuItem = {
   title: string;

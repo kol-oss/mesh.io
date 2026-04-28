@@ -9,7 +9,7 @@ import type {
   WorkspaceBackgroundRefs,
   WorkspaceBackgroundSetters,
   WorkspaceBackgroundState,
-} from "../../types/workspaceBackground";
+} from "../../types/workspace/background";
 import { clamp } from "../../utils/math/clamp";
 import { toInt } from "../../utils/geometry";
 

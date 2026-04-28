@@ -6,8 +6,8 @@ import type {
 } from "react";
 
 import type { DragState, ObstacleResizeEdge } from "./interaction";
-import type { NetworkEntity, ObstacleEntity, PeerEntity } from "./navigation";
-import type { WorkspaceTextItem } from "./workspace";
+import type { NetworkEntity, ObstacleEntity, PeerEntity } from "../navigation";
+import type { WorkspaceTextItem } from "./index";
 
 export type EntitySetter = (value: NetworkEntity[]) => void;
 export type TextSetter = (value: WorkspaceTextItem[]) => void;

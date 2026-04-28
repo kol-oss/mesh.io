@@ -1,9 +1,9 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-import { SelectionSource } from "./enums";
+import { SelectionSource } from "../enums";
 import type { Connection, ObstacleResizeEdge, RangePolygon } from "./interaction";
-import type { ObstacleEntity, PeerEntity } from "./navigation";
-import type { WorkspaceTextItem } from "./workspace";
+import type { ObstacleEntity, PeerEntity } from "../navigation";
+import type { WorkspaceTextItem } from "./index";
 
 export type MoveIndicator = {
   sourceX: number;

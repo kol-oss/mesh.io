@@ -1,7 +1,7 @@
 import type { MutableRefObject } from "react";
 
-import type { PeerEntity } from "./navigation";
-import type { ToolbarPlacementMode } from "./toolbar";
+import type { PeerEntity } from "../navigation";
+import type { ToolbarPlacementMode } from "../toolbar";
 
 export type WorkspaceHintRefs = {
   placementModeRef: MutableRefObject<ToolbarPlacementMode>;

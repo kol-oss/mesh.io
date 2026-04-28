@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 
-import type { WorkspaceTextItem } from "./workspace";
+import type { WorkspaceTextItem } from "./index";
 
 export type WorkspaceTextEditSetters = {
   setTexts: (value: WorkspaceTextItem[]) => void;

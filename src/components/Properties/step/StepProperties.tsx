@@ -2,7 +2,7 @@ import { Activity, ChevronsRight, Clock3, ExternalLink, Mail } from "lucide-reac
 
 import { EntityType, StepType } from "../../../types/enums";
 import type { LinkEntity, PeerEntity } from "../../../types/navigation";
-import type { WorkflowStep } from "../../../types/steps";
+import type { WorkflowStep } from "../../../types/workspace/steps";
 import type { StepPropertiesPanelProps } from "../../../types/properties";
 import { isRefreshStep } from "../../../utils/navigation/refreshSteps";
 import { parseNumberValue } from "../../../utils/properties";

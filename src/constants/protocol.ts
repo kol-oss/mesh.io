@@ -1,6 +1,6 @@
 import { RoutingProtocol, StepType } from "../types/enums";
 import type { PeerRoutingProtocol } from "../types/navigation";
-import type { WorkflowStep } from "../types/steps";
+import type { WorkflowStep } from "../types/workspace/steps";
 
 export const peerRoutingProtocols: PeerRoutingProtocol[] = [
   RoutingProtocol.HWMP,

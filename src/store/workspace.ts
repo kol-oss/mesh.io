@@ -5,7 +5,7 @@ import { useLocalStorage } from "../hooks/storage/useLocalStorage";
 import { useToast } from "../hooks/useToast";
 import { PlacementMode, SelectionSource } from "../types/enums";
 import type { NetworkEntity } from "../types/navigation";
-import type { WorkflowStep } from "../types/steps";
+import type { WorkflowStep } from "../types/workspace/steps";
 import type { ToolbarPlacementMode } from "../types/toolbar";
 import type { WorkspaceTextItem } from "../types/workspace";
 import { composeStepsWithRefresh, sanitizeManualSteps } from "../utils/navigation/refreshSteps";

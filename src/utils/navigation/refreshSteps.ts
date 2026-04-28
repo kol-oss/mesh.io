@@ -1,6 +1,6 @@
 import { EntityType, RoutingProtocol, StepType } from "../../types/enums";
 import type { NetworkEntity, PeerEntity } from "../../types/navigation";
-import type { WorkflowStep } from "../../types/steps";
+import type { WorkflowStep } from "../../types/workspace/steps";
 
 export const isRefreshStep = (step: WorkflowStep) => step.type === StepType.Refresh;
 

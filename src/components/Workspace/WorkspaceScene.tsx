@@ -1,7 +1,7 @@
 import { Radio } from "lucide-react";
 
 import { ConnectionType, ResizeEdge, SelectionSource } from "../../types/enums";
-import type { WorkspaceSceneProps } from "../../types/workspaceScene";
+import type { WorkspaceSceneProps } from "../../types/workspace/scene";
 import { shortenLine } from "../../utils/geometry";
 
 export default function WorkspaceScene({
