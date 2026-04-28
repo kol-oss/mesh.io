@@ -136,6 +136,25 @@ export function useWorkspaceStore() {
 
   const handleWorkspaceStepSelect = useCallback(
     (id: string) => {
+      setSimulationPlayback((prev) => {
+        if (!prev.result) {
+          return prev;
+        }
+
+        const stepIndex = prev.result.stepResults.findIndex(
+          (stepResult) => stepResult.step.id === id,
+        );
+        if (stepIndex === -1) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          currentStepIndex: stepIndex,
+          currentEventIndex: 0,
+        };
+      });
+
       setSelectedId(id);
       setSelectedSource(SelectionSource.Steps);
     },
@@ -148,6 +167,25 @@ export function useWorkspaceStore() {
         clearSelection();
         return;
       }
+
+      setSimulationPlayback((prev) => {
+        if (!prev.result) {
+          return prev;
+        }
+
+        const stepIndex = prev.result.stepResults.findIndex(
+          (stepResult) => stepResult.step.id === id,
+        );
+        if (stepIndex === -1) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          currentStepIndex: stepIndex,
+          currentEventIndex: 0,
+        };
+      });
 
       setSelectedId(id);
       setSelectedSource(SelectionSource.Steps);
