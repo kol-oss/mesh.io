@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNo
 import { createPortal } from "react-dom";
 import { TooltipPlacement } from "../../types/enums";
 
-type TooltipAnchorProps = {
+type TooltipProps = {
   content: string;
   children: ReactNode;
   placement?: TooltipPlacement;
@@ -16,11 +16,11 @@ type TooltipPosition = {
 const TOOLTIP_DELAY_MS = 700;
 const TOOLTIP_OFFSET_PX = 8;
 
-export default function TooltipAnchor({
+export default function Tooltip({
   content,
   children,
   placement = TooltipPlacement.Top,
-}: TooltipAnchorProps) {
+}: TooltipProps) {
   const anchorRef = useRef<HTMLSpanElement | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -113,7 +113,7 @@ export default function TooltipAnchor({
         ref={(node) => {
           setAnchorRef(node);
         }}
-        className="navigation__tooltip-anchor"
+        className="tooltip__anchor"
         onMouseEnter={showTooltip}
         onMouseLeave={hideTooltip}
         onFocus={showTooltip}
@@ -125,12 +125,12 @@ export default function TooltipAnchor({
         position &&
         createPortal(
           <div
-            className={`navigation__tooltip navigation__tooltip--${placement}`}
+            className={`tooltip tooltip--${placement}`}
             style={{ left: `${position.left}px`, top: `${position.top}px` }}
             role="tooltip"
           >
-            <span className="navigation__tooltip-content">{content}</span>
-            <span className="navigation__tooltip-arrow" />
+            <span className="tooltip__content">{content}</span>
+            <span className="tooltip__arrow" />
           </div>,
           document.body,
         )}

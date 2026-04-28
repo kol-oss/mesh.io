@@ -22,7 +22,7 @@ import {
   obstacleDefaults,
   peerDefaults,
 } from "../../utils/navigation/entityMigration";
-import TooltipAnchor from "../Tooltip/TooltipAnchor";
+import Tooltip from "../Tooltip/Tooltip";
 import Entity from "./Entity";
 
 type EntitiesProps = {
@@ -206,7 +206,7 @@ export default function Entities({
         />
         <span className="navigation__entities-title">Entities</span>
         <div className="navigation__entities-add-wrap" ref={addMenuRef}>
-          <TooltipAnchor content="Add new entity">
+          <Tooltip content="Add new entity">
             <button
               ref={addButtonRef}
               className="navigation__entities-add"
@@ -216,7 +216,7 @@ export default function Entities({
             >
               <Plus size={14} />
             </button>
-          </TooltipAnchor>
+          </Tooltip>
         </div>
 
         {isAddMenuOpen &&

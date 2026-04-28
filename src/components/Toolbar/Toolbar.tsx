@@ -28,7 +28,7 @@ import {
   TooltipPlacement,
 } from "../../types/enums";
 import type { ToolbarPlacementMode } from "../../types/toolbar";
-import TooltipAnchor from "../Tooltip/TooltipAnchor";
+import Tooltip from "../Tooltip/Tooltip";
 
 type ToolMode = ToolbarMode | PlacementMode;
 
@@ -220,7 +220,7 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
           if (!group.hasMenu) {
             return (
               <div className="toolbar__group" key={group.id}>
-                <TooltipAnchor content={`${activeItem.label}`} placement={TooltipPlacement.Top}>
+                <Tooltip content={`${activeItem.label}`} placement={TooltipPlacement.Top}>
                   <button
                     className={`toolbar__button${groupIsSelected ? " toolbar__button--active" : ""}`}
                     type="button"
@@ -240,7 +240,7 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
                       className={getModeIconClassName(activeItem.key)}
                     />
                   </button>
-                </TooltipAnchor>
+                </Tooltip>
               </div>
             );
           }
@@ -248,7 +248,7 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
           return (
             <div className="toolbar__group" key={group.id}>
               <div className="toolbar__menu-group">
-                <TooltipAnchor content={activeItem.label} placement={TooltipPlacement.Top}>
+                <Tooltip content={activeItem.label} placement={TooltipPlacement.Top}>
                   <button
                     className={`toolbar__button toolbar__menu-trigger${groupIsSelected ? " toolbar__button--active" : ""}`}
                     type="button"
@@ -268,9 +268,9 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
                       className={getModeIconClassName(activeItem.key)}
                     />
                   </button>
-                </TooltipAnchor>
+                </Tooltip>
 
-                <TooltipAnchor
+                <Tooltip
                   content={`${group.id.charAt(0).toUpperCase() + group.id.slice(1)}`}
                   placement={TooltipPlacement.Top}
                 >
@@ -286,7 +286,7 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
                   >
                     <ChevronDown size={10} strokeWidth={TOOLBAR_ICON_STROKE_WIDTH} />
                   </button>
-                </TooltipAnchor>
+                </Tooltip>
 
                 {openedMenuGroup === group.id && (
                   <div className="toolbar__menu" role="menu" onClick={(e) => e.stopPropagation()}>
@@ -343,7 +343,7 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
           const isRunAction = item.key === ToolbarActionKey.Run;
 
           return (
-            <TooltipAnchor key={item.key} content={item.label} placement={TooltipPlacement.Top}>
+            <Tooltip key={item.key} content={item.label} placement={TooltipPlacement.Top}>
               <button
                 className="toolbar__button"
                 type="button"
@@ -357,7 +357,7 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
                   fill={isRunAction ? "currentColor" : "none"}
                 />
               </button>
-            </TooltipAnchor>
+            </Tooltip>
           );
         })}
       </div>

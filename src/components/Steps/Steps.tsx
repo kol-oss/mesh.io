@@ -18,7 +18,7 @@ import { StepType } from "../../types/enums";
 import type { WorkflowStep } from "../../types/steps";
 import { migrateSteps } from "../../utils/navigation/stepMigration";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
-import TooltipAnchor from "../Tooltip/TooltipAnchor";
+import Tooltip from "../Tooltip/Tooltip";
 import Step from "./Step";
 
 type StepsProps = {
@@ -223,7 +223,7 @@ export default function Steps({
         />
         <span className="navigation__steps-title">Steps</span>
         {isOpened && (
-          <TooltipAnchor content={isRefreshHidden ? "Show routing steps" : "Hide routing steps"}>
+          <Tooltip content={isRefreshHidden ? "Show routing steps" : "Hide routing steps"}>
             <button
               className="navigation__steps-add"
               onClick={(event) => {
@@ -235,10 +235,10 @@ export default function Steps({
             >
               {isRefreshHidden ? <Eye size={14} /> : <EyeOff size={14} />}
             </button>
-          </TooltipAnchor>
+          </Tooltip>
         )}
         <div className="navigation__steps-add-wrap" ref={addMenuRef}>
-          <TooltipAnchor content="Add new step">
+          <Tooltip content="Add new step">
             <button
               ref={addButtonRef}
               className="navigation__steps-add"
@@ -248,7 +248,7 @@ export default function Steps({
             >
               <Plus size={14} />
             </button>
-          </TooltipAnchor>
+          </Tooltip>
         </div>
 
         {isAddMenuOpen &&

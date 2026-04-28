@@ -2,7 +2,7 @@ import { type PointerEvent as ReactPointerEvent } from "react";
 import { Link, Lock, LockOpen, Radio, SquareSlash } from "lucide-react";
 import { EntityType } from "../../types/enums";
 import type { NetworkEntity } from "../../types/navigation";
-import TooltipAnchor from "../Tooltip/TooltipAnchor";
+import Tooltip from "../Tooltip/Tooltip";
 
 type EntityProps = {
   entity: NetworkEntity;
@@ -39,11 +39,11 @@ export default function Entity({
       onClick={onSelect}
       onPointerDown={onPointerDown}
     >
-      <TooltipAnchor content={entityTypeTooltip}>
+      <Tooltip content={entityTypeTooltip}>
         <span className="navigation__entity-type">{entityTypeIcon}</span>
-      </TooltipAnchor>
+      </Tooltip>
       <span className="navigation__entity-title">{entity.name}</span>
-      <TooltipAnchor content={entity.locked ? "Unlock" : "Lock"}>
+      <Tooltip content={entity.locked ? "Unlock" : "Lock"}>
         <button
           className={`navigation__entity-lock ${entity.locked ? "navigation__entity-lock--active" : ""}`}
           onClick={(e) => {
@@ -55,7 +55,7 @@ export default function Entity({
         >
           {entity.locked ? <Lock size={11} /> : <LockOpen size={11} />}
         </button>
-      </TooltipAnchor>
+      </Tooltip>
     </div>
   );
 }

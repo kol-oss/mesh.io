@@ -3,7 +3,7 @@ import { Activity, ChevronsRight, Mail, RotateCw } from "lucide-react";
 import { StepType } from "../../types/enums";
 import type { WorkflowStep } from "../../types/steps";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
-import TooltipAnchor from "../Tooltip/TooltipAnchor";
+import Tooltip from "../Tooltip/Tooltip";
 
 type StepProps = {
   step: WorkflowStep;
@@ -34,9 +34,9 @@ export default function Step({ step, isSelected, isDragging, onSelect, onPointer
       onClick={onSelect}
       onPointerDown={onPointerDown}
     >
-      <TooltipAnchor content={stepTypeTooltip}>
+      <Tooltip content={stepTypeTooltip}>
         <span className="navigation__step-type">{stepTypeIcon}</span>
-      </TooltipAnchor>
+      </Tooltip>
       <span
         className={`navigation__step-title${isRefreshStep(step) ? " navigation__step-title--auto" : ""}`}
       >

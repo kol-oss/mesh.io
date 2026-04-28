@@ -1,6 +1,6 @@
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { TooltipPlacement } from "../../types/enums";
-import TooltipAnchor from "../Tooltip/TooltipAnchor";
+import Tooltip from "../Tooltip/Tooltip";
 import NavigationMenu from "./NavigationMenu";
 
 type NavigationHeaderProps = {
@@ -30,7 +30,7 @@ export default function NavigationHeader({
             isCompact
           />
         </div>
-        <TooltipAnchor content="Expand sidebar" placement={TooltipPlacement.Bottom}>
+        <Tooltip content="Expand sidebar" placement={TooltipPlacement.Bottom}>
           <button
             className="navigation__compact-button"
             type="button"
@@ -39,7 +39,7 @@ export default function NavigationHeader({
           >
             <PanelLeftOpen size={15} />
           </button>
-        </TooltipAnchor>
+        </Tooltip>
       </div>
     );
   }
@@ -60,7 +60,7 @@ export default function NavigationHeader({
       </div>
 
       <div className="navigation__header-action">
-        <TooltipAnchor content="Collapse sidebar" placement={TooltipPlacement.Bottom}>
+        <Tooltip content="Collapse sidebar" placement={TooltipPlacement.Bottom}>
           <button
             className="navigation__compact-button navigation__compact-button--inline"
             type="button"
@@ -69,7 +69,7 @@ export default function NavigationHeader({
           >
             <PanelLeftClose size={15} />
           </button>
-        </TooltipAnchor>
+        </Tooltip>
       </div>
     </div>
   );

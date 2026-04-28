@@ -75,14 +75,14 @@
   }
 }
 
-.navigation__tooltip-anchor {
+.tooltip__anchor {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   vertical-align: middle;
 }
 
-.navigation__tooltip {
+.tooltip {
   position: fixed;
   pointer-events: none;
   z-index: 1000;
@@ -91,7 +91,7 @@
   &--top {
     transform: translate(-50%, -100%);
 
-    .navigation__tooltip-arrow {
+    .tooltip__arrow {
       bottom: -5px;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent;
@@ -103,7 +103,7 @@
   &--bottom {
     transform: translate(-50%, 0);
 
-    .navigation__tooltip-arrow {
+    .tooltip__arrow {
       top: -5px;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent;
@@ -113,7 +113,7 @@
   }
 }
 
-.navigation__tooltip-content {
+.tooltip__content {
   display: block;
   background: rgba(26, 26, 26, 0.96);
   color: $neutral-0;
@@ -125,7 +125,7 @@
   line-height: 14px;
 }
 
-.navigation__tooltip-arrow {
+.tooltip__arrow {
   position: absolute;
   left: 50%;
   width: 0;
