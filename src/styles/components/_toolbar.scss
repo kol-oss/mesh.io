@@ -81,6 +81,11 @@
   color: $black-800;
 }
 
+.toolbar__button:disabled .toolbar__chevrons-icon,
+.toolbar__menu-option:disabled .toolbar__chevrons-icon {
+  color: $neutral-400;
+}
+
 .toolbar__button--active .toolbar__chevrons-icon,
 .toolbar__menu-option .toolbar__chevrons-icon {
   color: currentColor;
@@ -88,6 +93,12 @@
 
 .toolbar__run-icon {
   color: #0f7fd0;
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.toolbar__stop-icon {
+  color: $red-400;
   fill: currentColor;
   stroke: currentColor;
 }

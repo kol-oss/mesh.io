@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { storageKeys } from "../constants/storage";
 import { useLocalStorage } from "../hooks/storage/useLocalStorage";
 import { useToast } from "../hooks/useToast";
-import { PlacementMode, SelectionSource } from "../types/enums";
+import { runSimulation } from "../simulation/runSimulation";
+import { PlacementMode, SelectionSource, ToolbarMode } from "../types/enums";
 import type { NetworkEntity } from "../types/entities";
+import type { SimulationPlaybackState } from "../types/simulation";
 import type { WorkflowStep } from "../types/steps";
 import type { ToolbarPlacementMode } from "../types/toolbar";
 import type { WorkspaceTextItem } from "../types/workspace";
@@ -29,6 +31,7 @@ const downloadWorkspacePayload = (payload: WorkspaceImportPayload) => {
 
 export function useWorkspaceStore() {
   const { showToast } = useToast();
+  const simulationRunLockRef = useRef(false);
   const [placementMode, setPlacementMode] = useState<ToolbarPlacementMode>(null);
   const [selectedId, setSelectedId] = useLocalStorage<string | null>(storageKeys.selectedId, null);
   const [selectedSource, setSelectedSource] = useLocalStorage<SelectionSource | null>(
@@ -37,9 +40,30 @@ export function useWorkspaceStore() {
   );
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
 
-  const [entities, setEntities] = useLocalStorage<NetworkEntity[]>(storageKeys.entities, []);
+  const [rawEntities, setRawEntities] = useLocalStorage<NetworkEntity[]>(storageKeys.entities, []);
   const [manualSteps, setManualSteps] = useLocalStorage<WorkflowStep[]>(storageKeys.steps, []);
-  const [texts, setTexts] = useLocalStorage<WorkspaceTextItem[]>(storageKeys.textItems, []);
+  const [rawTexts, setRawTexts] = useLocalStorage<WorkspaceTextItem[]>(storageKeys.textItems, []);
+  const [simulationPlayback, setSimulationPlayback] = useState<SimulationPlaybackState>({
+    result: null,
+    currentStepIndex: 0,
+    currentEventIndex: 0,
+    isRunning: false,
+  });
+  const [simulationInspectionMode, setSimulationInspectionMode] = useState<ToolbarMode>(
+    ToolbarMode.PacketStructure,
+  );
+
+  const invalidateSimulation = useCallback(() => {
+    setSimulationPlayback({
+      result: null,
+      currentStepIndex: 0,
+      currentEventIndex: 0,
+      isRunning: false,
+    });
+  }, []);
+
+  const entities = rawEntities;
+  const texts = rawTexts;
 
   const normalizedManualSteps = useMemo(() => sanitizeManualSteps(manualSteps), [manualSteps]);
   const steps = useMemo(
@@ -55,9 +79,25 @@ export function useWorkspaceStore() {
 
   const setSteps = useCallback(
     (nextSteps: WorkflowStep[]) => {
+      invalidateSimulation();
       setManualSteps(sanitizeManualSteps(nextSteps));
     },
-    [setManualSteps],
+    [invalidateSimulation, setManualSteps],
+  );
+
+  const setEntities = useCallback(
+    (value: NetworkEntity[]) => {
+      invalidateSimulation();
+      setRawEntities(value);
+    },
+    [invalidateSimulation, setRawEntities],
+  );
+
+  const setTexts = useCallback(
+    (value: WorkspaceTextItem[]) => {
+      setRawTexts(value);
+    },
+    [setRawTexts],
   );
 
   const clearSelection = useCallback(() => {
@@ -125,18 +165,20 @@ export function useWorkspaceStore() {
       return;
     }
 
-    setEntities([]);
+    setRawEntities([]);
     setManualSteps([]);
-    setTexts([]);
+    setRawTexts([]);
+    invalidateSimulation();
     clearSelection();
     showToast("Started a new simulation");
   }, [
     clearSelection,
     entities.length,
+    invalidateSimulation,
     manualSteps.length,
-    setEntities,
+    setRawEntities,
     setManualSteps,
-    setTexts,
+    setRawTexts,
     showToast,
   ]);
 
@@ -163,7 +205,8 @@ export function useWorkspaceStore() {
           return;
         }
 
-        setEntities(payload.entities);
+        invalidateSimulation();
+        setRawEntities(payload.entities);
         setManualSteps(sanitizeManualSteps(payload.steps));
         clearSelection();
         showToast("Workspace imported successfully");
@@ -172,8 +215,93 @@ export function useWorkspaceStore() {
         showToast(message);
       }
     },
-    [clearSelection, setEntities, setManualSteps, showToast],
+    [clearSelection, invalidateSimulation, setRawEntities, setManualSteps, showToast],
   );
+
+  const focusSimulationStep = useCallback(
+    (stepIndex: number, playback: SimulationPlaybackState) => {
+      const step = playback.result?.stepResults[stepIndex]?.step;
+      if (!step) {
+        return;
+      }
+
+      setSelectedId(step.id);
+      setSelectedSource(SelectionSource.Steps);
+    },
+    [setSelectedId, setSelectedSource],
+  );
+
+  const handleRunSimulation = useCallback(() => {
+    if (simulationRunLockRef.current || simulationPlayback.isRunning) {
+      showToast("Simulation is already running");
+      return;
+    }
+
+    if (steps.length === 0) {
+      showToast("Add at least one step before running the simulation");
+      return;
+    }
+
+    simulationRunLockRef.current = true;
+    setSimulationPlayback((prev) => ({ ...prev, isRunning: true }));
+
+    try {
+      const result = runSimulation({ entities, steps });
+      const nextPlayback: SimulationPlaybackState = {
+        result,
+        currentStepIndex: 0,
+        currentEventIndex: 0,
+        isRunning: false,
+      };
+
+      setSimulationInspectionMode(ToolbarMode.PacketStructure);
+      setSimulationPlayback(nextPlayback);
+      focusSimulationStep(0, nextPlayback);
+      showToast(`Simulation finished with ${result.events.length} events`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Simulation failed";
+      setSimulationPlayback((prev) => ({ ...prev, isRunning: false }));
+      showToast(message);
+    } finally {
+      simulationRunLockRef.current = false;
+    }
+  }, [entities, focusSimulationStep, showToast, simulationPlayback.isRunning, steps]);
+
+  const navigateSimulationStep = useCallback(
+    (direction: -1 | 1) => {
+      if (!simulationPlayback.result) {
+        return;
+      }
+
+      const nextStepIndex = simulationPlayback.currentStepIndex + direction;
+      if (nextStepIndex < 0 || nextStepIndex >= simulationPlayback.result.stepResults.length) {
+        return;
+      }
+
+      const nextPlayback: SimulationPlaybackState = {
+        ...simulationPlayback,
+        currentStepIndex: nextStepIndex,
+        currentEventIndex: 0,
+      };
+
+      setSimulationPlayback(nextPlayback);
+      focusSimulationStep(nextStepIndex, nextPlayback);
+    },
+    [focusSimulationStep, simulationPlayback],
+  );
+
+  const handlePrevSimulationStep = useCallback(() => {
+    navigateSimulationStep(-1);
+  }, [navigateSimulationStep]);
+
+  const handleNextSimulationStep = useCallback(() => {
+    navigateSimulationStep(1);
+  }, [navigateSimulationStep]);
+
+  const handleStopSimulation = useCallback(() => {
+    invalidateSimulation();
+    showToast("Simulation stopped");
+  }, [invalidateSimulation, showToast]);
 
   useEffect(() => {
     if (selectedSource !== SelectionSource.Steps || !selectedId) {
@@ -191,8 +319,19 @@ export function useWorkspaceStore() {
     placementMode === PlacementMode.Move ||
     placementMode === PlacementMode.Toggle;
 
+  const currentSimulationStepResult =
+    simulationPlayback.result?.stepResults[simulationPlayback.currentStepIndex] ?? null;
+  const isSimulationActive = simulationPlayback.result !== null;
+
   return {
+    canGoNextStep:
+      simulationPlayback.result !== null &&
+      simulationPlayback.currentStepIndex < simulationPlayback.result.stepResults.length - 1,
+    canGoPrevStep: simulationPlayback.currentStepIndex > 0,
+    canRunSimulation: !simulationPlayback.isRunning,
+    currentSimulationStepResult,
     entities,
+    handleNextSimulationStep,
     isNavCollapsed,
     isStepPlacementMode,
     manualSteps,
@@ -202,17 +341,24 @@ export function useWorkspaceStore() {
     setEntities,
     setSteps,
     setTexts,
+    simulationPlayback,
     steps,
     texts,
     toggleNavCollapse,
     handleEntitySelect,
     handleExportWorkspace,
     handleImportWorkspace,
+    handlePrevSimulationStep,
     handleNewWorkspace,
     handlePlacementModeChange,
+    handleRunSimulation,
+    handleStopSimulation,
     handleStepSelect,
+    isSimulationActive,
     handleWorkspaceEntitySelect,
     handleWorkspaceStepSelect,
+    setSimulationInspectionMode,
+    simulationInspectionMode,
     clearSelection,
   };
 }

@@ -1,0 +1,86 @@
+@use "../abstracts/variables" as *;
+@use "../base/typography";
+
+.simulation-panel {
+  width: min(420px, calc(100vw - 48px));
+  max-height: min(70vh, 720px);
+  overflow: auto;
+  border: 1px solid $neutral-400;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.16),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+.simulation-panel__header,
+.simulation-panel__section {
+  padding: 14px 16px;
+}
+
+.simulation-panel__header {
+  border-bottom: 1px solid $neutral-400;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.simulation-panel__title,
+.simulation-panel__section-title,
+.simulation-panel__peer-name {
+  @extend .typo-button;
+  color: $black-800;
+}
+
+.simulation-panel__subtitle,
+.simulation-panel__tick,
+.simulation-panel__empty,
+.simulation-panel__event-meta {
+  @extend .typo-caption;
+  color: $black-400;
+}
+
+.simulation-panel__section {
+  border-bottom: 1px solid $neutral-400;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.simulation-panel__events,
+.simulation-panel__tables {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.simulation-panel__event,
+.simulation-panel__table {
+  border: 1px solid $neutral-400;
+  border-radius: 8px;
+  background: $neutral-200;
+  padding: 10px;
+}
+
+.simulation-panel__event-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.simulation-panel__details {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  line-height: 1.45;
+  color: $black-800;
+}

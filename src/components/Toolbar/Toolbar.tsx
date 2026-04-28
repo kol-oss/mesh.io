@@ -9,6 +9,7 @@ import {
   Mail,
   MousePointer2,
   PackageSearch,
+  Pause,
   Play,
   Radio,
   SquareSlash,
@@ -136,9 +137,27 @@ const DEFAULT_SELECTED_GROUP: ModeGroup["id"] = ToolbarGroupId.Navigation;
 
 type ToolbarProps = {
   onPlacementModeChange: (mode: ToolbarPlacementMode) => void;
+  onRun: () => void;
+  onStop: () => void;
+  onPrevStep: () => void;
+  onNextStep: () => void;
+  onInspectionModeChange: (mode: ToolbarMode) => void;
+  canGoPrevStep: boolean;
+  canGoNextStep: boolean;
+  isSimulationActive: boolean;
 };
 
-export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
+export default function Toolbar({
+  onPlacementModeChange,
+  onRun,
+  onStop,
+  onPrevStep,
+  onNextStep,
+  onInspectionModeChange,
+  canGoPrevStep,
+  canGoNextStep,
+  isSimulationActive,
+}: ToolbarProps) {
   const [selectedModesByGroup, setSelectedModesByGroup] = useLocalStorage<ModeSelectionsByGroup>(
     storageKeys.toolbarModesByGroup,
     DEFAULT_MODE_SELECTIONS,
@@ -149,6 +168,23 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
   );
   const [openedMenuGroup, setOpenedMenuGroup] = useState<ModeGroup["id"] | null>(null);
   const toolbarRef = useRef<HTMLDivElement | null>(null);
+  const previousSimulationActiveRef = useRef(isSimulationActive);
+
+  useEffect(() => {
+    if (isSimulationActive && !previousSimulationActiveRef.current) {
+      if (selectedGroupId === ToolbarGroupId.Entities || selectedGroupId === ToolbarGroupId.Steps) {
+        setSelectedGroupId(ToolbarGroupId.Navigation);
+      }
+    }
+
+    if (!isSimulationActive && previousSimulationActiveRef.current) {
+      if (selectedGroupId === ToolbarGroupId.Inspection) {
+        setSelectedGroupId(ToolbarGroupId.Navigation);
+      }
+    }
+
+    previousSimulationActiveRef.current = isSimulationActive;
+  }, [isSimulationActive, selectedGroupId, setSelectedGroupId]);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -178,28 +214,34 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
   const normalizedSelectedGroupId = MODE_GROUPS.some((group) => group.id === selectedGroupId)
     ? selectedGroupId
     : DEFAULT_SELECTED_GROUP;
+  const effectiveSelectedGroupId =
+    isSimulationActive &&
+    (normalizedSelectedGroupId === ToolbarGroupId.Entities ||
+      normalizedSelectedGroupId === ToolbarGroupId.Steps)
+      ? ToolbarGroupId.Navigation
+      : normalizedSelectedGroupId;
 
   useEffect(() => {
     const entitiesMode = activeItemsByGroup.entities.key;
     const stepsMode = activeItemsByGroup.steps.key;
     const textMode = activeItemsByGroup.text.key;
     const nextPlacementMode: ToolbarPlacementMode =
-      normalizedSelectedGroupId === ToolbarGroupId.Entities &&
+      effectiveSelectedGroupId === ToolbarGroupId.Entities &&
       (entitiesMode === PlacementMode.Peer ||
         entitiesMode === PlacementMode.Link ||
         entitiesMode === PlacementMode.Obstacle)
         ? entitiesMode
-        : normalizedSelectedGroupId === ToolbarGroupId.Steps &&
+        : effectiveSelectedGroupId === ToolbarGroupId.Steps &&
             (stepsMode === PlacementMode.Message ||
               stepsMode === PlacementMode.Move ||
               stepsMode === PlacementMode.Toggle)
           ? stepsMode
-          : normalizedSelectedGroupId === ToolbarGroupId.Text && textMode === PlacementMode.Text
+          : effectiveSelectedGroupId === ToolbarGroupId.Text && textMode === PlacementMode.Text
             ? PlacementMode.Text
             : null;
 
     onPlacementModeChange(nextPlacementMode);
-  }, [activeItemsByGroup, normalizedSelectedGroupId, onPlacementModeChange]);
+  }, [activeItemsByGroup, effectiveSelectedGroupId, onPlacementModeChange]);
 
   const setGroupMode = (groupId: ModeGroup["id"], mode: ToolMode) => {
     setSelectedModesByGroup({
@@ -214,8 +256,15 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
         {MODE_GROUPS.map((group) => {
           const activeItem = activeItemsByGroup[group.id];
           const ActiveIcon = activeItem.icon;
-          const groupIsSelected = normalizedSelectedGroupId === group.id;
-          const canSelectActiveItem = activeItem.locked !== true;
+          const groupIsSelected = effectiveSelectedGroupId === group.id;
+          const groupIsDisabled =
+            isSimulationActive &&
+            (group.id === ToolbarGroupId.Entities || group.id === ToolbarGroupId.Steps);
+          const itemIsLocked =
+            group.id === ToolbarGroupId.Inspection
+              ? !isSimulationActive
+              : activeItem.locked === true;
+          const canSelectActiveItem = !groupIsDisabled && !itemIsLocked;
 
           if (!group.hasMenu) {
             return (
@@ -232,7 +281,7 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
                     }}
                     aria-label={activeItem.label}
                     aria-pressed={groupIsSelected}
-                    disabled={activeItem.locked}
+                    disabled={itemIsLocked || groupIsDisabled}
                   >
                     <ActiveIcon
                       size={TOOLBAR_ICON_SIZE}
@@ -256,11 +305,14 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
                       if (canSelectActiveItem) {
                         setGroupMode(group.id, activeItem.key);
                         setSelectedGroupId(group.id);
+                        if (group.id === ToolbarGroupId.Inspection) {
+                          onInspectionModeChange(activeItem.key as ToolbarMode);
+                        }
                       }
                     }}
                     aria-label={activeItem.label}
                     aria-pressed={groupIsSelected}
-                    disabled={activeItem.locked}
+                    disabled={itemIsLocked || groupIsDisabled}
                   >
                     <ActiveIcon
                       size={TOOLBAR_ICON_SIZE}
@@ -278,11 +330,15 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
                     className={`toolbar__button toolbar__menu-toggle${openedMenuGroup === group.id ? " toolbar__menu-toggle--open" : ""}`}
                     type="button"
                     onClick={(event) => {
+                      if (groupIsDisabled || itemIsLocked) {
+                        return;
+                      }
                       event.stopPropagation();
                       setOpenedMenuGroup((prev) => (prev === group.id ? null : group.id));
                     }}
                     aria-label={`Open ${group.id} menu`}
                     aria-expanded={openedMenuGroup === group.id}
+                    disabled={groupIsDisabled || itemIsLocked}
                   >
                     <ChevronDown size={10} strokeWidth={TOOLBAR_ICON_STROKE_WIDTH} />
                   </button>
@@ -293,6 +349,10 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
                     {group.items.map((item) => {
                       const Icon = item.icon;
                       const isActive = activeItemsByGroup[group.id].key === item.key;
+                      const optionIsLocked =
+                        group.id === ToolbarGroupId.Inspection
+                          ? !isSimulationActive
+                          : item.locked === true;
 
                       return (
                         <button
@@ -300,13 +360,16 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
                           key={`${group.id}-${item.key}`}
                           type="button"
                           role="menuitem"
-                          disabled={item.locked}
+                          disabled={optionIsLocked || groupIsDisabled}
                           onClick={() => {
-                            if (item.locked) {
+                            if (optionIsLocked || groupIsDisabled) {
                               return;
                             }
                             setGroupMode(group.id, item.key);
                             setSelectedGroupId(group.id);
+                            if (group.id === ToolbarGroupId.Inspection) {
+                              onInspectionModeChange(item.key as ToolbarMode);
+                            }
                             setOpenedMenuGroup(null);
                           }}
                         >
@@ -339,21 +402,46 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
 
       <div className="toolbar__group">
         {ACTIONS.map((item) => {
-          const Icon = item.icon;
           const isRunAction = item.key === ToolbarActionKey.Run;
+          const Icon = isRunAction && isSimulationActive ? Pause : item.icon;
+          const isDisabled =
+            item.key === ToolbarActionKey.Run
+              ? false
+              : item.key === ToolbarActionKey.Prev
+                ? !canGoPrevStep
+                : !canGoNextStep;
+          const handleClick =
+            item.key === ToolbarActionKey.Run
+              ? isSimulationActive
+                ? onStop
+                : onRun
+              : item.key === ToolbarActionKey.Prev
+                ? onPrevStep
+                : onNextStep;
+          const label =
+            item.key === ToolbarActionKey.Run && isSimulationActive
+              ? "Stop simulation"
+              : item.label;
 
           return (
-            <Tooltip key={item.key} content={item.label} placement={TooltipPlacement.Top}>
+            <Tooltip key={item.key} content={label} placement={TooltipPlacement.Top}>
               <button
                 className="toolbar__button"
                 type="button"
-                aria-label={item.label}
-                disabled={item.locked}
+                aria-label={label}
+                disabled={isDisabled}
+                onClick={handleClick}
               >
                 <Icon
                   size={TOOLBAR_ICON_SIZE}
                   strokeWidth={TOOLBAR_ICON_STROKE_WIDTH}
-                  className={isRunAction ? "toolbar__run-icon" : undefined}
+                  className={
+                    isRunAction
+                      ? isSimulationActive
+                        ? "toolbar__stop-icon"
+                        : "toolbar__run-icon"
+                      : undefined
+                  }
                   fill={isRunAction ? "currentColor" : "none"}
                 />
               </button>

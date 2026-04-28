@@ -22,6 +22,19 @@
     z-index: 3;
   }
 
+  &__simulation {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    pointer-events: none;
+
+    .simulation-panel {
+      pointer-events: auto;
+    }
+  }
+
   &__properties {
     position: absolute;
     top: 0;
