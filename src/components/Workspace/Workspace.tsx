@@ -192,6 +192,21 @@ export default function Workspace({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Delete" || !selectedTextId || editingTextId) {
+        return;
+      }
+
+      setTexts(texts.filter((item) => item.id !== selectedTextId));
+      setSelectedTextId(null);
+      showToast("Text deleted");
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [editingTextId, selectedTextId, setTexts, showToast, texts]);
+
   const { handleTextDoubleClick, commitTextEdit, cancelTextEdit } = useWorkspaceTextEdit({
     texts,
     editingTextId,
