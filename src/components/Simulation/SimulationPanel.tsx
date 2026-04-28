@@ -41,10 +41,7 @@ export default function SimulationPanel({
   onNextEvent,
   onPrevEvent,
 }: SimulationPanelProps) {
-  const [tqDisclosureState, setTqDisclosureState] = useState<{
-    eventId: string;
-    isOpen: boolean;
-  } | null>(null);
+  const [tqDisclosureState, setTqDisclosureState] = useState<Record<string, boolean>>({});
 
   if (!currentStepResult || !currentEvent) {
     return null;
@@ -64,17 +61,15 @@ export default function SimulationPanel({
   const routeRows = routeChange ? getRouteRows(routeChange) : [];
   const routeTqExplanation = routeChange ? getRouteTqExplanation(currentEvent) : null;
   const isTqDisclosureOpen =
-    routeTqExplanation !== null && tqDisclosureState?.eventId === currentEvent.id
-      ? tqDisclosureState.isOpen
-      : false;
+    routeTqExplanation !== null ? (tqDisclosureState[currentEvent.id] ?? false) : false;
   const messageSummary = routeChange ? null : getMessageSummary(currentEvent, peerNameById);
   const handlePointerDownCapture = (event: ReactPointerEvent<HTMLElement>) => {
     event.stopPropagation();
   };
   const handleTqDisclosureToggle = () => {
     setTqDisclosureState((prev) => ({
-      eventId: currentEvent.id,
-      isOpen: prev?.eventId === currentEvent.id ? !prev.isOpen : true,
+      ...prev,
+      [currentEvent.id]: !(prev[currentEvent.id] ?? false),
     }));
   };
 

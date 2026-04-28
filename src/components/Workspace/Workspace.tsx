@@ -247,6 +247,14 @@ export default function Workspace({
     },
   });
 
+  const handleBackgroundClearSelection = useCallback(() => {
+    if (isSimulationActive && selectedSource === SelectionSource.Steps) {
+      return;
+    }
+
+    onClearSelection();
+  }, [isSimulationActive, onClearSelection, selectedSource]);
+
   const { handleStaticLinkPointerDown, handlePeerPointerDown } = useWorkspacePlacement({
     refs: {
       linkSourcePeerIdRef,
@@ -297,7 +305,7 @@ export default function Workspace({
         createPeerAt,
         createObstacleAt,
         createMoveStep,
-        onClearSelection,
+        onClearSelection: handleBackgroundClearSelection,
         showPlacementHint,
         scheduleHintRestore,
       },
@@ -362,26 +370,16 @@ export default function Workspace({
 
   const handleSimulationTextPointerDown = useCallback(
     (item: WorkspaceTextItem, event: ReactPointerEvent<HTMLElement>) => {
-      if (!isSimulationActive) {
-        handleTextPointerDown(item, event);
-        return;
-      }
-
-      event.stopPropagation();
-      setSelectedTextId(item.id);
+      handleTextPointerDown(item, event);
     },
-    [handleTextPointerDown, isSimulationActive],
+    [handleTextPointerDown],
   );
 
   const handleSimulationTextDoubleClick = useCallback(
     (item: WorkspaceTextItem) => {
-      if (isSimulationActive) {
-        return;
-      }
-
       handleTextDoubleClick(item);
     },
-    [handleTextDoubleClick, isSimulationActive],
+    [handleTextDoubleClick],
   );
 
   const handleSimulationObstaclePointerDown = useCallback(
