@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
+import { PlacementMode } from "../../types/enums";
 import type { PeerEntity } from "../../types/navigation";
 import type {
   WorkspacePlacementActions,
@@ -31,11 +32,11 @@ export function useWorkspacePlacement({
     (linkId: string, event: ReactPointerEvent<SVGLineElement>) => {
       event.stopPropagation();
 
-      if (state.placementMode === "toggle") {
+      if (state.placementMode === PlacementMode.Toggle) {
         setters.setCreationSelectedEntityId(linkId);
         actions.createToggleStep(linkId);
         setters.setCreationSelectedEntityId(null);
-        actions.scheduleHintRestore("toggle");
+        actions.scheduleHintRestore(PlacementMode.Toggle);
         return;
       }
 
@@ -50,7 +51,7 @@ export function useWorkspacePlacement({
         return;
       }
 
-      if (state.placementMode === "message") {
+      if (state.placementMode === PlacementMode.Message) {
         event.stopPropagation();
         const messageSourcePeerId = stepMessageSourcePeerIdRef.current;
 
@@ -64,11 +65,11 @@ export function useWorkspacePlacement({
         actions.createMessageStep(messageSourcePeerId, peer.id);
         stepMessageSourcePeerIdRef.current = null;
         setters.setCreationSelectedEntityId(null);
-        actions.scheduleHintRestore("message");
+        actions.scheduleHintRestore(PlacementMode.Message);
         return;
       }
 
-      if (state.placementMode === "move") {
+      if (state.placementMode === PlacementMode.Move) {
         event.stopPropagation();
         stepMovePeerIdRef.current = peer.id;
         setters.setCreationSelectedEntityId(peer.id);
@@ -76,16 +77,16 @@ export function useWorkspacePlacement({
         return;
       }
 
-      if (state.placementMode === "toggle") {
+      if (state.placementMode === PlacementMode.Toggle) {
         event.stopPropagation();
         setters.setCreationSelectedEntityId(peer.id);
         actions.createToggleStep(peer.id);
         setters.setCreationSelectedEntityId(null);
-        actions.scheduleHintRestore("toggle");
+        actions.scheduleHintRestore(PlacementMode.Toggle);
         return;
       }
 
-      if (state.placementMode === "link") {
+      if (state.placementMode === PlacementMode.Link) {
         event.stopPropagation();
         const linkSourcePeerId = linkSourcePeerIdRef.current;
 
@@ -98,7 +99,7 @@ export function useWorkspacePlacement({
 
         actions.createLink(linkSourcePeerId, peer.id);
         linkSourcePeerIdRef.current = null;
-        actions.scheduleHintRestore("link");
+        actions.scheduleHintRestore(PlacementMode.Link);
         return;
       }
 

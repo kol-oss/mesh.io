@@ -1,8 +1,10 @@
+import { ConnectionType, DragEntityType, DragMode, ResizeEdge } from "./enums";
+
 export type DragState = {
   entityId: string;
-  entityType: "PEER" | "OBSTACLE" | "TEXT";
-  mode: "move" | "resize";
-  resizeEdge?: "left" | "right" | "top" | "bottom";
+  entityType: DragEntityType;
+  mode: DragMode;
+  resizeEdge?: ResizeEdge;
   pointerId: number;
   startClientX: number;
   startClientY: number;
@@ -12,11 +14,11 @@ export type DragState = {
   startHeight?: number;
 };
 
-export type ObstacleResizeEdge = "left" | "right" | "top" | "bottom";
+export type ObstacleResizeEdge = ResizeEdge;
 
 export type Connection =
   | {
-      type: "MUTUAL";
+      type: typeof ConnectionType.Mutual;
       sourceId: string;
       targetId: string;
       sourceX: number;
@@ -25,7 +27,7 @@ export type Connection =
       targetY: number;
     }
   | {
-      type: "ONE_WAY";
+      type: typeof ConnectionType.OneWay;
       sourceId: string;
       targetId: string;
       sourceX: number;

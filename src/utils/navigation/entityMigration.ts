@@ -1,3 +1,4 @@
+import { EntityType, RoutingProtocol } from "../../types/enums";
 import type { NetworkEntity } from "../../types/navigation";
 import { generateUUID } from "../uuid";
 
@@ -6,7 +7,7 @@ export const peerDefaults = {
   y: 100,
   range: 75,
   enabled: true,
-  protocols: ["BATMAN" as const],
+  protocols: [RoutingProtocol.BATMAN],
   batmanOgmInterval: 1,
   batmanPurgeTimeout: 10,
 };
@@ -25,7 +26,7 @@ export const obstacleDefaults = {
 };
 
 const hasPeerDefaults = (entity: NetworkEntity) => {
-  if (entity.type !== "PEER") {
+  if (entity.type !== EntityType.Peer) {
     return true;
   }
 
@@ -42,7 +43,7 @@ const hasPeerDefaults = (entity: NetworkEntity) => {
 };
 
 const hasLinkDefaults = (entity: NetworkEntity) => {
-  if (entity.type !== "LINK") {
+  if (entity.type !== EntityType.Link) {
     return true;
   }
 
@@ -54,7 +55,7 @@ const hasLinkDefaults = (entity: NetworkEntity) => {
 };
 
 const hasObstacleDefaults = (entity: NetworkEntity) => {
-  if (entity.type !== "OBSTACLE") {
+  if (entity.type !== EntityType.Obstacle) {
     return true;
   }
 
@@ -97,21 +98,21 @@ export const migrateEntities = (entities: NetworkEntity[]) => {
     if (normalizedType === "ROUTER") {
       return {
         ...baseEntity,
-        type: "PEER" as const,
+        type: EntityType.Peer,
         ...peerDefaults,
       };
     }
 
-    if (entity.type !== "PEER") {
-      if (entity.type === "LINK") {
+    if (entity.type !== EntityType.Peer) {
+      if (entity.type === EntityType.Link) {
         return {
           ...linkDefaults,
           ...baseEntity,
-          type: "LINK" as const,
+          type: EntityType.Link,
         };
       }
 
-      if (entity.type === "OBSTACLE") {
+      if (entity.type === EntityType.Obstacle) {
         const nextWidth =
           typeof entity.width === "number" && entity.width > 0
             ? entity.width
@@ -124,7 +125,7 @@ export const migrateEntities = (entities: NetworkEntity[]) => {
         return {
           ...obstacleDefaults,
           ...baseEntity,
-          type: "OBSTACLE" as const,
+          type: EntityType.Obstacle,
           width: nextWidth,
           height: nextHeight,
         };
@@ -136,7 +137,7 @@ export const migrateEntities = (entities: NetworkEntity[]) => {
     return {
       ...peerDefaults,
       ...baseEntity,
-      type: "PEER" as const,
+      type: EntityType.Peer,
     };
   });
 };

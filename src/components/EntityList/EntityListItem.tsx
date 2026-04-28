@@ -1,5 +1,6 @@
 import { type PointerEvent as ReactPointerEvent } from "react";
 import { Link, Lock, LockOpen, Radio, SquareSlash } from "lucide-react";
+import { EntityType } from "../../types/enums";
 import type { NetworkEntity } from "../../types/navigation";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
 
@@ -21,15 +22,15 @@ export default function EntityListItem({
   onPointerDown,
 }: EntityListItemProps) {
   const entityTypeTooltip = {
-    PEER: "Peer",
-    LINK: "Link",
-    OBSTACLE: "Obstacle",
+    [EntityType.Peer]: "Peer",
+    [EntityType.Link]: "Link",
+    [EntityType.Obstacle]: "Obstacle",
   }[entity.type];
 
   const entityTypeIcon = {
-    PEER: <Radio size={13} />,
-    LINK: <Link size={13} />,
-    OBSTACLE: <SquareSlash size={13} />,
+    [EntityType.Peer]: <Radio size={13} />,
+    [EntityType.Link]: <Link size={13} />,
+    [EntityType.Obstacle]: <SquareSlash size={13} />,
   }[entity.type];
 
   return (

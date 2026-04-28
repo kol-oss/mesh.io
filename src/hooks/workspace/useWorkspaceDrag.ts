@@ -2,6 +2,7 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback } from "react";
 
 import { workspaceObstacleMinSize } from "../../constants/workspace";
+import { DragEntityType, DragMode, EntityType, PlacementMode, ResizeEdge } from "../../types/enums";
 import { toInt } from "../../utils/geometry";
 import type {
   EntitySetter,
@@ -46,7 +47,7 @@ export function useWorkspaceDrag({
     (peerId: string, x: number, y: number) => {
       setEntities(
         entities.map((entity) => {
-          if (entity.type !== "PEER" || entity.id !== peerId) {
+          if (entity.type !== EntityType.Peer || entity.id !== peerId) {
             return entity;
           }
 
@@ -65,7 +66,7 @@ export function useWorkspaceDrag({
     (obstacleId: string, x: number, y: number) => {
       setEntities(
         entities.map((entity) => {
-          if (entity.type !== "OBSTACLE" || entity.id !== obstacleId) {
+          if (entity.type !== EntityType.Obstacle || entity.id !== obstacleId) {
             return entity;
           }
 
@@ -84,7 +85,7 @@ export function useWorkspaceDrag({
     (obstacleId: string, x: number, y: number, width: number, height: number) => {
       setEntities(
         entities.map((entity) => {
-          if (entity.type !== "OBSTACLE" || entity.id !== obstacleId) {
+          if (entity.type !== EntityType.Obstacle || entity.id !== obstacleId) {
             return entity;
           }
 
@@ -134,8 +135,8 @@ export function useWorkspaceDrag({
       event.currentTarget.setPointerCapture(event.pointerId);
       dragStateRef.current = {
         entityId: item.id,
-        entityType: "TEXT",
-        mode: "move",
+        entityType: DragEntityType.Text,
+        mode: DragMode.Move,
         pointerId: event.pointerId,
         startClientX: event.clientX,
         startClientY: event.clientY,
@@ -155,7 +156,7 @@ export function useWorkspaceDrag({
 
       if (placementMode) {
         event.stopPropagation();
-        if (placementMode === "toggle") {
+        if (placementMode === PlacementMode.Toggle) {
           actions.onTogglePlacementHint();
         }
         return;
@@ -170,8 +171,8 @@ export function useWorkspaceDrag({
       event.currentTarget.setPointerCapture(event.pointerId);
       dragStateRef.current = {
         entityId: obstacle.id,
-        entityType: "OBSTACLE",
-        mode: "move",
+        entityType: DragEntityType.Obstacle,
+        mode: DragMode.Move,
         pointerId: event.pointerId,
         startClientX: event.clientX,
         startClientY: event.clientY,
@@ -209,8 +210,8 @@ export function useWorkspaceDrag({
       event.currentTarget.setPointerCapture(event.pointerId);
       dragStateRef.current = {
         entityId: obstacle.id,
-        entityType: "OBSTACLE",
-        mode: "resize",
+        entityType: DragEntityType.Obstacle,
+        mode: DragMode.Resize,
         resizeEdge: edge,
         pointerId: event.pointerId,
         startClientX: event.clientX,
@@ -240,8 +241,8 @@ export function useWorkspaceDrag({
       event.currentTarget.setPointerCapture(event.pointerId);
       dragStateRef.current = {
         entityId: peer.id,
-        entityType: "PEER",
-        mode: "move",
+        entityType: DragEntityType.Peer,
+        mode: DragMode.Move,
         pointerId: event.pointerId,
         startClientX: event.clientX,
         startClientY: event.clientY,
@@ -265,22 +266,22 @@ export function useWorkspaceDrag({
       const nextX = toInt(dragState.startX + deltaX);
       const nextY = toInt(dragState.startY + deltaY);
 
-      if (dragState.mode === "move" && dragState.entityType === "PEER") {
+      if (dragState.mode === DragMode.Move && dragState.entityType === DragEntityType.Peer) {
         updatePeerPosition(dragState.entityId, nextX, nextY);
         return;
       }
 
-      if (dragState.mode === "move" && dragState.entityType === "TEXT") {
+      if (dragState.mode === DragMode.Move && dragState.entityType === DragEntityType.Text) {
         updateTextPosition(dragState.entityId, nextX, nextY);
         return;
       }
 
-      if (dragState.mode === "move") {
+      if (dragState.mode === DragMode.Move) {
         updateObstaclePosition(dragState.entityId, nextX, nextY);
         return;
       }
 
-      if (dragState.entityType !== "OBSTACLE") {
+      if (dragState.entityType !== DragEntityType.Obstacle) {
         return;
       }
 
@@ -301,25 +302,25 @@ export function useWorkspaceDrag({
       let nextObstacleWidth = startWidth;
       let nextObstacleHeight = startHeight;
 
-      if (edge === "left") {
+      if (edge === ResizeEdge.Left) {
         const nextLeft = Math.min(startRight - workspaceObstacleMinSize, startLeft + deltaX);
         nextObstacleWidth = startRight - nextLeft;
         nextObstacleX = (nextLeft + startRight) / 2;
       }
 
-      if (edge === "right") {
+      if (edge === ResizeEdge.Right) {
         const nextRight = Math.max(startLeft + workspaceObstacleMinSize, startRight + deltaX);
         nextObstacleWidth = nextRight - startLeft;
         nextObstacleX = (startLeft + nextRight) / 2;
       }
 
-      if (edge === "top") {
+      if (edge === ResizeEdge.Top) {
         const nextTop = Math.min(startBottom - workspaceObstacleMinSize, startTop + deltaY);
         nextObstacleHeight = startBottom - nextTop;
         nextObstacleY = (nextTop + startBottom) / 2;
       }
 
-      if (edge === "bottom") {
+      if (edge === ResizeEdge.Bottom) {
         const nextBottom = Math.max(startTop + workspaceObstacleMinSize, startBottom + deltaY);
         nextObstacleHeight = nextBottom - startTop;
         nextObstacleY = (startTop + nextBottom) / 2;

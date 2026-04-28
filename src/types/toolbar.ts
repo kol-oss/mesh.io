@@ -1,9 +1,3 @@
-export type ToolbarPlacementMode =
-  | "peer"
-  | "link"
-  | "obstacle"
-  | "message"
-  | "move"
-  | "toggle"
-  | "text"
-  | null;
+import { PlacementMode } from "./enums";
+
+export type ToolbarPlacementMode = PlacementMode | null;

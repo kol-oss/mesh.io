@@ -14,6 +14,7 @@ import { storageKeys } from "../../constants/storage";
 import { useListReorder } from "../../hooks/useListReorder";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
+import { StepType } from "../../types/enums";
 import type { WorkflowStep } from "../../types/steps";
 import { migrateSteps } from "../../utils/navigation/stepMigration";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
@@ -178,13 +179,16 @@ export default function StepsList({
     setIsAddMenuOpen((prev) => !prev);
   };
 
-  const handleCreateStep = (type: "MOVE" | "MESSAGE" | "TOGGLE") => {
+  const handleCreateStep = (
+    type: typeof StepType.Move | typeof StepType.Message | typeof StepType.ToggleStatus,
+  ) => {
     const manualSteps = steps.filter((step) => !isRefreshStep(step));
     const nextTick =
       manualSteps.length > 0 ? Math.max(1, manualSteps[manualSteps.length - 1].tick) : 1;
     const newStep: WorkflowStep = {
       id: `step-${Date.now()}`,
-      title: type === "TOGGLE" ? "Toggle" : type === "MESSAGE" ? "Message" : "Move",
+      title:
+        type === StepType.ToggleStatus ? "Toggle" : type === StepType.Message ? "Message" : "Move",
       type,
       tick: nextTick,
       sourcePeerId: null,
@@ -258,7 +262,7 @@ export default function StepsList({
             >
               <button
                 className="navigation__steps-add-option"
-                onClick={() => handleCreateStep("MOVE")}
+                onClick={() => handleCreateStep(StepType.Move)}
                 type="button"
               >
                 <ChevronsRight size={12} />
@@ -266,7 +270,7 @@ export default function StepsList({
               </button>
               <button
                 className="navigation__steps-add-option"
-                onClick={() => handleCreateStep("MESSAGE")}
+                onClick={() => handleCreateStep(StepType.Message)}
                 type="button"
               >
                 <Mail size={12} />
@@ -274,7 +278,7 @@ export default function StepsList({
               </button>
               <button
                 className="navigation__steps-add-option"
-                onClick={() => handleCreateStep("TOGGLE")}
+                onClick={() => handleCreateStep(StepType.ToggleStatus)}
                 type="button"
               >
                 <Activity size={12} />

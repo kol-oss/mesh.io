@@ -1,5 +1,6 @@
 import { Radio } from "lucide-react";
 
+import { ConnectionType, ResizeEdge, SelectionSource } from "../../types/enums";
 import type { WorkspaceSceneProps } from "../../types/workspaceScene";
 import { shortenLine } from "../../utils/geometry";
 
@@ -49,7 +50,7 @@ export default function WorkspaceScene({
             14,
           );
           const isSelected =
-            (selectedSource === "entities" && selectedId === link.id) ||
+            (selectedSource === SelectionSource.Entities && selectedId === link.id) ||
             resolvedCreationSelectedEntityId === link.id ||
             selectedStepAffectedEntityIds.has(link.id);
 
@@ -84,7 +85,7 @@ export default function WorkspaceScene({
             rawTargetY,
             14,
           );
-          const isMutual = connection.type === "MUTUAL";
+          const isMutual = connection.type === ConnectionType.Mutual;
 
           return (
             <g
@@ -196,7 +197,7 @@ export default function WorkspaceScene({
 
       {obstacles.map((obstacle) => {
         const isSelected =
-          (selectedSource === "entities" && selectedId === obstacle.id) ||
+          (selectedSource === SelectionSource.Entities && selectedId === obstacle.id) ||
           resolvedCreationSelectedEntityId === obstacle.id ||
           selectedStepAffectedEntityIds.has(obstacle.id);
         return (
@@ -221,7 +222,7 @@ export default function WorkspaceScene({
           >
             <span
               className="workspace__obstacle-handle workspace__obstacle-handle--left"
-              onPointerDown={(event) => handleObstacleResizeStart(obstacle, "left", event)}
+              onPointerDown={(event) => handleObstacleResizeStart(obstacle, ResizeEdge.Left, event)}
               onPointerMove={handleEntityPointerMove}
               onPointerUp={handleEntityPointerEnd}
               onPointerCancel={handleEntityPointerEnd}
@@ -229,7 +230,9 @@ export default function WorkspaceScene({
             />
             <span
               className="workspace__obstacle-handle workspace__obstacle-handle--right"
-              onPointerDown={(event) => handleObstacleResizeStart(obstacle, "right", event)}
+              onPointerDown={(event) =>
+                handleObstacleResizeStart(obstacle, ResizeEdge.Right, event)
+              }
               onPointerMove={handleEntityPointerMove}
               onPointerUp={handleEntityPointerEnd}
               onPointerCancel={handleEntityPointerEnd}
@@ -237,7 +240,7 @@ export default function WorkspaceScene({
             />
             <span
               className="workspace__obstacle-handle workspace__obstacle-handle--top"
-              onPointerDown={(event) => handleObstacleResizeStart(obstacle, "top", event)}
+              onPointerDown={(event) => handleObstacleResizeStart(obstacle, ResizeEdge.Top, event)}
               onPointerMove={handleEntityPointerMove}
               onPointerUp={handleEntityPointerEnd}
               onPointerCancel={handleEntityPointerEnd}
@@ -245,7 +248,9 @@ export default function WorkspaceScene({
             />
             <span
               className="workspace__obstacle-handle workspace__obstacle-handle--bottom"
-              onPointerDown={(event) => handleObstacleResizeStart(obstacle, "bottom", event)}
+              onPointerDown={(event) =>
+                handleObstacleResizeStart(obstacle, ResizeEdge.Bottom, event)
+              }
               onPointerMove={handleEntityPointerMove}
               onPointerUp={handleEntityPointerEnd}
               onPointerCancel={handleEntityPointerEnd}
@@ -257,7 +262,7 @@ export default function WorkspaceScene({
 
       {peers.map((peer) => {
         const isSelected =
-          (selectedSource === "entities" && selectedId === peer.id) ||
+          (selectedSource === SelectionSource.Entities && selectedId === peer.id) ||
           resolvedCreationSelectedEntityId === peer.id ||
           selectedStepAffectedEntityIds.has(peer.id);
         return (

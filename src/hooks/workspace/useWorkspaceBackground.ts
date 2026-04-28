@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 import { workspacePanLimit } from "../../constants/workspace";
+import { PlacementMode } from "../../types/enums";
 import type {
   WorkspaceBackgroundActions,
   WorkspaceBackgroundHandlers,
@@ -66,35 +67,38 @@ export function useWorkspaceBackground({
         actions.commitTextEdit();
       }
 
-      if (state.placementMode === "text") {
+      if (state.placementMode === PlacementMode.Text) {
         const coords = getWorkspaceCoords(event);
         if (!coords) {
           return;
         }
 
         actions.createTextAt(coords.x, coords.y);
-        actions.scheduleHintRestore("text");
+        actions.scheduleHintRestore(PlacementMode.Text);
         return;
       }
 
-      if (state.placementMode === "peer" || state.placementMode === "obstacle") {
+      if (
+        state.placementMode === PlacementMode.Peer ||
+        state.placementMode === PlacementMode.Obstacle
+      ) {
         const coords = getWorkspaceCoords(event);
         if (!coords) {
           return;
         }
 
-        if (state.placementMode === "peer") {
+        if (state.placementMode === PlacementMode.Peer) {
           actions.createPeerAt(coords.x, coords.y);
-          actions.scheduleHintRestore("peer");
+          actions.scheduleHintRestore(PlacementMode.Peer);
         } else {
           actions.createObstacleAt(coords.x, coords.y);
-          actions.scheduleHintRestore("obstacle");
+          actions.scheduleHintRestore(PlacementMode.Obstacle);
         }
 
         return;
       }
 
-      if (state.placementMode === "move") {
+      if (state.placementMode === PlacementMode.Move) {
         const movePeerId = stepMovePeerIdRef.current;
         if (!movePeerId) {
           actions.onClearSelection();
@@ -111,26 +115,26 @@ export function useWorkspaceBackground({
         stepMovePeerIdRef.current = null;
         setters.setCreationSelectedEntityId(null);
         setters.setMoveTargetPreview(null);
-        actions.scheduleHintRestore("move");
+        actions.scheduleHintRestore(PlacementMode.Move);
         return;
       }
 
       actions.onClearSelection();
 
-      if (state.placementMode === "link") {
+      if (state.placementMode === PlacementMode.Link) {
         linkSourcePeerIdRef.current = null;
         actions.showPlacementHint();
         return;
       }
 
-      if (state.placementMode === "message") {
+      if (state.placementMode === PlacementMode.Message) {
         stepMessageSourcePeerIdRef.current = null;
         setters.setCreationSelectedEntityId(null);
         actions.showPlacementHint();
         return;
       }
 
-      if (state.placementMode === "toggle") {
+      if (state.placementMode === PlacementMode.Toggle) {
         actions.showPlacementHint();
         return;
       }
@@ -163,7 +167,7 @@ export function useWorkspaceBackground({
 
   const handleBackgroundPointerMove = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
-      if (state.placementMode === "move" && stepMovePeerIdRef.current) {
+      if (state.placementMode === PlacementMode.Move && stepMovePeerIdRef.current) {
         const coords = getWorkspaceCoords(event);
         if (coords) {
           setters.setMoveTargetPreview(coords);

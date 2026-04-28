@@ -1,6 +1,13 @@
 import { useMemo } from "react";
 
 import { workspaceRangeSamples } from "../../constants/workspace";
+import {
+  ConnectionType,
+  EntityType,
+  PlacementMode,
+  SelectionSource,
+  StepType,
+} from "../../types/enums";
 import type { MoveIndicator } from "../../types/workspaceScene";
 import type { RangePolygon } from "../../types/interaction";
 import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../types/navigation";
@@ -17,7 +24,7 @@ type UseWorkspaceDerivedParams = {
   entities: NetworkEntity[];
   steps: WorkflowStep[];
   selectedId: string | null;
-  selectedSource: "entities" | "steps" | null;
+  selectedSource: SelectionSource | null;
   creationSelectedEntityId: string | null;
   placementMode: ToolbarPlacementMode;
   moveTargetPreview: { x: number; y: number } | null;
@@ -35,15 +42,16 @@ export function useWorkspaceDerived({
   workspaceSize,
 }: UseWorkspaceDerivedParams) {
   const peers = useMemo(
-    () => entities.filter((entity): entity is PeerEntity => entity.type === "PEER"),
+    () => entities.filter((entity): entity is PeerEntity => entity.type === EntityType.Peer),
     [entities],
   );
   const links = useMemo(
-    () => entities.filter((entity): entity is LinkEntity => entity.type === "LINK"),
+    () => entities.filter((entity): entity is LinkEntity => entity.type === EntityType.Link),
     [entities],
   );
   const obstacles = useMemo(
-    () => entities.filter((entity): entity is ObstacleEntity => entity.type === "OBSTACLE"),
+    () =>
+      entities.filter((entity): entity is ObstacleEntity => entity.type === EntityType.Obstacle),
     [entities],
   );
   const peerById = useMemo(() => new Map(peers.map((peer) => [peer.id, peer])), [peers]);
@@ -106,7 +114,7 @@ export function useWorkspaceDerived({
 
         if (aToB && bToA) {
           result.push({
-            type: "MUTUAL" as const,
+            type: ConnectionType.Mutual,
             sourceId: peerA.id,
             targetId: peerB.id,
             sourceX: peerA.x,
@@ -119,7 +127,7 @@ export function useWorkspaceDerived({
 
         if (aToB) {
           result.push({
-            type: "ONE_WAY" as const,
+            type: ConnectionType.OneWay,
             sourceId: peerA.id,
             targetId: peerB.id,
             sourceX: peerA.x,
@@ -131,7 +139,7 @@ export function useWorkspaceDerived({
 
         if (bToA) {
           result.push({
-            type: "ONE_WAY" as const,
+            type: ConnectionType.OneWay,
             sourceId: peerB.id,
             targetId: peerA.id,
             sourceX: peerB.x,
@@ -180,19 +188,19 @@ export function useWorkspaceDerived({
         return {
           peerId: peer.id,
           enabled: peer.enabled,
-          selected: selectedSource === "entities" && selectedId === peer.id,
+          selected: selectedSource === SelectionSource.Entities && selectedId === peer.id,
           path,
         };
       });
   }, [centerX, centerY, obstacleBounds, peers, selectedId, selectedSource, workspaceSize]);
 
   const selectedMoveStep = useMemo(() => {
-    if (selectedSource !== "steps" || !selectedId) {
+    if (selectedSource !== SelectionSource.Steps || !selectedId) {
       return null;
     }
 
     const step = steps.find((candidate) => candidate.id === selectedId);
-    if (!step || step.type !== "MOVE" || !step.movePeerId || isRefreshStep(step)) {
+    if (!step || step.type !== StepType.Move || !step.movePeerId || isRefreshStep(step)) {
       return null;
     }
 
@@ -211,7 +219,11 @@ export function useWorkspaceDerived({
   }, [peerById, selectedId, selectedSource, steps]);
 
   const draftMoveStep = useMemo(() => {
-    if (placementMode !== "move" || !resolvedCreationSelectedEntityId || !moveTargetPreview) {
+    if (
+      placementMode !== PlacementMode.Move ||
+      !resolvedCreationSelectedEntityId ||
+      !moveTargetPreview
+    ) {
       return null;
     }
 
@@ -234,7 +246,7 @@ export function useWorkspaceDerived({
   );
 
   const selectedStepAffectedEntityIds = useMemo(() => {
-    if (selectedSource !== "steps" || !selectedId) {
+    if (selectedSource !== SelectionSource.Steps || !selectedId) {
       return new Set<string>();
     }
 
@@ -245,20 +257,20 @@ export function useWorkspaceDerived({
 
     const ids = new Set<string>();
 
-    if (step.type === "MESSAGE") {
+    if (step.type === StepType.Message) {
       if (step.sourcePeerId) ids.add(step.sourcePeerId);
       if (step.destinationPeerId) ids.add(step.destinationPeerId);
     }
 
-    if (step.type === "MOVE") {
+    if (step.type === StepType.Move) {
       if (step.movePeerId) ids.add(step.movePeerId);
     }
 
-    if (step.type === "TOGGLE") {
+    if (step.type === StepType.ToggleStatus) {
       if (step.targetEntityId) ids.add(step.targetEntityId);
     }
 
-    if (step.type === "REFRESH") {
+    if (step.type === StepType.Refresh) {
       if (step.refreshPeerId) ids.add(step.refreshPeerId);
     }
 

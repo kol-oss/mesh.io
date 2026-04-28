@@ -14,6 +14,7 @@ import { storageKeys } from "../../constants/storage";
 import { useListReorder } from "../../hooks/useListReorder";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
+import { EntityType } from "../../types/enums";
 import type { NetworkEntity } from "../../types/navigation";
 import { generateUUID } from "../../utils/uuid";
 import {
@@ -152,20 +153,20 @@ export default function EntityList({
 
   const handleCreateEntity = (type: NetworkEntity["type"]) => {
     const newEntity: NetworkEntity =
-      type === "PEER"
+      type === EntityType.Peer
         ? {
             id: generateUUID(),
             name: "Peer",
-            type: "PEER",
+            type: EntityType.Peer,
             ...peerDefaults,
             x: 0,
             y: 0,
           }
-        : type === "LINK"
+        : type === EntityType.Link
           ? {
               id: generateUUID(),
               name: "Link",
-              type: "LINK",
+              type: EntityType.Link,
               sourcePeerId: null,
               destinationPeerId: null,
               enabled: true,
@@ -173,7 +174,7 @@ export default function EntityList({
           : {
               id: generateUUID(),
               name: "Obstacle",
-              type: "OBSTACLE",
+              type: EntityType.Obstacle,
               x: 0,
               y: 0,
               width: obstacleDefaults.width,
@@ -229,7 +230,7 @@ export default function EntityList({
             >
               <button
                 className="navigation__entities-add-option"
-                onClick={() => handleCreateEntity("PEER")}
+                onClick={() => handleCreateEntity(EntityType.Peer)}
                 type="button"
               >
                 <Radio size={12} />
@@ -237,7 +238,7 @@ export default function EntityList({
               </button>
               <button
                 className="navigation__entities-add-option"
-                onClick={() => handleCreateEntity("LINK")}
+                onClick={() => handleCreateEntity(EntityType.Link)}
                 type="button"
               >
                 <Link size={12} />
@@ -245,7 +246,7 @@ export default function EntityList({
               </button>
               <button
                 className="navigation__entities-add-option"
-                onClick={() => handleCreateEntity("OBSTACLE")}
+                onClick={() => handleCreateEntity(EntityType.Obstacle)}
                 type="button"
               >
                 <SquareSlash size={12} />

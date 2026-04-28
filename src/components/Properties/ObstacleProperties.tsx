@@ -1,5 +1,6 @@
 import { ExternalLink, Lock, MoveHorizontal, MoveVertical } from "lucide-react";
 
+import { EntityType } from "../../types/enums";
 import type { ObstacleEntity } from "../../types/navigation";
 import type { ObstaclePropertiesPanelProps } from "../../types/properties";
 import { parseNumberValue, parsePositiveNumberValue } from "../../utils/properties";
@@ -19,7 +20,7 @@ export default function ObstacleProperties({
   const updateObstacle = (changes: Partial<ObstacleEntity>) => {
     if (isLocked) return;
     const updatedEntities = entities.map((entity) => {
-      if (entity.id !== selectedObstacle.id || entity.type !== "OBSTACLE") {
+      if (entity.id !== selectedObstacle.id || entity.type !== EntityType.Obstacle) {
         return entity;
       }
       return { ...entity, ...changes };

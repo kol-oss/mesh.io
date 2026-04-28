@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { storageKeys } from "../constants/storage";
 import { useLocalStorage } from "../hooks/storage/useLocalStorage";
 import { useToast } from "../hooks/useToast";
+import { PlacementMode, SelectionSource } from "../types/enums";
 import type { NetworkEntity } from "../types/navigation";
 import type { WorkflowStep } from "../types/steps";
 import type { ToolbarPlacementMode } from "../types/toolbar";
@@ -15,8 +16,6 @@ import {
   parseWorkspaceImportPayload,
   type WorkspaceImportPayload,
 } from "../utils/validation";
-
-type SelectionSource = "entities" | "steps" | null;
 
 const downloadWorkspacePayload = (payload: WorkspaceImportPayload) => {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -34,7 +33,7 @@ export function useWorkspaceStore() {
   const { showToast } = useToast();
   const [placementMode, setPlacementMode] = useState<ToolbarPlacementMode>(null);
   const [selectedId, setSelectedId] = useLocalStorage<string | null>(storageKeys.selectedId, null);
-  const [selectedSource, setSelectedSource] = useLocalStorage<SelectionSource>(
+  const [selectedSource, setSelectedSource] = useLocalStorage<SelectionSource | null>(
     storageKeys.selectedSource,
     null,
   );
@@ -80,13 +79,13 @@ export function useWorkspaceStore() {
 
   const handleEntitySelect = useCallback(
     (id: string) => {
-      if (selectedSource === "entities" && selectedId === id) {
+      if (selectedSource === SelectionSource.Entities && selectedId === id) {
         clearSelection();
         return;
       }
 
       setSelectedId(id);
-      setSelectedSource("entities");
+      setSelectedSource(SelectionSource.Entities);
     },
     [clearSelection, selectedId, selectedSource, setSelectedId, setSelectedSource],
   );
@@ -94,7 +93,7 @@ export function useWorkspaceStore() {
   const handleWorkspaceEntitySelect = useCallback(
     (id: string) => {
       setSelectedId(id);
-      setSelectedSource("entities");
+      setSelectedSource(SelectionSource.Entities);
     },
     [setSelectedId, setSelectedSource],
   );
@@ -102,20 +101,20 @@ export function useWorkspaceStore() {
   const handleWorkspaceStepSelect = useCallback(
     (id: string) => {
       setSelectedId(id);
-      setSelectedSource("steps");
+      setSelectedSource(SelectionSource.Steps);
     },
     [setSelectedId, setSelectedSource],
   );
 
   const handleStepSelect = useCallback(
     (id: string) => {
-      if (selectedSource === "steps" && selectedId === id) {
+      if (selectedSource === SelectionSource.Steps && selectedId === id) {
         clearSelection();
         return;
       }
 
       setSelectedId(id);
-      setSelectedSource("steps");
+      setSelectedSource(SelectionSource.Steps);
     },
     [clearSelection, selectedId, selectedSource, setSelectedId, setSelectedSource],
   );
@@ -185,7 +184,7 @@ export function useWorkspaceStore() {
   );
 
   useEffect(() => {
-    if (selectedSource !== "steps" || !selectedId) {
+    if (selectedSource !== SelectionSource.Steps || !selectedId) {
       return;
     }
 
@@ -196,7 +195,9 @@ export function useWorkspaceStore() {
   }, [clearSelection, selectedId, selectedSource, steps]);
 
   const isStepPlacementMode =
-    placementMode === "message" || placementMode === "move" || placementMode === "toggle";
+    placementMode === PlacementMode.Message ||
+    placementMode === PlacementMode.Move ||
+    placementMode === PlacementMode.Toggle;
 
   return {
     entities,

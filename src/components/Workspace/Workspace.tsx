@@ -1,4 +1,5 @@
 import type { DragState } from "../../types/interaction";
+import { PlacementMode, SelectionSource } from "../../types/enums";
 import type { NetworkEntity } from "../../types/navigation";
 import type { WorkspacePanState } from "../../types/workspaceBackground";
 import type { WorkflowStep } from "../../types/steps";
@@ -24,7 +25,7 @@ type WorkspaceProps = {
   texts: WorkspaceTextItem[];
   setTexts: (value: WorkspaceTextItem[]) => void;
   selectedId: string | null;
-  selectedSource: "entities" | "steps" | null;
+  selectedSource: SelectionSource | null;
   placementMode: ToolbarPlacementMode;
   onEntitySelect: (id: string) => void;
   onStepSelect: (id: string) => void;
@@ -261,7 +262,7 @@ export default function Workspace({
 
   return (
     <section
-      className={`workspace${placementMode ? " workspace--placing" : ""}${placementMode === "link" ? " workspace--linking" : ""}`}
+      className={`workspace${placementMode ? " workspace--placing" : ""}${placementMode === PlacementMode.Link ? " workspace--linking" : ""}`}
       onPointerDown={handleBackgroundPointerDown}
       onPointerMove={handleBackgroundPointerMove}
       onPointerUp={handleBackgroundPointerEnd}

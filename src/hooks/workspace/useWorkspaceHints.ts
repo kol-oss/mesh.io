@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from "react";
 
+import { PlacementMode } from "../../types/enums";
 import type {
   WorkspaceHintActions,
   WorkspaceHintRefs,
@@ -37,23 +38,23 @@ export function useWorkspaceHints({ refs, state, actions }: UseWorkspaceHintsPar
     }
 
     const text =
-      mode === "peer"
+      mode === PlacementMode.Peer
         ? "Click on workspace to place a peer"
-        : mode === "obstacle"
+        : mode === PlacementMode.Obstacle
           ? "Click on workspace to place an obstacle"
-          : mode === "link"
+          : mode === PlacementMode.Link
             ? linkSourcePeerIdRef.current
               ? "Select destination peer"
               : "Select source peer"
-            : mode === "message"
+            : mode === PlacementMode.Message
               ? stepMessageSourcePeerIdRef.current
                 ? "Select destination peer"
                 : "Select source peer"
-              : mode === "move"
+              : mode === PlacementMode.Move
                 ? state.resolvedCreationSelectedEntityId
                   ? "Click destination point on workspace"
                   : "Select peer to move"
-                : mode === "text"
+                : mode === PlacementMode.Text
                   ? "Click on workspace to place text"
                   : "Select a peer or link";
 
@@ -77,15 +78,15 @@ export function useWorkspaceHints({ refs, state, actions }: UseWorkspaceHintsPar
   useEffect(() => {
     placementModeRef.current = state.placementMode;
 
-    if (state.placementMode !== "link") {
+    if (state.placementMode !== PlacementMode.Link) {
       linkSourcePeerIdRef.current = null;
     }
 
-    if (state.placementMode !== "message") {
+    if (state.placementMode !== PlacementMode.Message) {
       stepMessageSourcePeerIdRef.current = null;
     }
 
-    if (state.placementMode !== "move") {
+    if (state.placementMode !== PlacementMode.Move) {
       stepMovePeerIdRef.current = null;
     }
 

@@ -1,5 +1,6 @@
 import { Activity, ChevronsRight, Clock3, ExternalLink, Link2, Mail, Radio } from "lucide-react";
 
+import { EntityType, StepType } from "../../types/enums";
 import type { LinkEntity, PeerEntity } from "../../types/navigation";
 import type { WorkflowStep } from "../../types/steps";
 import type { StepPropertiesPanelProps } from "../../types/properties";
@@ -14,15 +15,16 @@ export default function StepProperties({
   steps,
   setSteps,
 }: StepPropertiesPanelProps) {
-  const peers = entities.filter((entity): entity is PeerEntity => entity.type === "PEER");
+  const peers = entities.filter((entity): entity is PeerEntity => entity.type === EntityType.Peer);
   const toggleTargets = entities.filter(
-    (entity): entity is PeerEntity | LinkEntity => entity.type === "PEER" || entity.type === "LINK",
+    (entity): entity is PeerEntity | LinkEntity =>
+      entity.type === EntityType.Peer || entity.type === EntityType.Link,
   );
 
   const stepTypeOptions = [
-    { value: "MOVE", label: "Move", icon: <ChevronsRight size={12} /> },
-    { value: "MESSAGE", label: "Message", icon: <Mail size={12} /> },
-    { value: "TOGGLE", label: "Toggle", icon: <Activity size={12} /> },
+    { value: StepType.Move, label: "Move", icon: <ChevronsRight size={12} /> },
+    { value: StepType.Message, label: "Message", icon: <Mail size={12} /> },
+    { value: StepType.ToggleStatus, label: "Toggle", icon: <Activity size={12} /> },
   ] as const;
 
   const peerSelectOptions = peers.map((peer) => ({
@@ -34,7 +36,7 @@ export default function StepProperties({
   const toggleTargetOptions = toggleTargets.map((entity) => ({
     value: entity.id,
     label: entity.name,
-    icon: entity.type === "PEER" ? <Radio size={12} /> : <Link2 size={12} />,
+    icon: entity.type === EntityType.Peer ? <Radio size={12} /> : <Link2 size={12} />,
   }));
 
   const messageSourceValue =
@@ -68,11 +70,13 @@ export default function StepProperties({
       : "Enabled";
 
   const isStepNameMissing = selectedStep.title.trim() === "";
-  const isStepMessageSourceMissing = selectedStep.type === "MESSAGE" && messageSourceValue === "";
+  const isStepMessageSourceMissing =
+    selectedStep.type === StepType.Message && messageSourceValue === "";
   const isStepMessageDestinationMissing =
-    selectedStep.type === "MESSAGE" && messageDestinationValue === "";
-  const isStepToggleEntityMissing = selectedStep.type === "TOGGLE" && toggleTargetValue === "";
-  const isStepMoveEntityMissing = selectedStep.type === "MOVE" && moveTargetValue === "";
+    selectedStep.type === StepType.Message && messageDestinationValue === "";
+  const isStepToggleEntityMissing =
+    selectedStep.type === StepType.ToggleStatus && toggleTargetValue === "";
+  const isStepMoveEntityMissing = selectedStep.type === StepType.Move && moveTargetValue === "";
 
   const updateStep = (changes: Partial<WorkflowStep>) => {
     const updatedSteps = steps.map((step) => {
@@ -173,7 +177,7 @@ export default function StepProperties({
                 onChange={(value) => {
                   const nextType = value as WorkflowStep["type"];
 
-                  if (nextType === "MESSAGE") {
+                  if (nextType === StepType.Message) {
                     updateStep({
                       type: nextType,
                       targetEntityId: null,
@@ -182,7 +186,7 @@ export default function StepProperties({
                     return;
                   }
 
-                  if (nextType === "TOGGLE") {
+                  if (nextType === StepType.ToggleStatus) {
                     updateStep({
                       type: nextType,
                       sourcePeerId: null,
@@ -220,7 +224,7 @@ export default function StepProperties({
           </div>
         </div>
 
-        {selectedStep.type === "MESSAGE" && (
+        {selectedStep.type === StepType.Message && (
           <div className="properties__field">
             <div className="properties__inline-group">
               <div className="properties__field">
@@ -271,7 +275,7 @@ export default function StepProperties({
           </div>
         )}
 
-        {selectedStep.type === "TOGGLE" && (
+        {selectedStep.type === StepType.ToggleStatus && (
           <div className="properties__field">
             <div className="properties__inline-group">
               <div className="properties__field">
@@ -307,7 +311,7 @@ export default function StepProperties({
           </div>
         )}
 
-        {selectedStep.type === "MOVE" && (
+        {selectedStep.type === StepType.Move && (
           <>
             <label className="properties__field">
               <span

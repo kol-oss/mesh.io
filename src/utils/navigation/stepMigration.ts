@@ -1,6 +1,26 @@
+import { StepType } from "../../types/enums";
 import type { WorkflowStep } from "../../types/steps";
 
-export const stepTypes = ["MOVE", "MESSAGE", "TOGGLE", "REFRESH"] as const;
+export const stepTypes = [
+  StepType.Move,
+  StepType.Message,
+  StepType.ToggleStatus,
+  StepType.Refresh,
+] as const;
+
+const LEGACY_TOGGLE_STEP_TYPE = "TOGGLE";
+
+const normalizeRawStepType = (rawType: unknown): WorkflowStep["type"] | null => {
+  if (rawType === LEGACY_TOGGLE_STEP_TYPE) {
+    return StepType.ToggleStatus;
+  }
+
+  if (stepTypes.includes(rawType as (typeof stepTypes)[number])) {
+    return rawType as WorkflowStep["type"];
+  }
+
+  return null;
+};
 
 export const migrateSteps = (steps: WorkflowStep[]) => {
   const requiresMigration = steps.some((step) => {
@@ -17,7 +37,7 @@ export const migrateSteps = (steps: WorkflowStep[]) => {
 
     return (
       typeof rawStep.tick !== "number" ||
-      !stepTypes.includes(rawStep.type as (typeof stepTypes)[number]) ||
+      normalizeRawStepType(rawStep.type) === null ||
       (rawStep.sourcePeerId !== null && typeof rawStep.sourcePeerId !== "string") ||
       (rawStep.destinationPeerId !== null && typeof rawStep.destinationPeerId !== "string") ||
       (rawStep.targetEntityId !== null && typeof rawStep.targetEntityId !== "string") ||
@@ -45,9 +65,7 @@ export const migrateSteps = (steps: WorkflowStep[]) => {
 
     return {
       ...step,
-      type: stepTypes.includes(rawStep.type as (typeof stepTypes)[number])
-        ? (rawStep.type as WorkflowStep["type"])
-        : "MOVE",
+      type: normalizeRawStepType(rawStep.type) ?? StepType.Move,
       tick: typeof rawStep.tick === "number" ? rawStep.tick : index + 1,
       sourcePeerId: typeof rawStep.sourcePeerId === "string" ? rawStep.sourcePeerId : null,
       destinationPeerId:

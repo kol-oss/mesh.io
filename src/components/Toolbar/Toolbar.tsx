@@ -20,20 +20,17 @@ import type { LucideIcon } from "lucide-react";
 
 import { storageKeys } from "../../constants/storage";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
+import {
+  PlacementMode,
+  ToolbarActionKey,
+  ToolbarGroupId,
+  ToolbarMode,
+  TooltipPlacement,
+} from "../../types/enums";
 import type { ToolbarPlacementMode } from "../../types/toolbar";
 import TooltipAnchor from "../Tooltip/TooltipAnchor";
 
-type ToolMode =
-  | "navigationMove"
-  | "peer"
-  | "link"
-  | "obstacle"
-  | "message"
-  | "move"
-  | "toggle"
-  | "routingTable"
-  | "packetStructure"
-  | "text";
+type ToolMode = ToolbarMode | PlacementMode;
 
 type ModeButton = {
   key: ToolMode;
@@ -43,14 +40,14 @@ type ModeButton = {
 };
 
 type ModeGroup = {
-  id: "navigation" | "entities" | "steps" | "inspection" | "text";
+  id: ToolbarGroupId;
   items: ModeButton[];
   defaultKey: ToolMode;
   hasMenu: boolean;
 };
 
 type ActionButton = {
-  key: "run" | "prev" | "next";
+  key: ToolbarActionKey;
   label: string;
   icon: LucideIcon;
   locked?: boolean;
@@ -65,7 +62,7 @@ const TOOLBAR_MENU_CHECK_SIZE = 13;
 const TOOLBAR_ICON_STROKE_WIDTH = 1.2;
 
 const getModeIconClassName = (mode: ToolMode) => {
-  if (mode === "move") {
+  if (mode === PlacementMode.Move) {
     return "toolbar__chevrons-icon";
   }
 
@@ -74,63 +71,68 @@ const getModeIconClassName = (mode: ToolMode) => {
 
 const MODE_GROUPS: ModeGroup[] = [
   {
-    id: "navigation",
-    defaultKey: "navigationMove",
+    id: ToolbarGroupId.Navigation,
+    defaultKey: ToolbarMode.NavigationMove,
     hasMenu: true,
-    items: [{ key: "navigationMove", label: "Move", icon: MousePointer2 }],
+    items: [{ key: ToolbarMode.NavigationMove, label: "Move", icon: MousePointer2 }],
   },
   {
-    id: "entities",
-    defaultKey: "peer",
+    id: ToolbarGroupId.Entities,
+    defaultKey: PlacementMode.Peer,
     hasMenu: true,
     items: [
-      { key: "peer", label: "Peer", icon: Radio },
-      { key: "link", label: "Link", icon: Link2 },
-      { key: "obstacle", label: "Obstacle", icon: SquareSlash },
+      { key: PlacementMode.Peer, label: "Peer", icon: Radio },
+      { key: PlacementMode.Link, label: "Link", icon: Link2 },
+      { key: PlacementMode.Obstacle, label: "Obstacle", icon: SquareSlash },
     ],
   },
   {
-    id: "steps",
-    defaultKey: "message",
+    id: ToolbarGroupId.Steps,
+    defaultKey: PlacementMode.Message,
     hasMenu: true,
     items: [
-      { key: "message", label: "Message", icon: Mail },
-      { key: "move", label: "Move", icon: ChevronsRight },
-      { key: "toggle", label: "Toggle", icon: Activity },
+      { key: PlacementMode.Message, label: "Message", icon: Mail },
+      { key: PlacementMode.Move, label: "Move", icon: ChevronsRight },
+      { key: PlacementMode.Toggle, label: "Toggle", icon: Activity },
     ],
   },
   {
-    id: "inspection",
-    defaultKey: "routingTable",
+    id: ToolbarGroupId.Inspection,
+    defaultKey: ToolbarMode.RoutingTable,
     hasMenu: true,
     items: [
-      { key: "routingTable", label: "Table", icon: TableProperties, locked: true },
-      { key: "packetStructure", label: "Packet", icon: PackageSearch, locked: true },
+      { key: ToolbarMode.RoutingTable, label: "Table", icon: TableProperties, locked: true },
+      {
+        key: ToolbarMode.PacketStructure,
+        label: "Packet",
+        icon: PackageSearch,
+        locked: true,
+      },
     ],
   },
   {
-    id: "text",
-    defaultKey: "text",
+    id: ToolbarGroupId.Text,
+    defaultKey: PlacementMode.Text,
     hasMenu: false,
-    items: [{ key: "text", label: "Text", icon: Type }],
+    items: [{ key: PlacementMode.Text, label: "Text", icon: Type }],
   },
 ];
 
 const ACTIONS: ActionButton[] = [
-  { key: "run", label: "Run", icon: Play },
-  { key: "prev", label: "Previous step", icon: ArrowLeftCircle, locked: true },
-  { key: "next", label: "Next step", icon: ArrowRightCircle, locked: true },
+  { key: ToolbarActionKey.Run, label: "Run", icon: Play },
+  { key: ToolbarActionKey.Prev, label: "Previous step", icon: ArrowLeftCircle, locked: true },
+  { key: ToolbarActionKey.Next, label: "Next step", icon: ArrowRightCircle, locked: true },
 ];
 
 const DEFAULT_MODE_SELECTIONS: ModeSelectionsByGroup = {
-  navigation: "navigationMove",
-  entities: "peer",
-  steps: "message",
-  inspection: "routingTable",
-  text: "text",
+  [ToolbarGroupId.Navigation]: ToolbarMode.NavigationMove,
+  [ToolbarGroupId.Entities]: PlacementMode.Peer,
+  [ToolbarGroupId.Steps]: PlacementMode.Message,
+  [ToolbarGroupId.Inspection]: ToolbarMode.RoutingTable,
+  [ToolbarGroupId.Text]: PlacementMode.Text,
 };
 
-const DEFAULT_SELECTED_GROUP: ModeGroup["id"] = "navigation";
+const DEFAULT_SELECTED_GROUP: ModeGroup["id"] = ToolbarGroupId.Navigation;
 
 type ToolbarProps = {
   onPlacementModeChange: (mode: ToolbarPlacementMode) => void;
@@ -182,14 +184,18 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
     const stepsMode = activeItemsByGroup.steps.key;
     const textMode = activeItemsByGroup.text.key;
     const nextPlacementMode: ToolbarPlacementMode =
-      normalizedSelectedGroupId === "entities" &&
-      (entitiesMode === "peer" || entitiesMode === "link" || entitiesMode === "obstacle")
+      normalizedSelectedGroupId === ToolbarGroupId.Entities &&
+      (entitiesMode === PlacementMode.Peer ||
+        entitiesMode === PlacementMode.Link ||
+        entitiesMode === PlacementMode.Obstacle)
         ? entitiesMode
-        : normalizedSelectedGroupId === "steps" &&
-            (stepsMode === "message" || stepsMode === "move" || stepsMode === "toggle")
+        : normalizedSelectedGroupId === ToolbarGroupId.Steps &&
+            (stepsMode === PlacementMode.Message ||
+              stepsMode === PlacementMode.Move ||
+              stepsMode === PlacementMode.Toggle)
           ? stepsMode
-          : normalizedSelectedGroupId === "text" && textMode === "text"
-            ? "text"
+          : normalizedSelectedGroupId === ToolbarGroupId.Text && textMode === PlacementMode.Text
+            ? PlacementMode.Text
             : null;
 
     onPlacementModeChange(nextPlacementMode);
@@ -214,7 +220,7 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
           if (!group.hasMenu) {
             return (
               <div className="toolbar__group" key={group.id}>
-                <TooltipAnchor content={`${activeItem.label}`} placement="top">
+                <TooltipAnchor content={`${activeItem.label}`} placement={TooltipPlacement.Top}>
                   <button
                     className={`toolbar__button${groupIsSelected ? " toolbar__button--active" : ""}`}
                     type="button"
@@ -242,7 +248,7 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
           return (
             <div className="toolbar__group" key={group.id}>
               <div className="toolbar__menu-group">
-                <TooltipAnchor content={activeItem.label} placement="top">
+                <TooltipAnchor content={activeItem.label} placement={TooltipPlacement.Top}>
                   <button
                     className={`toolbar__button toolbar__menu-trigger${groupIsSelected ? " toolbar__button--active" : ""}`}
                     type="button"
@@ -266,7 +272,7 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
 
                 <TooltipAnchor
                   content={`${group.id.charAt(0).toUpperCase() + group.id.slice(1)}`}
-                  placement="top"
+                  placement={TooltipPlacement.Top}
                 >
                   <button
                     className={`toolbar__button toolbar__menu-toggle${openedMenuGroup === group.id ? " toolbar__menu-toggle--open" : ""}`}
@@ -334,10 +340,10 @@ export default function Toolbar({ onPlacementModeChange }: ToolbarProps) {
       <div className="toolbar__group">
         {ACTIONS.map((item) => {
           const Icon = item.icon;
-          const isRunAction = item.key === "run";
+          const isRunAction = item.key === ToolbarActionKey.Run;
 
           return (
-            <TooltipAnchor key={item.key} content={item.label} placement="top">
+            <TooltipAnchor key={item.key} content={item.label} placement={TooltipPlacement.Top}>
               <button
                 className="toolbar__button"
                 type="button"

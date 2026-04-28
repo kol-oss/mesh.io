@@ -1,13 +1,15 @@
+import { EntityType, RoutingProtocol } from "./enums";
+
 export type NavigationMenuItem = {
   title: string;
 };
 
-export type PeerRoutingProtocol = "HWMP" | "BATMAN" | "OLSR" | "AODV" | "DSR";
+export type PeerRoutingProtocol = RoutingProtocol;
 
 export type PeerEntity = {
   id: string;
   name: string;
-  type: "PEER";
+  type: typeof EntityType.Peer;
   locked?: boolean;
   x: number;
   y: number;
@@ -21,7 +23,7 @@ export type PeerEntity = {
 export type LinkEntity = {
   id: string;
   name: string;
-  type: "LINK";
+  type: typeof EntityType.Link;
   locked?: boolean;
   sourcePeerId: string | null;
   destinationPeerId: string | null;
@@ -31,7 +33,7 @@ export type LinkEntity = {
 export type ObstacleEntity = {
   id: string;
   name: string;
-  type: "OBSTACLE";
+  type: typeof EntityType.Obstacle;
   locked?: boolean;
   x: number;
   y: number;

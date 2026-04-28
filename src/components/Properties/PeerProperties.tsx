@@ -1,6 +1,7 @@
 import { CircleDot, Clock3, Diamond, ExternalLink, Lock } from "lucide-react";
 
 import { peerRoutingProtocols } from "../../constants/protocol";
+import { EntityType, RoutingProtocol } from "../../types/enums";
 import type { PeerEntity } from "../../types/navigation";
 import type { PeerPropertiesPanelProps } from "../../types/properties";
 import { parseNumberValue, parsePositiveNumberValue } from "../../utils/properties";
@@ -20,14 +21,14 @@ export default function PeerProperties({
   const isPeerNameMissing = selectedPeer.name.trim() === "";
   const isProtocolMissing = selectedPeer.protocols.length === 0;
   const isBatmanOgmMissing =
-    selectedPeer.protocols.includes("BATMAN") && selectedPeer.batmanOgmInterval <= 0;
+    selectedPeer.protocols.includes(RoutingProtocol.BATMAN) && selectedPeer.batmanOgmInterval <= 0;
   const isBatmanPurgeMissing =
-    selectedPeer.protocols.includes("BATMAN") && selectedPeer.batmanPurgeTimeout <= 0;
+    selectedPeer.protocols.includes(RoutingProtocol.BATMAN) && selectedPeer.batmanPurgeTimeout <= 0;
 
   const updatePeer = (changes: Partial<PeerEntity>) => {
     if (isLocked) return;
     const updatedEntities = entities.map((entity) => {
-      if (entity.id !== selectedPeer.id || entity.type !== "PEER") {
+      if (entity.id !== selectedPeer.id || entity.type !== EntityType.Peer) {
         return entity;
       }
 
@@ -184,7 +185,7 @@ export default function PeerProperties({
           </div>
         </label>
 
-        {selectedPeer.protocols.includes("BATMAN") && (
+        {selectedPeer.protocols.includes(RoutingProtocol.BATMAN) && (
           <>
             <label className="properties__field">
               <span

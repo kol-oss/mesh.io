@@ -5,6 +5,7 @@ import {
   workspaceNewObstacleWidth,
   workspaceNewPeerRange,
 } from "../../constants/workspace";
+import { EntityType, RoutingProtocol, StepType } from "../../types/enums";
 import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../types/navigation";
 import type { WorkflowStep } from "../../types/steps";
 import type { WorkspaceTextItem } from "../../types/workspace";
@@ -35,13 +36,13 @@ export function useWorkspaceCreation({
       const nextPeer: PeerEntity = {
         id: generateUUID(),
         name: `Peer`,
-        type: "PEER",
+        type: EntityType.Peer,
         locked: false,
         x,
         y,
         range: workspaceNewPeerRange,
         enabled: true,
-        protocols: ["BATMAN"],
+        protocols: [RoutingProtocol.BATMAN],
         batmanOgmInterval: 1,
         batmanPurgeTimeout: 10,
       };
@@ -58,7 +59,7 @@ export function useWorkspaceCreation({
       const nextObstacle: ObstacleEntity = {
         id: generateUUID(),
         name: `Obstacle`,
-        type: "OBSTACLE",
+        type: EntityType.Obstacle,
         locked: false,
         x,
         y,
@@ -78,7 +79,7 @@ export function useWorkspaceCreation({
       const nextLink: LinkEntity = {
         id: generateUUID(),
         name: `Link`,
-        type: "LINK",
+        type: EntityType.Link,
         locked: false,
         sourcePeerId,
         destinationPeerId,
@@ -115,7 +116,7 @@ export function useWorkspaceCreation({
       createStep({
         id: `step-${generateUUID()}`,
         title: "Message",
-        type: "MESSAGE",
+        type: StepType.Message,
         tick: getNextManualStepTick(),
         sourcePeerId,
         destinationPeerId,
@@ -133,7 +134,7 @@ export function useWorkspaceCreation({
       createStep({
         id: `step-${generateUUID()}`,
         title: "Move",
-        type: "MOVE",
+        type: StepType.Move,
         tick: getNextManualStepTick(),
         sourcePeerId: null,
         destinationPeerId: null,
@@ -151,7 +152,7 @@ export function useWorkspaceCreation({
       createStep({
         id: `step-${generateUUID()}`,
         title: "Toggle",
-        type: "TOGGLE",
+        type: StepType.ToggleStatus,
         tick: getNextManualStepTick(),
         sourcePeerId: null,
         destinationPeerId: null,

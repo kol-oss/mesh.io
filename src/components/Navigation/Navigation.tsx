@@ -1,6 +1,7 @@
 import EntityList from "../EntityList/EntityList";
 import StepsList from "../StepsList/StepsList";
 import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
+import { SelectionSource } from "../../types/enums";
 import type { NetworkEntity } from "../../types/navigation";
 import type { WorkflowStep } from "../../types/steps";
 import NavigationHeader from "./NavigationHeader";
@@ -8,7 +9,7 @@ import NavigationMenu from "./NavigationMenu";
 
 type NavigationProps = {
   selectedId: string | null;
-  selectedSource: "entities" | "steps" | null;
+  selectedSource: SelectionSource | null;
   entities: NetworkEntity[];
   setEntities: (value: NetworkEntity[]) => void;
   steps: WorkflowStep[];
@@ -60,14 +61,14 @@ export default function Navigation({
             <EntityList
               entities={entities}
               setEntities={setEntities}
-              selectedId={selectedSource === "entities" ? selectedId : null}
+              selectedId={selectedSource === SelectionSource.Entities ? selectedId : null}
               onSelect={onEntitySelect}
               onClearSelection={onClearSelection}
             />
             <StepsList
               steps={steps}
               setSteps={setSteps}
-              selectedId={selectedSource === "steps" ? selectedId : null}
+              selectedId={selectedSource === SelectionSource.Steps ? selectedId : null}
               onSelect={onStepSelect}
               onClearSelection={onClearSelection}
             />

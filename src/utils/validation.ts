@@ -1,4 +1,5 @@
 import { peerRoutingProtocols, workflowStepTypes } from "../constants/protocol";
+import { EntityType } from "../types/enums";
 import type { NetworkEntity, PeerRoutingProtocol } from "../types/navigation";
 import type { WorkflowStep } from "../types/steps";
 
@@ -35,7 +36,7 @@ const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
     return false;
   }
 
-  if (value.type === "PEER") {
+  if (value.type === EntityType.Peer) {
     return (
       isFiniteNumber(value.x) &&
       isFiniteNumber(value.y) &&
@@ -48,7 +49,7 @@ const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
     );
   }
 
-  if (value.type === "LINK") {
+  if (value.type === EntityType.Link) {
     return (
       isNullableString(value.sourcePeerId) &&
       isNullableString(value.destinationPeerId) &&
@@ -56,7 +57,7 @@ const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
     );
   }
 
-  if (value.type === "OBSTACLE") {
+  if (value.type === EntityType.Obstacle) {
     return (
       isFiniteNumber(value.x) &&
       isFiniteNumber(value.y) &&

@@ -1,5 +1,6 @@
 import { Diamond, ExternalLink, Lock, Radio } from "lucide-react";
 
+import { EntityType } from "../../types/enums";
 import type { LinkEntity, PeerEntity } from "../../types/navigation";
 import type { LinkPropertiesPanelProps } from "../../types/properties";
 import StyledSelect from "../Select/StyledSelect";
@@ -14,7 +15,7 @@ export default function LinkProperties({
   description,
 }: LinkPropertiesPanelProps) {
   const isLocked = selectedLink.locked === true;
-  const peers = entities.filter((entity): entity is PeerEntity => entity.type === "PEER");
+  const peers = entities.filter((entity): entity is PeerEntity => entity.type === EntityType.Peer);
 
   const sourceValue =
     selectedLink.sourcePeerId && peers.some((peer) => peer.id === selectedLink.sourcePeerId)
@@ -54,7 +55,7 @@ export default function LinkProperties({
     }
 
     const updatedEntities = entities.map((entity) => {
-      if (entity.id !== selectedLink.id || entity.type !== "LINK") {
+      if (entity.id !== selectedLink.id || entity.type !== EntityType.Link) {
         return entity;
       }
 

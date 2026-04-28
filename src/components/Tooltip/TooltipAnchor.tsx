@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { TooltipPlacement } from "../../types/enums";
 
 type TooltipAnchorProps = {
   content: string;
   children: ReactNode;
-  placement?: "top" | "bottom";
+  placement?: TooltipPlacement;
 };
 
 type TooltipPosition = {
@@ -18,7 +19,7 @@ const TOOLTIP_OFFSET_PX = 8;
 export default function TooltipAnchor({
   content,
   children,
-  placement = "top",
+  placement = TooltipPlacement.Top,
 }: TooltipAnchorProps) {
   const anchorRef = useRef<HTMLSpanElement | null>(null);
   const timeoutRef = useRef<number | null>(null);
@@ -58,7 +59,9 @@ export default function TooltipAnchor({
 
     const rect = anchorNode.getBoundingClientRect();
     const top =
-      placement === "bottom" ? rect.bottom + TOOLTIP_OFFSET_PX : rect.top - TOOLTIP_OFFSET_PX;
+      placement === TooltipPlacement.Bottom
+        ? rect.bottom + TOOLTIP_OFFSET_PX
+        : rect.top - TOOLTIP_OFFSET_PX;
 
     setPosition({
       top,

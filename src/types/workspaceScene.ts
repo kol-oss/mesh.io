@@ -1,5 +1,6 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 
+import { SelectionSource } from "./enums";
 import type { Connection, ObstacleResizeEdge, RangePolygon } from "./interaction";
 import type { ObstacleEntity, PeerEntity } from "./navigation";
 import type { WorkspaceTextItem } from "./workspace";
@@ -29,7 +30,7 @@ export type WorkspaceSceneProps = {
   texts: WorkspaceTextItem[];
   obstacles: ObstacleEntity[];
   peers: PeerEntity[];
-  selectedSource: "entities" | "steps" | null;
+  selectedSource: SelectionSource | null;
   selectedId: string | null;
   resolvedCreationSelectedEntityId: string | null;
   selectedStepAffectedEntityIds: Set<string>;

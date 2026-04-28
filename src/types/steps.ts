@@ -1,9 +1,10 @@
+import { StepType } from "./enums";
 import type { PeerRoutingProtocol } from "./navigation";
 
 export type WorkflowStep = {
   id: string;
   title: string;
-  type: "MOVE" | "MESSAGE" | "TOGGLE" | "REFRESH";
+  type: StepType;
   tick: number;
   sourcePeerId: string | null;
   destinationPeerId: string | null;
