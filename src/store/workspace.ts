@@ -8,9 +8,7 @@ import type { NetworkEntity } from "../types/navigation";
 import type { WorkflowStep } from "../types/steps";
 import type { ToolbarPlacementMode } from "../types/toolbar";
 import type { WorkspaceTextItem } from "../types/workspace";
-import { INITIAL_NETWORK_ENTITIES } from "../utils/navigation/entities";
 import { composeStepsWithRefresh, sanitizeManualSteps } from "../utils/navigation/refreshSteps";
-import { INITIAL_WORKFLOW_STEPS } from "../utils/navigation/steps";
 import {
   getWorkspaceExportFileName,
   parseWorkspaceImportPayload,
@@ -39,14 +37,8 @@ export function useWorkspaceStore() {
   );
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
 
-  const [entities, setEntities] = useLocalStorage<NetworkEntity[]>(
-    storageKeys.entities,
-    INITIAL_NETWORK_ENTITIES,
-  );
-  const [manualSteps, setManualSteps] = useLocalStorage<WorkflowStep[]>(
-    storageKeys.steps,
-    INITIAL_WORKFLOW_STEPS,
-  );
+  const [entities, setEntities] = useLocalStorage<NetworkEntity[]>(storageKeys.entities, []);
+  const [manualSteps, setManualSteps] = useLocalStorage<WorkflowStep[]>(storageKeys.steps, []);
   const [texts, setTexts] = useLocalStorage<WorkspaceTextItem[]>(storageKeys.textItems, []);
 
   const normalizedManualSteps = useMemo(() => sanitizeManualSteps(manualSteps), [manualSteps]);
