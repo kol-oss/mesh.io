@@ -1,5 +1,5 @@
 import { workspaceObstacleMinSize } from "../constants/workspace";
-import type { ObstacleEntity } from "../types/navigation";
+import type { ObstacleEntity } from "../types/entities";
 import type { ObstacleBounds } from "../types/workspace/interaction";
 
 export const toInt = (value: number) => Math.round(value);

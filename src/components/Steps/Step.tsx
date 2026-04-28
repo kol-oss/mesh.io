@@ -1,7 +1,7 @@
 import { type PointerEvent as ReactPointerEvent } from "react";
 import { Activity, ChevronsRight, Mail, RotateCw } from "lucide-react";
 import { StepType } from "../../types/enums";
-import type { WorkflowStep } from "../../types/workspace/steps";
+import type { WorkflowStep } from "../../types/steps";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 import Tooltip from "../Tooltip/Tooltip";
 

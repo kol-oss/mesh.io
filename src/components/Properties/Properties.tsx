@@ -1,7 +1,7 @@
 import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
 import { SelectionSource, SidebarResizeSide } from "../../types/enums";
-import type { NetworkEntity } from "../../types/navigation";
-import type { WorkflowStep } from "../../types/workspace/steps";
+import type { NetworkEntity } from "../../types/entities";
+import type { WorkflowStep } from "../../types/steps";
 import EntityProperties from "./entity/EntityProperties";
 import StepProperties from "./step/StepProperties";
 

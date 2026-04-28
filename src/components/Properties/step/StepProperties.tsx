@@ -1,14 +1,14 @@
 import { Activity, ChevronsRight, Clock3, ExternalLink, Mail } from "lucide-react";
 
 import { EntityType, StepType } from "../../../types/enums";
-import type { LinkEntity, PeerEntity } from "../../../types/navigation";
+import type { LinkEntity, PeerEntity } from "../../../types/entities";
 import type {
   ManualWorkflowStep,
   MessageStep,
   MoveStep,
   ToggleStatusStep,
   WorkflowStep,
-} from "../../../types/workspace/steps";
+} from "../../../types/steps";
 import type { StepPropertiesPanelProps } from "../../../types/properties";
 import { isRefreshStep } from "../../../utils/navigation/refreshSteps";
 import { parseNumberValue } from "../../../utils/properties";

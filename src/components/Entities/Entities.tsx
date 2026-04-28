@@ -15,7 +15,7 @@ import { useListReorder } from "../../hooks/useListReorder";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
 import { EntityType } from "../../types/enums";
-import type { NetworkEntity } from "../../types/navigation";
+import type { NetworkEntity } from "../../types/entities";
 import { generateUUID } from "../../utils/uuid";
 import {
   migrateEntities,

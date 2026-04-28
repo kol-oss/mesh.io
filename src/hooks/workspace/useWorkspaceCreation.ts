@@ -6,14 +6,14 @@ import {
   workspaceNewPeerRange,
 } from "../../constants/workspace";
 import { EntityType, RoutingProtocol, StepType } from "../../types/enums";
-import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../types/navigation";
+import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../types/entities";
 import type {
   ManualWorkflowStep,
   MessageStep,
   MoveStep,
   ToggleStatusStep,
   WorkflowStep,
-} from "../../types/workspace/steps";
+} from "../../types/steps";
 import type { WorkspaceTextItem } from "../../types/workspace";
 import type {
   WorkspaceCreationCallbacks,

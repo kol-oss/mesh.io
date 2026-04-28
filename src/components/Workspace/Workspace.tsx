@@ -1,8 +1,8 @@
 import type { DragState } from "../../types/workspace/interaction";
 import { PlacementMode, SelectionSource } from "../../types/enums";
-import type { NetworkEntity } from "../../types/navigation";
+import type { NetworkEntity } from "../../types/entities";
 import type { WorkspacePanState } from "../../types/workspace/background";
-import type { WorkflowStep } from "../../types/workspace/steps";
+import type { WorkflowStep } from "../../types/steps";
 import type { ToolbarPlacementMode } from "../../types/toolbar";
 import type { WorkspaceTextItem } from "../../types/workspace";
 import { useCallback, useEffect, useRef, useState } from "react";

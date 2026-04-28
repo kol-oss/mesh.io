@@ -1,5 +1,5 @@
 import { EntityType, RoutingProtocol } from "../../types/enums";
-import type { NetworkEntity } from "../../types/navigation";
+import type { NetworkEntity } from "../../types/entities";
 import { generateUUID } from "../uuid";
 
 export const peerDefaults = {

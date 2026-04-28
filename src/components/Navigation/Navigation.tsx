@@ -2,8 +2,8 @@ import Entities from "../Entities/Entities";
 import Steps from "../Steps/Steps";
 import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
 import { SelectionSource } from "../../types/enums";
-import type { NetworkEntity } from "../../types/navigation";
-import type { WorkflowStep } from "../../types/workspace/steps";
+import type { NetworkEntity } from "../../types/entities";
+import type { WorkflowStep } from "../../types/steps";
 import NavigationHeader from "./NavigationHeader";
 import NavigationMenu from "./NavigationMenu";
 

@@ -1,7 +1,7 @@
 import { type PointerEvent as ReactPointerEvent } from "react";
 import { Link, Lock, LockOpen, Radio, SquareSlash } from "lucide-react";
 import { EntityType } from "../../types/enums";
-import type { NetworkEntity } from "../../types/navigation";
+import type { NetworkEntity } from "../../types/entities";
 import Tooltip from "../Tooltip/Tooltip";
 
 type EntityProps = {

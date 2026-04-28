@@ -1,7 +1,7 @@
 import { Diamond, ExternalLink, Lock, Radio } from "lucide-react";
 
 import { EntityType } from "../../../types/enums";
-import type { LinkEntity, PeerEntity } from "../../../types/navigation";
+import type { LinkEntity, PeerEntity } from "../../../types/entities";
 import type { LinkPropertiesPanelProps } from "../../../types/properties";
 import Select from "../../Select/Select";
 

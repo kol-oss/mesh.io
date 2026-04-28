@@ -20,7 +20,7 @@ import type {
   MoveStep,
   ToggleStatusStep,
   WorkflowStep,
-} from "../../types/workspace/steps";
+} from "../../types/steps";
 import { migrateSteps } from "../../utils/navigation/stepMigration";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 import Tooltip from "../Tooltip/Tooltip";

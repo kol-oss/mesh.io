@@ -1,7 +1,7 @@
 import { Radio } from "lucide-react";
 
-import type { PeerEntity } from "../../../types/navigation";
-import type { MoveStep } from "../../../types/workspace/steps";
+import type { PeerEntity } from "../../../types/entities";
+import type { MoveStep } from "../../../types/steps";
 import { parseNumberValue } from "../../../utils/properties";
 import Select from "../../Select/Select";
 

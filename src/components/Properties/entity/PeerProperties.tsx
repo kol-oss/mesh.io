@@ -2,7 +2,7 @@ import { CircleDot, Clock3, Diamond, ExternalLink, Lock } from "lucide-react";
 
 import { peerRoutingProtocols } from "../../../constants/protocol";
 import { EntityType, RoutingProtocol } from "../../../types/enums";
-import type { PeerEntity } from "../../../types/navigation";
+import type { PeerEntity } from "../../../types/entities";
 import type { PeerPropertiesPanelProps } from "../../../types/properties";
 import { parseNumberValue, parsePositiveNumberValue } from "../../../utils/properties";
 

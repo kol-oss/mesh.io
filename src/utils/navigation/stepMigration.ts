@@ -5,7 +5,7 @@ import {
   type MoveStep,
   type ToggleStatusStep,
   type WorkflowStep,
-} from "../../types/workspace/steps";
+} from "../../types/steps";
 
 export const stepTypes = [
   StepType.Move,

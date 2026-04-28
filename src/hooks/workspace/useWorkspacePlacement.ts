@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 import { PlacementMode } from "../../types/enums";
-import type { PeerEntity } from "../../types/navigation";
+import type { PeerEntity } from "../../types/entities";
 import type {
   WorkspacePlacementActions,
   WorkspacePlacementHandlers,

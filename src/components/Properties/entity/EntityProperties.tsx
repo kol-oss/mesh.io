@@ -4,7 +4,7 @@ import type {
   NetworkEntity,
   ObstacleEntity,
   PeerEntity,
-} from "../../../types/navigation";
+} from "../../../types/entities";
 import type { PropertiesResizeHandler } from "../../../types/properties";
 import LinkProperties from "./LinkProperties";
 import ObstacleProperties from "./ObstacleProperties";
