@@ -62,7 +62,9 @@ export default function SimulationPanel({
   const routeTqExplanation = routeChange ? getRouteTqExplanation(currentEvent) : null;
   const isTqDisclosureOpen =
     routeTqExplanation !== null ? (tqDisclosureState[currentEvent.id] ?? false) : false;
-  const messageSummary = routeChange ? null : getMessageSummary(currentEvent, peerNameById);
+  const messageSummary = routeChange
+    ? null
+    : getMessageSummary(currentEvent, peerNameById, onPeerHoverChange);
   const handlePointerDownCapture = (event: ReactPointerEvent<HTMLElement>) => {
     event.stopPropagation();
   };
@@ -102,8 +104,20 @@ export default function SimulationPanel({
               <tbody>
                 {routeRows.map((row, index) => (
                   <tr key={`${row.originatorPeerId}-${row.hopPeerId}-${index}`}>
-                    <td>{getPeerLabel(row.originatorPeerId, peerNameById)}</td>
-                    <td>{getPeerLabel(row.hopPeerId, peerNameById)}</td>
+                    <td>
+                      {renderPeerName(
+                        row.originatorPeerId,
+                        getPeerLabel(row.originatorPeerId, peerNameById),
+                        onPeerHoverChange,
+                      )}
+                    </td>
+                    <td>
+                      {renderPeerName(
+                        row.hopPeerId,
+                        getPeerLabel(row.hopPeerId, peerNameById),
+                        onPeerHoverChange,
+                      )}
+                    </td>
                     <td>{row.quality}</td>
                     <td>{row.lastTick}</td>
                   </tr>
@@ -161,14 +175,16 @@ export default function SimulationPanel({
           </div>
         ) : messageSummary ? (
           <div className="simulation-panel__table-block">
-            <dl className="simulation-panel__message-block">
-              {messageSummary.map((item) => (
-                <div className="simulation-panel__message-row" key={item.label}>
-                  <dt className="simulation-panel__message-key">{item.label}</dt>
-                  <dd className="simulation-panel__message-value">{item.value}</dd>
-                </div>
-              ))}
-            </dl>
+            <table className="simulation-panel__table-view simulation-panel__table-view--message">
+              <tbody>
+                {messageSummary.map((item) => (
+                  <tr key={item.label}>
+                    <th scope="row">{item.label}</th>
+                    <td>{item.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : (
           <p className="simulation-panel__empty">No event details available.</p>
@@ -323,7 +339,8 @@ const getRouteRows = (details: RoutingTableChangeDetails): BatmanRouteRecord[] =
 const getMessageSummary = (
   event: SimulationEvent,
   peerNameById: Map<string, string>,
-): Array<{ label: string; value: string }> | null => {
+  onPeerHoverChange: (peerId: string | null) => void,
+): Array<{ label: string; value: ReactNode }> | null => {
   const message = getEventMessage(event);
   if (!message) {
     return null;
@@ -333,11 +350,21 @@ const getMessageSummary = (
     return [
       {
         label: "Source",
-        value: message.sourcePeerId ? getPeerLabel(message.sourcePeerId, peerNameById) : "Unknown",
+        value: message.sourcePeerId
+          ? renderPeerName(
+              message.sourcePeerId,
+              getPeerLabel(message.sourcePeerId, peerNameById),
+              onPeerHoverChange,
+            )
+          : "Unknown",
       },
       {
         label: "Destination",
-        value: getPeerLabel(message.destinationPeerId, peerNameById),
+        value: renderPeerName(
+          message.destinationPeerId,
+          getPeerLabel(message.destinationPeerId, peerNameById),
+          onPeerHoverChange,
+        ),
       },
       {
         label: "Type",
@@ -353,11 +380,19 @@ const getMessageSummary = (
   return [
     {
       label: "Originator",
-      value: getPeerLabel(message.sourcePeerId, peerNameById),
+      value: renderPeerName(
+        message.sourcePeerId,
+        getPeerLabel(message.sourcePeerId, peerNameById),
+        onPeerHoverChange,
+      ),
     },
     {
       label: "Sender",
-      value: getPeerLabel(message.senderPeerId, peerNameById),
+      value: renderPeerName(
+        message.senderPeerId,
+        getPeerLabel(message.senderPeerId, peerNameById),
+        onPeerHoverChange,
+      ),
     },
     {
       label: "Sequence",

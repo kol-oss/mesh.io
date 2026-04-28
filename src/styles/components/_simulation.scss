@@ -266,6 +266,25 @@
   }
 }
 
+.simulation-panel__table-view--message {
+  table-layout: fixed;
+
+  th,
+  td {
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  th {
+    width: 88px;
+    font-weight: 500;
+  }
+
+  td {
+    word-break: break-word;
+  }
+}
+
 .simulation-panel__message-block {
   margin: 0;
   padding: 8px 10px;
