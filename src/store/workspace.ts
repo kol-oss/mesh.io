@@ -342,10 +342,6 @@ export function useWorkspaceStore() {
 
   const handleSimulationInspectionModeChange = useCallback((mode: ToolbarMode) => {
     setSimulationInspectionMode(mode);
-    setSimulationPlayback((prev) => ({
-      ...prev,
-      currentEventIndex: 0,
-    }));
   }, []);
 
   const handleStopSimulation = useCallback(() => {

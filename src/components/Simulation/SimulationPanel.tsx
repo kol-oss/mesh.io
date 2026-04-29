@@ -28,9 +28,11 @@ type SimulationPanelProps = {
   currentEventsTotal: number;
   currentStepResult: SimulationStepResult | null;
   inspectionMode: ToolbarMode;
+  isTqDisclosureOpen: boolean;
   onPeerHoverChange: (peerId: string | null) => void;
   onNextEvent: () => void;
   onPrevEvent: () => void;
+  onTqDisclosureToggle: (eventId: string) => void;
 };
 
 export default function SimulationPanel({
@@ -43,11 +45,12 @@ export default function SimulationPanel({
   currentEventsTotal,
   currentStepResult,
   inspectionMode,
+  isTqDisclosureOpen,
   onPeerHoverChange,
   onNextEvent,
   onPrevEvent,
+  onTqDisclosureToggle,
 }: SimulationPanelProps) {
-  const [tqDisclosureState, setTqDisclosureState] = useState<Record<string, boolean>>({});
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStateRef = useRef<{
@@ -107,8 +110,6 @@ export default function SimulationPanel({
   );
   const routeRows = routeChange ? getRouteRows(routeChange) : [];
   const routeTqExplanation = routeChange ? getRouteTqExplanation(currentEvent) : null;
-  const isTqDisclosureOpen =
-    routeTqExplanation !== null ? (tqDisclosureState[currentEvent.id] ?? false) : false;
   const messageSummary = routeChange
     ? null
     : getMessageSummary(currentEvent, peerNameById, onPeerHoverChange);
@@ -131,10 +132,7 @@ export default function SimulationPanel({
     event.preventDefault();
   };
   const handleTqDisclosureToggle = () => {
-    setTqDisclosureState((prev) => ({
-      ...prev,
-      [currentEvent.id]: !(prev[currentEvent.id] ?? false),
-    }));
+    onTqDisclosureToggle(currentEvent.id);
   };
 
   return (

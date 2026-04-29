@@ -93,6 +93,9 @@ export default function Workspace({
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [editingTextDraft, setEditingTextDraft] = useState("");
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+  const [simulationTqDisclosureByEvent, setSimulationTqDisclosureByEvent] = useState<
+    Record<string, boolean>
+  >({});
   const [hoveredSimulationPeerState, setHoveredSimulationPeerState] = useState<{
     eventId: string;
     peerId: string | null;
@@ -386,6 +389,13 @@ export default function Workspace({
     [currentSimulationEvent],
   );
 
+  const handleSimulationTqDisclosureToggle = useCallback((eventId: string) => {
+    setSimulationTqDisclosureByEvent((prev) => ({
+      ...prev,
+      [eventId]: !(prev[eventId] ?? false),
+    }));
+  }, []);
+
   const handleSimulationStaticLinkPointerDown = useCallback(
     (linkId: string, event: ReactPointerEvent<SVGLineElement>) => {
       if (!isSimulationActive) {
@@ -491,9 +501,11 @@ export default function Workspace({
             currentEventsTotal={currentSimulationEventsTotal}
             currentStepResult={currentSimulationStepResult}
             inspectionMode={simulationInspectionMode}
+            isTqDisclosureOpen={simulationTqDisclosureByEvent[currentSimulationEvent.id] ?? false}
             onPeerHoverChange={handleSimulationPeerHoverChange}
             onNextEvent={onNextSimulationEvent}
             onPrevEvent={onPrevSimulationEvent}
+            onTqDisclosureToggle={handleSimulationTqDisclosureToggle}
           />
         ) : null}
         <WorkspaceScene
