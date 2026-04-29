@@ -202,7 +202,7 @@ export const messageCatalog = {
       ogmBroadcastRetransmission: "OGMv2 Broadcast Retransmission",
       ogmBroadcast: "OGMv2 Broadcast",
       broadcastMessage: "Broadcast Message",
-      ogmDropped: "OGMv2 Dropped",
+      ogmDropped: "OGMv2 Retransmission Cancelled",
       packetDropped: "Packet Dropped",
       dropMessage: "Drop Message",
       originatorAdded: "Originator Added",
@@ -215,10 +215,11 @@ export const messageCatalog = {
       eventSent: (actor: string) => `${actor} sent a message to the selected next hop.`,
       eventReceived: (actor: string) => `${actor} received a message and handled it locally.`,
       eventEmitted: (actor: string) => `${actor} emitted a simulation event.`,
+      eventNodeLabel: "Node",
       routingStateChanged: (actor: string) => `${actor} changed its routing state.`,
       broadcastFallback: (actor: string) => `${actor} broadcast a message to neighbouring peers.`,
       droppedOgm: (actor: string) =>
-        `${actor} could not continue processing this OGMv2, so B.A.T.M.A.N. V propagation stopped at this hop.`,
+        `${actor} already received OGMv2 with such originator and sequence number with better throughput, so it did not continue processing this OGMv2, and B.A.T.M.A.N. V propagation stopped at this hop.`,
       droppedPacket: (actor: string) =>
         `${actor} could not forward this packet, so delivery stopped at this hop.`,
       droppedGeneric: (actor: string) => `${actor} dropped a message during processing.`,
@@ -272,9 +273,9 @@ export const messageCatalog = {
     },
     packet: {
       inspectorAria: "Packet structure inspector",
-      title: "B.A.T.M.A.N. V OGMv2 Packet",
+      title: "Originator Message version 2 (OGMv2)",
       closeAria: "Close packet structure",
-      structureAria: "B.A.T.M.A.N. V OGMv2 packet structure",
+      structureAria: "Originator Message version 2 structure",
       bitsSuffix: "bits",
       notModeled: "Not modeled",
       unavailable: "Packet structure is not available for this event.",

@@ -115,6 +115,11 @@ export default function SimulationPanel({
     peerNameById,
     onPeerHoverChange,
   );
+  const eventOwner = renderPeerName(
+    currentEvent.peerId,
+    getPeerLabel(currentEvent.peerId, peerNameById),
+    onPeerHoverChange,
+  );
   const routeRows = routeChange ? getRouteRows(routeChange) : [];
   const routeTqExplanation = routeChange ? getRouteTqExplanation(currentEvent) : null;
   const routeSequenceWindowExplanation = routeChange
@@ -158,7 +163,7 @@ export default function SimulationPanel({
     >
       <header className="simulation-panel__header" onPointerDown={handleHeaderPointerDown}>
         <h2 className="simulation-panel__title">{title}</h2>
-        <span className="simulation-panel__tick">{ui.simulation.tickLabel(currentEvent.tick)}</span>
+        <span className="simulation-panel__tick">{eventOwner}</span>
       </header>
 
       <section className="simulation-panel__section">
