@@ -38,6 +38,15 @@
   }
 }
 
+.simulation-panel--inspector {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 9;
+  width: min(440px, calc(100vw - 40px));
+  max-width: 440px;
+}
+
 .simulation-panel__header,
 .simulation-panel__section {
   padding: 11px 14px;
@@ -52,6 +61,34 @@
   cursor: grab;
   user-select: none;
   touch-action: none;
+}
+
+.simulation-panel__header--static {
+  cursor: default;
+  touch-action: auto;
+}
+
+.simulation-panel__close-button {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border: none;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: $black-400;
+  opacity: 1;
+  visibility: visible;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+
+  &:hover {
+    background: rgba(26, 26, 26, 0.08);
+    color: $black-800;
+  }
 }
 
 .simulation-panel--dragging {
@@ -242,6 +279,66 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.simulation-panel__packet-structure {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid $neutral-400;
+  border-radius: 7px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.simulation-panel__packet-structure-title {
+  @extend .typo-caption;
+  color: $black-400;
+  margin: 0;
+}
+
+.simulation-panel__packet-row {
+  display: flex;
+  gap: 0;
+}
+
+.simulation-panel__packet-field {
+  min-width: 0;
+  border: 1px solid $neutral-400;
+  border-left: none;
+  padding: 5px 6px;
+  background: #f7fbff;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  &:first-child {
+    border-left: 1px solid $neutral-400;
+  }
+}
+
+.simulation-panel__packet-field-label {
+  font-size: 10px;
+  line-height: 1.2;
+  color: $black-400;
+}
+
+.simulation-panel__packet-field-value {
+  font-size: 11px;
+  line-height: 1.2;
+  color: $black-800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.simulation-panel__packet-field--blocked {
+  background: #efefef;
+
+  .simulation-panel__packet-field-label,
+  .simulation-panel__packet-field-value {
+    color: #8f8f8f;
+  }
 }
 
 .simulation-panel__table-label,

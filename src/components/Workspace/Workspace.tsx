@@ -29,6 +29,7 @@ import { useWorkspaceTextEdit } from "../../hooks/workspace/useTextEdit";
 import { useWorkspaceDerived } from "../../hooks/workspace/useDerived";
 import { useToast } from "../../hooks/useToast";
 import { clamp } from "../../utils/math/clamp";
+import PacketStructureWindow from "../Simulation/PacketStructureWindow";
 import SimulationPanel from "../Simulation/SimulationPanel";
 import WorkspaceScene from "./WorkspaceScene";
 
@@ -93,6 +94,15 @@ export default function Workspace({
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [editingTextDraft, setEditingTextDraft] = useState("");
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+  const [simulationMessageHoverState, setSimulationMessageHoverState] = useState<{
+    eventId: string | null;
+    isHovered: boolean;
+  }>({ eventId: null, isHovered: false });
+  const [packetInspectorState, setPacketInspectorState] = useState<{
+    eventId: string | null;
+    isOpen: boolean;
+    pinned: boolean;
+  }>({ eventId: null, isOpen: false, pinned: false });
   const [simulationTqDisclosureByEvent, setSimulationTqDisclosureByEvent] = useState<
     Record<string, boolean>
   >({});
@@ -369,6 +379,8 @@ export default function Workspace({
       buildSimulationMessageAnimations(currentSimulationEvent, currentSimulationStepResult, peers),
     [currentSimulationEvent, currentSimulationStepResult, peers],
   );
+  const isPacketInspectionActive = simulationInspectionMode === ToolbarMode.PacketStructure;
+  const currentSimulationEventId = currentSimulationEvent?.id ?? null;
   const hoveredSimulationPeerId =
     currentSimulationEvent && hoveredSimulationPeerState?.eventId === currentSimulationEvent.id
       ? hoveredSimulationPeerState.peerId
@@ -393,6 +405,68 @@ export default function Workspace({
     setSimulationTqDisclosureByEvent((prev) => ({
       ...prev,
       [eventId]: !(prev[eventId] ?? false),
+    }));
+  }, []);
+
+  const handleMessageAnimationHoverChange = useCallback(
+    (isHovered: boolean) => {
+      if (!isPacketInspectionActive) {
+        return;
+      }
+
+      setSimulationMessageHoverState({
+        eventId: currentSimulationEventId,
+        isHovered,
+      });
+
+      if (!currentSimulationEventId) {
+        return;
+      }
+
+      setPacketInspectorState((prev) => {
+        if (prev.pinned && prev.eventId === currentSimulationEventId) {
+          return prev;
+        }
+
+        if (isHovered) {
+          return {
+            eventId: currentSimulationEventId,
+            isOpen: true,
+            pinned: false,
+          };
+        }
+
+        if (prev.eventId !== currentSimulationEventId) {
+          return prev;
+        }
+
+        return {
+          eventId: currentSimulationEventId,
+          isOpen: false,
+          pinned: false,
+        };
+      });
+    },
+    [currentSimulationEventId, isPacketInspectionActive],
+  );
+
+  const handleMessageAnimationInspectRequest = useCallback(() => {
+    if (!currentSimulationEvent || !isPacketInspectionActive) {
+      return;
+    }
+
+    setPacketInspectorState({
+      eventId: currentSimulationEvent.id,
+      isOpen: true,
+      pinned: true,
+    });
+  }, [currentSimulationEvent, isPacketInspectionActive]);
+
+  const handlePacketInspectorClose = useCallback(() => {
+    setPacketInspectorState((prev) => ({
+      ...prev,
+      isOpen: false,
+      pinned: false,
     }));
   }, []);
 
@@ -539,8 +613,23 @@ export default function Workspace({
           handleObstaclePointerDown={handleSimulationObstaclePointerDown}
           handleObstacleResizeStart={handleSimulationObstacleResizeStart}
           handlePeerPointerDown={handleSimulationPeerPointerDown}
+          onMessageAnimationHoverChange={handleMessageAnimationHoverChange}
+          onMessageAnimationInspectRequest={handleMessageAnimationInspectRequest}
         />
       </div>
+      <PacketStructureWindow
+        isOpen={
+          isPacketInspectionActive &&
+          packetInspectorState.isOpen &&
+          packetInspectorState.eventId === currentSimulationEvent?.id &&
+          (packetInspectorState.pinned ||
+            (simulationMessageHoverState.eventId === currentSimulationEvent?.id &&
+              simulationMessageHoverState.isHovered))
+        }
+        currentEvent={currentSimulationEvent}
+        currentStepResult={currentSimulationStepResult}
+        onClose={handlePacketInspectorClose}
+      />
     </section>
   );
 }

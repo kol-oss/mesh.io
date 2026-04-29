@@ -35,6 +35,8 @@ export default function WorkspaceScene({
   handleObstaclePointerDown,
   handleObstacleResizeStart,
   handlePeerPointerDown,
+  onMessageAnimationHoverChange,
+  onMessageAnimationInspectRequest,
 }: WorkspaceSceneProps) {
   return (
     <>
@@ -150,6 +152,16 @@ export default function WorkspaceScene({
               key={animation.key}
               className={`workspace__message-animation workspace__message-animation--${animation.variant}`}
             >
+              <path
+                className="workspace__message-animation-hit"
+                d={path}
+                onPointerEnter={() => onMessageAnimationHoverChange(true)}
+                onPointerLeave={() => onMessageAnimationHoverChange(false)}
+                onPointerDown={(event) => {
+                  event.stopPropagation();
+                  onMessageAnimationInspectRequest();
+                }}
+              />
               <path className="workspace__message-animation-track" d={path} />
               <g className="workspace__message-envelope">
                 <animateMotion dur="1.35s" repeatCount="indefinite" path={path} />
