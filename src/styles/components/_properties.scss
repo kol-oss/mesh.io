@@ -7,6 +7,8 @@
   flex-direction: column;
   min-height: 100vh;
   height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   border-left: 1px solid $neutral-400;
   background-color: $neutral-0;
 

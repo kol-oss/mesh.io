@@ -50,6 +50,8 @@ export function useWorkspaceCreation({
         range: workspaceNewPeerRange,
         enabled: true,
         protocols: [RoutingProtocol.BATMAN],
+        batmanDistancePenaltyDistance: 75,
+        batmanDistancePenaltyPercent: 5,
         batmanOgmInterval: 1,
         batmanPurgeTimeout: 10,
       };

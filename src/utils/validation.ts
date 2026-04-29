@@ -46,6 +46,10 @@ const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
       value.range > 0 &&
       typeof value.enabled === "boolean" &&
       isValidProtocolList(value.protocols) &&
+      isFiniteNumber(value.batmanDistancePenaltyDistance) &&
+      value.batmanDistancePenaltyDistance > 0 &&
+      isFiniteNumber(value.batmanDistancePenaltyPercent) &&
+      value.batmanDistancePenaltyPercent >= 0 &&
       isFiniteNumber(value.batmanOgmInterval) &&
       isFiniteNumber(value.batmanPurgeTimeout)
     );

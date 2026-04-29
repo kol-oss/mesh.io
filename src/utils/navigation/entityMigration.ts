@@ -8,6 +8,8 @@ export const peerDefaults = {
   range: 75,
   enabled: true,
   protocols: [RoutingProtocol.BATMAN],
+  batmanDistancePenaltyDistance: 75,
+  batmanDistancePenaltyPercent: 5,
   batmanOgmInterval: 1,
   batmanPurgeTimeout: 10,
 };
@@ -37,6 +39,10 @@ const hasPeerDefaults = (entity: NetworkEntity) => {
     entity.range > 0 &&
     typeof entity.enabled === "boolean" &&
     Array.isArray(entity.protocols) &&
+    typeof entity.batmanDistancePenaltyDistance === "number" &&
+    entity.batmanDistancePenaltyDistance > 0 &&
+    typeof entity.batmanDistancePenaltyPercent === "number" &&
+    entity.batmanDistancePenaltyPercent >= 0 &&
     typeof entity.batmanOgmInterval === "number" &&
     typeof entity.batmanPurgeTimeout === "number"
   );

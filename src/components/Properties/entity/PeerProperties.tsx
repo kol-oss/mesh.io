@@ -1,4 +1,4 @@
-import { CircleDot, Clock3, Diamond, ExternalLink, Lock } from "lucide-react";
+import { CircleDot, Clock3, Diamond, ExternalLink, Lock, Percent, Ruler } from "lucide-react";
 
 import { peerRoutingProtocols } from "../../../constants/protocol";
 import { ui } from "../../../i18n/messages";
@@ -25,6 +25,12 @@ export default function PeerProperties({
     selectedPeer.protocols.includes(RoutingProtocol.BATMAN) && selectedPeer.batmanOgmInterval <= 0;
   const isBatmanPurgeMissing =
     selectedPeer.protocols.includes(RoutingProtocol.BATMAN) && selectedPeer.batmanPurgeTimeout <= 0;
+  const isBatmanPenaltyDistanceMissing =
+    selectedPeer.protocols.includes(RoutingProtocol.BATMAN) &&
+    selectedPeer.batmanDistancePenaltyDistance <= 0;
+  const isBatmanPenaltyPercentMissing =
+    selectedPeer.protocols.includes(RoutingProtocol.BATMAN) &&
+    selectedPeer.batmanDistancePenaltyPercent < 0;
 
   const updatePeer = (changes: Partial<PeerEntity>) => {
     if (isLocked) return;
@@ -188,6 +194,53 @@ export default function PeerProperties({
 
         {selectedPeer.protocols.includes(RoutingProtocol.BATMAN) && (
           <>
+            <label className="properties__field">
+              <span
+                className={`properties__field-label ${isBatmanPenaltyDistanceMissing || isBatmanPenaltyPercentMissing ? "properties__field-label--required" : ""}`}
+              >
+                {ui.properties.fieldBatmanDistancePenalty}
+              </span>
+              <div className="properties__inline-group">
+                <div className="properties__input-with-prefix">
+                  <Ruler size={12} />
+                  <input
+                    className={`properties__input ${isBatmanPenaltyDistanceMissing ? "properties__required-outline" : ""}`}
+                    type="number"
+                    min="1"
+                    value={selectedPeer.batmanDistancePenaltyDistance}
+                    onChange={(event) =>
+                      updatePeer({
+                        batmanDistancePenaltyDistance: parsePositiveNumberValue(
+                          event.target.value,
+                          selectedPeer.batmanDistancePenaltyDistance,
+                        ),
+                      })
+                    }
+                    aria-label={ui.properties.fieldDistance}
+                  />
+                </div>
+                <div className="properties__input-with-prefix">
+                  <Percent size={12} />
+                  <input
+                    className={`properties__input ${isBatmanPenaltyPercentMissing ? "properties__required-outline" : ""}`}
+                    type="number"
+                    min="0"
+                    value={selectedPeer.batmanDistancePenaltyPercent}
+                    onChange={(event) =>
+                      updatePeer({
+                        batmanDistancePenaltyPercent: parsePositiveNumberValue(
+                          event.target.value,
+                          selectedPeer.batmanDistancePenaltyPercent,
+                          0,
+                        ),
+                      })
+                    }
+                    aria-label={ui.properties.fieldPenaltyPercent}
+                  />
+                </div>
+              </div>
+            </label>
+
             <label className="properties__field">
               <span
                 className={`properties__field-label ${isBatmanOgmMissing ? "properties__field-label--required" : ""}`}

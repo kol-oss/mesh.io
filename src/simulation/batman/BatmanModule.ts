@@ -15,7 +15,6 @@ const BATMAN_V_VERSION = 5;
 const BATMAN_TIME_TO_LIVE = 50;
 const BATMAN_PROTECTION_WINDOW = 64;
 const BATMAN_MAX_THROUGHPUT = 255;
-const BATMAN_HOP_PENALTY_PERCENT = 5.8;
 
 const cloneMessage = <T extends SimulationMessage>(message: T): T => {
   return { ...message };
@@ -392,7 +391,17 @@ export class BatmanModule implements PacketCapableModule {
       return false;
     }
 
-    const nextThroughput = applyHopPenalty(clampThroughput(message.throughput));
+    const routingPeerEntity = this.routingPeer.getPeerEntity();
+    const senderPeer = this.routingPeer.getNeighbour(message.senderPeerId);
+    const hopDistance = senderPeer
+      ? getDistanceBetweenPeers(routingPeerEntity, senderPeer.getPeerEntity())
+      : 0;
+    const nextThroughput = applyHopPenalty(
+      clampThroughput(message.throughput),
+      hopDistance,
+      routingPeerEntity.batmanDistancePenaltyDistance,
+      routingPeerEntity.batmanDistancePenaltyPercent,
+    );
     const processed = this.originatorTable.process(
       message.sourcePeerId,
       message.senderPeerId,
@@ -518,7 +527,26 @@ const clampThroughput = (throughput: number) => {
   return Math.max(0, Math.min(BATMAN_MAX_THROUGHPUT, Math.floor(throughput)));
 };
 
-const applyHopPenalty = (throughput: number) => {
-  const penalized = throughput * ((100 - BATMAN_HOP_PENALTY_PERCENT) / 100);
+const getDistanceBetweenPeers = (
+  sourcePeer: { x: number; y: number },
+  destinationPeer: { x: number; y: number },
+) => {
+  return Math.hypot(destinationPeer.x - sourcePeer.x, destinationPeer.y - sourcePeer.y);
+};
+
+const applyHopPenalty = (
+  throughput: number,
+  hopDistance: number,
+  distancePenaltyDistance: number,
+  distancePenaltyPercent: number,
+) => {
+  if (!Number.isFinite(distancePenaltyPercent) || distancePenaltyPercent <= 0) {
+    return throughput;
+  }
+
+  const normalizedDistance = Math.max(1, distancePenaltyDistance);
+  const multiplier = Math.max(0, hopDistance) / normalizedDistance;
+  const effectivePenalty = distancePenaltyPercent * multiplier;
+  const penalized = throughput * ((100 - effectivePenalty) / 100);
   return Math.max(0, Math.floor(penalized));
 };
