@@ -460,6 +460,14 @@ const getMessageSummary = (
       value: String(message.sequence),
     },
     {
+      label: ui.simulation.summaryVersion,
+      value: String(message.version),
+    },
+    {
+      label: ui.simulation.summaryThroughput,
+      value: String(message.throughput),
+    },
+    {
       label: ui.simulation.summaryType,
       value: ui.simulation.summaryOgm,
     },

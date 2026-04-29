@@ -11,16 +11,18 @@ import {
 import { SimulationEventRecorder } from "../core/EventRecorder";
 import type { PacketCapableModule, SimulationPeerNode } from "../core/runtimeTypes";
 
+const BATMAN_V_VERSION = 5;
 const BATMAN_TIME_TO_LIVE = 50;
-const BATMAN_WINDOW_SIZE = 64;
-const BATMAN_MAX_QUALITY = 255;
+const BATMAN_PROTECTION_WINDOW = 64;
+const BATMAN_MAX_THROUGHPUT = 255;
+const BATMAN_HOP_PENALTY_PERCENT = 5.8;
 
 const cloneMessage = <T extends SimulationMessage>(message: T): T => {
   return { ...message };
 };
 
-class BatmanQualityWindow {
-  private readonly bits = Array<boolean>(BATMAN_WINDOW_SIZE).fill(false);
+class BatmanSequenceWindow {
+  private readonly bits = Array<boolean>(BATMAN_PROTECTION_WINDOW).fill(false);
 
   private lastSequence: number | null = null;
 
@@ -32,7 +34,7 @@ class BatmanQualityWindow {
     }
 
     const diff = sequence - this.lastSequence;
-    if (diff <= 0 && Math.abs(diff) < BATMAN_WINDOW_SIZE) {
+    if (diff <= 0 && Math.abs(diff) < BATMAN_PROTECTION_WINDOW) {
       const index = Math.abs(diff);
       if (this.bits[index]) {
         return false;
@@ -43,10 +45,10 @@ class BatmanQualityWindow {
     }
 
     if (diff > 0) {
-      if (diff >= BATMAN_WINDOW_SIZE) {
+      if (diff >= BATMAN_PROTECTION_WINDOW) {
         this.bits.fill(false);
       } else {
-        for (let index = BATMAN_WINDOW_SIZE - 1; index >= diff; index -= 1) {
+        for (let index = BATMAN_PROTECTION_WINDOW - 1; index >= diff; index -= 1) {
           this.bits[index] = this.bits[index - diff];
         }
 
@@ -62,22 +64,6 @@ class BatmanQualityWindow {
     return true;
   }
 
-  processGap() {
-    if (this.lastSequence === null) {
-      return;
-    }
-
-    for (let index = BATMAN_WINDOW_SIZE - 1; index >= 1; index -= 1) {
-      this.bits[index] = this.bits[index - 1];
-    }
-    this.bits[0] = false;
-  }
-
-  getQuality() {
-    const receivedCount = this.bits.reduce((count, bit) => count + Number(bit), 0);
-    return Math.floor((receivedCount * BATMAN_MAX_QUALITY) / BATMAN_WINDOW_SIZE);
-  }
-
   toString() {
     return this.bits.map((bit) => (bit ? "1" : "0")).join("");
   }
@@ -85,7 +71,8 @@ class BatmanQualityWindow {
 
 type BatmanRoute = {
   hopPeerId: string;
-  qualityWindow: BatmanQualityWindow;
+  throughput: number;
+  sequenceWindow: BatmanSequenceWindow;
   lastTick: number;
 };
 
@@ -108,13 +95,28 @@ class BatmanOriginatorTable {
     this.purgeTimeout = purgeTimeout;
   }
 
-  process(originatorPeerId: string, hopPeerId: string, message: BatmanOriginatorMessage) {
+  process(
+    originatorPeerId: string,
+    hopPeerId: string,
+    message: BatmanOriginatorMessage,
+    throughput: number,
+  ) {
+    const previousBestRoute = this.getBestRoute(originatorPeerId);
     const routes = this.originators.get(originatorPeerId);
     if (!routes || !routes.has(hopPeerId)) {
-      this.insert(originatorPeerId, hopPeerId, message);
+      this.insert(originatorPeerId, hopPeerId, message, throughput);
     }
 
-    return this.update(originatorPeerId, hopPeerId, message);
+    const accepted = this.update(originatorPeerId, hopPeerId, message, throughput);
+    const nextBestRoute = this.getBestRoute(originatorPeerId);
+
+    return {
+      accepted,
+      previousBestHopPeerId: previousBestRoute?.hopPeerId ?? null,
+      previousBestThroughput: previousBestRoute?.throughput ?? 0,
+      nextBestHopPeerId: nextBestRoute?.hopPeerId ?? null,
+      nextBestThroughput: nextBestRoute?.throughput ?? 0,
+    };
   }
 
   tick() {
@@ -138,18 +140,6 @@ class BatmanOriginatorTable {
         if (route.lastTick === tick) {
           continue;
         }
-
-        route.qualityWindow.processGap();
-        const nextRoute = this.toRouteRecord(originatorPeerId, route);
-        if (previousRoute.quality !== nextRoute.quality) {
-          this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableUpdate, {
-            originatorPeerId,
-            hopPeerId,
-            previousRoute,
-            nextRoute,
-            reason: ui.runtime.qualityWindowShiftedNoOgm,
-          });
-        }
       }
 
       if (routes.size === 0) {
@@ -171,8 +161,8 @@ class BatmanOriginatorTable {
         continue;
       }
 
-      const selectedQuality = selected.qualityWindow.getQuality();
-      const routeQuality = route.qualityWindow.getQuality();
+      const selectedQuality = selected.throughput;
+      const routeQuality = route.throughput;
       if (routeQuality > selectedQuality) {
         selected = route;
         continue;
@@ -184,6 +174,27 @@ class BatmanOriginatorTable {
     }
 
     return selected?.hopPeerId ?? null;
+  }
+
+  private getBestRoute(originatorPeerId: string): BatmanRoute | null {
+    const routes = this.originators.get(originatorPeerId);
+    if (!routes || routes.size === 0) {
+      return null;
+    }
+
+    let selected: BatmanRoute | null = null;
+    for (const route of routes.values()) {
+      if (!selected || route.throughput > selected.throughput) {
+        selected = route;
+        continue;
+      }
+
+      if (route.throughput === selected.throughput && route.hopPeerId === originatorPeerId) {
+        selected = route;
+      }
+    }
+
+    return selected;
   }
 
   getRoutes() {
@@ -203,10 +214,16 @@ class BatmanOriginatorTable {
     });
   }
 
-  private insert(originatorPeerId: string, hopPeerId: string, message: BatmanOriginatorMessage) {
+  private insert(
+    originatorPeerId: string,
+    hopPeerId: string,
+    message: BatmanOriginatorMessage,
+    throughput: number,
+  ) {
     const route: BatmanRoute = {
       hopPeerId,
-      qualityWindow: new BatmanQualityWindow(),
+      throughput,
+      sequenceWindow: new BatmanSequenceWindow(),
       lastTick: this.eventRecorder.getCurrentTick(),
     };
 
@@ -224,7 +241,12 @@ class BatmanOriginatorTable {
     });
   }
 
-  private update(originatorPeerId: string, hopPeerId: string, message: BatmanOriginatorMessage) {
+  private update(
+    originatorPeerId: string,
+    hopPeerId: string,
+    message: BatmanOriginatorMessage,
+    throughput: number,
+  ) {
     const route = this.originators.get(originatorPeerId)?.get(hopPeerId);
     if (!route) {
       return false;
@@ -232,15 +254,16 @@ class BatmanOriginatorTable {
 
     const previousRoute = this.toRouteRecord(originatorPeerId, route);
     route.lastTick = this.eventRecorder.getCurrentTick();
-    const processed = route.qualityWindow.process(message.sequence);
+    const processed = route.sequenceWindow.process(message.sequence);
     if (processed) {
+      route.throughput = throughput;
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableUpdate, {
         originatorPeerId,
         hopPeerId,
         previousRoute,
         nextRoute: this.toRouteRecord(originatorPeerId, route),
         message: cloneMessage(message),
-        reason: ui.runtime.ogmUpdatedQualityWindow,
+        reason: ui.runtime.ogmUpdatedThroughput,
       });
     }
 
@@ -251,8 +274,8 @@ class BatmanOriginatorTable {
     return {
       originatorPeerId,
       hopPeerId: route.hopPeerId,
-      quality: route.qualityWindow.getQuality(),
-      qualityWindow: route.qualityWindow.toString(),
+      quality: route.throughput,
+      qualityWindow: route.sequenceWindow.toString(),
       lastTick: route.lastTick,
     };
   }
@@ -305,10 +328,12 @@ export class BatmanModule implements PacketCapableModule {
     this.sequence += 1;
     const message: BatmanOriginatorMessage = {
       kind: SimulationMessageKind.BatmanOriginatorMessage,
+      version: BATMAN_V_VERSION,
       sourcePeerId: this.routingPeer.id,
       senderPeerId: this.routingPeer.id,
       sequence: this.sequence,
       timeToLive: BATMAN_TIME_TO_LIVE,
+      throughput: BATMAN_MAX_THROUGHPUT,
     };
 
     this.broadcast(message);
@@ -350,6 +375,14 @@ export class BatmanModule implements PacketCapableModule {
       return true;
     }
 
+    if (message.version !== BATMAN_V_VERSION) {
+      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+        message: cloneMessage(message),
+        reason: ui.runtime.ogmUnsupportedVersion(message.version),
+      });
+      return false;
+    }
+
     const nextTimeToLive = message.timeToLive - 1;
     if (nextTimeToLive <= 0) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
@@ -359,15 +392,30 @@ export class BatmanModule implements PacketCapableModule {
       return false;
     }
 
+    const nextThroughput = applyHopPenalty(clampThroughput(message.throughput));
     const processed = this.originatorTable.process(
       message.sourcePeerId,
       message.senderPeerId,
       message,
+      nextThroughput,
     );
-    if (!processed) {
+    if (!processed.accepted) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
         reason: ui.runtime.duplicateOgmIgnored,
+      });
+      return true;
+    }
+
+    const rebroadcastAllowedByBestPath =
+      processed.previousBestHopPeerId === null ||
+      processed.previousBestHopPeerId === message.senderPeerId ||
+      nextThroughput > processed.previousBestThroughput;
+
+    if (!rebroadcastAllowedByBestPath) {
+      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+        message: cloneMessage(message),
+        reason: ui.runtime.ogmSuppressedInferiorPath,
       });
       return true;
     }
@@ -376,6 +424,7 @@ export class BatmanModule implements PacketCapableModule {
       ...message,
       senderPeerId: this.routingPeer.id,
       timeToLive: nextTimeToLive,
+      throughput: nextThroughput,
     };
     return this.broadcast(forwarded);
   }
@@ -459,4 +508,17 @@ const isSimulationMessage = (value: unknown): value is SimulationMessage => {
     candidate.kind === SimulationMessageKind.Packet ||
     candidate.kind === SimulationMessageKind.BatmanOriginatorMessage
   );
+};
+
+const clampThroughput = (throughput: number) => {
+  if (!Number.isFinite(throughput)) {
+    return BATMAN_MAX_THROUGHPUT;
+  }
+
+  return Math.max(0, Math.min(BATMAN_MAX_THROUGHPUT, Math.floor(throughput)));
+};
+
+const applyHopPenalty = (throughput: number) => {
+  const penalized = throughput * ((100 - BATMAN_HOP_PENALTY_PERCENT) / 100);
+  return Math.max(0, Math.floor(penalized));
 };

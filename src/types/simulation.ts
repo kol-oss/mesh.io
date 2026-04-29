@@ -33,10 +33,12 @@ export type SimulationPacket = {
 
 export type BatmanOriginatorMessage = {
   kind: typeof SimulationMessageKind.BatmanOriginatorMessage;
+  version: number;
   sourcePeerId: string;
   senderPeerId: string;
   sequence: number;
   timeToLive: number;
+  throughput: number;
 };
 
 export type SimulationMessage = SimulationPacket | BatmanOriginatorMessage;

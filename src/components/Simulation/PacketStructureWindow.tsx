@@ -162,10 +162,15 @@ const getBatmanOgmStructureRows = (
 
   return [
     [
-      { label: ui.packet.fieldVersion, value: ui.packet.notAvailable, bits: 5, blocked: true },
-      { label: ui.packet.fieldFlags, value: ui.packet.notAvailable, bits: 5, blocked: true },
+      { label: ui.packet.fieldVersion, value: String(message.version), bits: 8, blocked: false },
+      { label: ui.packet.fieldFlags, value: ui.packet.notAvailable, bits: 8, blocked: true },
       { label: ui.packet.fieldTtl, value: String(message.timeToLive), bits: 8, blocked: false },
-      { label: ui.packet.fieldGwFlags, value: ui.packet.notAvailable, bits: 8, blocked: true },
+      {
+        label: ui.packet.fieldThroughput,
+        value: String(message.throughput),
+        bits: 8,
+        blocked: false,
+      },
     ],
     [
       {
@@ -174,12 +179,19 @@ const getBatmanOgmStructureRows = (
         bits: 16,
         blocked: false,
       },
+      { label: ui.packet.fieldGwFlags, value: ui.packet.notAvailable, bits: 8, blocked: true },
       { label: ui.packet.fieldGwPort, value: ui.packet.notAvailable, bits: 16, blocked: true },
     ],
     [
       {
         label: ui.packet.fieldOriginatorAddress,
         value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
+        bits: 32,
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldSenderAddress,
+        value: peerNameById.get(message.senderPeerId) ?? message.senderPeerId,
         bits: 32,
         blocked: false,
       },
