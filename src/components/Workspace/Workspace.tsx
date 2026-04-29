@@ -27,6 +27,7 @@ import { useWorkspaceHints } from "../../hooks/workspace/useHints";
 import { useWorkspacePlacement } from "../../hooks/workspace/usePlacement";
 import { useWorkspaceTextEdit } from "../../hooks/workspace/useTextEdit";
 import { useWorkspaceDerived } from "../../hooks/workspace/useDerived";
+import { ui } from "../../i18n/messages";
 import { useToast } from "../../hooks/useToast";
 import { clamp } from "../../utils/math/clamp";
 import PacketStructureWindow from "../Simulation/PacketStructureWindow";
@@ -252,7 +253,7 @@ export default function Workspace({
 
       setTexts(texts.filter((item) => item.id !== selectedTextId));
       setSelectedTextId(null);
-      showToast("Text deleted");
+      showToast(ui.workspace.textDeleted);
     };
 
     window.addEventListener("keydown", handleKeyDown);

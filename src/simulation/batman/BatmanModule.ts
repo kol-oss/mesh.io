@@ -1,4 +1,5 @@
 import { RoutingProtocol } from "../../types/enums";
+import { ui } from "../../i18n/messages";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -129,7 +130,7 @@ class BatmanOriginatorTable {
             hopPeerId,
             previousRoute,
             nextRoute: null,
-            reason: `Route expired after ${this.purgeTimeout} ticks without updates`,
+            reason: ui.runtime.routeExpiredAfterTicks(this.purgeTimeout),
           });
           continue;
         }
@@ -146,7 +147,7 @@ class BatmanOriginatorTable {
             hopPeerId,
             previousRoute,
             nextRoute,
-            reason: "Quality window shifted because no OGM was received during the tick",
+            reason: ui.runtime.qualityWindowShiftedNoOgm,
           });
         }
       }
@@ -219,7 +220,7 @@ class BatmanOriginatorTable {
       previousRoute: null,
       nextRoute: this.toRouteRecord(originatorPeerId, route),
       message: cloneMessage(message),
-      reason: "First OGM discovered a new originator via this hop",
+      reason: ui.runtime.firstOgmDiscoveredOriginator,
     });
   }
 
@@ -239,7 +240,7 @@ class BatmanOriginatorTable {
         previousRoute,
         nextRoute: this.toRouteRecord(originatorPeerId, route),
         message: cloneMessage(message),
-        reason: "OGM updated the BATMAN quality window",
+        reason: ui.runtime.ogmUpdatedQualityWindow,
       });
     }
 
@@ -321,7 +322,7 @@ export class BatmanModule implements PacketCapableModule {
     if (!this.routingPeer.isActive()) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(packet),
-        reason: "Source peer is disabled",
+        reason: ui.runtime.sourcePeerDisabled,
       });
       return false;
     }
@@ -353,7 +354,7 @@ export class BatmanModule implements PacketCapableModule {
     if (nextTimeToLive <= 0) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
-        reason: "BATMAN OGM TTL reached zero",
+        reason: ui.runtime.ogmTtlReachedZero,
       });
       return false;
     }
@@ -366,7 +367,7 @@ export class BatmanModule implements PacketCapableModule {
     if (!processed) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
-        reason: "Duplicate BATMAN OGM was ignored by the quality window",
+        reason: ui.runtime.duplicateOgmIgnored,
       });
       return true;
     }
@@ -383,7 +384,7 @@ export class BatmanModule implements PacketCapableModule {
     if (packet.timeToLive <= 0) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(packet),
-        reason: "Packet TTL reached zero",
+        reason: ui.runtime.packetTtlReachedZero,
       });
       return false;
     }
@@ -392,7 +393,7 @@ export class BatmanModule implements PacketCapableModule {
     if (!nextHopPeerId) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(packet),
-        reason: "No BATMAN route is available for the destination",
+        reason: ui.runtime.noRouteForDestination,
       });
       return false;
     }
@@ -405,7 +406,7 @@ export class BatmanModule implements PacketCapableModule {
     if (!hop) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
-        reason: "Selected next hop is not a current neighbour",
+        reason: ui.runtime.nextHopNotNeighbour,
       });
       return false;
     }
@@ -413,7 +414,7 @@ export class BatmanModule implements PacketCapableModule {
     if (!hop.supports(RoutingProtocol.BATMAN)) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
-        reason: "Selected next hop does not support BATMAN",
+        reason: ui.runtime.nextHopNoBatman,
       });
       return false;
     }

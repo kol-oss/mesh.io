@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
+import { ui } from "../../i18n/messages";
 import {
   SimulationMessageKind,
   type SimulationEvent,
@@ -98,27 +99,24 @@ export default function PacketStructureWindow({
   return (
     <aside
       className={`simulation-panel simulation-panel--inspector${isDragging ? " simulation-panel--dragging" : ""}`}
-      aria-label="Packet structure inspector"
+      aria-label={ui.packet.inspectorAria}
       style={{ transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)` }}
     >
       <header className="simulation-panel__header" onPointerDown={handleHeaderPointerDown}>
-        <h2 className="simulation-panel__title">BATMAN OGM Packet</h2>
+        <h2 className="simulation-panel__title">{ui.packet.title}</h2>
         <button
           className="simulation-panel__close-button"
           type="button"
           onClick={onClose}
           onPointerDown={(event) => event.stopPropagation()}
-          aria-label="Close packet structure"
+          aria-label={ui.packet.closeAria}
         >
           <X size={14} />
         </button>
       </header>
       <section className="simulation-panel__section">
         {eventMessage?.kind === SimulationMessageKind.BatmanOriginatorMessage ? (
-          <div
-            className="simulation-panel__packet-structure"
-            aria-label="BATMAN OGM packet structure"
-          >
+          <div className="simulation-panel__packet-structure" aria-label={ui.packet.structureAria}>
             {getBatmanOgmStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-${rowIndex}`}>
                 {row.map((field) => (
@@ -131,10 +129,12 @@ export default function PacketStructureWindow({
                     <span className="simulation-panel__packet-field-value">{field.value}</span>
                     <span className="simulation-panel__packet-tooltip" role="tooltip">
                       <span className="simulation-panel__packet-tooltip-bits">
-                        {field.bits} bits
+                        {field.bits} {ui.packet.bitsSuffix}
                       </span>
                       {field.blocked ? (
-                        <span className="simulation-panel__packet-tooltip-note">Not modeled</span>
+                        <span className="simulation-panel__packet-tooltip-note">
+                          {ui.packet.notModeled}
+                        </span>
                       ) : null}
                     </span>
                   </div>
@@ -144,7 +144,7 @@ export default function PacketStructureWindow({
           </div>
         ) : (
           <p className="simulation-panel__description simulation-panel__description--secondary">
-            Packet structure is not available for this event.
+            {ui.packet.unavailable}
           </p>
         )}
       </section>
@@ -162,18 +162,23 @@ const getBatmanOgmStructureRows = (
 
   return [
     [
-      { label: "Version", value: "N/A", bits: 5, blocked: true },
-      { label: "Flags", value: "N/A", bits: 5, blocked: true },
-      { label: "TTL", value: String(message.timeToLive), bits: 8, blocked: false },
-      { label: "GW Flags", value: "N/A", bits: 8, blocked: true },
-    ],
-    [
-      { label: "Sequence Number", value: String(message.sequence), bits: 16, blocked: false },
-      { label: "GW Port", value: "N/A", bits: 16, blocked: true },
+      { label: ui.packet.fieldVersion, value: ui.packet.notAvailable, bits: 5, blocked: true },
+      { label: ui.packet.fieldFlags, value: ui.packet.notAvailable, bits: 5, blocked: true },
+      { label: ui.packet.fieldTtl, value: String(message.timeToLive), bits: 8, blocked: false },
+      { label: ui.packet.fieldGwFlags, value: ui.packet.notAvailable, bits: 8, blocked: true },
     ],
     [
       {
-        label: "Originator Address",
+        label: ui.packet.fieldSequenceNumber,
+        value: String(message.sequence),
+        bits: 16,
+        blocked: false,
+      },
+      { label: ui.packet.fieldGwPort, value: ui.packet.notAvailable, bits: 16, blocked: true },
+    ],
+    [
+      {
+        label: ui.packet.fieldOriginatorAddress,
         value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
         bits: 32,
         blocked: false,

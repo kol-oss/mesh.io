@@ -1,4 +1,5 @@
 import { EntityType, RoutingProtocol, StepType } from "../../types/enums";
+import { ui } from "../../i18n/messages";
 import type { NetworkEntity, PeerEntity } from "../../types/entities";
 import {
   createStepBase,
@@ -78,7 +79,7 @@ const buildRefreshStepsForPeer = (
   const interval = Math.max(1, Math.floor(peer.batmanOgmInterval));
   return buildBatmanRefreshTicks(manualSteps, peer, maxTick).map(({ tick, startTick }) => ({
     id: `refresh-batman-${peer.id}-${tick}`,
-    title: `BATMAN Refresh on ${peer.name}`,
+    title: ui.refreshStep.title(peer.name),
     tick: Math.max(0, Math.floor(tick)),
     type: StepType.Refresh,
     refreshPeerId: peer.id,

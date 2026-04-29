@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ui } from "../../i18n/messages";
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [storedValue, setStoredValue] = useState<T>(() => {
@@ -15,7 +16,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
       setStoredValue(value);
       window.localStorage.setItem(key, JSON.stringify(value));
     } catch {
-      console.error("Failed to set localStorage");
+      console.error(ui.errors.localStorageSetFailed);
     }
   };
 

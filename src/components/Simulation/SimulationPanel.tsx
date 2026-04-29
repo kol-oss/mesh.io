@@ -7,6 +7,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
+import { ui } from "../../i18n/messages";
 import { ToolbarMode } from "../../types/enums";
 import {
   SimulationMessageKind,
@@ -138,14 +139,14 @@ export default function SimulationPanel({
   return (
     <aside
       className={`simulation-panel simulation-panel--tooltip${isDragging ? " simulation-panel--dragging" : ""}`}
-      aria-label="Simulation event"
+      aria-label={ui.simulation.panelAria}
       onPointerDown={handlePointerDown}
       onMouseLeave={() => onPeerHoverChange(null)}
       style={{ left: `${anchorX + dragOffset.x}px`, top: `${anchorY + dragOffset.y}px` }}
     >
       <header className="simulation-panel__header" onPointerDown={handleHeaderPointerDown}>
         <h2 className="simulation-panel__title">{title}</h2>
-        <span className="simulation-panel__tick">Tick {currentEvent.tick}</span>
+        <span className="simulation-panel__tick">{ui.simulation.tickLabel(currentEvent.tick)}</span>
       </header>
 
       <section className="simulation-panel__section">
@@ -155,10 +156,10 @@ export default function SimulationPanel({
             <table className="simulation-panel__table-view">
               <thead>
                 <tr>
-                  <th>Originator</th>
-                  <th>Next Hop</th>
-                  <th>TQ</th>
-                  <th>Last Seen</th>
+                  <th>{ui.simulation.tableOriginator}</th>
+                  <th>{ui.simulation.tableNextHop}</th>
+                  <th>{ui.simulation.tableTq}</th>
+                  <th>{ui.simulation.tableLastSeen}</th>
                 </tr>
               </thead>
               <tbody>
@@ -214,11 +215,11 @@ export default function SimulationPanel({
                     key={`window-${row.originatorPeerId}-${row.hopPeerId}-${index}`}
                   >
                     <p className="simulation-panel__quality-window-label">
-                      Transaction Quality (TQ) Window
+                      {ui.simulation.qualityWindowTitle}
                     </p>
                     <div
                       className="simulation-panel__quality-window-bits"
-                      aria-label="Quality window bits"
+                      aria-label={ui.simulation.qualityWindowBitsAria}
                     >
                       {row.qualityWindow.split("").map((bit, bitIndex) => (
                         <span
@@ -247,14 +248,14 @@ export default function SimulationPanel({
             </table>
           </div>
         ) : (
-          <p className="simulation-panel__empty">No event details available.</p>
+          <p className="simulation-panel__empty">{ui.simulation.emptyDetails}</p>
         )}
       </section>
 
       <footer className="simulation-panel__footer">
         <button className="simulation-panel__read-more" type="button">
           <ExternalLink size={12} />
-          Read more
+          {ui.simulation.packetStructureReadMore}
         </button>
         <div className="simulation-panel__pager simulation-panel__pager--footer">
           <button
@@ -262,7 +263,7 @@ export default function SimulationPanel({
             type="button"
             onClick={onPrevEvent}
             disabled={!canGoPrevEvent}
-            aria-label="Previous event"
+            aria-label={ui.simulation.previousEventAria}
           >
             <ChevronLeft size={18} />
           </button>
@@ -274,7 +275,7 @@ export default function SimulationPanel({
             type="button"
             onClick={onNextEvent}
             disabled={!canGoNextEvent}
-            aria-label="Next event"
+            aria-label={ui.simulation.nextEventAria}
           >
             <ChevronRight size={18} />
           </button>
@@ -298,13 +299,13 @@ const getEventTitle = (event: SimulationEvent) => {
     case SimulationEventType.SystemMessageBroadcast:
       return getBroadcastTitle(event, message);
     case SimulationEventType.SystemMessageSent:
-      return "Send Message";
+      return ui.simulation.sendMessage;
     case SimulationEventType.SystemMessageReceived:
-      return "Receive Message";
+      return ui.simulation.receiveMessage;
     case SimulationEventType.SystemMessageDropped:
       return getDroppedTitle(message);
     default:
-      return "Simulation Event";
+      return ui.simulation.genericEvent;
   }
 };
 
@@ -363,17 +364,17 @@ const getEventDescription = (
           onPeerHoverChange,
         );
       case SimulationEventType.SystemMessageSent:
-        return `${actor} sent a message to the selected next hop.`;
+        return ui.simulation.eventSent(actor);
       case SimulationEventType.SystemMessageReceived:
-        return `${actor} received a message and handled it locally.`;
+        return ui.simulation.eventReceived(actor);
       case SimulationEventType.SystemMessageDropped:
-        return getDroppedDescription(event.peerId, actor, message, onPeerHoverChange);
+        return getDroppedDescription(event.peerId, actor, message);
       default:
-        return `${actor} emitted a simulation event.`;
+        return ui.simulation.eventEmitted(actor);
     }
   }
 
-  return `${actor} changed its routing state.`;
+  return ui.simulation.routingStateChanged(actor);
 };
 
 const getRouteChange = (event: SimulationEvent): RoutingTableChangeDetails | null => {
@@ -409,17 +410,17 @@ const getMessageSummary = (
   if (message.kind === SimulationMessageKind.Packet) {
     return [
       {
-        label: "Source",
+        label: ui.simulation.summarySource,
         value: message.sourcePeerId
           ? renderPeerName(
               message.sourcePeerId,
               getPeerLabel(message.sourcePeerId, peerNameById),
               onPeerHoverChange,
             )
-          : "Unknown",
+          : ui.common.unknown,
       },
       {
-        label: "Destination",
+        label: ui.simulation.summaryDestination,
         value: renderPeerName(
           message.destinationPeerId,
           getPeerLabel(message.destinationPeerId, peerNameById),
@@ -427,11 +428,11 @@ const getMessageSummary = (
         ),
       },
       {
-        label: "Type",
-        value: "Packet",
+        label: ui.simulation.summaryType,
+        value: ui.simulation.summaryPacket,
       },
       {
-        label: "TTL",
+        label: ui.simulation.summaryTtl,
         value: String(message.timeToLive),
       },
     ];
@@ -439,7 +440,7 @@ const getMessageSummary = (
 
   return [
     {
-      label: "Originator",
+      label: ui.simulation.summaryOriginator,
       value: renderPeerName(
         message.sourcePeerId,
         getPeerLabel(message.sourcePeerId, peerNameById),
@@ -447,7 +448,7 @@ const getMessageSummary = (
       ),
     },
     {
-      label: "Sender",
+      label: ui.simulation.summarySender,
       value: renderPeerName(
         message.senderPeerId,
         getPeerLabel(message.senderPeerId, peerNameById),
@@ -455,15 +456,15 @@ const getMessageSummary = (
       ),
     },
     {
-      label: "Sequence",
+      label: ui.simulation.summarySequence,
       value: String(message.sequence),
     },
     {
-      label: "Type",
-      value: "OGM",
+      label: ui.simulation.summaryType,
+      value: ui.simulation.summaryOgm,
     },
     {
-      label: "TTL",
+      label: ui.simulation.summaryTtl,
       value: String(message.timeToLive),
     },
   ];
@@ -480,23 +481,23 @@ const getEventMessage = (event: SimulationEvent): SimulationMessage | null => {
 const getBroadcastTitle = (event: SimulationEvent, message: SimulationMessage | null) => {
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
     return "retransmit" in event.details && event.details.retransmit
-      ? "OGM Broadcast Retransmission"
-      : "OGM Broadcast";
+      ? ui.simulation.ogmBroadcastRetransmission
+      : ui.simulation.ogmBroadcast;
   }
 
-  return "Broadcast Message";
+  return ui.simulation.broadcastMessage;
 };
 
 const getDroppedTitle = (message: SimulationMessage | null) => {
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
-    return "OGM Dropped";
+    return ui.simulation.ogmDropped;
   }
 
   if (message?.kind === SimulationMessageKind.Packet) {
-    return "Packet Dropped";
+    return ui.simulation.packetDropped;
   }
 
-  return "Drop Message";
+  return ui.simulation.dropMessage;
 };
 
 const getBroadcastDescription = (
@@ -513,60 +514,42 @@ const getBroadcastDescription = (
     if ("retransmit" in event.details && event.details.retransmit) {
       return (
         <>
-          {renderPeerName(actorId, actor, onPeerHoverChange)} rebroadcasts{" "}
-          {renderPeerName(message.sourcePeerId, originator, onPeerHoverChange)}'s OGM after
-          receiving it from {renderPeerName(message.senderPeerId, sender, onPeerHoverChange)}. This
-          forwards fresh link-quality evidence deeper into the mesh so downstream nodes can compare
-          candidate next hops for the same originator without hearing the originator directly.
+          {renderPeerName(actorId, actor, onPeerHoverChange)} {ui.simulation.ogmRebroadcastPrefix}{" "}
+          {renderPeerName(message.sourcePeerId, originator, onPeerHoverChange)}
+          {ui.simulation.ogmRebroadcastMiddle}
+          {renderPeerName(message.senderPeerId, sender, onPeerHoverChange)}
+          {ui.simulation.ogmRebroadcastSuffix}
         </>
       );
     }
 
     return (
       <>
-        Every OGM interval, {renderPeerName(actorId, actor, onPeerHoverChange)} broadcasts an
-        Originator Message (OGM) to announce its presence and publish fresh link-quality
-        information. Neighbours rebroadcast the OGM across the mesh, allowing BATMAN nodes to
-        compare received OGM counts and pick the strongest next hop back toward{" "}
-        {renderPeerName(message.sourcePeerId, originator, onPeerHoverChange)}.
+        {ui.simulation.ogmBroadcastPrefix} {renderPeerName(actorId, actor, onPeerHoverChange)}{" "}
+        {ui.simulation.ogmBroadcastMiddle}{" "}
+        {renderPeerName(message.sourcePeerId, originator, onPeerHoverChange)}
+        {ui.simulation.ogmBroadcastSuffix}
       </>
     );
   }
 
-  return (
-    <>
-      {renderPeerName(actorId, actor, onPeerHoverChange)} broadcast a message to neighbouring peers.
-    </>
-  );
+  return <>{ui.simulation.broadcastFallback(actor)}</>;
 };
 
 const getDroppedDescription = (
-  actorId: string,
+  _actorId: string,
   actor: string,
   message: SimulationMessage | null,
-  onPeerHoverChange: (peerId: string | null) => void,
 ) => {
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
-    return (
-      <>
-        {renderPeerName(actorId, actor, onPeerHoverChange)} could not continue processing this OGM,
-        so the BATMAN propagation stopped at this hop.
-      </>
-    );
+    return <>{ui.simulation.droppedOgm(actor)}</>;
   }
 
   if (message?.kind === SimulationMessageKind.Packet) {
-    return (
-      <>
-        {renderPeerName(actorId, actor, onPeerHoverChange)} could not forward this packet, so
-        delivery stopped at this hop.
-      </>
-    );
+    return <>{ui.simulation.droppedPacket(actor)}</>;
   }
 
-  return (
-    <>{renderPeerName(actorId, actor, onPeerHoverChange)} dropped a message during processing.</>
-  );
+  return <>{ui.simulation.droppedGeneric(actor)}</>;
 };
 
 const getRouteInsertTitle = (
@@ -574,10 +557,10 @@ const getRouteInsertTitle = (
   routeChange: RoutingTableChangeDetails | null,
 ) => {
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage || routeChange) {
-    return "Originator Added";
+    return ui.simulation.originatorAdded;
   }
 
-  return "Route Added";
+  return ui.simulation.routeAdded;
 };
 
 const getRouteUpdateTitle = (
@@ -585,10 +568,10 @@ const getRouteUpdateTitle = (
   routeChange: RoutingTableChangeDetails | null,
 ) => {
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage || routeChange) {
-    return "Originator Updated";
+    return ui.simulation.originatorUpdated;
   }
 
-  return "Route Updated";
+  return ui.simulation.routeUpdated;
 };
 
 const getRouteRemoveTitle = (
@@ -596,10 +579,10 @@ const getRouteRemoveTitle = (
   routeChange: RoutingTableChangeDetails | null,
 ) => {
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage || routeChange) {
-    return "Originator Removed";
+    return ui.simulation.originatorRemoved;
   }
 
-  return "Route Removed";
+  return ui.simulation.routeRemoved;
 };
 
 const getRouteInsertDescription = (
@@ -615,11 +598,11 @@ const getRouteInsertDescription = (
 
   return (
     <>
-      {renderPeerName(actorId, actor, onPeerHoverChange)} created a new originator-table entry for{" "}
-      {renderPeerName(routeChange.originatorPeerId, originator, onPeerHoverChange)} via{" "}
-      {renderPeerName(routeChange.hopPeerId, nextHop, onPeerHoverChange)} after accepting a valid
-      OGM. The node records the originator identifier, the forwarding neighbour, and fresh last-seen
-      timing data so it can initialize tracking for that originator in the BATMAN originator table.
+      {renderPeerName(actorId, actor, onPeerHoverChange)} {ui.simulation.routeInsertBodyPrefix}{" "}
+      {renderPeerName(routeChange.originatorPeerId, originator, onPeerHoverChange)}{" "}
+      {ui.simulation.routeInsertBodyMiddle}{" "}
+      {renderPeerName(routeChange.hopPeerId, nextHop, onPeerHoverChange)}{" "}
+      {ui.simulation.routeInsertBodySuffix}
     </>
   );
 };
@@ -637,12 +620,11 @@ const getRouteUpdateDescription = (
 
   return (
     <>
-      {renderPeerName(actorId, actor, onPeerHoverChange)} refreshed the originator-table entry for{" "}
-      {renderPeerName(routeChange.originatorPeerId, originator, onPeerHoverChange)} via{" "}
-      {renderPeerName(routeChange.hopPeerId, nextHop, onPeerHoverChange)} after processing a valid
-      OGM for that originator. BATMAN updates the existing entry with the latest sequence progress,
-      refreshes the quality window, and stores new last-seen timing information so the routing data
-      stays current.
+      {renderPeerName(actorId, actor, onPeerHoverChange)} {ui.simulation.routeUpdateBodyPrefix}{" "}
+      {renderPeerName(routeChange.originatorPeerId, originator, onPeerHoverChange)}{" "}
+      {ui.simulation.routeUpdateBodyMiddle}{" "}
+      {renderPeerName(routeChange.hopPeerId, nextHop, onPeerHoverChange)}{" "}
+      {ui.simulation.routeUpdateBodySuffix}
     </>
   );
 };
@@ -658,10 +640,14 @@ const getRouteTqExplanation = (event: SimulationEvent) => {
   if (event.type === SimulationEventType.RoutingTableInsert) {
     const nextRoute = routeChange.nextRoute;
     if (!nextRoute || message?.kind !== SimulationMessageKind.BatmanOriginatorMessage) {
-      return "Transaction Quality (TQ) is initialized from the first accepted OGM and then continuously adjusted as the 64-bit history window shifts, adding 1s for received OGMs and 0s for missed ones.";
+      return ui.simulation.tqInsertFallback;
     }
 
-    return `Received OGM with sequence ${message.sequence} initializes the window: BATMAN inserts a 1 at the newest position and shifts other elements. The window was just initialized and currently has ${countQualityWindowOnes(nextRoute.qualityWindow)} successful receptions, resulting in TQ ${nextRoute.quality}.`;
+    return ui.simulation.tqInsertFromSequence(
+      message.sequence,
+      countQualityWindowOnes(nextRoute.qualityWindow),
+      nextRoute.quality,
+    );
   }
 
   if (event.type === SimulationEventType.RoutingTableUpdate) {
@@ -672,17 +658,31 @@ const getRouteTqExplanation = (event: SimulationEvent) => {
       return null;
     }
 
-    const isDecayUpdate = routeChange.reason.includes("no OGM was received during the tick");
+    const isDecayUpdate = routeChange.reason.includes(ui.runtime.qualityWindowShiftedNoOgm);
 
     if (!isDecayUpdate) {
       if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
-        return `Received OGM with sequence ${message.sequence} updated the window by adding a new entry to the first position. The calculated quality changed from ${previousRoute.quality} to ${nextRoute.quality}.`;
+        return ui.simulation.tqUpdateFromSequence(
+          message.sequence,
+          previousRoute.quality,
+          nextRoute.quality,
+        );
       }
 
-      return `A new OGM updated the route: the window changed from ${countQualityWindowOnes(previousRoute.qualityWindow)} (TQ ${previousRoute.quality}) to ${countQualityWindowOnes(nextRoute.qualityWindow)} (TQ ${nextRoute.quality}).`;
+      return ui.simulation.tqUpdateGeneric(
+        countQualityWindowOnes(previousRoute.qualityWindow),
+        previousRoute.quality,
+        countQualityWindowOnes(nextRoute.qualityWindow),
+        nextRoute.quality,
+      );
     }
 
-    return `No OGM arrived, so BATMAN shifted in a 0: the window changed from ${countQualityWindowOnes(previousRoute.qualityWindow)} (TQ ${previousRoute.quality}) to ${countQualityWindowOnes(nextRoute.qualityWindow)} (TQ ${nextRoute.quality}).`;
+    return ui.simulation.tqDecayUpdate(
+      countQualityWindowOnes(previousRoute.qualityWindow),
+      previousRoute.quality,
+      countQualityWindowOnes(nextRoute.qualityWindow),
+      nextRoute.quality,
+    );
   }
 
   return null;
@@ -694,10 +694,10 @@ const countQualityWindowOnes = (qualityWindow: string) => {
 
 const getRouteTqQuestion = (event: SimulationEvent) => {
   if (event.type === SimulationEventType.RoutingTableUpdate) {
-    return "How Transaction Quality (TQ) changed?";
+    return ui.simulation.tqQuestionChanged;
   }
 
-  return "What is Transaction Quality (TQ)?";
+  return ui.simulation.tqQuestionWhat;
 };
 
 const getRouteRemoveDescription = (
@@ -713,11 +713,11 @@ const getRouteRemoveDescription = (
 
   return (
     <>
-      {renderPeerName(actorId, actor, onPeerHoverChange)} removed the originator-table entry for{" "}
-      {renderPeerName(routeChange.originatorPeerId, originator, onPeerHoverChange)} via{" "}
-      {renderPeerName(routeChange.hopPeerId, nextHop, onPeerHoverChange)}. BATMAN drops the record
-      when the quality window decays or the route becomes stale, so this next hop is no longer
-      trusted as a valid path to that originator.
+      {renderPeerName(actorId, actor, onPeerHoverChange)} {ui.simulation.routeRemoveBodyPrefix}{" "}
+      {renderPeerName(routeChange.originatorPeerId, originator, onPeerHoverChange)}{" "}
+      {ui.simulation.routeRemoveBodyMiddle}{" "}
+      {renderPeerName(routeChange.hopPeerId, nextHop, onPeerHoverChange)}.{" "}
+      {ui.simulation.routeRemoveBodySuffix}
     </>
   );
 };

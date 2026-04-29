@@ -11,6 +11,7 @@ import { ChevronRight, Link, Plus, Radio, SquareSlash } from "lucide-react";
 import { createPortal } from "react-dom";
 
 import { storageKeys } from "../../constants/storage";
+import { ui } from "../../i18n/messages";
 import { useListReorder } from "../../hooks/useListReorder";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
@@ -70,13 +71,13 @@ export default function Entities({
     if (!selectedId) return;
     const entity = entities.find((e) => e.id === selectedId);
     if (entity?.locked) {
-      showToast(`Entity "${entity.name}" is locked`);
+      showToast(ui.entities.toastLocked(entity.name));
       return;
     }
     const index = entities.findIndex((e) => e.id === selectedId);
     const updatedEntities = entities.filter((e) => e.id !== selectedId);
     setEntities(updatedEntities);
-    showToast(`Entity deleted`);
+    showToast(ui.entities.toastDeleted);
     const nextEntity = updatedEntities[index] ?? updatedEntities[index - 1];
     if (nextEntity) {
       onSelect(nextEntity.id);
@@ -156,7 +157,7 @@ export default function Entities({
       type === EntityType.Peer
         ? {
             id: generateUUID(),
-            name: "Peer",
+            name: ui.entities.typePeer,
             type: EntityType.Peer,
             ...peerDefaults,
             x: 0,
@@ -165,7 +166,7 @@ export default function Entities({
         : type === EntityType.Link
           ? {
               id: generateUUID(),
-              name: "Link",
+              name: ui.entities.typeLink,
               type: EntityType.Link,
               sourcePeerId: null,
               destinationPeerId: null,
@@ -173,7 +174,7 @@ export default function Entities({
             }
           : {
               id: generateUUID(),
-              name: "Obstacle",
+              name: ui.entities.typeObstacle,
               type: EntityType.Obstacle,
               x: 0,
               y: 0,
@@ -185,7 +186,7 @@ export default function Entities({
     setEntities(updatedEntities);
     onSelect(newEntity.id);
     setIsAddMenuOpen(false);
-    showToast(`Entity "${newEntity.name}" added`);
+    showToast(ui.entities.toastAdded(newEntity.name));
   };
 
   return (
@@ -204,15 +205,15 @@ export default function Entities({
             isOpened ? "navigation__entities-chevron--open" : ""
           }`}
         />
-        <span className="navigation__entities-title">Entities</span>
+        <span className="navigation__entities-title">{ui.entities.sectionTitle}</span>
         <div className="navigation__entities-add-wrap" ref={addMenuRef}>
-          <Tooltip content="Add new entity">
+          <Tooltip content={ui.entities.addTooltip}>
             <button
               ref={addButtonRef}
               className="navigation__entities-add"
               onClick={handleAddEntityClick}
               type="button"
-              aria-label="Add new entity"
+              aria-label={ui.entities.addAria}
             >
               <Plus size={14} />
             </button>
@@ -234,7 +235,7 @@ export default function Entities({
                 type="button"
               >
                 <Radio size={12} />
-                Peer
+                {ui.entities.typePeer}
               </button>
               <button
                 className="navigation__entities-add-option"
@@ -242,7 +243,7 @@ export default function Entities({
                 type="button"
               >
                 <Link size={12} />
-                Link
+                {ui.entities.typeLink}
               </button>
               <button
                 className="navigation__entities-add-option"
@@ -250,7 +251,7 @@ export default function Entities({
                 type="button"
               >
                 <SquareSlash size={12} />
-                Obstacle
+                {ui.entities.typeObstacle}
               </button>
             </div>,
             document.body,

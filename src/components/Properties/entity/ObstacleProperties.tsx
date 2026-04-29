@@ -1,5 +1,6 @@
 import { ExternalLink, Lock, MoveHorizontal, MoveVertical } from "lucide-react";
 
+import { ui } from "../../../i18n/messages";
 import { EntityType } from "../../../types/enums";
 import type { ObstacleEntity } from "../../../types/entities";
 import type { ObstaclePropertiesPanelProps } from "../../../types/properties";
@@ -36,7 +37,7 @@ export default function ObstacleProperties({
       <div
         className="properties__resizer"
         role="separator"
-        aria-label="Resize properties"
+        aria-label={ui.properties.resizeAria}
         aria-orientation="vertical"
         onPointerDown={onResizeStart}
       />
@@ -46,25 +47,25 @@ export default function ObstacleProperties({
         <p className="properties__subtitle">{description}</p>
         <a className="properties__read-more" href="#" tabIndex={0}>
           <ExternalLink size={12} />
-          Read more
+          {ui.common.readMore}
         </a>
       </header>
 
       {isLocked && (
         <div className="properties__locked-notice">
           <Lock size={12} />
-          This entity is unmodifiable.
+          {ui.properties.entityLockedNotice}
         </div>
       )}
 
       <section className="properties__section">
-        <p className="properties__section-title">Configuration</p>
+        <p className="properties__section-title">{ui.properties.sectionConfiguration}</p>
 
         <label className="properties__field">
           <span
             className={`properties__field-label ${isObstacleNameMissing ? "properties__field-label--required" : ""}`}
           >
-            Name
+            {ui.properties.fieldName}
           </span>
           <input
             className={`properties__input ${isObstacleNameMissing ? "properties__required-outline" : ""}`}
@@ -75,7 +76,7 @@ export default function ObstacleProperties({
         </label>
 
         <label className="properties__field">
-          <span className="properties__field-label">Position</span>
+          <span className="properties__field-label">{ui.properties.fieldPosition}</span>
           <div className="properties__inline-group">
             <div className="properties__input-with-icon">
               <span className="properties__input-icon">X</span>
@@ -107,7 +108,7 @@ export default function ObstacleProperties({
         </label>
 
         <label className="properties__field">
-          <span className="properties__field-label">Size</span>
+          <span className="properties__field-label">{ui.properties.fieldSize}</span>
           <div className="properties__inline-group">
             <div className="properties__input-with-prefix">
               <MoveHorizontal size={12} />

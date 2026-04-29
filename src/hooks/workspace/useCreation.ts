@@ -19,6 +19,7 @@ import type {
   WorkspaceCreationCallbacks,
   WorkspaceCreationSetters,
 } from "../../types/workspace/creation";
+import { ui } from "../../i18n/messages";
 import { generateUUID } from "../../utils/uuid";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 
@@ -41,7 +42,7 @@ export function useWorkspaceCreation({
     (x: number, y: number) => {
       const nextPeer: PeerEntity = {
         id: generateUUID(),
-        name: `Peer`,
+        name: ui.entities.typePeer,
         type: EntityType.Peer,
         locked: false,
         x,
@@ -55,7 +56,7 @@ export function useWorkspaceCreation({
 
       setters.setEntities([...entities, nextPeer]);
       callbacks.onEntitySelect(nextPeer.id);
-      callbacks.showCreationToast(`Entity "${nextPeer.name}" added`);
+      callbacks.showCreationToast(ui.entities.toastAdded(nextPeer.name));
     },
     [callbacks, entities, setters],
   );
@@ -64,7 +65,7 @@ export function useWorkspaceCreation({
     (x: number, y: number) => {
       const nextObstacle: ObstacleEntity = {
         id: generateUUID(),
-        name: `Obstacle`,
+        name: ui.entities.typeObstacle,
         type: EntityType.Obstacle,
         locked: false,
         x,
@@ -75,7 +76,7 @@ export function useWorkspaceCreation({
 
       setters.setEntities([...entities, nextObstacle]);
       callbacks.onEntitySelect(nextObstacle.id);
-      callbacks.showCreationToast(`Entity "${nextObstacle.name}" added`);
+      callbacks.showCreationToast(ui.entities.toastAdded(nextObstacle.name));
     },
     [callbacks, entities, setters],
   );
@@ -84,7 +85,7 @@ export function useWorkspaceCreation({
     (sourcePeerId: string, destinationPeerId: string) => {
       const nextLink: LinkEntity = {
         id: generateUUID(),
-        name: `Link`,
+        name: ui.entities.typeLink,
         type: EntityType.Link,
         locked: false,
         sourcePeerId,
@@ -94,7 +95,7 @@ export function useWorkspaceCreation({
 
       setters.setEntities([...entities, nextLink]);
       callbacks.onEntitySelect(nextLink.id);
-      callbacks.showCreationToast(`Entity "${nextLink.name}" added`);
+      callbacks.showCreationToast(ui.entities.toastAdded(nextLink.name));
     },
     [callbacks, entities, setters],
   );
@@ -103,7 +104,7 @@ export function useWorkspaceCreation({
     (step: ManualWorkflowStep) => {
       setters.setSteps([...steps, step]);
       callbacks.onStepSelect(step.id);
-      callbacks.showCreationToast(`Step "${step.title}" added`);
+      callbacks.showCreationToast(ui.steps.toastAdded(step.title));
     },
     [callbacks, setters, steps],
   );
@@ -121,7 +122,7 @@ export function useWorkspaceCreation({
     (sourcePeerId: string, destinationPeerId: string) => {
       const step: MessageStep = {
         id: `step-${generateUUID()}`,
-        title: "Message",
+        title: ui.steps.typeMessage,
         type: StepType.Message,
         tick: getNextManualStepTick(),
         sourcePeerId,
@@ -137,7 +138,7 @@ export function useWorkspaceCreation({
     (movePeerId: string, x: number, y: number) => {
       const step: MoveStep = {
         id: `step-${generateUUID()}`,
-        title: "Move",
+        title: ui.steps.typeMove,
         type: StepType.Move,
         tick: getNextManualStepTick(),
         movePeerId,
@@ -154,7 +155,7 @@ export function useWorkspaceCreation({
     (targetEntityId: string) => {
       const step: ToggleStatusStep = {
         id: `step-${generateUUID()}`,
-        title: "Toggle",
+        title: ui.steps.typeToggle,
         type: StepType.ToggleStatus,
         tick: getNextManualStepTick(),
         targetEntityId,
@@ -169,13 +170,13 @@ export function useWorkspaceCreation({
     (x: number, y: number) => {
       const nextText: WorkspaceTextItem = {
         id: `text-${generateUUID()}`,
-        text: "Text",
+        text: ui.workspace.createdText,
         x,
         y,
       };
 
       setters.setTexts([...texts, nextText]);
-      callbacks.showCreationToast("Text added");
+      callbacks.showCreationToast(ui.workspace.toastTextAdded);
     },
     [callbacks, setters, texts],
   );

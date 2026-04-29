@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { storageKeys } from "../constants/storage";
 import { useLocalStorage } from "../hooks/storage/useLocalStorage";
 import { useToast } from "../hooks/useToast";
+import { ui } from "../i18n/messages";
 import { runSimulation } from "../simulation/runSimulation";
 import { PlacementMode, SelectionSource, ToolbarMode } from "../types/enums";
 import type { NetworkEntity } from "../types/entities";
@@ -200,10 +201,7 @@ export function useWorkspaceStore() {
   const handleNewWorkspace = useCallback(() => {
     const hasData = entities.length > 0 || manualSteps.length > 0;
 
-    if (
-      hasData &&
-      !window.confirm("This action will clear all current entities and steps. Continue?")
-    ) {
+    if (hasData && !window.confirm(ui.store.confirmNewWorkspace)) {
       return;
     }
 
@@ -212,7 +210,7 @@ export function useWorkspaceStore() {
     setRawTexts([]);
     invalidateSimulation();
     clearSelection();
-    showToast("Started a new simulation");
+    showToast(ui.store.startedNewSimulation);
   }, [
     clearSelection,
     entities.length,
@@ -231,7 +229,7 @@ export function useWorkspaceStore() {
     };
 
     downloadWorkspacePayload(payload);
-    showToast("Workspace exported as JSON");
+    showToast(ui.store.workspaceExported);
   }, [entities, manualSteps, showToast]);
 
   const handleImportWorkspace = useCallback(
@@ -240,9 +238,7 @@ export function useWorkspaceStore() {
         const raw = await file.text();
         const payload = parseWorkspaceImportPayload(raw);
 
-        const confirmed = window.confirm(
-          "Import action will clear the current environment and replace it with data from the file. Continue?",
-        );
+        const confirmed = window.confirm(ui.store.confirmImport);
         if (!confirmed) {
           return;
         }
@@ -251,9 +247,9 @@ export function useWorkspaceStore() {
         setRawEntities(payload.entities);
         setManualSteps(sanitizeManualSteps(payload.steps));
         clearSelection();
-        showToast("Workspace imported successfully");
+        showToast(ui.store.workspaceImported);
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to import workspace";
+        const message = error instanceof Error ? error.message : ui.store.importFailed;
         showToast(message);
       }
     },
@@ -275,12 +271,12 @@ export function useWorkspaceStore() {
 
   const handleRunSimulation = useCallback(() => {
     if (simulationRunLockRef.current || simulationPlayback.isRunning) {
-      showToast("Simulation is already running");
+      showToast(ui.store.simulationRunning);
       return;
     }
 
     if (steps.length === 0) {
-      showToast("Add at least one step before running the simulation");
+      showToast(ui.store.simulationNeedsSteps);
       return;
     }
 
@@ -299,9 +295,9 @@ export function useWorkspaceStore() {
       setSimulationInspectionMode(ToolbarMode.PacketStructure);
       setSimulationPlayback(nextPlayback);
       focusSimulationStep(0, nextPlayback);
-      showToast(`Simulation finished with ${result.events.length} events`);
+      showToast(ui.store.simulationFinished(result.events.length));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Simulation failed";
+      const message = error instanceof Error ? error.message : ui.store.simulationFailed;
       setSimulationPlayback((prev) => ({ ...prev, isRunning: false }));
       showToast(message);
     } finally {
@@ -346,7 +342,7 @@ export function useWorkspaceStore() {
 
   const handleStopSimulation = useCallback(() => {
     invalidateSimulation();
-    showToast("Simulation stopped");
+    showToast(ui.store.simulationStopped);
   }, [invalidateSimulation, showToast]);
 
   useEffect(() => {

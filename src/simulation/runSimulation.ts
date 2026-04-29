@@ -1,4 +1,5 @@
 import { RoutingProtocol, StepType } from "../types/enums";
+import { ui } from "../i18n/messages";
 import type { LinkEntity, NetworkEntity, PeerEntity } from "../types/entities";
 import type { WorkflowStep } from "../types/steps";
 import {
@@ -38,8 +39,10 @@ class RuntimePeer implements SnapshotCapablePeerNode {
     this.entity = entity;
     this.network = network;
 
-    if (entity.protocols.includes(RoutingProtocol.BATMAN)) {
-      this.modules.set(RoutingProtocol.BATMAN, new BatmanModule(this, eventRecorder));
+    for (const protocol of entity.protocols) {
+      if (protocol === RoutingProtocol.BATMAN) {
+        this.modules.set(protocol, new BatmanModule(this, eventRecorder));
+      }
     }
   }
 
@@ -393,9 +396,7 @@ const processStep = (
 
     eventRecorder.save(step.sourcePeerId, SimulationEventType.SystemMessageDropped, {
       message: packet,
-      reason: sourcePeer
-        ? "Source peer does not have a BATMAN module"
-        : "Source peer does not exist",
+      reason: sourcePeer ? ui.runtime.sourcePeerNoBatmanModule : ui.runtime.sourcePeerMissing,
     });
     return;
   }

@@ -1,6 +1,7 @@
 import { CircleDot, Clock3, Diamond, ExternalLink, Lock } from "lucide-react";
 
 import { peerRoutingProtocols } from "../../../constants/protocol";
+import { ui } from "../../../i18n/messages";
 import { EntityType, RoutingProtocol } from "../../../types/enums";
 import type { PeerEntity } from "../../../types/entities";
 import type { PeerPropertiesPanelProps } from "../../../types/properties";
@@ -49,7 +50,7 @@ export default function PeerProperties({
       <div
         className="properties__resizer"
         role="separator"
-        aria-label="Resize properties"
+        aria-label={ui.properties.resizeAria}
         aria-orientation="vertical"
         onPointerDown={onResizeStart}
       />
@@ -59,25 +60,25 @@ export default function PeerProperties({
         <p className="properties__subtitle">{description}</p>
         <a className="properties__read-more" href="#" tabIndex={0}>
           <ExternalLink size={12} />
-          Read more
+          {ui.common.readMore}
         </a>
       </header>
 
       {isLocked && (
         <div className="properties__locked-notice">
           <Lock size={12} />
-          This entity is unmodifiable.
+          {ui.properties.entityLockedNotice}
         </div>
       )}
 
       <section className="properties__section">
-        <p className="properties__section-title">Configuration</p>
+        <p className="properties__section-title">{ui.properties.sectionConfiguration}</p>
 
         <label className="properties__field">
           <span
             className={`properties__field-label ${isPeerNameMissing ? "properties__field-label--required" : ""}`}
           >
-            Name
+            {ui.properties.fieldName}
           </span>
           <input
             className={`properties__input ${isPeerNameMissing ? "properties__required-outline" : ""}`}
@@ -88,7 +89,7 @@ export default function PeerProperties({
         </label>
 
         <label className="properties__field">
-          <span className="properties__field-label">Position</span>
+          <span className="properties__field-label">{ui.properties.fieldPosition}</span>
           <div className="properties__inline-group">
             <div className="properties__input-with-icon">
               <span className="properties__input-icon">X</span>
@@ -121,7 +122,7 @@ export default function PeerProperties({
 
         <div className="properties__field-grid properties__field-grid--two">
           <label className="properties__field">
-            <span className="properties__field-label">Range</span>
+            <span className="properties__field-label">{ui.properties.fieldRange}</span>
             <div className="properties__input-with-prefix">
               <CircleDot size={12} />
               <input
@@ -139,27 +140,27 @@ export default function PeerProperties({
           </label>
 
           <label className="properties__field">
-            <span className="properties__field-label">Status</span>
+            <span className="properties__field-label">{ui.properties.fieldStatus}</span>
             <button
               className="properties__status"
               type="button"
               onClick={() => updatePeer({ enabled: !selectedPeer.enabled })}
             >
               <Diamond size={12} />
-              {selectedPeer.enabled ? "Enabled" : "Disabled"}
+              {selectedPeer.enabled ? ui.common.enabled : ui.common.disabled}
             </button>
           </label>
         </div>
       </section>
 
       <section className="properties__section">
-        <p className="properties__section-title">Routing</p>
+        <p className="properties__section-title">{ui.properties.sectionRouting}</p>
 
         <label className="properties__field">
           <span
             className={`properties__field-label ${isProtocolMissing ? "properties__field-label--required" : ""}`}
           >
-            Protocol
+            {ui.properties.fieldProtocol}
           </span>
           <div
             className={`properties__protocols ${isProtocolMissing ? "properties__required-outline" : ""}`}
@@ -191,7 +192,7 @@ export default function PeerProperties({
               <span
                 className={`properties__field-label ${isBatmanOgmMissing ? "properties__field-label--required" : ""}`}
               >
-                BATMAN OGM Interval
+                {ui.properties.fieldBatmanOgmInterval}
               </span>
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
@@ -216,7 +217,7 @@ export default function PeerProperties({
               <span
                 className={`properties__field-label ${isBatmanPurgeMissing ? "properties__field-label--required" : ""}`}
               >
-                BATMAN Purge Timeout
+                {ui.properties.fieldBatmanPurgeTimeout}
               </span>
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />

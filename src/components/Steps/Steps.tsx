@@ -11,16 +11,12 @@ import { Activity, ChevronRight, ChevronsRight, Eye, EyeOff, Mail, Plus } from "
 import { createPortal } from "react-dom";
 
 import { storageKeys } from "../../constants/storage";
+import { ui } from "../../i18n/messages";
 import { useListReorder } from "../../hooks/useListReorder";
 import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
 import { StepType } from "../../types/enums";
-import type {
-  MessageStep,
-  MoveStep,
-  ToggleStatusStep,
-  WorkflowStep,
-} from "../../types/steps";
+import type { MessageStep, MoveStep, ToggleStatusStep, WorkflowStep } from "../../types/steps";
 import { migrateSteps } from "../../utils/navigation/stepMigration";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 import Tooltip from "../Tooltip/Tooltip";
@@ -106,7 +102,7 @@ export default function Steps({
     const stepToDelete = visibleSteps[index];
     const updatedSteps = visibleSteps.filter((s) => s.id !== selectedId);
     setSteps(updatedSteps);
-    showToast(`Step "${stepToDelete?.title}" deleted`);
+    showToast(ui.steps.toastDeleted(stepToDelete?.title ?? ""));
     const nextStep = updatedSteps[index] ?? updatedSteps[index - 1];
     if (nextStep) {
       onSelect(nextStep.id);
@@ -194,7 +190,7 @@ export default function Steps({
       type === StepType.Message
         ? ({
             id: `step-${Date.now()}`,
-            title: "Message",
+            title: ui.steps.typeMessage,
             type: StepType.Message,
             tick: nextTick,
             sourcePeerId: "",
@@ -203,14 +199,14 @@ export default function Steps({
         : type === StepType.ToggleStatus
           ? ({
               id: `step-${Date.now()}`,
-              title: "Toggle",
+              title: ui.steps.typeToggle,
               type: StepType.ToggleStatus,
               tick: nextTick,
               targetEntityId: "",
             } satisfies ToggleStatusStep)
           : ({
               id: `step-${Date.now()}`,
-              title: "Move",
+              title: ui.steps.typeMove,
               type: StepType.Move,
               tick: nextTick,
               movePeerId: "",
@@ -221,7 +217,7 @@ export default function Steps({
     setSteps(updatedSteps);
     onSelect(newStep.id);
     setIsAddMenuOpen(false);
-    showToast(`Step "${newStep.title}" added`);
+    showToast(ui.steps.toastAdded(newStep.title));
   };
 
   return (
@@ -240,9 +236,9 @@ export default function Steps({
             isOpened ? "navigation__steps-chevron--open" : ""
           }`}
         />
-        <span className="navigation__steps-title">Steps</span>
+        <span className="navigation__steps-title">{ui.steps.sectionTitle}</span>
         {isOpened && (
-          <Tooltip content={isRefreshHidden ? "Show routing steps" : "Hide routing steps"}>
+          <Tooltip content={isRefreshHidden ? ui.steps.showRouting : ui.steps.hideRouting}>
             <button
               className="navigation__steps-add"
               onClick={(event) => {
@@ -250,20 +246,20 @@ export default function Steps({
                 setIsRefreshHidden(!isRefreshHidden);
               }}
               type="button"
-              aria-label={isRefreshHidden ? "Show routing steps" : "Hide routing steps"}
+              aria-label={isRefreshHidden ? ui.steps.showRouting : ui.steps.hideRouting}
             >
               {isRefreshHidden ? <Eye size={14} /> : <EyeOff size={14} />}
             </button>
           </Tooltip>
         )}
         <div className="navigation__steps-add-wrap" ref={addMenuRef}>
-          <Tooltip content="Add new step">
+          <Tooltip content={ui.steps.addTooltip}>
             <button
               ref={addButtonRef}
               className="navigation__steps-add"
               onClick={handleAddStepClick}
               type="button"
-              aria-label="Add new step"
+              aria-label={ui.steps.addAria}
             >
               <Plus size={14} />
             </button>
@@ -285,7 +281,7 @@ export default function Steps({
                 type="button"
               >
                 <ChevronsRight size={12} />
-                Move
+                {ui.steps.typeMove}
               </button>
               <button
                 className="navigation__steps-add-option"
@@ -293,7 +289,7 @@ export default function Steps({
                 type="button"
               >
                 <Mail size={12} />
-                Message
+                {ui.steps.typeMessage}
               </button>
               <button
                 className="navigation__steps-add-option"
@@ -301,7 +297,7 @@ export default function Steps({
                 type="button"
               >
                 <Activity size={12} />
-                Toggle
+                {ui.steps.typeToggle}
               </button>
             </div>,
             document.body,

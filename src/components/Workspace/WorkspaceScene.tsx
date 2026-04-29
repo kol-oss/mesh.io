@@ -1,5 +1,6 @@
 import { Radio } from "lucide-react";
 
+import { ui } from "../../i18n/messages";
 import { ConnectionType, ResizeEdge, SelectionSource } from "../../types/enums";
 import type { WorkspaceSceneProps } from "../../types/workspace/scene";
 import { shortenLine } from "../../utils/geometry";
@@ -236,7 +237,7 @@ export default function WorkspaceScene({
             onPointerUp={handleEntityPointerEnd}
             onPointerCancel={handleEntityPointerEnd}
             onDoubleClick={() => handleTextDoubleClick(item)}
-            aria-label={`Text ${item.text}`}
+            aria-label={ui.workspace.textLabel(item.text)}
           >
             {item.text}
           </button>
@@ -266,7 +267,7 @@ export default function WorkspaceScene({
             onPointerMove={handleEntityPointerMove}
             onPointerUp={handleEntityPointerEnd}
             onPointerCancel={handleEntityPointerEnd}
-            aria-label={`Obstacle ${obstacle.name}`}
+            aria-label={ui.workspace.obstacleLabel(obstacle.name)}
           >
             <span
               className="workspace__obstacle-handle workspace__obstacle-handle--left"
@@ -330,7 +331,7 @@ export default function WorkspaceScene({
               onPointerMove={handleEntityPointerMove}
               onPointerUp={handleEntityPointerEnd}
               onPointerCancel={handleEntityPointerEnd}
-              aria-label={`Peer ${peer.name}`}
+              aria-label={ui.workspace.peerLabel(peer.name)}
             >
               <span className="workspace__peer-icon">
                 <Radio size={20} />

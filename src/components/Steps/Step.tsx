@@ -1,5 +1,6 @@
 import { type PointerEvent as ReactPointerEvent } from "react";
 import { Activity, ChevronsRight, Mail, RotateCw } from "lucide-react";
+import { ui } from "../../i18n/messages";
 import { StepType } from "../../types/enums";
 import type { WorkflowStep } from "../../types/steps";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
@@ -15,10 +16,10 @@ type StepProps = {
 
 export default function Step({ step, isSelected, isDragging, onSelect, onPointerDown }: StepProps) {
   const stepTypeTooltip = {
-    [StepType.Move]: "Move",
-    [StepType.Message]: "Message",
-    [StepType.ToggleStatus]: "Toggle Status",
-    [StepType.Refresh]: "Routing Refresh",
+    [StepType.Move]: ui.steps.typeMove,
+    [StepType.Message]: ui.steps.typeMessage,
+    [StepType.ToggleStatus]: ui.steps.typeToggleStatus,
+    [StepType.Refresh]: ui.steps.typeRefresh,
   }[step.type];
 
   const stepTypeIcon = {

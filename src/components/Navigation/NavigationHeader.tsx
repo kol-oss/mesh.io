@@ -1,4 +1,5 @@
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { ui } from "../../i18n/messages";
 import { TooltipPlacement } from "../../types/enums";
 import Tooltip from "../Tooltip/Tooltip";
 import NavigationMenu from "./NavigationMenu";
@@ -22,7 +23,7 @@ export default function NavigationHeader({
     return (
       <div className="navigation__collapsed-bar">
         <div className="navigation__collapsed-content">
-          <p className="navigation__collapsed-title">Mesh IO</p>
+          <p className="navigation__collapsed-title">{ui.navigation.appName}</p>
           <NavigationMenu
             onNew={onFileNew}
             onExport={onFileExport}
@@ -30,11 +31,11 @@ export default function NavigationHeader({
             isCompact
           />
         </div>
-        <Tooltip content="Expand sidebar" placement={TooltipPlacement.Bottom}>
+        <Tooltip content={ui.navigation.expandSidebarTooltip} placement={TooltipPlacement.Bottom}>
           <button
             className="navigation__compact-button"
             type="button"
-            aria-label="Expand navigation"
+            aria-label={ui.navigation.expandNavigationAria}
             onClick={onToggleCollapse}
           >
             <PanelLeftOpen size={15} />
@@ -50,21 +51,21 @@ export default function NavigationHeader({
         <img
           className="navigation__header-logo"
           src="/favicon.svg"
-          alt="Mesh IO logo"
+          alt={ui.navigation.appLogoAlt}
           aria-hidden
         />
         <div className="navigation__header-general-text">
-          <p className="navigation__header-general-title">Mesh IO</p>
-          <p className="navigation__header-general-moto">Design and Learn</p>
+          <p className="navigation__header-general-title">{ui.navigation.appName}</p>
+          <p className="navigation__header-general-moto">{ui.navigation.appMotto}</p>
         </div>
       </div>
 
       <div className="navigation__header-action">
-        <Tooltip content="Collapse sidebar" placement={TooltipPlacement.Bottom}>
+        <Tooltip content={ui.navigation.collapseSidebarTooltip} placement={TooltipPlacement.Bottom}>
           <button
             className="navigation__compact-button navigation__compact-button--inline"
             type="button"
-            aria-label="Collapse navigation"
+            aria-label={ui.navigation.collapseNavigationAria}
             onClick={onToggleCollapse}
           >
             <PanelLeftClose size={15} />

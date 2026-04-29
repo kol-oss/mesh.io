@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 
+import { ui } from "../../i18n/messages";
 import { NAVIGATION_MENU_ITEMS } from "../../utils/navigation/constants";
 
 type NavigationMenuProps = {
@@ -49,7 +50,7 @@ export default function NavigationMenu({
   return (
     <div className={`navigation__menu${isCompact ? " navigation__menu--compact" : ""}`}>
       {NAVIGATION_MENU_ITEMS.map((menuItem) => {
-        if (menuItem.title !== "File") {
+        if (menuItem.title !== ui.navigation.menuFile) {
           return (
             <button className="navigation__menu-button" key={menuItem.title} type="button">
               {menuItem.title}
@@ -65,7 +66,7 @@ export default function NavigationMenu({
               onClick={() => setIsFileMenuOpen((prev) => !prev)}
               aria-haspopup="menu"
               aria-expanded={isFileMenuOpen}
-              aria-label="File menu"
+              aria-label={ui.navigation.fileMenuAria}
             >
               {menuItem.title}
             </button>
@@ -81,7 +82,7 @@ export default function NavigationMenu({
                     setIsFileMenuOpen(false);
                   }}
                 >
-                  New
+                  {ui.navigation.fileActionNew}
                 </button>
                 <button
                   className="navigation__file-menu-option"
@@ -92,7 +93,7 @@ export default function NavigationMenu({
                     setIsFileMenuOpen(false);
                   }}
                 >
-                  Export
+                  {ui.navigation.fileActionExport}
                 </button>
                 <button
                   className="navigation__file-menu-option"
@@ -100,7 +101,7 @@ export default function NavigationMenu({
                   role="menuitem"
                   onClick={handleImportClick}
                 >
-                  Import
+                  {ui.navigation.fileActionImport}
                 </button>
               </div>
             )}

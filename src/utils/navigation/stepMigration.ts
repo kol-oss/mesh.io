@@ -1,4 +1,5 @@
 import { StepType } from "../../types/enums";
+import { ui } from "../../i18n/messages";
 import {
   createStepBase,
   type MessageStep,
@@ -49,7 +50,7 @@ const normalizeMessageStep = (rawStep: LegacyStep, index: number): MessageStep =
   return {
     ...createStepBase({
       id: hasNonEmptyString(rawStep.id) ? rawStep.id : `step-migrated-${index}`,
-      title: hasNonEmptyString(rawStep.title) ? rawStep.title : "Message",
+      title: hasNonEmptyString(rawStep.title) ? rawStep.title : ui.steps.typeMessage,
       tick: typeof rawStep.tick === "number" ? rawStep.tick : index + 1,
     }),
     type: StepType.Message,
@@ -64,7 +65,7 @@ const normalizeMoveStep = (rawStep: LegacyStep, index: number): MoveStep => {
   return {
     ...createStepBase({
       id: hasNonEmptyString(rawStep.id) ? rawStep.id : `step-migrated-${index}`,
-      title: hasNonEmptyString(rawStep.title) ? rawStep.title : "Move",
+      title: hasNonEmptyString(rawStep.title) ? rawStep.title : ui.steps.typeMove,
       tick: typeof rawStep.tick === "number" ? rawStep.tick : index + 1,
     }),
     type: StepType.Move,
@@ -78,7 +79,7 @@ const normalizeToggleStep = (rawStep: LegacyStep, index: number): ToggleStatusSt
   return {
     ...createStepBase({
       id: hasNonEmptyString(rawStep.id) ? rawStep.id : `step-migrated-${index}`,
-      title: hasNonEmptyString(rawStep.title) ? rawStep.title : "Toggle",
+      title: hasNonEmptyString(rawStep.title) ? rawStep.title : ui.steps.typeToggle,
       tick: typeof rawStep.tick === "number" ? rawStep.tick : index + 1,
     }),
     type: StepType.ToggleStatus,
