@@ -79,6 +79,76 @@
   z-index: 3;
 }
 
+.workspace__message-animations {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.workspace__message-animation-track {
+  fill: none;
+  stroke: rgba(15, 127, 208, 0.18);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 6;
+  vector-effect: non-scaling-stroke;
+}
+
+.workspace__message-envelope {
+  filter: drop-shadow(0 0 6px rgba(15, 127, 208, 0.28));
+
+  rect {
+    fill: rgba(255, 255, 255, 0.96);
+    stroke: rgba(15, 127, 208, 0.88);
+    stroke-width: 1.4;
+  }
+
+  path {
+    fill: none;
+    stroke: rgba(15, 127, 208, 0.88);
+    stroke-width: 1.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.workspace__message-animation--route-change {
+  .workspace__message-animation-track {
+    stroke: rgba(15, 127, 208, 0.26);
+  }
+
+  .workspace__message-envelope {
+    rect,
+    path {
+      stroke: rgba(15, 127, 208, 0.96);
+    }
+  }
+}
+
+.workspace__message-animation--dropped {
+  .workspace__message-animation-track {
+    stroke: rgba(227, 4, 4, 0.22);
+  }
+
+  .workspace__message-envelope {
+    rect,
+    path {
+      stroke: rgba(227, 4, 4, 0.9);
+    }
+  }
+}
+
+.workspace__message-target-pulse {
+  fill: rgba(15, 127, 208, 0.18);
+  stroke: rgba(15, 127, 208, 0.42);
+  stroke-width: 1.1;
+  transform-origin: center;
+  animation: workspace-message-target-pulse 1.35s ease-out infinite;
+}
+
 .workspace__step-indicator {
   line {
     stroke: rgba(15, 127, 208, 0.7);
@@ -396,5 +466,22 @@ button.workspace__text {
 
   to {
     stroke-dashoffset: -24;
+  }
+}
+
+@keyframes workspace-message-target-pulse {
+  0% {
+    opacity: 0.1;
+    r: 4px;
+  }
+
+  55% {
+    opacity: 0.35;
+    r: 10px;
+  }
+
+  100% {
+    opacity: 0;
+    r: 14px;
   }
 }

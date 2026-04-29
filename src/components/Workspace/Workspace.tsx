@@ -1,13 +1,24 @@
 import type { DragState } from "../../types/workspace/interaction";
 import { PlacementMode, SelectionSource, ToolbarMode } from "../../types/enums";
 import type { NetworkEntity } from "../../types/entities";
-import type { SimulationEvent, SimulationStepResult } from "../../types/simulation";
+import {
+  SimulationEventType,
+  SimulationMessageKind,
+  type DroppedEventDetails,
+  type BroadcastEventDetails,
+  type MessageTransferEventDetails,
+  type SimulationEvent,
+  type SimulationMessage,
+  type SimulationPeerSnapshot,
+  type SimulationStepResult,
+} from "../../types/simulation";
 import type { WorkspacePanState } from "../../types/workspace/background";
+import type { MessageAnimation } from "../../types/workspace/scene";
 import type { WorkflowStep } from "../../types/steps";
 import type { ToolbarPlacementMode } from "../../types/toolbar";
 import type { WorkspaceTextItem } from "../../types/workspace";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useWorkspaceBackground } from "../../hooks/workspace/useBackground";
 import { useWorkspaceCreation } from "../../hooks/workspace/useCreation";
@@ -350,6 +361,11 @@ export default function Workspace({
             ) - panOffset.y,
         }
       : null;
+  const simulationMessageAnimations = useMemo(
+    () =>
+      buildSimulationMessageAnimations(currentSimulationEvent, currentSimulationStepResult, peers),
+    [currentSimulationEvent, currentSimulationStepResult, peers],
+  );
   const hoveredSimulationPeerId =
     currentSimulationEvent && hoveredSimulationPeerState?.eventId === currentSimulationEvent.id
       ? hoveredSimulationPeerState.peerId
@@ -487,6 +503,7 @@ export default function Workspace({
           connections={connections}
           rangePolygons={rangePolygons}
           moveIndicators={moveIndicators}
+          messageAnimations={simulationMessageAnimations}
           texts={texts}
           obstacles={obstacles}
           peers={peers}
@@ -515,3 +532,123 @@ export default function Workspace({
     </section>
   );
 }
+
+const buildSimulationMessageAnimations = (
+  currentEvent: SimulationEvent | null,
+  currentStepResult: SimulationStepResult | null,
+  fallbackPeers: Array<NetworkEntity & { type: "PEER" }>,
+): MessageAnimation[] => {
+  if (!currentEvent || !currentStepResult) {
+    return [];
+  }
+
+  const peerById = new Map<string, SimulationPeerSnapshot | (NetworkEntity & { type: "PEER" })>();
+
+  for (const peer of currentStepResult.snapshot.peers) {
+    peerById.set(peer.id, peer);
+  }
+
+  for (const peer of fallbackPeers) {
+    if (!peerById.has(peer.id)) {
+      peerById.set(peer.id, peer);
+    }
+  }
+
+  const createAnimation = (
+    sourcePeerId: string | null,
+    targetPeerId: string | null,
+    suffix: string,
+    variant: MessageAnimation["variant"] = "default",
+  ): MessageAnimation | null => {
+    if (!sourcePeerId || !targetPeerId || sourcePeerId === targetPeerId) {
+      return null;
+    }
+
+    const sourcePeer = peerById.get(sourcePeerId);
+    const targetPeer = peerById.get(targetPeerId);
+    if (!sourcePeer || !targetPeer) {
+      return null;
+    }
+
+    return {
+      key: `${currentEvent.id}-${suffix}-${sourcePeerId}-${targetPeerId}`,
+      sourceX: sourcePeer.x,
+      sourceY: sourcePeer.y,
+      targetX: targetPeer.x,
+      targetY: targetPeer.y,
+      variant,
+    };
+  };
+
+  if (currentEvent.type === SimulationEventType.SystemMessageBroadcast) {
+    const details = currentEvent.details as BroadcastEventDetails;
+    return details.neighbourPeerIds
+      .map((peerId, index) =>
+        createAnimation(currentEvent.peerId, peerId, `broadcast-${index}`, "default"),
+      )
+      .filter((animation): animation is MessageAnimation => animation !== null);
+  }
+
+  if (currentEvent.type === SimulationEventType.SystemMessageSent) {
+    const details = currentEvent.details as MessageTransferEventDetails;
+    return toMessageAnimations([
+      createAnimation(currentEvent.peerId, details.hopPeerId, "sent", "default"),
+    ]);
+  }
+
+  if (currentEvent.type === SimulationEventType.SystemMessageReceived) {
+    const details = currentEvent.details as MessageTransferEventDetails;
+    return toMessageAnimations([
+      createAnimation(details.hopPeerId, currentEvent.peerId, "received", "default"),
+    ]);
+  }
+
+  if (currentEvent.type === SimulationEventType.SystemMessageDropped) {
+    const details = currentEvent.details as DroppedEventDetails;
+    const droppedAnimation = getDroppedMessageAnimation(currentEvent.peerId, details.message);
+    return toMessageAnimations([
+      createAnimation(
+        droppedAnimation?.sourcePeerId ?? null,
+        droppedAnimation?.targetPeerId ?? null,
+        "dropped",
+        "dropped",
+      ),
+    ]);
+  }
+
+  if (
+    currentEvent.type === SimulationEventType.RoutingTableInsert ||
+    currentEvent.type === SimulationEventType.RoutingTableUpdate ||
+    currentEvent.type === SimulationEventType.RoutingTableRemove
+  ) {
+    const details = currentEvent.details as { hopPeerId: string };
+    return toMessageAnimations([
+      createAnimation(details.hopPeerId, currentEvent.peerId, "route-change", "route-change"),
+    ]);
+  }
+
+  return [];
+};
+
+const getDroppedMessageAnimation = (
+  eventPeerId: string,
+  message: SimulationMessage,
+): { sourcePeerId: string; targetPeerId: string } | null => {
+  if (message.kind === SimulationMessageKind.BatmanOriginatorMessage) {
+    return message.senderPeerId !== eventPeerId
+      ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
+      : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
+  }
+
+  if (message.sourcePeerId && message.sourcePeerId !== eventPeerId) {
+    return { sourcePeerId: message.sourcePeerId, targetPeerId: eventPeerId };
+  }
+
+  return message.destinationPeerId !== eventPeerId
+    ? { sourcePeerId: eventPeerId, targetPeerId: message.destinationPeerId }
+    : null;
+};
+
+const toMessageAnimations = (animations: Array<MessageAnimation | null>) => {
+  return animations.filter((animation): animation is MessageAnimation => animation !== null);
+};

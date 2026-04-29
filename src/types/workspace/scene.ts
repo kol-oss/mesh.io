@@ -13,6 +13,15 @@ export type MoveIndicator = {
   draft: boolean;
 };
 
+export type MessageAnimation = {
+  key: string;
+  sourceX: number;
+  sourceY: number;
+  targetX: number;
+  targetY: number;
+  variant: "default" | "route-change" | "dropped";
+};
+
 export type WorkspaceSceneProps = {
   centerX: number;
   centerY: number;
@@ -27,6 +36,7 @@ export type WorkspaceSceneProps = {
   connections: Connection[];
   rangePolygons: RangePolygon[];
   moveIndicators: MoveIndicator[];
+  messageAnimations: MessageAnimation[];
   texts: WorkspaceTextItem[];
   obstacles: ObstacleEntity[];
   peers: PeerEntity[];
