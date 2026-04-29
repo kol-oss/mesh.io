@@ -224,8 +224,13 @@ export const messageCatalog = {
       droppedGeneric: (actor: string) => `${actor} dropped a message during processing.`,
       tqQuestionChanged: "How did B.A.T.M.A.N. V throughput change?",
       tqQuestionWhat: "What is B.A.T.M.A.N. V throughput?",
+      sequenceWindowQuestion: "What is Sequence Protection Window?",
       tqInsertFallback:
         "B.A.T.M.A.N. V initializes route knowledge from accepted OGMv2 packets and tracks sequence progression in a protection window while throughput values drive neighbour ranking.",
+      throughputAnswer: (receivedThroughput: number, penalizedThroughput: number) =>
+        `B.A.T.M.A.N. V uses throughput as the route score. Hop penalty is 5.8% per hop, so the value degrades from ${receivedThroughput} to ${penalizedThroughput}.`,
+      sequenceWindowAnswer: (sequence: number) =>
+        `Sequence Protection Window tracks accepted sequence numbers and blocks duplicates or out-of-range OGMs. The sequence number of received OGM: ${sequence}.`,
       tqInsertFromSequence: (sequence: number, receptions: number, quality: number) =>
         `Received OGMv2 with sequence ${sequence} initialized this path. The sequence protection window now marks ${receptions} accepted entries, and the current B.A.T.M.A.N. V throughput metric is ${quality}.`,
       tqUpdateFromSequence: (sequence: number, previousQuality: number, nextQuality: number) =>

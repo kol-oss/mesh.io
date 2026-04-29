@@ -19,6 +19,8 @@ import {
   type SimulationStepResult,
 } from "../../types/simulation";
 
+const BATMAN_V_HOP_PENALTY_PERCENT = 5.8;
+
 type SimulationPanelProps = {
   anchorX: number;
   anchorY: number;
@@ -30,10 +32,12 @@ type SimulationPanelProps = {
   currentStepResult: SimulationStepResult | null;
   inspectionMode: ToolbarMode;
   isTqDisclosureOpen: boolean;
+  isSequenceDisclosureOpen: boolean;
   onPeerHoverChange: (peerId: string | null) => void;
   onNextEvent: () => void;
   onPrevEvent: () => void;
   onTqDisclosureToggle: (eventId: string) => void;
+  onSequenceDisclosureToggle: (eventId: string) => void;
 };
 
 export default function SimulationPanel({
@@ -47,10 +51,12 @@ export default function SimulationPanel({
   currentStepResult,
   inspectionMode,
   isTqDisclosureOpen,
+  isSequenceDisclosureOpen,
   onPeerHoverChange,
   onNextEvent,
   onPrevEvent,
   onTqDisclosureToggle,
+  onSequenceDisclosureToggle,
 }: SimulationPanelProps) {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -111,6 +117,9 @@ export default function SimulationPanel({
   );
   const routeRows = routeChange ? getRouteRows(routeChange) : [];
   const routeTqExplanation = routeChange ? getRouteTqExplanation(currentEvent) : null;
+  const routeSequenceWindowExplanation = routeChange
+    ? getRouteSequenceWindowExplanation(currentEvent)
+    : null;
   const messageSummary = routeChange
     ? null
     : getMessageSummary(currentEvent, peerNameById, onPeerHoverChange);
@@ -134,6 +143,9 @@ export default function SimulationPanel({
   };
   const handleTqDisclosureToggle = () => {
     onTqDisclosureToggle(currentEvent.id);
+  };
+  const handleSequenceDisclosureToggle = () => {
+    onSequenceDisclosureToggle(currentEvent.id);
   };
 
   return (
@@ -198,7 +210,7 @@ export default function SimulationPanel({
                     className={`simulation-panel__tq-toggle-icon${isTqDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
                   />
                   <span className="simulation-panel__tq-toggle-label">
-                    {getRouteTqQuestion(currentEvent)}
+                    {ui.simulation.tqQuestionWhat}
                   </span>
                 </button>
                 {isTqDisclosureOpen ? (
@@ -208,7 +220,30 @@ export default function SimulationPanel({
                 ) : null}
               </div>
             ) : null}
-            {isTqDisclosureOpen
+            {routeSequenceWindowExplanation ? (
+              <div className="simulation-panel__tq-disclosure">
+                <button
+                  className="simulation-panel__tq-toggle"
+                  type="button"
+                  onClick={handleSequenceDisclosureToggle}
+                  aria-expanded={isSequenceDisclosureOpen}
+                >
+                  <ChevronRight
+                    size={12}
+                    className={`simulation-panel__tq-toggle-icon${isSequenceDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
+                  />
+                  <span className="simulation-panel__tq-toggle-label">
+                    {ui.simulation.sequenceWindowQuestion}
+                  </span>
+                </button>
+                {isSequenceDisclosureOpen ? (
+                  <p className="simulation-panel__description simulation-panel__description--secondary">
+                    {routeSequenceWindowExplanation}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+            {isSequenceDisclosureOpen && routeSequenceWindowExplanation
               ? routeRows.map((row, index) => (
                   <div
                     className="simulation-panel__quality-window"
@@ -247,9 +282,7 @@ export default function SimulationPanel({
               </tbody>
             </table>
           </div>
-        ) : (
-          <p className="simulation-panel__empty">{ui.simulation.emptyDetails}</p>
-        )}
+        ) : null}
       </section>
 
       <footer className="simulation-panel__footer">
@@ -438,44 +471,7 @@ const getMessageSummary = (
     ];
   }
 
-  return [
-    {
-      label: ui.simulation.summaryOriginator,
-      value: renderPeerName(
-        message.sourcePeerId,
-        getPeerLabel(message.sourcePeerId, peerNameById),
-        onPeerHoverChange,
-      ),
-    },
-    {
-      label: ui.simulation.summarySender,
-      value: renderPeerName(
-        message.senderPeerId,
-        getPeerLabel(message.senderPeerId, peerNameById),
-        onPeerHoverChange,
-      ),
-    },
-    {
-      label: ui.simulation.summarySequence,
-      value: String(message.sequence),
-    },
-    {
-      label: ui.simulation.summaryVersion,
-      value: String(message.version),
-    },
-    {
-      label: ui.simulation.summaryThroughput,
-      value: String(message.throughput),
-    },
-    {
-      label: ui.simulation.summaryType,
-      value: ui.simulation.summaryOgm,
-    },
-    {
-      label: ui.simulation.summaryTtl,
-      value: String(message.timeToLive),
-    },
-  ];
+  return null;
 };
 
 const getEventMessage = (event: SimulationEvent): SimulationMessage | null => {
@@ -651,10 +647,9 @@ const getRouteTqExplanation = (event: SimulationEvent) => {
       return ui.simulation.tqInsertFallback;
     }
 
-    return ui.simulation.tqInsertFromSequence(
-      message.sequence,
-      countQualityWindowOnes(nextRoute.qualityWindow),
-      nextRoute.quality,
+    return ui.simulation.throughputAnswer(
+      clampThroughput(message.throughput),
+      applyHopPenalty(clampThroughput(message.throughput)),
     );
   }
 
@@ -670,10 +665,9 @@ const getRouteTqExplanation = (event: SimulationEvent) => {
 
     if (!isDecayUpdate) {
       if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
-        return ui.simulation.tqUpdateFromSequence(
-          message.sequence,
-          previousRoute.quality,
-          nextRoute.quality,
+        return ui.simulation.throughputAnswer(
+          clampThroughput(message.throughput),
+          applyHopPenalty(clampThroughput(message.throughput)),
         );
       }
 
@@ -700,12 +694,23 @@ const countQualityWindowOnes = (qualityWindow: string) => {
   return qualityWindow.split("").reduce((count, bit) => count + Number(bit === "1"), 0);
 };
 
-const getRouteTqQuestion = (event: SimulationEvent) => {
-  if (event.type === SimulationEventType.RoutingTableUpdate) {
-    return ui.simulation.tqQuestionChanged;
+const getRouteSequenceWindowExplanation = (event: SimulationEvent) => {
+  if (event.type !== SimulationEventType.RoutingTableUpdate) {
+    return null;
   }
 
-  return ui.simulation.tqQuestionWhat;
+  const routeChange = getRouteChange(event);
+  const message = getEventMessage(event);
+  const nextRoute = routeChange?.nextRoute;
+  if (
+    !routeChange ||
+    !nextRoute ||
+    message?.kind !== SimulationMessageKind.BatmanOriginatorMessage
+  ) {
+    return null;
+  }
+
+  return ui.simulation.sequenceWindowAnswer(message.sequence);
 };
 
 const getRouteRemoveDescription = (
@@ -748,4 +753,17 @@ const renderPeerName = (
 
 const getPeerLabel = (peerId: string, peerNameById: Map<string, string>) => {
   return peerNameById.get(peerId) ?? peerId;
+};
+
+const clampThroughput = (throughput: number) => {
+  if (!Number.isFinite(throughput)) {
+    return 255;
+  }
+
+  return Math.max(0, Math.min(255, Math.floor(throughput)));
+};
+
+const applyHopPenalty = (throughput: number) => {
+  const penalized = throughput * ((100 - BATMAN_V_HOP_PENALTY_PERCENT) / 100);
+  return Math.max(0, Math.floor(penalized));
 };

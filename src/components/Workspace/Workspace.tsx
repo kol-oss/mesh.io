@@ -107,6 +107,9 @@ export default function Workspace({
   const [simulationTqDisclosureByEvent, setSimulationTqDisclosureByEvent] = useState<
     Record<string, boolean>
   >({});
+  const [simulationSequenceDisclosureByEvent, setSimulationSequenceDisclosureByEvent] = useState<
+    Record<string, boolean>
+  >({});
   const [hoveredSimulationPeerState, setHoveredSimulationPeerState] = useState<{
     eventId: string;
     peerId: string | null;
@@ -409,6 +412,13 @@ export default function Workspace({
     }));
   }, []);
 
+  const handleSimulationSequenceDisclosureToggle = useCallback((eventId: string) => {
+    setSimulationSequenceDisclosureByEvent((prev) => ({
+      ...prev,
+      [eventId]: !(prev[eventId] ?? false),
+    }));
+  }, []);
+
   const handleMessageAnimationHoverChange = useCallback(
     (isHovered: boolean) => {
       if (!isPacketInspectionActive) {
@@ -577,10 +587,14 @@ export default function Workspace({
             currentStepResult={currentSimulationStepResult}
             inspectionMode={simulationInspectionMode}
             isTqDisclosureOpen={simulationTqDisclosureByEvent[currentSimulationEvent.id] ?? false}
+            isSequenceDisclosureOpen={
+              simulationSequenceDisclosureByEvent[currentSimulationEvent.id] ?? false
+            }
             onPeerHoverChange={handleSimulationPeerHoverChange}
             onNextEvent={onNextSimulationEvent}
             onPrevEvent={onPrevSimulationEvent}
             onTqDisclosureToggle={handleSimulationTqDisclosureToggle}
+            onSequenceDisclosureToggle={handleSimulationSequenceDisclosureToggle}
           />
         ) : null}
         <WorkspaceScene
