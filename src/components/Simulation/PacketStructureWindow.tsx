@@ -119,9 +119,6 @@ export default function PacketStructureWindow({
             className="simulation-panel__packet-structure"
             aria-label="BATMAN OGM packet structure"
           >
-            <p className="simulation-panel__packet-structure-title">
-              Originator Message (OGM), Layer 3
-            </p>
             {getBatmanOgmStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-${rowIndex}`}>
                 {row.map((field) => (
@@ -129,12 +126,17 @@ export default function PacketStructureWindow({
                     key={`${rowIndex}-${field.label}`}
                     className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
                     style={{ flex: field.bits }}
-                    title={
-                      field.blocked ? "This field is not represented in simulation." : undefined
-                    }
                   >
                     <span className="simulation-panel__packet-field-label">{field.label}</span>
                     <span className="simulation-panel__packet-field-value">{field.value}</span>
+                    <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-bits">
+                        {field.bits} bits
+                      </span>
+                      {field.blocked ? (
+                        <span className="simulation-panel__packet-tooltip-note">Not modeled</span>
+                      ) : null}
+                    </span>
                   </div>
                 ))}
               </div>
