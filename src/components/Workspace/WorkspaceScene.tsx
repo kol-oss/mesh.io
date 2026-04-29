@@ -1,4 +1,5 @@
 import { Radio } from "lucide-react";
+import { useState } from "react";
 
 import { ui } from "../../i18n/messages";
 import { ConnectionType, ResizeEdge, SelectionSource } from "../../types/enums";
@@ -39,6 +40,13 @@ export default function WorkspaceScene({
   onMessageAnimationHoverChange,
   onMessageAnimationInspectRequest,
 }: WorkspaceSceneProps) {
+  const [hoveredConnection, setHoveredConnection] = useState<{
+    key: string;
+    x: number;
+    y: number;
+    distance: number;
+  } | null>(null);
+
   return (
     <>
       <svg className="workspace__static-links" aria-hidden="true">
@@ -91,19 +99,54 @@ export default function WorkspaceScene({
             14,
           );
           const isMutual = connection.type === ConnectionType.Mutual;
+          const key = `${connection.type}-${connection.sourceId}-${connection.targetId}`;
+          const distance = Math.hypot(
+            connection.targetX - connection.sourceX,
+            connection.targetY - connection.sourceY,
+          );
 
           return (
             <g
-              key={`${connection.type}-${connection.sourceId}-${connection.targetId}`}
+              key={key}
               className={`workspace__connection ${
                 isMutual ? "workspace__connection--mutual" : "workspace__connection--one-way"
               }`}
             >
+              <line
+                className="workspace__connection-hit"
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                onPointerEnter={() => {
+                  setHoveredConnection({
+                    key,
+                    x: (x1 + x2) / 2,
+                    y: (y1 + y2) / 2,
+                    distance,
+                  });
+                }}
+                onPointerLeave={() =>
+                  setHoveredConnection((prev) => (prev?.key === key ? null : prev))
+                }
+              />
               <line x1={x1} y1={y1} x2={x2} y2={y2} />
             </g>
           );
         })}
       </svg>
+      {hoveredConnection ? (
+        <span
+          className="workspace__connection-tooltip"
+          style={{
+            left: `${hoveredConnection.x}px`,
+            top: `${hoveredConnection.y}px`,
+          }}
+          aria-hidden="true"
+        >
+          {ui.workspace.connectionDistance(hoveredConnection.distance)}
+        </span>
+      ) : null}
       <svg className="workspace__ranges" aria-hidden="true">
         {rangePolygons.map((polygon) => (
           <path

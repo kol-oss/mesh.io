@@ -113,6 +113,7 @@ export const messageCatalog = {
       textLabel: (text: string) => `Text ${text}`,
       obstacleLabel: (name: string) => `Obstacle ${name}`,
       peerLabel: (name: string) => `Peer ${name}`,
+      connectionDistance: (distance: number) => `Distance: ${distance.toFixed(1)}`,
       textDeleted: "Text deleted",
       createdText: "Text",
       toastTextAdded: "Text added",
