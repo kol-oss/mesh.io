@@ -43,7 +43,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  cursor: pointer;
+  cursor: inherit;
   > * {
     pointer-events: auto;
   }

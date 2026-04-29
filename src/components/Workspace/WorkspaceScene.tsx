@@ -133,49 +133,51 @@ export default function WorkspaceScene({
         })}
       </svg>
 
-      <svg className="workspace__message-animations" aria-hidden="true">
-        {messageAnimations.map((animation) => {
-          const rawSourceX = centerX + animation.sourceX;
-          const rawSourceY = centerY + animation.sourceY;
-          const rawTargetX = centerX + animation.targetX;
-          const rawTargetY = centerY + animation.targetY;
-          const { x1, y1, x2, y2 } = shortenLine(
-            rawSourceX,
-            rawSourceY,
-            rawTargetX,
-            rawTargetY,
-            18,
-          );
-          const path = `M ${x1} ${y1} L ${x2} ${y2}`;
+      {messageAnimations.length > 0 ? (
+        <svg className="workspace__message-animations" aria-hidden="true">
+          {messageAnimations.map((animation) => {
+            const rawSourceX = centerX + animation.sourceX;
+            const rawSourceY = centerY + animation.sourceY;
+            const rawTargetX = centerX + animation.targetX;
+            const rawTargetY = centerY + animation.targetY;
+            const { x1, y1, x2, y2 } = shortenLine(
+              rawSourceX,
+              rawSourceY,
+              rawTargetX,
+              rawTargetY,
+              18,
+            );
+            const path = `M ${x1} ${y1} L ${x2} ${y2}`;
 
-          return (
-            <g
-              key={animation.key}
-              className={`workspace__message-animation workspace__message-animation--${animation.variant}`}
-            >
-              <path
-                className="workspace__message-animation-hit"
-                d={path}
-                onPointerEnter={() => onMessageAnimationHoverChange(true)}
-                onPointerLeave={() => onMessageAnimationHoverChange(false)}
-                onPointerDown={(event) => {
-                  event.stopPropagation();
-                  onMessageAnimationInspectRequest();
-                }}
-              />
-              <path className="workspace__message-animation-track" d={path} />
-              <g className="workspace__message-envelope">
-                <animateMotion dur="1.35s" repeatCount="indefinite" path={path} />
-                <rect x="-9" y="-6" width="18" height="12" rx="2.5" />
-                <path d="M -9 -5 L 0 1.25 L 9 -5" />
+            return (
+              <g
+                key={animation.key}
+                className={`workspace__message-animation workspace__message-animation--${animation.variant}`}
+              >
+                <path
+                  className="workspace__message-animation-hit"
+                  d={path}
+                  onPointerEnter={() => onMessageAnimationHoverChange(true)}
+                  onPointerLeave={() => onMessageAnimationHoverChange(false)}
+                  onPointerDown={(event) => {
+                    event.stopPropagation();
+                    onMessageAnimationInspectRequest();
+                  }}
+                />
+                <path className="workspace__message-animation-track" d={path} />
+                <g className="workspace__message-envelope">
+                  <animateMotion dur="1.35s" repeatCount="indefinite" path={path} />
+                  <rect x="-9" y="-6" width="18" height="12" rx="2.5" />
+                  <path d="M -9 -5 L 0 1.25 L 9 -5" />
+                </g>
+                {animation.variant === "route-change" ? (
+                  <circle className="workspace__message-target-pulse" cx={x2} cy={y2} r="7" />
+                ) : null}
               </g>
-              {animation.variant === "route-change" ? (
-                <circle className="workspace__message-target-pulse" cx={x2} cy={y2} r="7" />
-              ) : null}
-            </g>
-          );
-        })}
-      </svg>
+            );
+          })}
+        </svg>
+      ) : null}
 
       {moveIndicators.map((indicator, index) => (
         <span
