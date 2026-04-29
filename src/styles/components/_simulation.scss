@@ -49,6 +49,21 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.simulation-panel--dragging {
+  cursor: grabbing;
+
+  * {
+    cursor: grabbing;
+  }
+
+  .simulation-panel__header {
+    cursor: grabbing;
+  }
 }
 
 .simulation-panel__title,

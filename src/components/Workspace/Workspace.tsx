@@ -319,22 +319,37 @@ export default function Workspace({
       null)
     : null;
 
-  const simulationAnchorPosition = simulationAnchorPeer
+  const simulationAnchorViewportPosition = simulationAnchorPeer
     ? {
-        x:
-          clamp(
-            centerX + simulationAnchorPeer.x + panOffset.x,
-            220,
-            Math.max(220, workspaceSize.width - 220),
-          ) - panOffset.x,
-        y:
-          clamp(
-            centerY + simulationAnchorPeer.y + panOffset.y,
-            168,
-            Math.max(168, workspaceSize.height - 40),
-          ) - panOffset.y,
+        x: centerX + simulationAnchorPeer.x + panOffset.x,
+        y: centerY + simulationAnchorPeer.y + panOffset.y,
       }
     : null;
+
+  const isSimulationAnchorVisible = simulationAnchorViewportPosition
+    ? simulationAnchorViewportPosition.x >= 0 &&
+      simulationAnchorViewportPosition.x <= workspaceSize.width &&
+      simulationAnchorViewportPosition.y >= 0 &&
+      simulationAnchorViewportPosition.y <= workspaceSize.height
+    : false;
+
+  const simulationAnchorPosition =
+    simulationAnchorPeer && simulationAnchorViewportPosition && isSimulationAnchorVisible
+      ? {
+          x:
+            clamp(
+              simulationAnchorViewportPosition.x,
+              220,
+              Math.max(220, workspaceSize.width - 220),
+            ) - panOffset.x,
+          y:
+            clamp(
+              simulationAnchorViewportPosition.y,
+              168,
+              Math.max(168, workspaceSize.height - 40),
+            ) - panOffset.y,
+        }
+      : null;
   const hoveredSimulationPeerId =
     currentSimulationEvent && hoveredSimulationPeerState?.eventId === currentSimulationEvent.id
       ? hoveredSimulationPeerState.peerId
@@ -450,6 +465,7 @@ export default function Workspace({
       >
         {currentSimulationStepResult && currentSimulationEvent && simulationAnchorPosition ? (
           <SimulationPanel
+            key={`${currentSimulationStepResult.step.id}-${currentSimulationEvent.id}`}
             anchorX={simulationAnchorPosition.x}
             anchorY={simulationAnchorPosition.y}
             canGoNextEvent={canGoNextSimulationEvent}

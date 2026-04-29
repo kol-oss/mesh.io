@@ -1,5 +1,11 @@
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
-import { useState, type ReactNode, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 
 import { ToolbarMode } from "../../types/enums";
 import {
@@ -42,6 +48,47 @@ export default function SimulationPanel({
   onPrevEvent,
 }: SimulationPanelProps) {
   const [tqDisclosureState, setTqDisclosureState] = useState<Record<string, boolean>>({});
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStateRef = useRef<{
+    startPointerX: number;
+    startPointerY: number;
+    startOffsetX: number;
+    startOffsetY: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!isDragging) {
+      return;
+    }
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const dragState = dragStateRef.current;
+      if (!dragState) {
+        return;
+      }
+
+      setDragOffset({
+        x: dragState.startOffsetX + (event.clientX - dragState.startPointerX),
+        y: dragState.startOffsetY + (event.clientY - dragState.startPointerY),
+      });
+    };
+
+    const handlePointerEnd = () => {
+      dragStateRef.current = null;
+      setIsDragging(false);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerEnd);
+    window.addEventListener("pointercancel", handlePointerEnd);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerEnd);
+      window.removeEventListener("pointercancel", handlePointerEnd);
+    };
+  }, [isDragging]);
 
   if (!currentStepResult || !currentEvent) {
     return null;
@@ -65,8 +112,23 @@ export default function SimulationPanel({
   const messageSummary = routeChange
     ? null
     : getMessageSummary(currentEvent, peerNameById, onPeerHoverChange);
-  const handlePointerDownCapture = (event: ReactPointerEvent<HTMLElement>) => {
+  const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     event.stopPropagation();
+  };
+  const handleHeaderPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    dragStateRef.current = {
+      startPointerX: event.clientX,
+      startPointerY: event.clientY,
+      startOffsetX: dragOffset.x,
+      startOffsetY: dragOffset.y,
+    };
+    setIsDragging(true);
+    event.stopPropagation();
+    event.preventDefault();
   };
   const handleTqDisclosureToggle = () => {
     setTqDisclosureState((prev) => ({
@@ -77,13 +139,13 @@ export default function SimulationPanel({
 
   return (
     <aside
-      className="simulation-panel simulation-panel--tooltip"
+      className={`simulation-panel simulation-panel--tooltip${isDragging ? " simulation-panel--dragging" : ""}`}
       aria-label="Simulation event"
-      onPointerDownCapture={handlePointerDownCapture}
+      onPointerDown={handlePointerDown}
       onMouseLeave={() => onPeerHoverChange(null)}
-      style={{ left: `${anchorX}px`, top: `${anchorY}px` }}
+      style={{ left: `${anchorX + dragOffset.x}px`, top: `${anchorY + dragOffset.y}px` }}
     >
-      <header className="simulation-panel__header">
+      <header className="simulation-panel__header" onPointerDown={handleHeaderPointerDown}>
         <h2 className="simulation-panel__title">{title}</h2>
         <span className="simulation-panel__tick">Tick {currentEvent.tick}</span>
       </header>
