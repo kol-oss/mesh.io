@@ -1,5 +1,11 @@
 import { ExternalLink, X } from "lucide-react";
-import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from "react";
 
 import { ui } from "../../i18n/messages";
 import type { SimulationStepResult } from "../../types/simulation";
@@ -21,8 +27,51 @@ export default function TableInspectionWindow({
   onClose,
   onPeerHoverChange,
 }: TableInspectionWindowProps) {
-  const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
+  // Drag state
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStateRef = useRef<{
+    startPointerX: number;
+    startPointerY: number;
+    startOffsetX: number;
+    startOffsetY: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!isDragging) return;
+    const handlePointerMove = (event: PointerEvent) => {
+      const dragState = dragStateRef.current;
+      if (!dragState) return;
+      setDragOffset({
+        x: dragState.startOffsetX + (event.clientX - dragState.startPointerX),
+        y: dragState.startOffsetY + (event.clientY - dragState.startPointerY),
+      });
+    };
+    const handlePointerEnd = () => {
+      dragStateRef.current = null;
+      setIsDragging(false);
+    };
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerEnd);
+    window.addEventListener("pointercancel", handlePointerEnd);
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerEnd);
+      window.removeEventListener("pointercancel", handlePointerEnd);
+    };
+  }, [isDragging]);
+
+  const handleHeaderPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.button !== 0) return;
+    dragStateRef.current = {
+      startPointerX: event.clientX,
+      startPointerY: event.clientY,
+      startOffsetX: dragOffset.x,
+      startOffsetY: dragOffset.y,
+    };
+    setIsDragging(true);
     event.stopPropagation();
+    event.preventDefault();
   };
 
   if (!isOpen || !currentStepResult || !inspectedPeerId) {
@@ -45,11 +94,14 @@ export default function TableInspectionWindow({
 
   return (
     <aside
-      className="simulation-panel simulation-panel--inspector"
+      className={`simulation-panel simulation-panel--inspector${isDragging ? " simulation-panel--dragging" : ""}`}
       aria-label={ui.simulation.panelAria}
-      onPointerDown={handlePointerDown}
+      style={{ transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)` }}
     >
-      <header className="simulation-panel__header simulation-panel__header--static">
+      <header
+        className="simulation-panel__header simulation-panel__header--draggable"
+        onPointerDown={handleHeaderPointerDown}
+      >
         <h2 className="simulation-panel__title">
           {ui.simulation.tableInspectionTitle(inspectedPeer.name)}
         </h2>

@@ -304,7 +304,7 @@ export const messageCatalog = {
       eventNodeLabel: "Node",
       routingStateChanged: (actor: string) => `${actor} changed its routing state.`,
       elpBroadcastBody: () =>
-        `Every ELP Interval B.A.T.M.A.N. node broadcast an Echo Location Protocol (ELP) message to wireless neighbours. If this node wants to announce its' neighbors it should append a neighbor entry message for each neighbor to be announced and fill the "Number of Neighbors" field accordingly.`,
+        `Every ELP Interval B.A.T.M.A.N. node broadcast an Echo Location Protocol (ELP) message to neighbours. If this node wants to announce its' neighbors it should append a neighbor entry message for each neighbor to be announced and fill the "Number of Neighbors" field accordingly.`,
       packetBroadcastBody: "The node broadcast a packet message to neighbouring nodes.",
       broadcastUnknownBody: "The node broadcast a message to neighbouring nodes.",
       droppedOgm: (actor: string) =>

@@ -714,11 +714,11 @@ export default function Workspace({
       </div>
       <PacketStructureWindow
         isOpen={
-          isPacketInspectionActive &&
           packetInspectorState.isOpen &&
           packetInspectorState.eventId === currentSimulationEvent?.id &&
           (packetInspectorState.pinned ||
-            (simulationMessageHoverState.eventId === currentSimulationEvent?.id &&
+            (isPacketInspectionActive &&
+              simulationMessageHoverState.eventId === currentSimulationEvent?.id &&
               simulationMessageHoverState.isHovered))
         }
         currentEvent={currentSimulationEvent}
