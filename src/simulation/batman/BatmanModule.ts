@@ -356,6 +356,7 @@ export class BatmanModule implements PacketCapableModule {
       return;
     }
 
+    this.ensureLinkedNeighbourMetrics();
     this.broadcastElp();
   }
 
@@ -406,6 +407,8 @@ export class BatmanModule implements PacketCapableModule {
   }
 
   private process(message: BatmanOriginatorMessage) {
+    this.ensureLinkedNeighbourMetrics();
+
     if (message.sourcePeerId === this.routingPeer.id) {
       return true;
     }
@@ -439,7 +442,8 @@ export class BatmanModule implements PacketCapableModule {
     const receivedThroughput = clampThroughput(message.throughput);
     const neighbourThroughput = clampThroughput(neighbourEntry.ewmaThroughput);
     const selectedThroughput = Math.min(receivedThroughput, neighbourThroughput);
-    const isWirelessHop = this.routingPeer.isRangedNeighbour(message.senderPeerId);
+    const isStaticHop = this.routingPeer.isLinkedNeighbour(message.senderPeerId);
+    const isWirelessHop = !isStaticHop && this.routingPeer.isRangedNeighbour(message.senderPeerId);
     const nextThroughput = isWirelessHop
       ? applyFixedHopPenalty(selectedThroughput)
       : selectedThroughput;
@@ -450,7 +454,14 @@ export class BatmanModule implements PacketCapableModule {
       nextThroughput,
       isWirelessHop,
     );
-    this.recordThroughputCalculated(message, reason);
+    this.recordThroughputCalculated(message, reason, undefined, {
+      receivedThroughput,
+      neighbourThroughput,
+      selectedThroughput,
+      isWirelessHop,
+      hopPenaltyPercent: BATMAN_OGM_HOP_PENALTY_PERCENT,
+      forwardedThroughput: nextThroughput,
+    });
 
     const processed = this.originatorTable.process(
       message.sourcePeerId,
@@ -538,12 +549,9 @@ export class BatmanModule implements PacketCapableModule {
   }
 
   private broadcast(message: BatmanOriginatorMessage | BatmanEchoLocationMessage) {
-    const neighbours =
-      message.kind === SimulationMessageKind.BatmanEchoLocationMessage
-        ? this.routingPeer
-            .getRangedNeighbours()
-            .filter((peer) => peer.supports(RoutingProtocol.BATMAN))
-        : this.routingPeer.getNeighbours().filter((peer) => peer.supports(RoutingProtocol.BATMAN));
+    const neighbours = this.routingPeer
+      .getNeighbours()
+      .filter((peer) => peer.supports(RoutingProtocol.BATMAN));
 
     this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageBroadcast, {
       neighbourPeerIds: neighbours.map((peer) => peer.id),
@@ -591,6 +599,26 @@ export class BatmanModule implements PacketCapableModule {
     };
 
     this.broadcast(elpMessage);
+  }
+
+  private ensureLinkedNeighbourMetrics() {
+    const currentTick = this.eventRecorder.getCurrentTick();
+
+    const linkedBatmanNeighbours = this.routingPeer
+      .getNeighbours()
+      .filter(
+        (peer) =>
+          peer.supports(RoutingProtocol.BATMAN) && this.routingPeer.isLinkedNeighbour(peer.id),
+      );
+
+    for (const neighbour of linkedBatmanNeighbours) {
+      this.neighbourTable.set(neighbour.id, {
+        neighbourId: neighbour.id,
+        lastSeen: currentTick,
+        lastInterval: 1,
+        ewmaThroughput: BATMAN_STATIC_BASE_THROUGHPUT,
+      });
+    }
   }
 
   private processEchoLocation(message: BatmanEchoLocationMessage) {
@@ -691,11 +719,13 @@ export class BatmanModule implements PacketCapableModule {
     message: SimulationMessage,
     reason: string,
     breakdown?: ThroughputCalculationEventDetails["breakdown"],
+    ogmSelection?: ThroughputCalculationEventDetails["ogmSelection"],
   ) {
     this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemThroughputCalculated, {
       message: cloneMessage(message),
       reason,
       breakdown,
+      ogmSelection,
     });
   }
 }

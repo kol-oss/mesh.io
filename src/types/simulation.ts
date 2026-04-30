@@ -112,6 +112,14 @@ export type ThroughputCalculationEventDetails = {
     distancePenaltyDistance: number;
     distancePenaltyPercent: number;
   };
+  ogmSelection?: {
+    receivedThroughput: number;
+    neighbourThroughput: number;
+    selectedThroughput: number;
+    isWirelessHop: boolean;
+    hopPenaltyPercent: number;
+    forwardedThroughput: number;
+  };
 };
 
 export type SimulationStepBoundaryDetails = {

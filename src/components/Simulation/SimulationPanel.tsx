@@ -20,8 +20,6 @@ import {
   type ThroughputCalculationEventDetails,
 } from "../../types/simulation";
 
-const BATMAN_V_HOP_PENALTY_PERCENT = 5.8;
-
 type SimulationPanelProps = {
   anchorX: number;
   anchorY: number;
@@ -109,20 +107,20 @@ export default function SimulationPanel({
     currentStepResult.snapshot.peers.map((peer) => [peer.id, peer.name]),
   );
   const routeChange = getRouteChange(currentEvent);
+  const currentMessage = getEventMessage(currentEvent);
   const title = getEventTitle(currentEvent);
-  const description = getEventDescription(
-    currentEvent,
-    inspectionMode,
-    peerNameById,
-    onPeerHoverChange,
-  );
+  const description = getEventDescription(currentEvent, inspectionMode);
   const eventOwner = renderPeerName(
     currentEvent.peerId,
     getPeerLabel(currentEvent.peerId, peerNameById),
     onPeerHoverChange,
   );
   const routeRows = routeChange ? getRouteRows(routeChange) : [];
-  const routeTqExplanation = routeChange ? getRouteTqExplanation(currentEvent) : null;
+  const ogmBroadcastThroughputExplanation = getOgmBroadcastThroughputExplanation(
+    currentEvent,
+    currentMessage,
+  );
+  const ogmThroughputSelectionExplanation = getOgmThroughputSelectionExplanation(currentEvent);
   const throughputBreakdown = getThroughputBreakdown(currentEvent);
   const routeSequenceWindowExplanation = routeChange
     ? getRouteSequenceWindowExplanation(currentEvent)
@@ -204,29 +202,6 @@ export default function SimulationPanel({
                 ))}
               </tbody>
             </table>
-            {routeTqExplanation ? (
-              <div className="simulation-panel__tq-disclosure">
-                <button
-                  className="simulation-panel__tq-toggle"
-                  type="button"
-                  onClick={handleTqDisclosureToggle}
-                  aria-expanded={isTqDisclosureOpen}
-                >
-                  <ChevronRight
-                    size={12}
-                    className={`simulation-panel__tq-toggle-icon${isTqDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
-                  />
-                  <span className="simulation-panel__tq-toggle-label">
-                    {ui.simulation.tqQuestionWhat}
-                  </span>
-                </button>
-                {isTqDisclosureOpen ? (
-                  <p className="simulation-panel__description simulation-panel__description--secondary">
-                    {routeTqExplanation}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
             {routeSequenceWindowExplanation ? (
               <div className="simulation-panel__tq-disclosure">
                 <button
@@ -331,6 +306,52 @@ export default function SimulationPanel({
             ) : null}
           </div>
         ) : null}
+        {ogmThroughputSelectionExplanation ? (
+          <div className="simulation-panel__tq-disclosure">
+            <button
+              className="simulation-panel__tq-toggle"
+              type="button"
+              onClick={handleTqDisclosureToggle}
+              aria-expanded={isTqDisclosureOpen}
+            >
+              <ChevronRight
+                size={12}
+                className={`simulation-panel__tq-toggle-icon${isTqDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
+              />
+              <span className="simulation-panel__tq-toggle-label">
+                {ui.simulation.ogmThroughputSelectedQuestion}
+              </span>
+            </button>
+            {isTqDisclosureOpen ? (
+              <p className="simulation-panel__description simulation-panel__description--secondary">
+                {ogmThroughputSelectionExplanation}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+        {ogmBroadcastThroughputExplanation ? (
+          <div className="simulation-panel__tq-disclosure">
+            <button
+              className="simulation-panel__tq-toggle"
+              type="button"
+              onClick={handleTqDisclosureToggle}
+              aria-expanded={isTqDisclosureOpen}
+            >
+              <ChevronRight
+                size={12}
+                className={`simulation-panel__tq-toggle-icon${isTqDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
+              />
+              <span className="simulation-panel__tq-toggle-label">
+                {ui.simulation.ogmThroughputQuestion}
+              </span>
+            </button>
+            {isTqDisclosureOpen ? (
+              <p className="simulation-panel__description simulation-panel__description--secondary">
+                {ogmBroadcastThroughputExplanation}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </section>
 
       <footer className="simulation-panel__footer">
@@ -390,60 +411,27 @@ const getEventTitle = (event: SimulationEvent) => {
   }
 };
 
-const getEventDescription = (
-  event: SimulationEvent,
-  inspectionMode: ToolbarMode,
-  peerNameById: Map<string, string>,
-  onPeerHoverChange: (peerId: string | null) => void,
-) => {
-  const actor = getPeerLabel(event.peerId, peerNameById);
+const getEventDescription = (event: SimulationEvent, inspectionMode: ToolbarMode) => {
+  const actor = ui.simulation.eventNodeLabel;
   const routeChange = getRouteChange(event);
   const message = getEventMessage(event);
 
   if (routeChange) {
     if (event.type === SimulationEventType.RoutingTableInsert) {
-      return getRouteInsertDescription(
-        event.peerId,
-        actor,
-        routeChange,
-        message,
-        peerNameById,
-        onPeerHoverChange,
-      );
+      return getRouteInsertDescription();
     }
 
     if (event.type === SimulationEventType.RoutingTableUpdate) {
-      return getRouteUpdateDescription(
-        event.peerId,
-        actor,
-        routeChange,
-        message,
-        peerNameById,
-        onPeerHoverChange,
-      );
+      return getRouteUpdateDescription();
     }
 
-    return getRouteRemoveDescription(
-      event.peerId,
-      actor,
-      routeChange,
-      message,
-      peerNameById,
-      onPeerHoverChange,
-    );
+    return getRouteRemoveDescription();
   }
 
   if (inspectionMode === ToolbarMode.PacketStructure) {
     switch (event.type) {
       case SimulationEventType.SystemMessageBroadcast:
-        return getBroadcastDescription(
-          event.peerId,
-          actor,
-          event,
-          message,
-          peerNameById,
-          onPeerHoverChange,
-        );
+        return getBroadcastDescription(event, message);
       case SimulationEventType.SystemMessageSent:
         return ui.simulation.eventSent(actor);
       case SimulationEventType.SystemThroughputCalculated:
@@ -564,48 +552,24 @@ const getDroppedTitle = (message: SimulationMessage | null) => {
   return ui.simulation.dropMessage;
 };
 
-const getBroadcastDescription = (
-  actorId: string,
-  actor: string,
-  event: SimulationEvent,
-  message: SimulationMessage | null,
-  peerNameById: Map<string, string>,
-  onPeerHoverChange: (peerId: string | null) => void,
-) => {
+const getBroadcastDescription = (event: SimulationEvent, message: SimulationMessage | null) => {
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
     return <>{ui.simulation.elpBroadcastBody()}</>;
   }
 
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
-    const originator = getPeerLabel(message.sourcePeerId, peerNameById);
-    const sender = getPeerLabel(message.senderPeerId, peerNameById);
     if ("retransmit" in event.details && event.details.retransmit) {
-      return (
-        <>
-          {renderPeerName(actorId, actor, onPeerHoverChange)} {ui.simulation.ogmRebroadcastPrefix}{" "}
-          {renderPeerName(message.sourcePeerId, originator, onPeerHoverChange)}
-          {ui.simulation.ogmRebroadcastMiddle}
-          {renderPeerName(message.senderPeerId, sender, onPeerHoverChange)}
-          {ui.simulation.ogmRebroadcastSuffix}
-        </>
-      );
+      return <>{ui.simulation.ogmRebroadcastBodyNode}</>;
     }
 
-    return (
-      <>
-        {ui.simulation.ogmBroadcastPrefix} {renderPeerName(actorId, actor, onPeerHoverChange)}{" "}
-        {ui.simulation.ogmBroadcastMiddle}{" "}
-        {renderPeerName(message.sourcePeerId, originator, onPeerHoverChange)}
-        {ui.simulation.ogmBroadcastSuffix}
-      </>
-    );
+    return <>{ui.simulation.ogmBroadcastBody}</>;
   }
 
   if (message?.kind === SimulationMessageKind.Packet) {
-    return <>{ui.simulation.packetBroadcastBody(actor)}</>;
+    return <>{ui.simulation.packetBroadcastBody}</>;
   }
 
-  return <>{ui.simulation.broadcastUnknownBody(actor)}</>;
+  return <>{ui.simulation.broadcastUnknownBody}</>;
 };
 
 const getDroppedDescription = (
@@ -634,6 +598,10 @@ const getThroughputCalculatedDescription = (actor: string, event: SimulationEven
     return <>{ui.simulation.throughputOverview}</>;
   }
 
+  if (details.message.kind === SimulationMessageKind.BatmanOriginatorMessage) {
+    return <>{ui.simulation.ogmThroughputOperationTheory}</>;
+  }
+
   return <>{ui.simulation.eventThroughputCalculated(actor, details.reason)}</>;
 };
 
@@ -648,6 +616,58 @@ const getThroughputBreakdown = (event: SimulationEvent) => {
   }
 
   return details.breakdown ?? null;
+};
+
+const getOgmBroadcastThroughputExplanation = (
+  event: SimulationEvent,
+  message: SimulationMessage | null,
+) => {
+  if (event.type !== SimulationEventType.SystemMessageBroadcast) {
+    return null;
+  }
+
+  if (message?.kind !== SimulationMessageKind.BatmanOriginatorMessage) {
+    return null;
+  }
+
+  if ("retransmit" in event.details && event.details.retransmit) {
+    return null;
+  }
+
+  return ui.simulation.ogmThroughputAnswer;
+};
+
+const getOgmThroughputSelectionExplanation = (event: SimulationEvent) => {
+  if (event.type !== SimulationEventType.SystemThroughputCalculated) {
+    return null;
+  }
+
+  const details = event.details as ThroughputCalculationEventDetails;
+  if (details.message.kind !== SimulationMessageKind.BatmanOriginatorMessage) {
+    return null;
+  }
+
+  if (!details.ogmSelection) {
+    return null;
+  }
+
+  const selection = details.ogmSelection;
+  if (selection.isWirelessHop) {
+    return ui.simulation.ogmThroughputSelectedWithPenalty(
+      selection.receivedThroughput,
+      selection.neighbourThroughput,
+      selection.selectedThroughput,
+      selection.hopPenaltyPercent,
+      selection.forwardedThroughput,
+    );
+  }
+
+  return ui.simulation.ogmThroughputSelectedWithoutPenalty(
+    selection.receivedThroughput,
+    selection.neighbourThroughput,
+    selection.selectedThroughput,
+    selection.forwardedThroughput,
+  );
 };
 
 const formatFixed = (value: number) => value.toFixed(2);
@@ -694,7 +714,7 @@ const getRouteInsertTitle = (
   routeChange: RoutingTableChangeDetails | null,
 ) => {
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage || routeChange) {
-    return ui.simulation.originatorAdded;
+    return ui.simulation.updateOriginators;
   }
 
   return ui.simulation.routeAdded;
@@ -705,7 +725,7 @@ const getRouteUpdateTitle = (
   routeChange: RoutingTableChangeDetails | null,
 ) => {
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage || routeChange) {
-    return ui.simulation.originatorUpdated;
+    return ui.simulation.updateOriginators;
   }
 
   return ui.simulation.routeUpdated;
@@ -722,113 +742,27 @@ const getRouteRemoveTitle = (
   return ui.simulation.routeRemoved;
 };
 
-const getRouteInsertDescription = (
-  actorId: string,
-  actor: string,
-  routeChange: RoutingTableChangeDetails,
-  _message: SimulationMessage | null,
-  peerNameById: Map<string, string>,
-  onPeerHoverChange: (peerId: string | null) => void,
-) => {
-  const originator = getPeerLabel(routeChange.originatorPeerId, peerNameById);
-  const nextHop = getPeerLabel(routeChange.hopPeerId, peerNameById);
-
+const getRouteInsertDescription = () => {
   return (
     <>
-      {renderPeerName(actorId, actor, onPeerHoverChange)} {ui.simulation.routeInsertBodyPrefix}{" "}
-      {renderPeerName(routeChange.originatorPeerId, originator, onPeerHoverChange)}{" "}
-      {ui.simulation.routeInsertBodyMiddle}{" "}
-      {renderPeerName(routeChange.hopPeerId, nextHop, onPeerHoverChange)}{" "}
-      {ui.simulation.routeInsertBodySuffix} {routeChange.reason}
+      {ui.simulation.routeInsertBodyPrefix} {ui.simulation.routeInsertBodySuffix}
     </>
   );
 };
 
-const getRouteUpdateDescription = (
-  actorId: string,
-  actor: string,
-  routeChange: RoutingTableChangeDetails,
-  _message: SimulationMessage | null,
-  peerNameById: Map<string, string>,
-  onPeerHoverChange: (peerId: string | null) => void,
-) => {
-  const originator = getPeerLabel(routeChange.originatorPeerId, peerNameById);
-  const nextHop = getPeerLabel(routeChange.hopPeerId, peerNameById);
-
+const getRouteUpdateDescription = () => {
   return (
     <>
-      {renderPeerName(actorId, actor, onPeerHoverChange)} {ui.simulation.routeUpdateBodyPrefix}{" "}
-      {renderPeerName(routeChange.originatorPeerId, originator, onPeerHoverChange)}{" "}
-      {ui.simulation.routeUpdateBodyMiddle}{" "}
-      {renderPeerName(routeChange.hopPeerId, nextHop, onPeerHoverChange)}{" "}
-      {ui.simulation.routeUpdateBodySuffix} {routeChange.reason}
+      {ui.simulation.routeUpdateBodyPrefix} {ui.simulation.routeUpdateBodySuffix}
     </>
   );
-};
-
-const getRouteTqExplanation = (event: SimulationEvent) => {
-  const routeChange = getRouteChange(event);
-  if (!routeChange) {
-    return null;
-  }
-
-  const message = getEventMessage(event);
-
-  if (event.type === SimulationEventType.RoutingTableInsert) {
-    const nextRoute = routeChange.nextRoute;
-    if (!nextRoute || message?.kind !== SimulationMessageKind.BatmanOriginatorMessage) {
-      return ui.simulation.tqInsertFallback;
-    }
-
-    return ui.simulation.throughputAnswer(
-      clampThroughput(message.throughput),
-      applyHopPenalty(clampThroughput(message.throughput)),
-    );
-  }
-
-  if (event.type === SimulationEventType.RoutingTableUpdate) {
-    const previousRoute = routeChange.previousRoute;
-    const nextRoute = routeChange.nextRoute;
-
-    if (!previousRoute || !nextRoute) {
-      return null;
-    }
-
-    const isDecayUpdate = routeChange.reason.includes(ui.runtime.qualityWindowShiftedNoOgm);
-
-    if (!isDecayUpdate) {
-      if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
-        return ui.simulation.throughputAnswer(
-          clampThroughput(message.throughput),
-          applyHopPenalty(clampThroughput(message.throughput)),
-        );
-      }
-
-      return ui.simulation.tqUpdateGeneric(
-        countQualityWindowOnes(previousRoute.qualityWindow),
-        previousRoute.quality,
-        countQualityWindowOnes(nextRoute.qualityWindow),
-        nextRoute.quality,
-      );
-    }
-
-    return ui.simulation.tqDecayUpdate(
-      countQualityWindowOnes(previousRoute.qualityWindow),
-      previousRoute.quality,
-      countQualityWindowOnes(nextRoute.qualityWindow),
-      nextRoute.quality,
-    );
-  }
-
-  return null;
-};
-
-const countQualityWindowOnes = (qualityWindow: string) => {
-  return qualityWindow.split("").reduce((count, bit) => count + Number(bit === "1"), 0);
 };
 
 const getRouteSequenceWindowExplanation = (event: SimulationEvent) => {
-  if (event.type !== SimulationEventType.RoutingTableUpdate) {
+  if (
+    event.type !== SimulationEventType.RoutingTableInsert &&
+    event.type !== SimulationEventType.RoutingTableUpdate
+  ) {
     return null;
   }
 
@@ -846,23 +780,10 @@ const getRouteSequenceWindowExplanation = (event: SimulationEvent) => {
   return ui.simulation.sequenceWindowAnswer(message.sequence);
 };
 
-const getRouteRemoveDescription = (
-  actorId: string,
-  actor: string,
-  routeChange: RoutingTableChangeDetails,
-  _message: SimulationMessage | null,
-  peerNameById: Map<string, string>,
-  onPeerHoverChange: (peerId: string | null) => void,
-) => {
-  const originator = getPeerLabel(routeChange.originatorPeerId, peerNameById);
-  const nextHop = getPeerLabel(routeChange.hopPeerId, peerNameById);
-
+const getRouteRemoveDescription = () => {
   return (
     <>
-      {renderPeerName(actorId, actor, onPeerHoverChange)} {ui.simulation.routeRemoveBodyPrefix}{" "}
-      {renderPeerName(routeChange.originatorPeerId, originator, onPeerHoverChange)}{" "}
-      {ui.simulation.routeRemoveBodyMiddle}{" "}
-      {renderPeerName(routeChange.hopPeerId, nextHop, onPeerHoverChange)}.{" "}
+      {ui.simulation.routeRemoveBodyPrefix} {ui.simulation.routeRemoveBodyMiddle}.{" "}
       {ui.simulation.routeRemoveBodySuffix}
     </>
   );
@@ -886,17 +807,4 @@ const renderPeerName = (
 
 const getPeerLabel = (peerId: string, peerNameById: Map<string, string>) => {
   return peerNameById.get(peerId) ?? peerId;
-};
-
-const clampThroughput = (throughput: number) => {
-  if (!Number.isFinite(throughput)) {
-    return 2 ** 32;
-  }
-
-  return Math.max(0, Math.min(2 ** 32, Math.floor(throughput)));
-};
-
-const applyHopPenalty = (throughput: number) => {
-  const penalized = throughput * ((100 - BATMAN_V_HOP_PENALTY_PERCENT) / 100);
-  return Math.max(0, Math.floor(penalized));
 };

@@ -7,7 +7,12 @@ import { ui } from "../i18n/messages";
 import { runSimulation } from "../simulation/runSimulation";
 import { PlacementMode, SelectionSource, ToolbarMode } from "../types/enums";
 import type { NetworkEntity } from "../types/entities";
-import { SimulationEventType, type SimulationPlaybackState } from "../types/simulation";
+import {
+  SimulationEventType,
+  type RoutingTableChangeDetails,
+  type SimulationEvent,
+  type SimulationPlaybackState,
+} from "../types/simulation";
 import type { WorkflowStep } from "../types/steps";
 import type { ToolbarPlacementMode } from "../types/toolbar";
 import type { WorkspaceTextItem } from "../types/workspace";
@@ -32,6 +37,38 @@ const downloadWorkspacePayload = (payload: WorkspaceImportPayload) => {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+};
+
+const collapseOriginatorInsertUpdateEvents = (events: SimulationEvent[]) => {
+  const skipIds = new Set<string>();
+
+  for (let index = 0; index < events.length - 1; index += 1) {
+    const current = events[index];
+    const next = events[index + 1];
+    if (
+      current.type !== SimulationEventType.RoutingTableInsert ||
+      next.type !== SimulationEventType.RoutingTableUpdate
+    ) {
+      continue;
+    }
+
+    if (current.peerId !== next.peerId) {
+      continue;
+    }
+
+    const currentDetails = current.details as RoutingTableChangeDetails;
+    const nextDetails = next.details as RoutingTableChangeDetails;
+    if (
+      currentDetails.originatorPeerId !== nextDetails.originatorPeerId ||
+      currentDetails.hopPeerId !== nextDetails.hopPeerId
+    ) {
+      continue;
+    }
+
+    skipIds.add(current.id);
+  }
+
+  return events.filter((event) => !skipIds.has(event.id));
 };
 
 export function useWorkspaceStore() {
@@ -369,8 +406,12 @@ export function useWorkspaceStore() {
       return [];
     }
 
+    const collapsedEvents = collapseOriginatorInsertUpdateEvents(
+      currentSimulationStepResult.events,
+    );
+
     if (simulationInspectionMode === ToolbarMode.RoutingTable) {
-      return currentSimulationStepResult.events.filter(
+      return collapsedEvents.filter(
         (event) =>
           event.type === SimulationEventType.RoutingTableInsert ||
           event.type === SimulationEventType.RoutingTableUpdate ||
@@ -378,7 +419,7 @@ export function useWorkspaceStore() {
       );
     }
 
-    return currentSimulationStepResult.events;
+    return collapsedEvents;
   }, [currentSimulationStepResult, simulationInspectionMode]);
   const normalizedCurrentEventIndex =
     currentSimulationEvents.length === 0

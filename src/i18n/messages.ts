@@ -215,7 +215,7 @@ export const messageCatalog = {
       previousEventAria: "Previous event",
       nextEventAria: "Next event",
       sendMessage: "Send Message",
-      throughputRecalculated: "Throughput Recalculated",
+      throughputRecalculated: "Throughput Estimation",
       genericEvent: "Simulation Event",
       summarySource: "Source",
       summaryDestination: "Destination",
@@ -243,6 +243,7 @@ export const messageCatalog = {
       originatorAdded: "Originator Added",
       routeAdded: "Route Added",
       originatorUpdated: "Originator Updated",
+      updateOriginators: "Update Originators",
       routeUpdated: "Route Updated",
       originatorRemoved: "Originator Removed",
       routeRemoved: "Route Removed",
@@ -273,15 +274,31 @@ export const messageCatalog = {
         `This value is then used as the initial input to the EWMA (Exponentially Weighted Moving Average), resulting in an initial smoothed metric of ${next}, which will be refined over time as more measurements are collected.`,
       throughputEwmaUpdated: (previous: string, raw: string, next: string) =>
         `This value is then folded into EWMA smoothing (alpha 0.20): previous metric ${previous}, new sample ${raw}, resulting smoothed metric ${next}.`,
+      ogmThroughputOperationTheory:
+        "For OGMv2 forwarding, throughput estimation compares the throughput carried by the received OGMv2 message with the throughput recorded in the Neighbours Table from ELP calculations. The minimum of these two values is selected as the forwarding candidate.",
+      ogmThroughputSelectedQuestion: "What throughput value was selected?",
+      ogmThroughputSelectedWithPenalty: (
+        receivedThroughput: number,
+        neighbourThroughput: number,
+        selectedThroughput: number,
+        hopPenaltyPercent: number,
+        forwardedThroughput: number,
+      ) =>
+        `The received value of throughput from OGMv2 was ${receivedThroughput}, and value from Neighbours Table was ${neighbourThroughput}, so minimum selected value was ${selectedThroughput}. Because this is a wireless hop, peer penalty ${hopPenaltyPercent.toFixed(1)}% was applied, producing finalized value ${forwardedThroughput}. Final value is ${forwardedThroughput}, and this value will be used as route throughput.`,
+      ogmThroughputSelectedWithoutPenalty: (
+        receivedThroughput: number,
+        neighbourThroughput: number,
+        selectedThroughput: number,
+        forwardedThroughput: number,
+      ) =>
+        `The received value of throughput from OGMv2 was ${receivedThroughput}, and value from Neighbours Table was ${neighbourThroughput}, so minimum selected value was ${selectedThroughput}. This is a static hop, so no wireless peer penalty is applied. Final value is ${forwardedThroughput}, and this value will be used as route throughput.`,
       eventEmitted: (actor: string) => `${actor} emitted a simulation event.`,
       eventNodeLabel: "Node",
       routingStateChanged: (actor: string) => `${actor} changed its routing state.`,
       elpBroadcastBody: () =>
         `Every ELP Interval B.A.T.M.A.N. node broadcast an Echo Location Protocol (ELP) message to wireless neighbours. If this node wants to announce its' neighbors it should append a neighbor entry message for each neighbor to be announced and fill the "Number of Neighbors" field accordingly.`,
-      packetBroadcastBody: (actor: string) =>
-        `${actor} broadcast a packet message to neighbouring peers.`,
-      broadcastUnknownBody: (actor: string) =>
-        `${actor} broadcast a message to neighbouring peers.`,
+      packetBroadcastBody: "The node broadcast a packet message to neighbouring nodes.",
+      broadcastUnknownBody: "The node broadcast a message to neighbouring nodes.",
       droppedOgm: (actor: string) =>
         `${actor} already received OGMv2 with such originator and sequence number with better throughput, so it did not continue processing this OGMv2, and B.A.T.M.A.N. V propagation stopped at this hop.`,
       droppedPacket: (actor: string) =>
@@ -314,26 +331,29 @@ export const messageCatalog = {
         nextQuality: number,
       ) =>
         `No OGMv2 arrived, so the sequence protection window shifted from ${previousReceptions} accepted entries (throughput ${previousQuality}) to ${nextReceptions} accepted entries (throughput ${nextQuality}).`,
-      routeInsertBodyPrefix: "created a new originator-table entry for",
-      routeInsertBodyMiddle: "via",
+      routeInsertBodyPrefix: "The node created a new originator-table entry.",
+      routeInsertBodyMiddle: "",
       routeInsertBodySuffix:
-        "after accepting a valid OGMv2. The node records originator and sender context and initializes B.A.T.M.A.N. V throughput tracking for this path.",
-      routeUpdateBodyPrefix: "refreshed the originator-table entry for",
-      routeUpdateBodyMiddle: "via",
+        "The record was accepted from a valid OGMv2, and the node stored originator and sender context for this path.",
+      routeUpdateBodyPrefix: "The node refreshed an originator-table entry.",
+      routeUpdateBodyMiddle: "",
       routeUpdateBodySuffix:
-        "after processing a valid OGMv2 for that originator. B.A.T.M.A.N. V updates sequence progress, recalculates throughput with hop penalty, and keeps last-seen timing fresh.",
-      routeRemoveBodyPrefix: "removed the originator-table entry for",
-      routeRemoveBodyMiddle: "via",
+        "The update came from processing a valid OGMv2 for that originator, keeping sequence progress and last-seen timing fresh.",
+      routeRemoveBodyPrefix: "The node removed an originator-table entry.",
+      routeRemoveBodyMiddle: "The route is no longer treated as valid",
       routeRemoveBodySuffix:
         "B.A.T.M.A.N. V drops this record when the route becomes stale, so this next hop is no longer trusted as a valid path to that originator.",
       ogmRebroadcastPrefix: "rebroadcasts",
+      ogmRebroadcastBodyNode:
+        "The node rebroadcasts an OGMv2 after receiving it from a neighbour. This forwards throughput-aware evidence deeper into the mesh so downstream nodes can compare candidate next hops for the same originator.",
       ogmRebroadcastMiddle: "'s OGMv2 after receiving it from ",
       ogmRebroadcastSuffix:
         ". This forwards throughput-aware evidence deeper into the mesh so downstream nodes can compare candidate next hops for the same originator without hearing the originator directly.",
-      ogmBroadcastPrefix: "Every OGM interval,",
-      ogmBroadcastMiddle:
-        "broadcasts an Originator Message v2 (OGMv2) to announce its presence and publish throughput information. Neighbours rebroadcast OGMv2 across the mesh when best-path rules allow it, enabling B.A.T.M.A.N. V nodes to choose the strongest next hop toward",
-      ogmBroadcastSuffix: ".",
+      ogmBroadcastBody:
+        "Every OGM interval, an Originator Message v2 (OGMv2) is broadcast to announce presence and publish throughput information. Neighbours may rebroadcast OGMv2 across the mesh when best-path rules allow it, enabling B.A.T.M.A.N. V nodes to choose the strongest next hop.",
+      ogmThroughputQuestion: "What is throughput value in OGMv2?",
+      ogmThroughputAnswer:
+        "At the originator node, OGMv2 starts with throughput value 2**32. Each next peer then combines the carried OGM throughput with neighbour throughput derived from ELP using a min() operation, and forwards the selected value.",
     },
     packet: {
       inspectorAria: "Packet structure inspector",
