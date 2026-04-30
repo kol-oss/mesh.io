@@ -99,6 +99,7 @@ export const messageCatalog = {
       fieldBatmanElpInterval: "BATMAN ELP Interval",
       fieldBatmanOgmInterval: "BATMAN OGM Interval",
       fieldBatmanPurgeTimeout: "B.A.T.M.A.N. Purge Timeout",
+      globalFieldTooltip: "Global field",
       titleStep: "Step",
       subtitleStep: "A discrete action in the simulation workflow, executed at a specific tick.",
       titleRoutingStep: "Routing Step",

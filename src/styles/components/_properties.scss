@@ -112,6 +112,30 @@
     &--required {
       color: $red-400;
     }
+
+    &--global {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+  }
+
+  &__field-label-text {
+    color: inherit;
+
+    &--required {
+      color: $red-400;
+    }
+  }
+
+  &__global-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #c7ccd2;
+    opacity: 1;
   }
 
   &__field-grid {

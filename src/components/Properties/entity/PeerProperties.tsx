@@ -1,6 +1,16 @@
-import { CircleDot, Clock3, Diamond, ExternalLink, Lock, Percent, Ruler } from "lucide-react";
+import {
+  CircleDot,
+  Clock3,
+  Diamond,
+  ExternalLink,
+  Globe,
+  Lock,
+  Percent,
+  Ruler,
+} from "lucide-react";
 
 import { peerRoutingProtocols } from "../../../constants/protocol";
+import Tooltip from "../../Tooltip/Tooltip";
 import { ui } from "../../../i18n/messages";
 import { EntityType, RoutingProtocol } from "../../../types/enums";
 import type { PeerEntity } from "../../../types/entities";
@@ -49,6 +59,40 @@ export default function PeerProperties({
 
     setEntities(updatedEntities);
   };
+
+  const updateBatmanPeers = (changes: Partial<PeerEntity>) => {
+    if (isLocked) return;
+    const updatedEntities = entities.map((entity) => {
+      if (entity.type !== EntityType.Peer) {
+        return entity;
+      }
+
+      return {
+        ...entity,
+        ...changes,
+      };
+    });
+
+    setEntities(updatedEntities);
+  };
+
+  const renderBatmanLabel = (label: string, isRequired: boolean) => (
+    <span className="properties__field-label properties__field-label--global">
+      <span
+        className={`properties__field-label-text ${isRequired ? "properties__field-label-text--required" : ""}`}
+      >
+        {label}
+      </span>
+      <Tooltip content={ui.properties.globalFieldTooltip}>
+        <span
+          className="properties__global-indicator"
+          aria-label={ui.properties.globalFieldTooltip}
+        >
+          <Globe size={12} />
+        </span>
+      </Tooltip>
+    </span>
+  );
 
   return (
     <aside
@@ -197,11 +241,10 @@ export default function PeerProperties({
         {selectedPeer.protocols.includes(RoutingProtocol.BATMAN) && (
           <>
             <label className="properties__field">
-              <span
-                className={`properties__field-label ${isBatmanPenaltyDistanceMissing || isBatmanPenaltyPercentMissing ? "properties__field-label--required" : ""}`}
-              >
-                {ui.properties.fieldBatmanDistancePenalty}
-              </span>
+              {renderBatmanLabel(
+                ui.properties.fieldBatmanDistancePenalty,
+                isBatmanPenaltyDistanceMissing || isBatmanPenaltyPercentMissing,
+              )}
               <div className="properties__inline-group">
                 <div className="properties__input-with-prefix">
                   <Ruler size={12} />
@@ -211,7 +254,7 @@ export default function PeerProperties({
                     min="1"
                     value={selectedPeer.batmanDistancePenaltyDistance}
                     onChange={(event) =>
-                      updatePeer({
+                      updateBatmanPeers({
                         batmanDistancePenaltyDistance: parsePositiveNumberValue(
                           event.target.value,
                           selectedPeer.batmanDistancePenaltyDistance,
@@ -229,7 +272,7 @@ export default function PeerProperties({
                     min="0"
                     value={selectedPeer.batmanDistancePenaltyPercent}
                     onChange={(event) =>
-                      updatePeer({
+                      updateBatmanPeers({
                         batmanDistancePenaltyPercent: parsePositiveNumberValue(
                           event.target.value,
                           selectedPeer.batmanDistancePenaltyPercent,
@@ -244,11 +287,7 @@ export default function PeerProperties({
             </label>
 
             <label className="properties__field">
-              <span
-                className={`properties__field-label ${isBatmanElpMissing ? "properties__field-label--required" : ""}`}
-              >
-                {ui.properties.fieldBatmanElpInterval}
-              </span>
+              {renderBatmanLabel(ui.properties.fieldBatmanElpInterval, isBatmanElpMissing)}
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
@@ -257,7 +296,7 @@ export default function PeerProperties({
                   min="1"
                   value={selectedPeer.batmanElpInterval}
                   onChange={(event) =>
-                    updatePeer({
+                    updateBatmanPeers({
                       batmanElpInterval: parseNumberValue(
                         event.target.value,
                         selectedPeer.batmanElpInterval,
@@ -269,11 +308,7 @@ export default function PeerProperties({
             </label>
 
             <label className="properties__field">
-              <span
-                className={`properties__field-label ${isBatmanOgmMissing ? "properties__field-label--required" : ""}`}
-              >
-                {ui.properties.fieldBatmanOgmInterval}
-              </span>
+              {renderBatmanLabel(ui.properties.fieldBatmanOgmInterval, isBatmanOgmMissing)}
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
@@ -282,7 +317,7 @@ export default function PeerProperties({
                   min="1"
                   value={selectedPeer.batmanOgmInterval}
                   onChange={(event) =>
-                    updatePeer({
+                    updateBatmanPeers({
                       batmanOgmInterval: parseNumberValue(
                         event.target.value,
                         selectedPeer.batmanOgmInterval,
@@ -294,11 +329,7 @@ export default function PeerProperties({
             </label>
 
             <label className="properties__field">
-              <span
-                className={`properties__field-label ${isBatmanPurgeMissing ? "properties__field-label--required" : ""}`}
-              >
-                {ui.properties.fieldBatmanPurgeTimeout}
-              </span>
+              {renderBatmanLabel(ui.properties.fieldBatmanPurgeTimeout, isBatmanPurgeMissing)}
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
@@ -307,7 +338,7 @@ export default function PeerProperties({
                   min="1"
                   value={selectedPeer.batmanPurgeTimeout}
                   onChange={(event) =>
-                    updatePeer({
+                    updateBatmanPeers({
                       batmanPurgeTimeout: parseNumberValue(
                         event.target.value,
                         selectedPeer.batmanPurgeTimeout,
