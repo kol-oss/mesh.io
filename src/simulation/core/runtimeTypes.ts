@@ -20,6 +20,8 @@ export interface SimulationPeerNode {
   getModule(protocol: RoutingProtocol): RoutingProtocolModule | null;
   getNeighbour(peerId: string): SimulationPeerNode | null;
   getNeighbours(): SimulationPeerNode[];
+  getRangedNeighbours(): SimulationPeerNode[];
+  isRangedNeighbour(peerId: string): boolean;
   getPeerEntity(): PeerEntity;
 }
 

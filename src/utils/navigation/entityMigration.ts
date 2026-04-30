@@ -10,6 +10,7 @@ export const peerDefaults = {
   protocols: [RoutingProtocol.BATMAN],
   batmanDistancePenaltyDistance: 75,
   batmanDistancePenaltyPercent: 5,
+  batmanElpInterval: 1,
   batmanOgmInterval: 1,
   batmanPurgeTimeout: 10,
 };
@@ -43,6 +44,7 @@ const hasPeerDefaults = (entity: NetworkEntity) => {
     entity.batmanDistancePenaltyDistance > 0 &&
     typeof entity.batmanDistancePenaltyPercent === "number" &&
     entity.batmanDistancePenaltyPercent >= 0 &&
+    typeof entity.batmanElpInterval === "number" &&
     typeof entity.batmanOgmInterval === "number" &&
     typeof entity.batmanPurgeTimeout === "number"
   );

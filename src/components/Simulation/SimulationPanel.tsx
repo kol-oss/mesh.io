@@ -17,6 +17,7 @@ import {
   type SimulationEvent,
   type SimulationMessage,
   type SimulationStepResult,
+  type ThroughputCalculationEventDetails,
 } from "../../types/simulation";
 
 const BATMAN_V_HOP_PENALTY_PERCENT = 5.8;
@@ -338,8 +339,8 @@ const getEventTitle = (event: SimulationEvent) => {
       return getBroadcastTitle(event, message);
     case SimulationEventType.SystemMessageSent:
       return ui.simulation.sendMessage;
-    case SimulationEventType.SystemMessageReceived:
-      return ui.simulation.receiveMessage;
+    case SimulationEventType.SystemThroughputCalculated:
+      return ui.simulation.throughputRecalculated;
     case SimulationEventType.SystemMessageDropped:
       return getDroppedTitle(message);
     default:
@@ -403,8 +404,8 @@ const getEventDescription = (
         );
       case SimulationEventType.SystemMessageSent:
         return ui.simulation.eventSent(actor);
-      case SimulationEventType.SystemMessageReceived:
-        return ui.simulation.eventReceived(actor);
+      case SimulationEventType.SystemThroughputCalculated:
+        return getThroughputCalculatedDescription(actor, event);
       case SimulationEventType.SystemMessageDropped:
         return getDroppedDescription(event.peerId, actor, message);
       default:
@@ -488,6 +489,10 @@ const getEventMessage = (event: SimulationEvent): SimulationMessage | null => {
 };
 
 const getBroadcastTitle = (event: SimulationEvent, message: SimulationMessage | null) => {
+  if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+    return ui.simulation.elpBroadcast;
+  }
+
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
     return "retransmit" in event.details && event.details.retransmit
       ? ui.simulation.ogmBroadcastRetransmission
@@ -498,6 +503,10 @@ const getBroadcastTitle = (event: SimulationEvent, message: SimulationMessage | 
 };
 
 const getDroppedTitle = (message: SimulationMessage | null) => {
+  if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+    return ui.simulation.elpDropped;
+  }
+
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
     return ui.simulation.ogmDropped;
   }
@@ -517,6 +526,10 @@ const getBroadcastDescription = (
   peerNameById: Map<string, string>,
   onPeerHoverChange: (peerId: string | null) => void,
 ) => {
+  if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+    return <>{ui.simulation.broadcastFallback(actor)}</>;
+  }
+
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
     const originator = getPeerLabel(message.sourcePeerId, peerNameById);
     const sender = getPeerLabel(message.senderPeerId, peerNameById);
@@ -550,6 +563,10 @@ const getDroppedDescription = (
   actor: string,
   message: SimulationMessage | null,
 ) => {
+  if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+    return <>{ui.simulation.droppedGeneric(actor)}</>;
+  }
+
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
     return <>{ui.simulation.droppedOgm(actor)}</>;
   }
@@ -559,6 +576,11 @@ const getDroppedDescription = (
   }
 
   return <>{ui.simulation.droppedGeneric(actor)}</>;
+};
+
+const getThroughputCalculatedDescription = (actor: string, event: SimulationEvent) => {
+  const details = event.details as ThroughputCalculationEventDetails;
+  return <>{ui.simulation.eventThroughputCalculated(actor, details.reason)}</>;
 };
 
 const getRouteInsertTitle = (
@@ -611,7 +633,7 @@ const getRouteInsertDescription = (
       {renderPeerName(routeChange.originatorPeerId, originator, onPeerHoverChange)}{" "}
       {ui.simulation.routeInsertBodyMiddle}{" "}
       {renderPeerName(routeChange.hopPeerId, nextHop, onPeerHoverChange)}{" "}
-      {ui.simulation.routeInsertBodySuffix}
+      {ui.simulation.routeInsertBodySuffix} {routeChange.reason}
     </>
   );
 };
@@ -633,7 +655,7 @@ const getRouteUpdateDescription = (
       {renderPeerName(routeChange.originatorPeerId, originator, onPeerHoverChange)}{" "}
       {ui.simulation.routeUpdateBodyMiddle}{" "}
       {renderPeerName(routeChange.hopPeerId, nextHop, onPeerHoverChange)}{" "}
-      {ui.simulation.routeUpdateBodySuffix}
+      {ui.simulation.routeUpdateBodySuffix} {routeChange.reason}
     </>
   );
 };

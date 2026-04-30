@@ -96,6 +96,7 @@ export const messageCatalog = {
       fieldBatmanDistancePenalty: "B.A.T.M.A.N. Distance Penalty",
       fieldDistance: "Distance",
       fieldPenaltyPercent: "Percentage of penalty",
+      fieldBatmanElpInterval: "BATMAN ELP Interval",
       fieldBatmanOgmInterval: "BATMAN OGM Interval",
       fieldBatmanPurgeTimeout: "B.A.T.M.A.N. Purge Timeout",
       titleStep: "Step",
@@ -163,9 +164,33 @@ export const messageCatalog = {
       ogmSuppressedInferiorPath:
         "B.A.T.M.A.N. V did not rebroadcast this OGMv2 because it did not arrive from the best or a better-throughput neighbour",
       packetTtlReachedZero: "Packet TTL reached zero",
+      elpTtlReachedZero: "ELP TTL reached zero",
+      ogmDroppedNoElpMetric: "OGM dropped because no ELP neighbour metric exists for this sender",
       noRouteForDestination: "No B.A.T.M.A.N. V route is available for the destination",
       nextHopNotNeighbour: "Selected next hop is not a current neighbour",
       nextHopNoBatman: "Selected next hop does not support B.A.T.M.A.N. V",
+      elpUnsupportedVersion: (version: number) =>
+        `ELP rejected packet with unsupported version ${version}`,
+      ogmThroughputSelected: (
+        ogmThroughput: number,
+        neighbourThroughput: number,
+        selectedThroughput: number,
+        nextThroughput: number,
+        wirelessHop: boolean,
+      ) =>
+        wirelessHop
+          ? `ELP neighbour metric ${neighbourThroughput} and incoming OGM throughput ${ogmThroughput} were combined by min() = ${selectedThroughput}. Wireless hop penalty 5.8% then produced forwarded throughput ${nextThroughput}.`
+          : `ELP neighbour metric ${neighbourThroughput} and incoming OGM throughput ${ogmThroughput} were combined by min() = ${selectedThroughput}. Static hop keeps throughput ${nextThroughput} without 5.8% wireless penalty.`,
+      elpThroughputCalculated: (
+        baseThroughput: number,
+        receptionRatio: number,
+        rawMetric: number,
+        previousEwma: number | null,
+        nextEwma: number,
+      ) =>
+        previousEwma === null
+          ? `ELP metric calculation: base throughput ${baseThroughput}, reception ratio ${receptionRatio.toFixed(2)}, raw metric ${rawMetric.toFixed(2)}, initial EWMA ${nextEwma.toFixed(2)}.`
+          : `ELP metric calculation: base throughput ${baseThroughput}, reception ratio ${receptionRatio.toFixed(2)}, raw metric ${rawMetric.toFixed(2)}, EWMA old ${previousEwma.toFixed(2)} -> new ${nextEwma.toFixed(2)} (alpha 0.2).`,
     },
     hints: {
       placePeer: "Click on workspace to place a peer",
@@ -190,23 +215,28 @@ export const messageCatalog = {
       previousEventAria: "Previous event",
       nextEventAria: "Next event",
       sendMessage: "Send Message",
-      receiveMessage: "Receive Message",
+      throughputRecalculated: "Throughput Recalculated",
       genericEvent: "Simulation Event",
       summarySource: "Source",
       summaryDestination: "Destination",
       summaryType: "Type",
       summaryPacket: "Packet",
+      summaryElp: "ELP",
       summaryTtl: "TTL",
       summaryOriginator: "Originator",
       summarySender: "Sender",
       summarySequence: "Sequence",
+      summaryInterval: "Interval",
+      summaryNeighbours: "Num Neigh",
       summaryVersion: "Version",
       summaryThroughput: "Throughput",
       summaryOgm: "OGM",
       ogmBroadcastRetransmission: "OGMv2 Broadcast Retransmission",
       ogmBroadcast: "OGMv2 Broadcast",
+      elpBroadcast: "ELP Broadcast",
       broadcastMessage: "Broadcast Message",
       ogmDropped: "OGMv2 Retransmission Cancelled",
+      elpDropped: "ELP Dropped",
       packetDropped: "Packet Dropped",
       dropMessage: "Drop Message",
       originatorAdded: "Originator Added",
@@ -217,7 +247,8 @@ export const messageCatalog = {
       routeRemoved: "Route Removed",
       packetStructureReadMore: "Read more",
       eventSent: (actor: string) => `${actor} sent a message to the selected next hop.`,
-      eventReceived: (actor: string) => `${actor} received a message and handled it locally.`,
+      eventThroughputCalculated: (actor: string, reason: string) =>
+        `${actor} calculated throughput: ${reason}`,
       eventEmitted: (actor: string) => `${actor} emitted a simulation event.`,
       eventNodeLabel: "Node",
       routingStateChanged: (actor: string) => `${actor} changed its routing state.`,
@@ -283,6 +314,7 @@ export const messageCatalog = {
       bitsSuffix: "bits",
       notModeled: "Not modeled",
       unavailable: "Packet structure is not available for this event.",
+      fieldType: "Type",
       fieldVersion: "Version",
       fieldFlags: "Flags",
       fieldTtl: "TTL",
@@ -295,7 +327,8 @@ export const messageCatalog = {
       notAvailable: "N/A",
     },
     refreshStep: {
-      title: (peerName: string) => `B.A.T.M.A.N. Refresh on ${peerName}`,
+      elpTitle: (peerName: string) => `ELP Refresh on ${peerName}`,
+      ogmTitle: (peerName: string) => `OGM Broadcast on ${peerName}`,
     },
   },
 } as const;

@@ -142,6 +142,33 @@ export default function PacketStructureWindow({
               </div>
             ))}
           </div>
+        ) : eventMessage?.kind === SimulationMessageKind.BatmanEchoLocationMessage ? (
+          <div className="simulation-panel__packet-structure" aria-label={ui.packet.structureAria}>
+            {getBatmanElpStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
+              <div className="simulation-panel__packet-row" key={`packet-row-elp-${rowIndex}`}>
+                {row.map((field) => (
+                  <div
+                    key={`elp-${rowIndex}-${field.label}`}
+                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
+                    style={{ flex: field.bits }}
+                  >
+                    <span className="simulation-panel__packet-field-label">{field.label}</span>
+                    <span className="simulation-panel__packet-field-value">{field.value}</span>
+                    <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-bits">
+                        {field.bits} {ui.packet.bitsSuffix}
+                      </span>
+                      {field.blocked ? (
+                        <span className="simulation-panel__packet-tooltip-note">
+                          {ui.packet.notModeled}
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         ) : (
           <p className="simulation-panel__description simulation-panel__description--secondary">
             {ui.packet.unavailable}
@@ -196,6 +223,66 @@ const getBatmanOgmStructureRows = (
         blocked: false,
       },
     ],
+  ];
+};
+
+const getBatmanElpStructureRows = (
+  message: SimulationMessage,
+  peerNameById: Map<string, string>,
+): PacketStructureField[][] => {
+  if (message.kind !== SimulationMessageKind.BatmanEchoLocationMessage) {
+    return [];
+  }
+
+  const neighbourRows: PacketStructureField[][] = message.neighbours.map((neighbour) => [
+    {
+      label: ui.packet.fieldOriginatorAddress,
+      value: peerNameById.get(neighbour.address) ?? neighbour.address,
+      bits: 32,
+      blocked: false,
+    },
+    {
+      label: ui.packet.fieldThroughput,
+      value: String(neighbour.quality),
+      bits: 32,
+      blocked: false,
+    },
+  ]);
+
+  return [
+    [
+      {
+        label: ui.packet.fieldType,
+        value: message.packetType,
+        bits: 8,
+        blocked: false,
+      },
+      { label: ui.packet.fieldVersion, value: String(message.version), bits: 8, blocked: false },
+      { label: ui.packet.fieldTtl, value: String(message.timeToLive), bits: 8, blocked: false },
+      {
+        label: ui.simulation.summaryNeighbours,
+        value: String(message.numNeighbours),
+        bits: 8,
+        blocked: false,
+      },
+    ],
+    [
+      {
+        label: ui.packet.fieldSequenceNumber,
+        value: String(message.sequence),
+        bits: 32,
+        blocked: false,
+      },
+    ],
+    [
+      {
+        label: ui.simulation.summaryInterval,
+        value: String(message.interval),
+        bits: 32,
+        blocked: false,
+      },
+    ],
+    ...neighbourRows,
   ];
 };
 

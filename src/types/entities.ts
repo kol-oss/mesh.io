@@ -15,6 +15,7 @@ export type PeerEntity = BaseEntity & {
   protocols: RoutingProtocol[];
   batmanDistancePenaltyDistance: number;
   batmanDistancePenaltyPercent: number;
+  batmanElpInterval: number;
   batmanOgmInterval: number;
   batmanPurgeTimeout: number;
 };

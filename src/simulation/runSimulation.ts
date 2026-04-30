@@ -1,7 +1,7 @@
 import { RoutingProtocol, StepType } from "../types/enums";
 import { ui } from "../i18n/messages";
 import type { LinkEntity, NetworkEntity, PeerEntity } from "../types/entities";
-import type { WorkflowStep } from "../types/steps";
+import { RefreshAction, type WorkflowStep } from "../types/steps";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -117,6 +117,23 @@ class RuntimePeer implements SnapshotCapablePeerNode {
     }
 
     return neighbours;
+  }
+
+  getRangedNeighbours() {
+    const neighbours: RuntimePeer[] = [];
+
+    for (const peerId of this.rangedPeerIds) {
+      const peer = this.network.getPeer(peerId);
+      if (peer?.isActive()) {
+        neighbours.push(peer);
+      }
+    }
+
+    return neighbours;
+  }
+
+  isRangedNeighbour(peerId: string) {
+    return this.rangedPeerIds.has(peerId);
   }
 
   getRoutingTable() {
@@ -380,7 +397,22 @@ const processStep = (
     }
 
     const peer = network.getPeer(step.refreshPeerId);
-    peer?.getModule(RoutingProtocol.BATMAN)?.refresh();
+    const module = peer?.getModule(RoutingProtocol.BATMAN);
+    if (!(module instanceof BatmanModule)) {
+      return;
+    }
+
+    if (step.refreshAction === RefreshAction.BatmanElp) {
+      module.refreshElp();
+      return;
+    }
+
+    if (step.refreshAction === RefreshAction.BatmanOgm) {
+      module.refreshOgm();
+      return;
+    }
+
+    module.refresh();
     return;
   }
 

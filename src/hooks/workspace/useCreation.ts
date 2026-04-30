@@ -52,6 +52,7 @@ export function useWorkspaceCreation({
         protocols: [RoutingProtocol.BATMAN],
         batmanDistancePenaltyDistance: 75,
         batmanDistancePenaltyPercent: 5,
+        batmanElpInterval: 1,
         batmanOgmInterval: 1,
         batmanPurgeTimeout: 10,
       };

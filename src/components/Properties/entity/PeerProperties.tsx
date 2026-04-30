@@ -23,6 +23,8 @@ export default function PeerProperties({
   const isProtocolMissing = selectedPeer.protocols.length === 0;
   const isBatmanOgmMissing =
     selectedPeer.protocols.includes(RoutingProtocol.BATMAN) && selectedPeer.batmanOgmInterval <= 0;
+  const isBatmanElpMissing =
+    selectedPeer.protocols.includes(RoutingProtocol.BATMAN) && selectedPeer.batmanElpInterval <= 0;
   const isBatmanPurgeMissing =
     selectedPeer.protocols.includes(RoutingProtocol.BATMAN) && selectedPeer.batmanPurgeTimeout <= 0;
   const isBatmanPenaltyDistanceMissing =
@@ -238,6 +240,31 @@ export default function PeerProperties({
                     aria-label={ui.properties.fieldPenaltyPercent}
                   />
                 </div>
+              </div>
+            </label>
+
+            <label className="properties__field">
+              <span
+                className={`properties__field-label ${isBatmanElpMissing ? "properties__field-label--required" : ""}`}
+              >
+                {ui.properties.fieldBatmanElpInterval}
+              </span>
+              <div className="properties__input-with-prefix">
+                <Clock3 size={12} />
+                <input
+                  className={`properties__input ${isBatmanElpMissing ? "properties__required-outline" : ""}`}
+                  type="number"
+                  min="1"
+                  value={selectedPeer.batmanElpInterval}
+                  onChange={(event) =>
+                    updatePeer({
+                      batmanElpInterval: parseNumberValue(
+                        event.target.value,
+                        selectedPeer.batmanElpInterval,
+                      ),
+                    })
+                  }
+                />
               </div>
             </label>
 

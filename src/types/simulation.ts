@@ -4,7 +4,7 @@ import type { WorkflowStep } from "./steps";
 export const SimulationEventType = {
   SystemMessageBroadcast: "SYSTEM_MESSAGE_BROADCAST",
   SystemMessageSent: "SYSTEM_MESSAGE_SENT",
-  SystemMessageReceived: "SYSTEM_MESSAGE_RECEIVED",
+  SystemThroughputCalculated: "SYSTEM_THROUGHPUT_CALCULATED",
   SystemMessageDropped: "SYSTEM_MESSAGE_DROPPED",
   RoutingTableGet: "ROUTING_TABLE_GET",
   RoutingTableInsert: "ROUTING_TABLE_INSERT",
@@ -19,6 +19,7 @@ export type SimulationEventType = (typeof SimulationEventType)[keyof typeof Simu
 export const SimulationMessageKind = {
   Packet: "PACKET",
   BatmanOriginatorMessage: "BATMAN_ORIGINATOR_MESSAGE",
+  BatmanEchoLocationMessage: "BATMAN_ECHO_LOCATION_MESSAGE",
 } as const;
 
 export type SimulationMessageKind =
@@ -41,7 +42,28 @@ export type BatmanOriginatorMessage = {
   throughput: number;
 };
 
-export type SimulationMessage = SimulationPacket | BatmanOriginatorMessage;
+export type BatmanEchoLocationNeighbour = {
+  address: string;
+  quality: number;
+};
+
+export type BatmanEchoLocationMessage = {
+  kind: typeof SimulationMessageKind.BatmanEchoLocationMessage;
+  packetType: "ELP";
+  version: number;
+  sourcePeerId: string;
+  senderPeerId: string;
+  timeToLive: number;
+  numNeighbours: number;
+  sequence: number;
+  interval: number;
+  neighbours: BatmanEchoLocationNeighbour[];
+};
+
+export type SimulationMessage =
+  | SimulationPacket
+  | BatmanOriginatorMessage
+  | BatmanEchoLocationMessage;
 
 export type BatmanRouteRecord = {
   originatorPeerId: string;
@@ -76,6 +98,11 @@ export type DroppedEventDetails = {
   reason: string;
 };
 
+export type ThroughputCalculationEventDetails = {
+  message: SimulationMessage;
+  reason: string;
+};
+
 export type SimulationStepBoundaryDetails = {
   stepId: string;
   stepTitle: string;
@@ -86,6 +113,7 @@ export type SimulationEventDetails =
   | BroadcastEventDetails
   | MessageTransferEventDetails
   | DroppedEventDetails
+  | ThroughputCalculationEventDetails
   | RoutingTableChangeDetails
   | SimulationStepBoundaryDetails;
 

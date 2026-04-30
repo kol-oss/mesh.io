@@ -7,6 +7,7 @@ import {
   type DroppedEventDetails,
   type BroadcastEventDetails,
   type MessageTransferEventDetails,
+  type ThroughputCalculationEventDetails,
   type SimulationEvent,
   type SimulationMessage,
   type SimulationPeerSnapshot,
@@ -712,13 +713,6 @@ const buildSimulationMessageAnimations = (
     ]);
   }
 
-  if (currentEvent.type === SimulationEventType.SystemMessageReceived) {
-    const details = currentEvent.details as MessageTransferEventDetails;
-    return toMessageAnimations([
-      createAnimation(details.hopPeerId, currentEvent.peerId, "received", "default"),
-    ]);
-  }
-
   if (currentEvent.type === SimulationEventType.SystemMessageDropped) {
     const details = currentEvent.details as DroppedEventDetails;
     const droppedAnimation = getDroppedMessageAnimation(currentEvent.peerId, details.message);
@@ -730,6 +724,33 @@ const buildSimulationMessageAnimations = (
         "dropped",
       ),
     ]);
+  }
+
+  if (currentEvent.type === SimulationEventType.SystemThroughputCalculated) {
+    const details = currentEvent.details as ThroughputCalculationEventDetails;
+    if (details.message.kind === SimulationMessageKind.BatmanOriginatorMessage) {
+      return toMessageAnimations([
+        createAnimation(
+          details.message.senderPeerId,
+          currentEvent.peerId,
+          "throughput",
+          "route-change",
+        ),
+      ]);
+    }
+
+    if (details.message.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+      return toMessageAnimations([
+        createAnimation(
+          details.message.senderPeerId,
+          currentEvent.peerId,
+          "throughput",
+          "route-change",
+        ),
+      ]);
+    }
+
+    return [];
   }
 
   if (
@@ -750,10 +771,20 @@ const getDroppedMessageAnimation = (
   eventPeerId: string,
   message: SimulationMessage,
 ): { sourcePeerId: string; targetPeerId: string } | null => {
+  if (message.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+    return message.senderPeerId !== eventPeerId
+      ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
+      : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
+  }
+
   if (message.kind === SimulationMessageKind.BatmanOriginatorMessage) {
     return message.senderPeerId !== eventPeerId
       ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
       : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
+  }
+
+  if (message.kind !== SimulationMessageKind.Packet) {
+    return null;
   }
 
   if (message.sourcePeerId && message.sourcePeerId !== eventPeerId) {
