@@ -20,6 +20,7 @@ type PacketStructureField = {
   label: string;
   value: string;
   bits: number;
+  description: string;
   blocked: boolean;
 };
 
@@ -130,6 +131,9 @@ export default function PacketStructureWindow({
                     <span className="simulation-panel__packet-field-label">{field.label}</span>
                     <span className="simulation-panel__packet-field-value">{field.value}</span>
                     <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-description">
+                        {field.description}
+                      </span>
                       <span className="simulation-panel__packet-tooltip-bits">
                         {field.bits} {ui.packet.bitsSuffix}
                       </span>
@@ -157,6 +161,9 @@ export default function PacketStructureWindow({
                     <span className="simulation-panel__packet-field-label">{field.label}</span>
                     <span className="simulation-panel__packet-field-value">{field.value}</span>
                     <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-description">
+                        {field.description}
+                      </span>
                       <span className="simulation-panel__packet-tooltip-bits">
                         {field.bits} {ui.packet.bitsSuffix}
                       </span>
@@ -213,13 +220,32 @@ const getBatmanOgmStructureRows = (
 
   return [
     [
-      { label: ui.packet.fieldVersion, value: String(message.version), bits: 8, blocked: false },
-      { label: ui.packet.fieldFlags, value: ui.packet.notAvailable, bits: 8, blocked: true },
-      { label: ui.packet.fieldTtl, value: String(message.timeToLive), bits: 8, blocked: false },
+      {
+        label: ui.packet.fieldVersion,
+        value: String(message.version),
+        bits: 8,
+        description: ui.packet.fieldVersionDescription,
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldFlags,
+        value: ui.packet.notAvailable,
+        bits: 8,
+        description: ui.packet.fieldFlagsDescription,
+        blocked: true,
+      },
+      {
+        label: ui.packet.fieldTtl,
+        value: String(message.timeToLive),
+        bits: 8,
+        description: ui.packet.fieldTtlDescription,
+        blocked: false,
+      },
       {
         label: ui.packet.fieldThroughput,
         value: String(message.throughput),
         bits: 8,
+        description: ui.packet.fieldThroughputDescription,
         blocked: false,
       },
     ],
@@ -228,22 +254,37 @@ const getBatmanOgmStructureRows = (
         label: ui.packet.fieldSequenceNumber,
         value: String(message.sequence),
         bits: 16,
+        description: ui.packet.fieldSequenceNumberDescription,
         blocked: false,
       },
-      { label: ui.packet.fieldGwFlags, value: ui.packet.notAvailable, bits: 8, blocked: true },
-      { label: ui.packet.fieldGwPort, value: ui.packet.notAvailable, bits: 16, blocked: true },
+      {
+        label: ui.packet.fieldGwFlags,
+        value: ui.packet.notAvailable,
+        bits: 8,
+        description: ui.packet.fieldGwFlagsDescription,
+        blocked: true,
+      },
+      {
+        label: ui.packet.fieldGwPort,
+        value: ui.packet.notAvailable,
+        bits: 16,
+        description: ui.packet.fieldGwPortDescription,
+        blocked: true,
+      },
     ],
     [
       {
         label: ui.packet.fieldOriginatorAddress,
         value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
-        bits: 32,
+        bits: 48,
+        description: ui.packet.fieldOriginatorAddressDescription,
         blocked: false,
       },
       {
         label: ui.packet.fieldSenderAddress,
         value: peerNameById.get(message.senderPeerId) ?? message.senderPeerId,
-        bits: 32,
+        bits: 48,
+        description: ui.packet.fieldSenderAddressDescription,
         blocked: false,
       },
     ],
@@ -260,9 +301,10 @@ const getBatmanElpStructureRows = (
 
   const neighbourRows: PacketStructureField[][] = message.neighbours.map((neighbour) => [
     {
-      label: ui.packet.fieldOriginatorAddress,
+      label: ui.packet.fieldNeighbourAddress,
       value: peerNameById.get(neighbour.address) ?? neighbour.address,
-      bits: 32,
+      bits: 48,
+      description: ui.packet.fieldNeighbourAddressDescription,
       blocked: false,
     },
   ]);
@@ -273,14 +315,28 @@ const getBatmanElpStructureRows = (
         label: ui.packet.fieldType,
         value: message.packetType,
         bits: 8,
+        description: ui.packet.fieldTypeDescription,
         blocked: false,
       },
-      { label: ui.packet.fieldVersion, value: String(message.version), bits: 8, blocked: false },
-      { label: ui.packet.fieldTtl, value: String(message.timeToLive), bits: 8, blocked: false },
       {
-        label: ui.simulation.summaryNeighbours,
+        label: ui.packet.fieldVersion,
+        value: String(message.version),
+        bits: 8,
+        description: ui.packet.fieldVersionDescription,
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldTtl,
+        value: String(message.timeToLive),
+        bits: 8,
+        description: ui.packet.fieldTtlDescription,
+        blocked: false,
+      },
+      {
+        label: ui.simulation.summaryNeighboursNumber,
         value: String(message.numNeighbours),
         bits: 8,
+        description: ui.packet.fieldNeighboursNumberDescription,
         blocked: false,
       },
     ],
@@ -289,6 +345,7 @@ const getBatmanElpStructureRows = (
         label: ui.packet.fieldSequenceNumber,
         value: String(message.sequence),
         bits: 32,
+        description: ui.packet.fieldSequenceNumberDescription,
         blocked: false,
       },
     ],
@@ -297,6 +354,16 @@ const getBatmanElpStructureRows = (
         label: ui.simulation.summaryInterval,
         value: String(message.interval),
         bits: 32,
+        description: ui.packet.fieldIntervalDescription,
+        blocked: false,
+      },
+    ],
+    [
+      {
+        label: ui.packet.fieldOriginatorAddress,
+        value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
+        bits: 48,
+        description: ui.packet.fieldOriginatorAddressDescription,
         blocked: false,
       },
     ],
