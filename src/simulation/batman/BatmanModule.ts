@@ -17,7 +17,7 @@ import type { PacketCapableModule, SimulationPeerNode } from "../core/runtimeTyp
 const BATMAN_V_VERSION = 5;
 const BATMAN_TIME_TO_LIVE = 50;
 const BATMAN_PROTECTION_WINDOW = 64;
-const BATMAN_MAX_THROUGHPUT = 255;
+const BATMAN_MAX_THROUGHPUT = 2 ** 32;
 const BATMAN_WIRELESS_BASE_THROUGHPUT = 100;
 const BATMAN_STATIC_BASE_THROUGHPUT = 1000;
 const BATMAN_ELP_EWMA_ALPHA = 0.2;

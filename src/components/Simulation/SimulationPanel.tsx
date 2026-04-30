@@ -890,10 +890,10 @@ const getPeerLabel = (peerId: string, peerNameById: Map<string, string>) => {
 
 const clampThroughput = (throughput: number) => {
   if (!Number.isFinite(throughput)) {
-    return 255;
+    return 2 ** 32;
   }
 
-  return Math.max(0, Math.min(255, Math.floor(throughput)));
+  return Math.max(0, Math.min(2 ** 32, Math.floor(throughput)));
 };
 
 const applyHopPenalty = (throughput: number) => {
