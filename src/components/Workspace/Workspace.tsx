@@ -101,11 +101,9 @@ export default function Workspace({
     eventId: string | null;
     isHovered: boolean;
   }>({ eventId: null, isHovered: false });
-  const [packetInspectorState, setPacketInspectorState] = useState<{
-    eventId: string | null;
-    isOpen: boolean;
-    pinned: boolean;
-  }>({ eventId: null, isOpen: false, pinned: false });
+  const [packetInspectorWindows, setPacketInspectorWindows] = useState<
+    Array<{ eventId: string; isOpen: boolean; pinned: boolean }>
+  >([]);
   const [simulationTqDisclosureByEvent, setSimulationTqDisclosureByEvent] = useState<
     Record<string, boolean>
   >({});
@@ -116,12 +114,9 @@ export default function Workspace({
     eventId: string;
     peerId: string | null;
   } | null>(null);
-  const [tableInspectionPeerState, setTableInspectionPeerState] = useState<{
-    peerId: string | null;
-    pinned: boolean;
-    isOpen: boolean;
-    stepId: string | null;
-  }>({ peerId: null, pinned: false, isOpen: false, stepId: null });
+  const [tableInspectionWindows, setTableInspectionWindows] = useState<
+    Array<{ peerId: string; pinned: boolean; isOpen: boolean; stepId: string | null }>
+  >([]);
   const tableInspectionSuppressHoverRef = useRef(false);
   const currentStepId = currentSimulationStepResult?.step.id ?? null;
   const linkSourcePeerIdRef = useRef<string | null>(null);
@@ -349,12 +344,12 @@ export default function Workspace({
       },
     });
 
-  const isTableInspectionOpenForCurrentStep =
-    tableInspectionPeerState.isOpen &&
-    (tableInspectionPeerState.pinned || tableInspectionPeerState.stepId === currentStepId);
-  const inspectedTablePeerId = isTableInspectionOpenForCurrentStep
-    ? tableInspectionPeerState.peerId
-    : null;
+  const isTableInspectionOpenForCurrentStep = tableInspectionWindows.some(
+    (w) => w.isOpen && (w.pinned || w.stepId === currentStepId),
+  );
+  const inspectedTablePeerId =
+    tableInspectionWindows.find((w) => w.isOpen && (w.pinned || w.stepId === currentStepId))
+      ?.peerId ?? null;
   const simulationAnchorPeerId = currentSimulationEvent?.peerId ?? null;
 
   const simulationAnchorPeer = simulationAnchorPeerId
@@ -455,30 +450,28 @@ export default function Workspace({
         return;
       }
 
-      setTableInspectionPeerState((prev) => {
-        if (prev.pinned) {
-          return prev;
+      setTableInspectionWindows((prev) => {
+        if (peerId === null) {
+          return prev.filter((w) => w.pinned);
         }
 
-        return {
-          peerId,
-          pinned: false,
-          isOpen: peerId !== null,
-          stepId: currentStepId,
-        };
+        const existing = prev.find((w) => w.peerId === peerId);
+        if (existing) {
+          if (existing.pinned) return prev;
+          return prev.map((w) =>
+            w.peerId === peerId ? { ...w, isOpen: true, stepId: currentStepId } : w,
+          );
+        }
+
+        return [...prev, { peerId, pinned: false, isOpen: true, stepId: currentStepId }];
       });
     },
     [currentStepId, simulationInspectionMode],
   );
 
-  const handleTableInspectionClose = useCallback(() => {
+  const handleTableInspectionClose = useCallback((peerId: string) => {
     tableInspectionSuppressHoverRef.current = true;
-    setTableInspectionPeerState({
-      peerId: null,
-      pinned: false,
-      isOpen: false,
-      stepId: null,
-    });
+    setTableInspectionWindows((prev) => prev.filter((w) => w.peerId !== peerId));
   }, []);
 
   const handleMessageAnimationHoverChange = useCallback(
@@ -496,28 +489,28 @@ export default function Workspace({
         return;
       }
 
-      setPacketInspectorState((prev) => {
-        if (prev.pinned && prev.eventId === currentSimulationEventId) {
-          return prev;
+      setPacketInspectorWindows((prev) => {
+        const existing = prev.find((w) => w.eventId === currentSimulationEventId);
+        if (existing) {
+          if (existing.pinned && existing.eventId === currentSimulationEventId) {
+            return prev;
+          }
+
+          if (isHovered) {
+            return prev.map((w) =>
+              w.eventId === currentSimulationEventId ? { ...w, isOpen: true, pinned: false } : w,
+            );
+          }
+
+          // not hovered: close non-pinned instance for this event
+          return prev.filter((w) => w.eventId !== currentSimulationEventId || w.pinned);
         }
 
         if (isHovered) {
-          return {
-            eventId: currentSimulationEventId,
-            isOpen: true,
-            pinned: false,
-          };
+          return [...prev, { eventId: currentSimulationEventId, isOpen: true, pinned: false }];
         }
 
-        if (prev.eventId !== currentSimulationEventId) {
-          return prev;
-        }
-
-        return {
-          eventId: currentSimulationEventId,
-          isOpen: false,
-          pinned: false,
-        };
+        return prev;
       });
     },
     [currentSimulationEventId, isPacketInspectionActive],
@@ -528,19 +521,20 @@ export default function Workspace({
       return;
     }
 
-    setPacketInspectorState({
-      eventId: currentSimulationEvent.id,
-      isOpen: true,
-      pinned: true,
+    setPacketInspectorWindows((prev) => {
+      const existing = prev.find((w) => w.eventId === currentSimulationEvent.id);
+      if (existing) {
+        return prev.map((w) =>
+          w.eventId === currentSimulationEvent.id ? { ...w, isOpen: true, pinned: true } : w,
+        );
+      }
+
+      return [...prev, { eventId: currentSimulationEvent.id, isOpen: true, pinned: true }];
     });
   }, [currentSimulationEvent, isPacketInspectionActive]);
 
-  const handlePacketInspectorClose = useCallback(() => {
-    setPacketInspectorState((prev) => ({
-      ...prev,
-      isOpen: false,
-      pinned: false,
-    }));
+  const handlePacketInspectorClose = useCallback((eventId: string) => {
+    setPacketInspectorWindows((prev) => prev.filter((w) => w.eventId !== eventId));
   }, []);
 
   const handleSimulationStaticLinkPointerDown = useCallback(
@@ -613,11 +607,17 @@ export default function Workspace({
       event.stopPropagation();
 
       if (simulationInspectionMode === ToolbarMode.RoutingTable) {
-        setTableInspectionPeerState({
-          peerId: peer.id,
-          pinned: true,
-          isOpen: true,
-          stepId: currentStepId,
+        setTableInspectionWindows((prev) => {
+          const existing = prev.find((w) => w.peerId === peer.id);
+          if (existing) {
+            return prev.map((w) =>
+              w.peerId === peer.id
+                ? { ...w, pinned: true, isOpen: true, stepId: currentStepId }
+                : w,
+            );
+          }
+
+          return [...prev, { peerId: peer.id, pinned: true, isOpen: true, stepId: currentStepId }];
         });
         tableInspectionSuppressHoverRef.current = false;
         return;
@@ -712,27 +712,45 @@ export default function Workspace({
           onMessageAnimationInspectRequest={handleMessageAnimationInspectRequest}
         />
       </div>
-      <PacketStructureWindow
-        isOpen={
-          packetInspectorState.isOpen &&
-          packetInspectorState.eventId === currentSimulationEvent?.id &&
-          (packetInspectorState.pinned ||
-            (isPacketInspectionActive &&
-              simulationMessageHoverState.eventId === currentSimulationEvent?.id &&
-              simulationMessageHoverState.isHovered))
-        }
-        currentEvent={currentSimulationEvent}
-        currentStepResult={currentSimulationStepResult}
-        onClose={handlePacketInspectorClose}
-      />
-      <TableInspectionWindow
-        isOpen={isTableInspectionOpenForCurrentStep}
-        currentStepResult={currentSimulationStepResult}
-        currentEventId={currentSimulationEvent?.id ?? null}
-        inspectedPeerId={inspectedTablePeerId}
-        onClose={handleTableInspectionClose}
-        onPeerHoverChange={handleSimulationPeerHoverChange}
-      />
+      {packetInspectorWindows.map((w) => {
+        const event = currentSimulationStepResult?.events.find((e) => e.id === w.eventId) ?? null;
+        const shouldRender =
+          !!event &&
+          w.isOpen &&
+          (w.pinned ||
+            (simulationMessageHoverState.eventId === w.eventId &&
+              simulationMessageHoverState.isHovered));
+
+        return (
+          shouldRender && (
+            <PacketStructureWindow
+              key={`packet-window-${w.eventId}`}
+              isOpen={true}
+              currentEvent={event}
+              currentStepResult={currentSimulationStepResult}
+              onClose={() => handlePacketInspectorClose(w.eventId)}
+            />
+          )
+        );
+      })}
+
+      {tableInspectionWindows.map((w) => {
+        const shouldRender = w.isOpen && (w.pinned || w.stepId === currentStepId);
+
+        return (
+          shouldRender && (
+            <TableInspectionWindow
+              key={`table-window-${w.peerId}`}
+              isOpen={true}
+              currentStepResult={currentSimulationStepResult}
+              currentEventId={currentSimulationEvent?.id ?? null}
+              inspectedPeerId={w.peerId}
+              onClose={() => handleTableInspectionClose(w.peerId)}
+              onPeerHoverChange={handleSimulationPeerHoverChange}
+            />
+          )
+        );
+      })}
     </section>
   );
 }
