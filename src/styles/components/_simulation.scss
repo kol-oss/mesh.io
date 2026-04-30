@@ -158,6 +158,11 @@
   font-weight: 400;
 }
 
+.simulation-panel__formula {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-style: italic;
+}
+
 .simulation-panel__tq-disclosure {
   display: flex;
   flex-direction: column;

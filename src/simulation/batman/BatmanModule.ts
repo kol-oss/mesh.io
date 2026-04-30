@@ -7,6 +7,7 @@ import {
   type BatmanEchoLocationNeighbour,
   type BatmanOriginatorMessage,
   type BatmanRouteRecord,
+  type ThroughputCalculationEventDetails,
   type SimulationMessage,
   type SimulationPacket,
 } from "../../types/simulation";
@@ -624,16 +625,21 @@ export class BatmanModule implements PacketCapableModule {
 
     const routingPeerEntity = this.routingPeer.getPeerEntity();
     const senderPeerEntity = senderPeer.getPeerEntity();
-    const isWirelessLink = this.routingPeer.isRangedNeighbour(message.senderPeerId);
+    const isStaticLink = this.routingPeer.isLinkedNeighbour(message.senderPeerId);
+    const isWirelessLink =
+      !isStaticLink && this.routingPeer.isRangedNeighbour(message.senderPeerId);
     const distance = getDistanceBetweenPeers(routingPeerEntity, senderPeerEntity);
+    const baseReferenceThroughput = isWirelessLink
+      ? BATMAN_WIRELESS_BASE_THROUGHPUT
+      : BATMAN_STATIC_BASE_THROUGHPUT;
     const baseThroughput = isWirelessLink
       ? applyDistancePenalty(
-          BATMAN_WIRELESS_BASE_THROUGHPUT,
+          baseReferenceThroughput,
           distance,
           routingPeerEntity.batmanDistancePenaltyDistance,
           routingPeerEntity.batmanDistancePenaltyPercent,
         )
-      : BATMAN_STATIC_BASE_THROUGHPUT;
+      : baseReferenceThroughput;
 
     const previous = this.neighbourTable.get(message.senderPeerId);
     const currentTick = this.eventRecorder.getCurrentTick();
@@ -659,7 +665,17 @@ export class BatmanModule implements PacketCapableModule {
       previous?.ewmaThroughput ?? null,
       nextEwma,
     );
-    this.recordThroughputCalculated(message, reason);
+    this.recordThroughputCalculated(message, reason, {
+      baseThroughput,
+      baseReferenceThroughput,
+      receptionRatio,
+      rawThroughput: rawMetric,
+      previousEwma: previous?.ewmaThroughput ?? null,
+      nextEwma,
+      distance,
+      distancePenaltyDistance: routingPeerEntity.batmanDistancePenaltyDistance,
+      distancePenaltyPercent: routingPeerEntity.batmanDistancePenaltyPercent,
+    });
 
     this.neighbourTable.set(message.senderPeerId, {
       neighbourId: message.senderPeerId,
@@ -671,10 +687,15 @@ export class BatmanModule implements PacketCapableModule {
     return true;
   }
 
-  private recordThroughputCalculated(message: SimulationMessage, reason: string) {
+  private recordThroughputCalculated(
+    message: SimulationMessage,
+    reason: string,
+    breakdown?: ThroughputCalculationEventDetails["breakdown"],
+  ) {
     this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemThroughputCalculated, {
       message: cloneMessage(message),
       reason,
+      breakdown,
     });
   }
 }

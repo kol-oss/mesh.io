@@ -21,6 +21,7 @@ export interface SimulationPeerNode {
   getNeighbour(peerId: string): SimulationPeerNode | null;
   getNeighbours(): SimulationPeerNode[];
   getRangedNeighbours(): SimulationPeerNode[];
+  isLinkedNeighbour(peerId: string): boolean;
   isRangedNeighbour(peerId: string): boolean;
   getPeerEntity(): PeerEntity;
 }

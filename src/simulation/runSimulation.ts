@@ -136,6 +136,10 @@ class RuntimePeer implements SnapshotCapablePeerNode {
     return this.rangedPeerIds.has(peerId);
   }
 
+  isLinkedNeighbour(peerId: string) {
+    return this.linkedPeerIds.has(peerId);
+  }
+
   getRoutingTable() {
     const batmanModule = this.modules.get(RoutingProtocol.BATMAN);
     if (!(batmanModule instanceof BatmanModule)) {

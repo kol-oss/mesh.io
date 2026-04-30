@@ -123,6 +123,7 @@ export default function SimulationPanel({
   );
   const routeRows = routeChange ? getRouteRows(routeChange) : [];
   const routeTqExplanation = routeChange ? getRouteTqExplanation(currentEvent) : null;
+  const throughputBreakdown = getThroughputBreakdown(currentEvent);
   const routeSequenceWindowExplanation = routeChange
     ? getRouteSequenceWindowExplanation(currentEvent)
     : null;
@@ -287,6 +288,47 @@ export default function SimulationPanel({
                 ))}
               </tbody>
             </table>
+          </div>
+        ) : null}
+        {throughputBreakdown ? (
+          <div className="simulation-panel__tq-disclosure">
+            <button
+              className="simulation-panel__tq-toggle"
+              type="button"
+              onClick={handleTqDisclosureToggle}
+              aria-expanded={isTqDisclosureOpen}
+            >
+              <ChevronRight
+                size={12}
+                className={`simulation-panel__tq-toggle-icon${isTqDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
+              />
+              <span className="simulation-panel__tq-toggle-label">
+                {ui.simulation.throughputHowCalculatedQuestion}
+              </span>
+            </button>
+            {isTqDisclosureOpen ? (
+              <div className="simulation-panel__table-block">
+                <p className="simulation-panel__description simulation-panel__description--secondary">
+                  {ui.simulation.throughputFormulaIntro}
+                </p>
+                <p className="simulation-panel__description simulation-panel__description--secondary simulation-panel__formula">
+                  Throughput = Base Throughput x Reception Ratio
+                </p>
+                <p className="simulation-panel__description simulation-panel__description--secondary">
+                  {getThroughputBaseExplanation(throughputBreakdown)}
+                </p>
+                <p className="simulation-panel__description simulation-panel__description--secondary simulation-panel__formula">
+                  {ui.simulation.throughputEquation(
+                    formatFixed(throughputBreakdown.baseThroughput),
+                    formatFixed(throughputBreakdown.receptionRatio),
+                    formatFixed(throughputBreakdown.rawThroughput),
+                  )}
+                </p>
+                <p className="simulation-panel__description simulation-panel__description--secondary">
+                  {getThroughputEwmaExplanation(throughputBreakdown)}
+                </p>
+              </div>
+            ) : null}
           </div>
         ) : null}
       </section>
@@ -499,6 +541,10 @@ const getBroadcastTitle = (event: SimulationEvent, message: SimulationMessage | 
       : ui.simulation.ogmBroadcast;
   }
 
+  if (message?.kind === SimulationMessageKind.Packet) {
+    return ui.simulation.packetBroadcast;
+  }
+
   return ui.simulation.broadcastMessage;
 };
 
@@ -527,7 +573,7 @@ const getBroadcastDescription = (
   onPeerHoverChange: (peerId: string | null) => void,
 ) => {
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
-    return <>{ui.simulation.broadcastFallback(actor)}</>;
+    return <>{ui.simulation.elpBroadcastBody()}</>;
   }
 
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
@@ -555,7 +601,11 @@ const getBroadcastDescription = (
     );
   }
 
-  return <>{ui.simulation.broadcastFallback(actor)}</>;
+  if (message?.kind === SimulationMessageKind.Packet) {
+    return <>{ui.simulation.packetBroadcastBody(actor)}</>;
+  }
+
+  return <>{ui.simulation.broadcastUnknownBody(actor)}</>;
 };
 
 const getDroppedDescription = (
@@ -580,7 +630,63 @@ const getDroppedDescription = (
 
 const getThroughputCalculatedDescription = (actor: string, event: SimulationEvent) => {
   const details = event.details as ThroughputCalculationEventDetails;
+  if (details.message.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+    return <>{ui.simulation.throughputOverview}</>;
+  }
+
   return <>{ui.simulation.eventThroughputCalculated(actor, details.reason)}</>;
+};
+
+const getThroughputBreakdown = (event: SimulationEvent) => {
+  if (event.type !== SimulationEventType.SystemThroughputCalculated) {
+    return null;
+  }
+
+  const details = event.details as ThroughputCalculationEventDetails;
+  if (details.message.kind !== SimulationMessageKind.BatmanEchoLocationMessage) {
+    return null;
+  }
+
+  return details.breakdown ?? null;
+};
+
+const formatFixed = (value: number) => value.toFixed(2);
+
+const getThroughputBaseExplanation = (
+  breakdown: NonNullable<ThroughputCalculationEventDetails["breakdown"]>,
+) => {
+  const cutAmount = Math.max(0, breakdown.baseReferenceThroughput - breakdown.baseThroughput);
+
+  if (cutAmount > 0) {
+    return ui.simulation.throughputBaseWithDistanceCut(
+      Math.round(breakdown.baseThroughput),
+      Math.round(breakdown.baseReferenceThroughput),
+      formatFixed(breakdown.distance),
+      Math.round(breakdown.distancePenaltyDistance),
+      formatFixed(breakdown.distancePenaltyPercent),
+      Math.round(cutAmount),
+      formatFixed(breakdown.receptionRatio),
+    );
+  }
+
+  return ui.simulation.throughputBaseWithoutDistanceCut(
+    Math.round(breakdown.baseThroughput),
+    formatFixed(breakdown.receptionRatio),
+  );
+};
+
+const getThroughputEwmaExplanation = (
+  breakdown: NonNullable<ThroughputCalculationEventDetails["breakdown"]>,
+) => {
+  if (breakdown.previousEwma == null) {
+    return ui.simulation.throughputEwmaInitial(formatFixed(breakdown.nextEwma));
+  }
+
+  return ui.simulation.throughputEwmaUpdated(
+    formatFixed(breakdown.previousEwma),
+    formatFixed(breakdown.rawThroughput),
+    formatFixed(breakdown.nextEwma),
+  );
 };
 
 const getRouteInsertTitle = (

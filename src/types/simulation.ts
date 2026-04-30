@@ -101,6 +101,17 @@ export type DroppedEventDetails = {
 export type ThroughputCalculationEventDetails = {
   message: SimulationMessage;
   reason: string;
+  breakdown?: {
+    baseThroughput: number;
+    baseReferenceThroughput: number;
+    receptionRatio: number;
+    rawThroughput: number;
+    previousEwma: number | null;
+    nextEwma: number;
+    distance: number;
+    distancePenaltyDistance: number;
+    distancePenaltyPercent: number;
+  };
 };
 
 export type SimulationStepBoundaryDetails = {

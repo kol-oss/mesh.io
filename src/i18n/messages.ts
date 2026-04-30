@@ -234,6 +234,7 @@ export const messageCatalog = {
       ogmBroadcastRetransmission: "OGMv2 Broadcast Retransmission",
       ogmBroadcast: "OGMv2 Broadcast",
       elpBroadcast: "ELP Broadcast",
+      packetBroadcast: "Packet Broadcast",
       broadcastMessage: "Broadcast Message",
       ogmDropped: "OGMv2 Retransmission Cancelled",
       elpDropped: "ELP Dropped",
@@ -249,10 +250,38 @@ export const messageCatalog = {
       eventSent: (actor: string) => `${actor} sent a message to the selected next hop.`,
       eventThroughputCalculated: (actor: string, reason: string) =>
         `${actor} calculated throughput: ${reason}`,
+      throughputOverview:
+        "Throughput is an estimate of how much useful data can be successfully transferred over a link per unit of time. In ELP and B.A.T.M.A.N. V, throughput is used as a link-quality metric to help select better routes by favoring links that deliver more reliable and higher data rates.",
+      throughputHowCalculatedQuestion: "How is throughput calculated?",
+      throughputFormulaIntro:
+        "Throughput is derived by combining the measured base transmission rate with the link's reception ratio. In formula form:",
+      throughputEquation: (base: string, ratio: string, raw: string) =>
+        `${base} x ${ratio} = ${raw}`,
+      throughputBaseWithDistanceCut: (
+        base: number,
+        reference: number,
+        distance: string,
+        penaltyDistance: number,
+        penaltyPercent: string,
+        cutAmount: number,
+        ratio: string,
+      ) =>
+        `The base throughput is ${base}. Starting from ${reference}, distance-based penalty was applied for link distance ${distance} (configured penalty distance ${penaltyDistance}, penalty ${penaltyPercent}% per unit), reducing throughput by ${cutAmount}. The reception ratio is ${ratio}, meaning no packet loss is observed at this sample.`,
+      throughputBaseWithoutDistanceCut: (base: number, ratio: string) =>
+        `The base throughput is ${base}, and no distance cut is applied on this link. The reception ratio is ${ratio}.`,
+      throughputEwmaInitial: (next: string) =>
+        `This value is then used as the initial input to the EWMA (Exponentially Weighted Moving Average), resulting in an initial smoothed metric of ${next}, which will be refined over time as more measurements are collected.`,
+      throughputEwmaUpdated: (previous: string, raw: string, next: string) =>
+        `This value is then folded into EWMA smoothing (alpha 0.20): previous metric ${previous}, new sample ${raw}, resulting smoothed metric ${next}.`,
       eventEmitted: (actor: string) => `${actor} emitted a simulation event.`,
       eventNodeLabel: "Node",
       routingStateChanged: (actor: string) => `${actor} changed its routing state.`,
-      broadcastFallback: (actor: string) => `${actor} broadcast a message to neighbouring peers.`,
+      elpBroadcastBody: () =>
+        `Every ELP Interval B.A.T.M.A.N. node broadcast an Echo Location Protocol (ELP) message to wireless neighbours. If this node wants to announce its' neighbors it should append a neighbor entry message for each neighbor to be announced and fill the "Number of Neighbors" field accordingly.`,
+      packetBroadcastBody: (actor: string) =>
+        `${actor} broadcast a packet message to neighbouring peers.`,
+      broadcastUnknownBody: (actor: string) =>
+        `${actor} broadcast a message to neighbouring peers.`,
       droppedOgm: (actor: string) =>
         `${actor} already received OGMv2 with such originator and sequence number with better throughput, so it did not continue processing this OGMv2, and B.A.T.M.A.N. V propagation stopped at this hop.`,
       droppedPacket: (actor: string) =>
