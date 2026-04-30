@@ -356,7 +356,6 @@ export class BatmanModule implements PacketCapableModule {
       return;
     }
 
-    this.ensureLinkedNeighbourMetrics();
     this.broadcastElp();
   }
 
@@ -407,8 +406,6 @@ export class BatmanModule implements PacketCapableModule {
   }
 
   private process(message: BatmanOriginatorMessage) {
-    this.ensureLinkedNeighbourMetrics();
-
     if (message.sourcePeerId === this.routingPeer.id) {
       return true;
     }
@@ -581,7 +578,6 @@ export class BatmanModule implements PacketCapableModule {
     const neighbours: BatmanEchoLocationNeighbour[] = [...this.neighbourTable.values()]
       .map((entry) => ({
         address: entry.neighbourId,
-        quality: clampThroughput(entry.ewmaThroughput),
       }))
       .sort((left, right) => left.address.localeCompare(right.address));
 
@@ -599,26 +595,6 @@ export class BatmanModule implements PacketCapableModule {
     };
 
     this.broadcast(elpMessage);
-  }
-
-  private ensureLinkedNeighbourMetrics() {
-    const currentTick = this.eventRecorder.getCurrentTick();
-
-    const linkedBatmanNeighbours = this.routingPeer
-      .getNeighbours()
-      .filter(
-        (peer) =>
-          peer.supports(RoutingProtocol.BATMAN) && this.routingPeer.isLinkedNeighbour(peer.id),
-      );
-
-    for (const neighbour of linkedBatmanNeighbours) {
-      this.neighbourTable.set(neighbour.id, {
-        neighbourId: neighbour.id,
-        lastSeen: currentTick,
-        lastInterval: 1,
-        ewmaThroughput: BATMAN_STATIC_BASE_THROUGHPUT,
-      });
-    }
   }
 
   private processEchoLocation(message: BatmanEchoLocationMessage) {
@@ -675,13 +651,7 @@ export class BatmanModule implements PacketCapableModule {
     const expectedGap = previous ? Math.max(1, previous.lastInterval) : 1;
     const receptionRatio = Math.min(1, expectedGap / tickGap);
 
-    let rawMetric = baseThroughput * receptionRatio;
-    const reflectedMetric = message.neighbours.find(
-      (neighbour) => neighbour.address === this.routingPeer.id,
-    )?.quality;
-    if (typeof reflectedMetric === "number" && Number.isFinite(reflectedMetric)) {
-      rawMetric = Math.min(rawMetric, reflectedMetric);
-    }
+    const rawMetric = baseThroughput * receptionRatio;
 
     const nextEwma = previous
       ? BATMAN_ELP_EWMA_ALPHA * rawMetric + (1 - BATMAN_ELP_EWMA_ALPHA) * previous.ewmaThroughput
@@ -769,7 +739,8 @@ const applyDistancePenalty = (
   }
 
   const normalizedDistance = Math.max(1, distancePenaltyDistance);
-  const multiplier = Math.max(0, distance) / normalizedDistance;
+  const excessDistance = Math.max(0, distance - normalizedDistance);
+  const multiplier = excessDistance / normalizedDistance;
   const effectivePenalty = distancePenaltyPercent * multiplier;
   const penalized = throughput * ((100 - effectivePenalty) / 100);
   return Math.max(0, Math.floor(penalized));

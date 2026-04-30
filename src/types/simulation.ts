@@ -44,7 +44,6 @@ export type BatmanOriginatorMessage = {
 
 export type BatmanEchoLocationNeighbour = {
   address: string;
-  quality: number;
 };
 
 export type BatmanEchoLocationMessage = {

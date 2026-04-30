@@ -265,12 +265,6 @@ const getBatmanElpStructureRows = (
       bits: 32,
       blocked: false,
     },
-    {
-      label: ui.packet.fieldThroughput,
-      value: String(neighbour.quality),
-      bits: 32,
-      blocked: false,
-    },
   ]);
 
   return [
