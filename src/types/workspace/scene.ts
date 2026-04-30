@@ -67,6 +67,7 @@ export type WorkspaceSceneProps = {
     event: ReactPointerEvent<HTMLSpanElement>,
   ) => void;
   handlePeerPointerDown: (peer: PeerEntity, event: ReactPointerEvent<HTMLButtonElement>) => void;
+  onPeerHoverChange: (peerId: string | null) => void;
   onMessageAnimationHoverChange: (isHovered: boolean) => void;
   onMessageAnimationInspectRequest: () => void;
 };

@@ -72,6 +72,13 @@ export type BatmanRouteRecord = {
   lastTick: number;
 };
 
+export type BatmanNeighbourRecord = {
+  neighbourPeerId: string;
+  quality: number;
+  lastTick: number;
+  interval: number;
+};
+
 export type RoutingTableChangeDetails = {
   originatorPeerId: string;
   hopPeerId: string;
@@ -146,6 +153,7 @@ export type SimulationEvent = {
 
 export type SimulationPeerSnapshot = PeerEntity & {
   routingTable: BatmanRouteRecord[];
+  neighboursTable: BatmanNeighbourRecord[];
 };
 
 export type SimulationTickSnapshot = {

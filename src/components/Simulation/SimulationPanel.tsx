@@ -8,7 +8,6 @@ import {
 } from "react";
 
 import { ui } from "../../i18n/messages";
-import { ToolbarMode } from "../../types/enums";
 import {
   SimulationMessageKind,
   SimulationEventType,
@@ -29,7 +28,6 @@ type SimulationPanelProps = {
   currentEventIndex: number;
   currentEventsTotal: number;
   currentStepResult: SimulationStepResult | null;
-  inspectionMode: ToolbarMode;
   isTqDisclosureOpen: boolean;
   isSequenceDisclosureOpen: boolean;
   onPeerHoverChange: (peerId: string | null) => void;
@@ -48,7 +46,6 @@ export default function SimulationPanel({
   currentEventIndex,
   currentEventsTotal,
   currentStepResult,
-  inspectionMode,
   isTqDisclosureOpen,
   isSequenceDisclosureOpen,
   onPeerHoverChange,
@@ -109,7 +106,7 @@ export default function SimulationPanel({
   const routeChange = getRouteChange(currentEvent);
   const currentMessage = getEventMessage(currentEvent);
   const title = getEventTitle(currentEvent);
-  const description = getEventDescription(currentEvent, inspectionMode);
+  const description = getEventDescription(currentEvent);
   const eventOwner = renderPeerName(
     currentEvent.peerId,
     getPeerLabel(currentEvent.peerId, peerNameById),
@@ -411,7 +408,7 @@ const getEventTitle = (event: SimulationEvent) => {
   }
 };
 
-const getEventDescription = (event: SimulationEvent, inspectionMode: ToolbarMode) => {
+const getEventDescription = (event: SimulationEvent) => {
   const actor = ui.simulation.eventNodeLabel;
   const routeChange = getRouteChange(event);
   const message = getEventMessage(event);
@@ -428,22 +425,18 @@ const getEventDescription = (event: SimulationEvent, inspectionMode: ToolbarMode
     return getRouteRemoveDescription();
   }
 
-  if (inspectionMode === ToolbarMode.PacketStructure) {
-    switch (event.type) {
-      case SimulationEventType.SystemMessageBroadcast:
-        return getBroadcastDescription(event, message);
-      case SimulationEventType.SystemMessageSent:
-        return ui.simulation.eventSent(actor);
-      case SimulationEventType.SystemThroughputCalculated:
-        return getThroughputCalculatedDescription(actor, event);
-      case SimulationEventType.SystemMessageDropped:
-        return getDroppedDescription(event.peerId, actor, message);
-      default:
-        return ui.simulation.eventEmitted(actor);
-    }
+  switch (event.type) {
+    case SimulationEventType.SystemMessageBroadcast:
+      return getBroadcastDescription(event, message);
+    case SimulationEventType.SystemMessageSent:
+      return ui.simulation.eventSent(actor);
+    case SimulationEventType.SystemThroughputCalculated:
+      return getThroughputCalculatedDescription(actor, event);
+    case SimulationEventType.SystemMessageDropped:
+      return getDroppedDescription(event.peerId, actor, message);
+    default:
+      return ui.simulation.eventEmitted(actor);
   }
-
-  return ui.simulation.routingStateChanged(actor);
 };
 
 const getRouteChange = (event: SimulationEvent): RoutingTableChangeDetails | null => {

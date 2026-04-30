@@ -1,5 +1,6 @@
 import type { RoutingProtocol } from "../../types/enums";
 import type {
+  BatmanNeighbourRecord,
   BatmanRouteRecord,
   SimulationPacket,
   SimulationTickSnapshot,
@@ -32,6 +33,7 @@ export interface PacketCapableModule extends RoutingProtocolModule {
 
 export interface SnapshotCapablePeerNode extends SimulationPeerNode {
   getRoutingTable(): BatmanRouteRecord[];
+  getNeighboursTable(): BatmanNeighbourRecord[];
 }
 
 export interface SimulationNetworkRuntime {

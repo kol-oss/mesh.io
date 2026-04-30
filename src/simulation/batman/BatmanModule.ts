@@ -5,6 +5,7 @@ import {
   SimulationMessageKind,
   type BatmanEchoLocationMessage,
   type BatmanEchoLocationNeighbour,
+  type BatmanNeighbourRecord,
   type BatmanOriginatorMessage,
   type BatmanRouteRecord,
   type ThroughputCalculationEventDetails,
@@ -403,6 +404,17 @@ export class BatmanModule implements PacketCapableModule {
 
   getRoutes() {
     return this.originatorTable.getRoutes();
+  }
+
+  getNeighboursTable(): BatmanNeighbourRecord[] {
+    return [...this.neighbourTable.values()]
+      .map((entry) => ({
+        neighbourPeerId: entry.neighbourId,
+        quality: clampThroughput(entry.ewmaThroughput),
+        lastTick: entry.lastSeen,
+        interval: entry.lastInterval,
+      }))
+      .sort((left, right) => left.neighbourPeerId.localeCompare(right.neighbourPeerId));
   }
 
   private process(message: BatmanOriginatorMessage) {

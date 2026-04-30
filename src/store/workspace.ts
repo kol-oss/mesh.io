@@ -410,17 +410,8 @@ export function useWorkspaceStore() {
       currentSimulationStepResult.events,
     );
 
-    if (simulationInspectionMode === ToolbarMode.RoutingTable) {
-      return collapsedEvents.filter(
-        (event) =>
-          event.type === SimulationEventType.RoutingTableInsert ||
-          event.type === SimulationEventType.RoutingTableUpdate ||
-          event.type === SimulationEventType.RoutingTableRemove,
-      );
-    }
-
     return collapsedEvents;
-  }, [currentSimulationStepResult, simulationInspectionMode]);
+  }, [currentSimulationStepResult]);
   const normalizedCurrentEventIndex =
     currentSimulationEvents.length === 0
       ? 0

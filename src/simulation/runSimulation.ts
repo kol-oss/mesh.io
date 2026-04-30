@@ -148,6 +148,15 @@ class RuntimePeer implements SnapshotCapablePeerNode {
 
     return batmanModule.getRoutes();
   }
+
+  getNeighboursTable() {
+    const batmanModule = this.modules.get(RoutingProtocol.BATMAN);
+    if (!(batmanModule instanceof BatmanModule)) {
+      return [];
+    }
+
+    return batmanModule.getNeighboursTable();
+  }
 }
 
 class RuntimeNetwork implements SimulationNetworkRuntime {
@@ -313,6 +322,7 @@ class RuntimeNetwork implements SimulationNetworkRuntime {
       peers: this.getPeers().map((peer) => ({
         ...peer.getPeerEntity(),
         routingTable: peer.getRoutingTable(),
+        neighboursTable: peer.getNeighboursTable(),
       })),
     };
   }

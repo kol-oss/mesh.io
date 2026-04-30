@@ -37,6 +37,7 @@ export default function WorkspaceScene({
   handleObstaclePointerDown,
   handleObstacleResizeStart,
   handlePeerPointerDown,
+  onPeerHoverChange,
   onMessageAnimationHoverChange,
   onMessageAnimationInspectRequest,
 }: WorkspaceSceneProps) {
@@ -369,6 +370,8 @@ export default function WorkspaceScene({
                 top: `calc(50% + ${peer.y}px)`,
               }}
               type="button"
+              onPointerEnter={() => onPeerHoverChange(peer.id)}
+              onPointerLeave={() => onPeerHoverChange(null)}
               onPointerDown={(event) => {
                 event.stopPropagation();
                 handlePeerPointerDown(peer, event);

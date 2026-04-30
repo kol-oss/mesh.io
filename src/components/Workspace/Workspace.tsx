@@ -33,6 +33,7 @@ import { useToast } from "../../hooks/useToast";
 import { clamp } from "../../utils/math/clamp";
 import PacketStructureWindow from "../Simulation/PacketStructureWindow";
 import SimulationPanel from "../Simulation/SimulationPanel";
+import TableInspectionWindow from "../Simulation/TableInspectionWindow";
 import WorkspaceScene from "./WorkspaceScene";
 
 type WorkspaceProps = {
@@ -115,6 +116,14 @@ export default function Workspace({
     eventId: string;
     peerId: string | null;
   } | null>(null);
+  const [tableInspectionPeerState, setTableInspectionPeerState] = useState<{
+    peerId: string | null;
+    pinned: boolean;
+    isOpen: boolean;
+    stepId: string | null;
+  }>({ peerId: null, pinned: false, isOpen: false, stepId: null });
+  const tableInspectionSuppressHoverRef = useRef(false);
+  const currentStepId = currentSimulationStepResult?.step.id ?? null;
   const linkSourcePeerIdRef = useRef<string | null>(null);
   const stepMessageSourcePeerIdRef = useRef<string | null>(null);
   const stepMovePeerIdRef = useRef<string | null>(null);
@@ -340,11 +349,21 @@ export default function Workspace({
       },
     });
 
-  const simulationAnchorPeer = currentSimulationEvent
+  const isTableInspectionActive = simulationInspectionMode === ToolbarMode.RoutingTable;
+  const isTableInspectionOpenForCurrentStep =
+    isTableInspectionActive &&
+    tableInspectionPeerState.isOpen &&
+    tableInspectionPeerState.stepId === currentStepId;
+  const inspectedTablePeerId = isTableInspectionOpenForCurrentStep
+    ? tableInspectionPeerState.peerId
+    : null;
+  const simulationAnchorPeerId = currentSimulationEvent?.peerId ?? null;
+
+  const simulationAnchorPeer = simulationAnchorPeerId
     ? (currentSimulationStepResult?.snapshot.peers.find(
-        (peer) => peer.id === currentSimulationEvent.peerId,
+        (peer) => peer.id === simulationAnchorPeerId,
       ) ??
-      peers.find((peer) => peer.id === currentSimulationEvent.peerId) ??
+      peers.find((peer) => peer.id === simulationAnchorPeerId) ??
       null)
     : null;
 
@@ -390,6 +409,10 @@ export default function Workspace({
     currentSimulationEvent && hoveredSimulationPeerState?.eventId === currentSimulationEvent.id
       ? hoveredSimulationPeerState.peerId
       : null;
+  const highlightedSimulationPeerId =
+    simulationInspectionMode === ToolbarMode.RoutingTable
+      ? inspectedTablePeerId
+      : hoveredSimulationPeerId;
 
   const handleSimulationPeerHoverChange = useCallback(
     (peerId: string | null) => {
@@ -418,6 +441,46 @@ export default function Workspace({
       ...prev,
       [eventId]: !(prev[eventId] ?? false),
     }));
+  }, []);
+
+  const handleTableInspectionPeerHoverChange = useCallback(
+    (peerId: string | null) => {
+      if (simulationInspectionMode !== ToolbarMode.RoutingTable) {
+        return;
+      }
+
+      if (peerId === null) {
+        tableInspectionSuppressHoverRef.current = false;
+      }
+
+      if (tableInspectionSuppressHoverRef.current) {
+        return;
+      }
+
+      setTableInspectionPeerState((prev) => {
+        if (prev.pinned) {
+          return prev;
+        }
+
+        return {
+          peerId,
+          pinned: false,
+          isOpen: peerId !== null,
+          stepId: currentStepId,
+        };
+      });
+    },
+    [currentStepId, simulationInspectionMode],
+  );
+
+  const handleTableInspectionClose = useCallback(() => {
+    tableInspectionSuppressHoverRef.current = true;
+    setTableInspectionPeerState({
+      peerId: null,
+      pinned: false,
+      isOpen: false,
+      stepId: null,
+    });
   }, []);
 
   const handleMessageAnimationHoverChange = useCallback(
@@ -550,9 +613,27 @@ export default function Workspace({
       }
 
       event.stopPropagation();
+
+      if (simulationInspectionMode === ToolbarMode.RoutingTable) {
+        setTableInspectionPeerState({
+          peerId: peer.id,
+          pinned: true,
+          isOpen: true,
+          stepId: currentStepId,
+        });
+        tableInspectionSuppressHoverRef.current = false;
+        return;
+      }
+
       onEntitySelect(peer.id);
     },
-    [handlePeerPointerDown, isSimulationActive, onEntitySelect],
+    [
+      currentStepId,
+      handlePeerPointerDown,
+      isSimulationActive,
+      onEntitySelect,
+      simulationInspectionMode,
+    ],
   );
 
   return (
@@ -586,7 +667,6 @@ export default function Workspace({
             currentEventIndex={currentSimulationEventIndex}
             currentEventsTotal={currentSimulationEventsTotal}
             currentStepResult={currentSimulationStepResult}
-            inspectionMode={simulationInspectionMode}
             isTqDisclosureOpen={simulationTqDisclosureByEvent[currentSimulationEvent.id] ?? false}
             isSequenceDisclosureOpen={
               simulationSequenceDisclosureByEvent[currentSimulationEvent.id] ?? false
@@ -611,7 +691,7 @@ export default function Workspace({
           peers={peers}
           selectedSource={selectedSource}
           selectedId={selectedId}
-          hoveredSimulationPeerId={hoveredSimulationPeerId}
+          hoveredSimulationPeerId={highlightedSimulationPeerId}
           resolvedCreationSelectedEntityId={resolvedCreationSelectedEntityId}
           selectedStepAffectedEntityIds={selectedStepAffectedEntityIds}
           editingTextId={editingTextId}
@@ -629,6 +709,7 @@ export default function Workspace({
           handleObstaclePointerDown={handleSimulationObstaclePointerDown}
           handleObstacleResizeStart={handleSimulationObstacleResizeStart}
           handlePeerPointerDown={handleSimulationPeerPointerDown}
+          onPeerHoverChange={handleTableInspectionPeerHoverChange}
           onMessageAnimationHoverChange={handleMessageAnimationHoverChange}
           onMessageAnimationInspectRequest={handleMessageAnimationInspectRequest}
         />
@@ -645,6 +726,13 @@ export default function Workspace({
         currentEvent={currentSimulationEvent}
         currentStepResult={currentSimulationStepResult}
         onClose={handlePacketInspectorClose}
+      />
+      <TableInspectionWindow
+        isOpen={isTableInspectionOpenForCurrentStep}
+        currentStepResult={currentSimulationStepResult}
+        inspectedPeerId={inspectedTablePeerId}
+        onClose={handleTableInspectionClose}
+        onPeerHoverChange={handleSimulationPeerHoverChange}
       />
     </section>
   );
