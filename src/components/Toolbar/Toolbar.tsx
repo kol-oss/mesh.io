@@ -267,6 +267,15 @@ export default function Toolbar({
     onPlacementModeChange(nextPlacementMode);
   }, [activeItemsByGroup, effectiveSelectedGroupId, onPlacementModeChange]);
 
+  useEffect(() => {
+    if (effectiveSelectedGroupId !== ToolbarGroupId.Inspection) {
+      onInspectionModeChange(ToolbarMode.NavigationMove);
+      return;
+    }
+
+    onInspectionModeChange(activeItemsByGroup.inspection.key as ToolbarMode);
+  }, [activeItemsByGroup, effectiveSelectedGroupId, onInspectionModeChange]);
+
   const setGroupMode = (groupId: ModeGroup["id"], mode: ToolMode) => {
     setSelectedModesByGroup({
       ...selectedModesByGroup,

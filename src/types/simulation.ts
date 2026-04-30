@@ -165,6 +165,7 @@ export type SimulationTickSnapshot = {
 export type SimulationStepResult = {
   step: WorkflowStep;
   events: SimulationEvent[];
+  eventSnapshots: SimulationTickSnapshot[];
   snapshot: SimulationTickSnapshot;
 };
 

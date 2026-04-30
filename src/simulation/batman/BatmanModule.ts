@@ -668,6 +668,14 @@ export class BatmanModule implements PacketCapableModule {
     const nextEwma = previous
       ? BATMAN_ELP_EWMA_ALPHA * rawMetric + (1 - BATMAN_ELP_EWMA_ALPHA) * previous.ewmaThroughput
       : rawMetric;
+
+    this.neighbourTable.set(message.senderPeerId, {
+      neighbourId: message.senderPeerId,
+      lastSeen: currentTick,
+      lastInterval: Math.max(1, Math.floor(message.interval)),
+      ewmaThroughput: clampThroughput(nextEwma),
+    });
+
     const reason = ui.runtime.elpThroughputCalculated(
       baseThroughput,
       receptionRatio,
@@ -685,13 +693,6 @@ export class BatmanModule implements PacketCapableModule {
       distance,
       distancePenaltyDistance: routingPeerEntity.batmanDistancePenaltyDistance,
       distancePenaltyPercent: routingPeerEntity.batmanDistancePenaltyPercent,
-    });
-
-    this.neighbourTable.set(message.senderPeerId, {
-      neighbourId: message.senderPeerId,
-      lastSeen: currentTick,
-      lastInterval: Math.max(1, Math.floor(message.interval)),
-      ewmaThroughput: clampThroughput(nextEwma),
     });
 
     return true;

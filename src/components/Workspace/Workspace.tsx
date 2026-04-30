@@ -349,11 +349,9 @@ export default function Workspace({
       },
     });
 
-  const isTableInspectionActive = simulationInspectionMode === ToolbarMode.RoutingTable;
   const isTableInspectionOpenForCurrentStep =
-    isTableInspectionActive &&
     tableInspectionPeerState.isOpen &&
-    tableInspectionPeerState.stepId === currentStepId;
+    (tableInspectionPeerState.pinned || tableInspectionPeerState.stepId === currentStepId);
   const inspectedTablePeerId = isTableInspectionOpenForCurrentStep
     ? tableInspectionPeerState.peerId
     : null;
@@ -730,6 +728,7 @@ export default function Workspace({
       <TableInspectionWindow
         isOpen={isTableInspectionOpenForCurrentStep}
         currentStepResult={currentSimulationStepResult}
+        currentEventId={currentSimulationEvent?.id ?? null}
         inspectedPeerId={inspectedTablePeerId}
         onClose={handleTableInspectionClose}
         onPeerHoverChange={handleSimulationPeerHoverChange}

@@ -1,5 +1,5 @@
 import { ExternalLink, X } from "lucide-react";
-import type { ReactNode } from "react";
+import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
 
 import { ui } from "../../i18n/messages";
 import type { SimulationStepResult } from "../../types/simulation";
@@ -7,6 +7,7 @@ import type { SimulationStepResult } from "../../types/simulation";
 type TableInspectionWindowProps = {
   isOpen: boolean;
   currentStepResult: SimulationStepResult | null;
+  currentEventId: string | null;
   inspectedPeerId: string | null;
   onClose: () => void;
   onPeerHoverChange: (peerId: string | null) => void;
@@ -15,20 +16,28 @@ type TableInspectionWindowProps = {
 export default function TableInspectionWindow({
   isOpen,
   currentStepResult,
+  currentEventId,
   inspectedPeerId,
   onClose,
   onPeerHoverChange,
 }: TableInspectionWindowProps) {
+  const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
+    event.stopPropagation();
+  };
+
   if (!isOpen || !currentStepResult || !inspectedPeerId) {
     return null;
   }
 
-  const peerNameById = new Map(
-    currentStepResult.snapshot.peers.map((peer) => [peer.id, peer.name]),
-  );
-  const inspectedPeer = currentStepResult.snapshot.peers.find(
-    (peer) => peer.id === inspectedPeerId,
-  );
+  const eventIndex = currentEventId
+    ? currentStepResult.events.findIndex((event) => event.id === currentEventId)
+    : -1;
+  const snapshotForEvent =
+    eventIndex >= 0 ? (currentStepResult.eventSnapshots[eventIndex] ?? null) : null;
+  const inspectedSnapshot = snapshotForEvent ?? currentStepResult.snapshot;
+
+  const peerNameById = new Map(inspectedSnapshot.peers.map((peer) => [peer.id, peer.name]));
+  const inspectedPeer = inspectedSnapshot.peers.find((peer) => peer.id === inspectedPeerId);
 
   if (!inspectedPeer) {
     return null;
@@ -38,6 +47,7 @@ export default function TableInspectionWindow({
     <aside
       className="simulation-panel simulation-panel--inspector"
       aria-label={ui.simulation.panelAria}
+      onPointerDown={handlePointerDown}
     >
       <header className="simulation-panel__header simulation-panel__header--static">
         <h2 className="simulation-panel__title">
@@ -47,6 +57,7 @@ export default function TableInspectionWindow({
           className="simulation-panel__close-button"
           type="button"
           onClick={onClose}
+          onPointerDown={(event) => event.stopPropagation()}
           aria-label={ui.packet.closeAria}
         >
           <X size={14} />

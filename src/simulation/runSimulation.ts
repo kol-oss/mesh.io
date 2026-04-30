@@ -346,6 +346,11 @@ export function runSimulation(input: SimulationInput): SimulationResult {
   const network = new RuntimeNetwork(input.entities, eventRecorder);
   const steps = sortSteps(input.steps);
   const stepResults: SimulationStepResult[] = [];
+  const eventSnapshots: SimulationTickSnapshot[] = [];
+
+  eventRecorder.onSave(() => {
+    eventSnapshots.push(network.snapshot(eventRecorder.getCurrentTick()));
+  });
 
   let simulationTick = 1;
   let stepIndex = 0;
@@ -366,10 +371,12 @@ export function runSimulation(input: SimulationInput): SimulationResult {
     for (const step of stepEventsForTick) {
       eventRecorder.setCurrentStep(step.id);
       const beforeCount = eventRecorder.getEvents().length;
+      const beforeSnapshotsCount = eventSnapshots.length;
       processStep(step, network, eventRecorder);
       stepResults.push({
         step,
         events: eventRecorder.getEvents().slice(beforeCount),
+        eventSnapshots: eventSnapshots.slice(beforeSnapshotsCount),
         snapshot: network.snapshot(eventRecorder.getCurrentTick()),
       });
     }
