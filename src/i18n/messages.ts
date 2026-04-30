@@ -309,8 +309,10 @@ export const messageCatalog = {
     packet: {
       inspectorAria: "Packet structure inspector",
       title: "Originator Message version 2 (OGMv2)",
+      elpTitle: "Echo Location Message (ELP)",
       closeAria: "Close packet structure",
       structureAria: "Originator Message version 2 structure",
+      elpStructureAria: "Echo Location Message structure",
       bitsSuffix: "bits",
       notModeled: "Not modeled",
       unavailable: "Packet structure is not available for this event.",

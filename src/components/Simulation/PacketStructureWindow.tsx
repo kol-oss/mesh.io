@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { ExternalLink, X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
 import { ui } from "../../i18n/messages";
@@ -95,6 +95,8 @@ export default function PacketStructureWindow({
   const peerNameById = new Map(
     currentStepResult.snapshot.peers.map((peer) => [peer.id, peer.name]),
   );
+  const inspectorTitle = getPacketInspectorTitle(eventMessage);
+  const packetStructureAria = getPacketInspectorStructureAria(eventMessage);
 
   return (
     <aside
@@ -103,7 +105,7 @@ export default function PacketStructureWindow({
       style={{ transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)` }}
     >
       <header className="simulation-panel__header" onPointerDown={handleHeaderPointerDown}>
-        <h2 className="simulation-panel__title">{ui.packet.title}</h2>
+        <h2 className="simulation-panel__title">{inspectorTitle}</h2>
         <button
           className="simulation-panel__close-button"
           type="button"
@@ -116,7 +118,7 @@ export default function PacketStructureWindow({
       </header>
       <section className="simulation-panel__section">
         {eventMessage?.kind === SimulationMessageKind.BatmanOriginatorMessage ? (
-          <div className="simulation-panel__packet-structure" aria-label={ui.packet.structureAria}>
+          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getBatmanOgmStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-${rowIndex}`}>
                 {row.map((field) => (
@@ -143,7 +145,7 @@ export default function PacketStructureWindow({
             ))}
           </div>
         ) : eventMessage?.kind === SimulationMessageKind.BatmanEchoLocationMessage ? (
-          <div className="simulation-panel__packet-structure" aria-label={ui.packet.structureAria}>
+          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getBatmanElpStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-elp-${rowIndex}`}>
                 {row.map((field) => (
@@ -175,9 +177,31 @@ export default function PacketStructureWindow({
           </p>
         )}
       </section>
+      <footer className="simulation-panel__footer">
+        <button className="simulation-panel__read-more" type="button">
+          <ExternalLink size={12} />
+          {ui.simulation.packetStructureReadMore}
+        </button>
+      </footer>
     </aside>
   );
 }
+
+const getPacketInspectorTitle = (message: SimulationMessage | null) => {
+  if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+    return ui.packet.elpTitle;
+  }
+
+  return ui.packet.title;
+};
+
+const getPacketInspectorStructureAria = (message: SimulationMessage | null) => {
+  if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+    return ui.packet.elpStructureAria;
+  }
+
+  return ui.packet.structureAria;
+};
 
 const getBatmanOgmStructureRows = (
   message: SimulationMessage,
