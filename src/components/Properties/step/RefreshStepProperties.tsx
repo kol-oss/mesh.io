@@ -1,4 +1,5 @@
 import { Clock3, ExternalLink, Lock, Radio, RotateCw } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { ui } from "../../../i18n/messages";
 import type { RefreshStepPropertiesPanelProps } from "../../../types/properties";
@@ -17,10 +18,10 @@ export default function RefreshStepProperties({
       <header className="properties__header">
         <p className="properties__title">{ui.properties.titleRoutingStep}</p>
         <p className="properties__subtitle">{ui.properties.subtitleRoutingStep}</p>
-        <a className="properties__read-more" href="#" tabIndex={0}>
+        <Link className="properties__read-more" to="/docs" target="_blank" rel="noreferrer">
           <ExternalLink size={12} />
           {ui.common.readMore}
-        </a>
+        </Link>
       </header>
 
       <div className="properties__locked-notice">

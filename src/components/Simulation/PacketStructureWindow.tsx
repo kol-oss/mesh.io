@@ -1,5 +1,6 @@
 import { ExternalLink, X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { Link } from "react-router-dom";
 
 import { ui } from "../../i18n/messages";
 import {
@@ -185,10 +186,10 @@ export default function PacketStructureWindow({
         )}
       </section>
       <footer className="simulation-panel__footer">
-        <button className="simulation-panel__read-more" type="button">
+        <Link className="simulation-panel__read-more" to="/docs" target="_blank" rel="noreferrer">
           <ExternalLink size={12} />
           {ui.simulation.packetStructureReadMore}
-        </button>
+        </Link>
       </footer>
     </aside>
   );

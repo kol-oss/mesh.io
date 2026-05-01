@@ -1,4 +1,5 @@
 import { Diamond, ExternalLink, Lock, Radio } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { ui } from "../../../i18n/messages";
 import { EntityType } from "../../../types/enums";
@@ -85,10 +86,10 @@ export default function LinkProperties({
       <header className="properties__header">
         <p className="properties__title">{title}</p>
         <p className="properties__subtitle">{description}</p>
-        <a className="properties__read-more" href="#" tabIndex={0}>
+        <Link className="properties__read-more" to="/docs" target="_blank" rel="noreferrer">
           <ExternalLink size={12} />
           {ui.common.readMore}
-        </a>
+        </Link>
       </header>
 
       {isLocked && (

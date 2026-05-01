@@ -8,6 +8,7 @@ import {
   Percent,
   Ruler,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { peerRoutingProtocols } from "../../../constants/protocol";
 import Tooltip from "../../Tooltip/Tooltip";
@@ -110,10 +111,10 @@ export default function PeerProperties({
       <header className="properties__header">
         <p className="properties__title">{title}</p>
         <p className="properties__subtitle">{description}</p>
-        <a className="properties__read-more" href="#" tabIndex={0}>
+        <Link className="properties__read-more" to="/docs" target="_blank" rel="noreferrer">
           <ExternalLink size={12} />
           {ui.common.readMore}
-        </a>
+        </Link>
       </header>
 
       {isLocked && (

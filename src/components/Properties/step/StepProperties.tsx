@@ -1,4 +1,5 @@
 import { Activity, ChevronsRight, Clock3, ExternalLink, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { ui } from "../../../i18n/messages";
 import { EntityType, StepType } from "../../../types/enums";
@@ -205,10 +206,10 @@ export default function StepProperties({
       <header className="properties__header">
         <p className="properties__title">{ui.properties.titleStep}</p>
         <p className="properties__subtitle">{ui.properties.subtitleStep}</p>
-        <a className="properties__read-more" href="#" tabIndex={0}>
+        <Link className="properties__read-more" to="/docs" target="_blank" rel="noreferrer">
           <ExternalLink size={12} />
           {ui.common.readMore}
-        </a>
+        </Link>
       </header>
       <section className="properties__section">
         <p className="properties__section-title">{ui.properties.sectionConfiguration}</p>

@@ -22,6 +22,29 @@ export const messageCatalog = {
       collapseSidebarTooltip: "Collapse sidebar",
       collapseNavigationAria: "Collapse navigation",
     },
+    help: {
+      headerLinkAbout: "Overview",
+      headerLinkBatman: "B.A.T.M.A.N.",
+      headerLinkOlsr: "OLSR",
+      headerLinkAodv: "AODV",
+      headerLinkDsr: "DSR",
+      simulationButton: "Model",
+      sectionAboutTitle: "Overview",
+      sectionAboutText:
+        "Mesh IO is an educational simulator for routing behavior in dynamic mesh topologies.",
+      sectionBatmanTitle: "B.A.T.M.A.N.",
+      sectionBatmanText:
+        "B.A.T.M.A.N. V estimates throughput and selects best next hops per originator.",
+      sectionOlsrTitle: "OLSR",
+      sectionOlsrText:
+        "OLSR is a proactive link-state protocol that relies on periodic control messages.",
+      sectionAodvTitle: "AODV",
+      sectionAodvText:
+        "AODV discovers routes on demand, establishing paths only when traffic is requested.",
+      sectionDsrTitle: "DSR",
+      sectionDsrText:
+        "DSR is an on-demand protocol using source routing with route caches at nodes.",
+    },
     entities: {
       sectionTitle: "Entities",
       addTooltip: "Add new entity",

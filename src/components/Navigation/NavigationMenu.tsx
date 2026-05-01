@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
+import { Link } from "react-router-dom";
 
 import { ui } from "../../i18n/messages";
 import { NAVIGATION_MENU_ITEMS } from "../../utils/navigation/constants";
@@ -50,6 +51,20 @@ export default function NavigationMenu({
   return (
     <div className={`navigation__menu${isCompact ? " navigation__menu--compact" : ""}`}>
       {NAVIGATION_MENU_ITEMS.map((menuItem) => {
+        if (menuItem.title === ui.navigation.menuHelp) {
+          return (
+            <Link
+              className="navigation__menu-button"
+              key={menuItem.title}
+              to="/docs"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {menuItem.title}
+            </Link>
+          );
+        }
+
         if (menuItem.title !== ui.navigation.menuFile) {
           return (
             <button className="navigation__menu-button" key={menuItem.title} type="button">

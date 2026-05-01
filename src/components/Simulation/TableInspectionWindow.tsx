@@ -6,6 +6,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
+import { Link } from "react-router-dom";
 
 import { ui } from "../../i18n/messages";
 import type { SimulationStepResult } from "../../types/simulation";
@@ -197,10 +198,10 @@ export default function TableInspectionWindow({
       </section>
 
       <footer className="simulation-panel__footer">
-        <button className="simulation-panel__read-more" type="button">
+        <Link className="simulation-panel__read-more" to="/docs" target="_blank" rel="noreferrer">
           <ExternalLink size={12} />
           {ui.simulation.packetStructureReadMore}
-        </button>
+        </Link>
       </footer>
     </aside>
   );
