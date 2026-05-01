@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ui } from "../../i18n/messages";
 import TextBlock from "../../components/Help/TextBlock";
@@ -7,7 +8,35 @@ import SourceBlock from "../../components/Help/SourceBlock";
 const fakeText =
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
 
+const SECTION_IDS = [
+  "batman",
+  "what-you-need-to-know",
+  "echo-location-protocol",
+  "throughput-calculation",
+  "originator-message",
+  "sequence-protection-window",
+  "route-selection",
+];
+
 export default function Help() {
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + 100;
+
+      for (let i = SECTION_IDS.length - 1; i >= 0; i--) {
+        const sectionId = SECTION_IDS[i];
+        const element = document.getElementById(sectionId);
+        if (element && element.offsetTop <= scrollPosition) {
+          window.history.replaceState(null, "", `/docs/batman#${sectionId}`);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className="help-page">
       <header className="help-page__header">
@@ -25,7 +54,7 @@ export default function Help() {
           </div>
 
           <nav className="help-page__links" aria-label={ui.navigation.menuHelp}>
-            <a href="#batman" className="help-page__link help-page__link--active">
+            <a href="/docs/batman" className="help-page__link help-page__link--active">
               B.A.T.M.A.N.
             </a>
           </nav>
@@ -59,7 +88,7 @@ export default function Help() {
             </div>
 
             {/* Echo Location Protocol (ELP) */}
-            <div className="help-page__chapter" id="what-you-need-to-know">
+            <div className="help-page__chapter" id="echo-location-protocol">
               <h2 className="help-page__chapter-title">Echo Location Protocol (ELP)</h2>
               <TextBlock>
                 {fakeText} The **Echo Location Protocol** measures link quality by sending periodic
@@ -80,7 +109,7 @@ export default function Help() {
             </div>
 
             {/* Throughput Calculation */}
-            <div className="help-page__chapter" id="what-you-need-to-know">
+            <div className="help-page__chapter" id="throughput-calculation">
               <h2 className="help-page__chapter-title">Throughput Calculation</h2>
               <TextBlock>
                 {fakeText} **Throughput** is calculated based on link quality metrics. {fakeText}
@@ -98,7 +127,7 @@ export default function Help() {
             </div>
 
             {/* Originator Message version 2 (OGMv2) */}
-            <div className="help-page__chapter" id="what-you-need-to-know">
+            <div className="help-page__chapter" id="originator-message">
               <h2 className="help-page__chapter-title">Originator Message version 2 (OGMv2)</h2>
               <TextBlock>
                 {fakeText} **OGMv2** messages propagate routing information through the network.{" "}
@@ -117,7 +146,7 @@ export default function Help() {
             </div>
 
             {/* Sequence Protection Window */}
-            <div className="help-page__chapter" id="what-you-need-to-know">
+            <div className="help-page__chapter" id="sequence-protection-window">
               <h2 className="help-page__chapter-title">Sequence Protection Window</h2>
               <TextBlock>
                 {fakeText} The **sequence protection window** prevents duplicate OGM processing.{" "}
@@ -136,7 +165,7 @@ export default function Help() {
             </div>
 
             {/* Route Selection */}
-            <div className="help-page__chapter" id="what-you-need-to-know">
+            <div className="help-page__chapter" id="route-selection">
               <h2 className="help-page__chapter-title">Route Selection</h2>
               <TextBlock>
                 {fakeText} **Route selection** favors paths with the **highest throughput** metrics.{" "}
