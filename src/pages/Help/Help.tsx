@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { ui } from "../../i18n/messages";
+import Tooltip from "../../components/Tooltip/Tooltip";
+import { TooltipPlacement } from "../../types/enums";
+import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
 
 type HelpSection = {
   id: string;
@@ -43,8 +47,15 @@ export default function Help() {
       text: ui.help.sectionDsrText,
     },
   ];
+  const documentationSections = sections.filter((section) => section.id !== "about-us");
 
   const [activeSectionId, setActiveSectionId] = useState(sections[0].id);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { widthPercent, onResizeStart } = useSidebarResize();
+
+  const handleSidebarToggle = () => {
+    setIsSidebarCollapsed((prev) => !prev);
+  };
 
   return (
     <div className="help-page">
@@ -81,14 +92,118 @@ export default function Help() {
         </div>
       </header>
 
-      <main className="help-page__content">
-        {sections.map((section) => (
-          <section className="help-page__section" id={section.id} key={section.id}>
-            <h2 className="help-page__section-title">{section.title}</h2>
-            <p className="help-page__section-text">{section.text}</p>
-          </section>
-        ))}
-      </main>
+      <div className="help-page__body">
+        {isSidebarCollapsed ? (
+          <div className="help-page__sidebar-collapsed">
+            <Tooltip
+              content={ui.navigation.expandSidebarTooltip}
+              placement={TooltipPlacement.Bottom}
+            >
+              <button
+                className="help-page__sidebar-toggle"
+                type="button"
+                aria-label={ui.navigation.expandNavigationAria}
+                onClick={handleSidebarToggle}
+              >
+                <PanelLeftOpen size={15} />
+              </button>
+            </Tooltip>
+          </div>
+        ) : (
+          <aside className="navigation help-page__sidebar" style={{ width: `${widthPercent}%` }}>
+            <Tooltip
+              content={ui.navigation.collapseSidebarTooltip}
+              placement={TooltipPlacement.Bottom}
+            >
+              <button
+                className="navigation__compact-button"
+                type="button"
+                aria-label={ui.navigation.collapseNavigationAria}
+                onClick={handleSidebarToggle}
+              >
+                <PanelLeftClose size={15} />
+              </button>
+            </Tooltip>
+
+            <nav className="help-page__sidebar-content" aria-label={ui.navigation.menuHelp}>
+              <section className="help-page__sidebar-group" aria-labelledby="help-about-us-heading">
+                <p className="help-page__sidebar-heading" id="help-about-us-heading">
+                  {ui.help.sidebarAboutUsHeading}
+                </p>
+                <ul className="help-page__sidebar-list">
+                  <li>
+                    <a
+                      className={`help-page__sidebar-link${activeSectionId === "about-us" ? " help-page__sidebar-link--active" : ""}`}
+                      href="#about-us"
+                      onClick={() => setActiveSectionId("about-us")}
+                    >
+                      <span className="help-page__sidebar-link-title">
+                        {ui.help.headerLinkAbout}
+                      </span>
+                    </a>
+                  </li>
+                  <li>
+                    <Link
+                      className="help-page__sidebar-link"
+                      to="/"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <span className="help-page__sidebar-link-title">
+                        {ui.help.sidebarModeling}
+                      </span>
+                    </Link>
+                  </li>
+                </ul>
+              </section>
+
+              <section
+                className="help-page__sidebar-group"
+                aria-labelledby="help-documentation-heading"
+              >
+                <p className="help-page__sidebar-heading" id="help-documentation-heading">
+                  {ui.help.sidebarDocumentationHeading}
+                </p>
+                <ul className="help-page__doc-list">
+                  {documentationSections.map((section, index) => (
+                    <li key={section.id}>
+                      <a
+                        className={`help-page__doc-link${activeSectionId === section.id ? " help-page__doc-link--active" : ""}`}
+                        href={`#${section.id}`}
+                        onClick={() => setActiveSectionId(section.id)}
+                      >
+                        <span className="help-page__doc-dot" aria-hidden="true" />
+                        <span className="help-page__doc-number">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <span className="help-page__doc-title">{section.label}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </nav>
+            <div
+              className="navigation__resizer"
+              role="separator"
+              aria-label={ui.navigation.resizeSidebarAria}
+              aria-orientation="vertical"
+              onPointerDown={onResizeStart}
+            />
+          </aside>
+        )}
+
+        <main
+          className={`help-page__content${isSidebarCollapsed ? " help-page__content--sidebar-collapsed" : ""}`}
+        >
+          {sections.map((section) => (
+            <section className="help-page__section" id={section.id} key={section.id}>
+              <h2 className="help-page__section-title">{section.title}</h2>
+              <p className="help-page__section-text">{section.text}</p>
+            </section>
+          ))}
+        </main>
+      </div>
     </div>
   );
 }

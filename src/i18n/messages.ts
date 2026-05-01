@@ -28,6 +28,9 @@ export const messageCatalog = {
       headerLinkOlsr: "OLSR",
       headerLinkAodv: "AODV",
       headerLinkDsr: "DSR",
+      sidebarAboutUsHeading: "ABOUT US",
+      sidebarDocumentationHeading: "DOCUMENTATION",
+      sidebarModeling: "Modeling",
       simulationButton: "Model",
       sectionAboutTitle: "Overview",
       sectionAboutText:
