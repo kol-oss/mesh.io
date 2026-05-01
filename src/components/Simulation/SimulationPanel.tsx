@@ -9,6 +9,8 @@ import {
 
 import { ui } from "../../i18n/messages";
 import {
+  type EntityStatusChangedEventDetails,
+  type PeerMovedEventDetails,
   SimulationMessageKind,
   SimulationEventType,
   type BatmanRouteRecord,
@@ -107,11 +109,13 @@ export default function SimulationPanel({
   const currentMessage = getEventMessage(currentEvent);
   const title = getEventTitle(currentEvent);
   const description = getEventDescription(currentEvent);
-  const eventOwner = renderPeerName(
-    currentEvent.peerId,
-    getPeerLabel(currentEvent.peerId, peerNameById),
-    onPeerHoverChange,
-  );
+  const eventOwner = peerNameById.has(currentEvent.peerId)
+    ? renderPeerName(
+        currentEvent.peerId,
+        getPeerLabel(currentEvent.peerId, peerNameById),
+        onPeerHoverChange,
+      )
+    : currentEvent.peerId;
   const routeRows = routeChange ? getRouteRows(routeChange) : [];
   const ogmBroadcastThroughputExplanation = getOgmBroadcastThroughputExplanation(
     currentEvent,
@@ -403,6 +407,10 @@ const getEventTitle = (event: SimulationEvent) => {
       return ui.simulation.throughputRecalculated;
     case SimulationEventType.SystemMessageDropped:
       return getDroppedTitle(message);
+    case SimulationEventType.SystemPeerMoved:
+      return ui.simulation.peerMoved;
+    case SimulationEventType.SystemEntityStatusChanged:
+      return ui.simulation.entityStatusChanged;
     default:
       return ui.simulation.genericEvent;
   }
@@ -434,6 +442,16 @@ const getEventDescription = (event: SimulationEvent) => {
       return getThroughputCalculatedDescription(actor, event);
     case SimulationEventType.SystemMessageDropped:
       return getDroppedDescription(event.peerId, actor, message);
+    case SimulationEventType.SystemPeerMoved: {
+      const details = event.details as PeerMovedEventDetails;
+      return ui.simulation.eventPeerMoved(details.toX, details.toY);
+    }
+    case SimulationEventType.SystemEntityStatusChanged: {
+      const details = event.details as EntityStatusChangedEventDetails;
+      const entityLabel =
+        details.entityType === "LINK" ? ui.entities.typeLink : ui.entities.typePeer;
+      return ui.simulation.eventEntityStatusChanged(entityLabel, details.nextEnabled);
+    }
     default:
       return ui.simulation.eventEmitted(actor);
   }
@@ -496,6 +514,38 @@ const getMessageSummary = (
       {
         label: ui.simulation.summaryTtl,
         value: String(message.timeToLive),
+      },
+    ];
+  }
+
+  if (event.type === SimulationEventType.SystemPeerMoved) {
+    const details = event.details as PeerMovedEventDetails;
+    return [
+      {
+        label: ui.properties.fieldPeer,
+        value: renderPeerName(
+          details.peerId,
+          getPeerLabel(details.peerId, peerNameById),
+          onPeerHoverChange,
+        ),
+      },
+      {
+        label: ui.properties.fieldPosition,
+        value: `(${details.toX}, ${details.toY})`,
+      },
+    ];
+  }
+
+  if (event.type === SimulationEventType.SystemEntityStatusChanged) {
+    const details = event.details as EntityStatusChangedEventDetails;
+    return [
+      {
+        label: ui.properties.fieldType,
+        value: details.entityType === "LINK" ? ui.entities.typeLink : ui.entities.typePeer,
+      },
+      {
+        label: ui.properties.fieldStatus,
+        value: details.nextEnabled ? ui.common.enabled : ui.common.disabled,
       },
     ];
   }

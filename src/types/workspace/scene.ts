@@ -6,10 +6,12 @@ import type { ObstacleEntity, PeerEntity } from "../navigation";
 import type { WorkspaceTextItem } from "./index";
 
 export type MoveIndicator = {
+  stepId: string | null;
   sourceX: number;
   sourceY: number;
   targetX: number;
   targetY: number;
+  targetRange: number;
   draft: boolean;
 };
 
@@ -20,6 +22,21 @@ export type MessageAnimation = {
   targetX: number;
   targetY: number;
   variant: "default" | "route-change" | "dropped";
+};
+
+export type MoveStepAnimation = {
+  peerId: string;
+  fromX: number;
+  fromY: number;
+  toX: number;
+  toY: number;
+  progress: number;
+};
+
+export type ToggleStepAnimation = {
+  entityId: string;
+  entityType: "PEER" | "LINK";
+  nextEnabled: boolean;
 };
 
 export type WorkspaceSceneProps = {
@@ -37,6 +54,8 @@ export type WorkspaceSceneProps = {
   rangePolygons: RangePolygon[];
   moveIndicators: MoveIndicator[];
   messageAnimations: MessageAnimation[];
+  moveStepAnimation: MoveStepAnimation | null;
+  toggleStepAnimation: ToggleStepAnimation | null;
   texts: WorkspaceTextItem[];
   obstacles: ObstacleEntity[];
   peers: PeerEntity[];
@@ -67,6 +86,9 @@ export type WorkspaceSceneProps = {
     event: ReactPointerEvent<HTMLSpanElement>,
   ) => void;
   handlePeerPointerDown: (peer: PeerEntity, event: ReactPointerEvent<HTMLButtonElement>) => void;
+  handleMoveIndicatorPointerDown: (stepId: string, event: ReactPointerEvent<HTMLElement>) => void;
+  handleMoveIndicatorPointerMove: (event: ReactPointerEvent<HTMLElement>) => void;
+  handleMoveIndicatorPointerEnd: (event: ReactPointerEvent<HTMLElement>) => void;
   onPeerHoverChange: (peerId: string | null) => void;
   onMessageAnimationHoverChange: (isHovered: boolean) => void;
   onMessageAnimationInspectRequest: () => void;

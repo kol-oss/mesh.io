@@ -210,10 +210,12 @@ export function useWorkspaceDerived({
     }
 
     return {
+      stepId: step.id,
       sourceX: sourcePeer.x,
       sourceY: sourcePeer.y,
       targetX: step.x,
       targetY: step.y,
+      targetRange: sourcePeer.range,
       draft: false,
     };
   }, [peerById, selectedId, selectedSource, steps]);
@@ -233,10 +235,12 @@ export function useWorkspaceDerived({
     }
 
     return {
+      stepId: null,
       sourceX: sourcePeer.x,
       sourceY: sourcePeer.y,
       targetX: moveTargetPreview.x,
       targetY: moveTargetPreview.y,
+      targetRange: sourcePeer.range,
       draft: true,
     };
   }, [moveTargetPreview, peerById, placementMode, resolvedCreationSelectedEntityId]);

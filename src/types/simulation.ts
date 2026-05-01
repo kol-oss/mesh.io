@@ -6,6 +6,8 @@ export const SimulationEventType = {
   SystemMessageSent: "SYSTEM_MESSAGE_SENT",
   SystemThroughputCalculated: "SYSTEM_THROUGHPUT_CALCULATED",
   SystemMessageDropped: "SYSTEM_MESSAGE_DROPPED",
+  SystemPeerMoved: "SYSTEM_PEER_MOVED",
+  SystemEntityStatusChanged: "SYSTEM_ENTITY_STATUS_CHANGED",
   RoutingTableGet: "ROUTING_TABLE_GET",
   RoutingTableInsert: "ROUTING_TABLE_INSERT",
   RoutingTableUpdate: "ROUTING_TABLE_UPDATE",
@@ -128,6 +130,21 @@ export type ThroughputCalculationEventDetails = {
   };
 };
 
+export type PeerMovedEventDetails = {
+  peerId: string;
+  fromX: number;
+  fromY: number;
+  toX: number;
+  toY: number;
+};
+
+export type EntityStatusChangedEventDetails = {
+  entityId: string;
+  entityType: NetworkEntity["type"];
+  previousEnabled: boolean;
+  nextEnabled: boolean;
+};
+
 export type SimulationStepBoundaryDetails = {
   stepId: string;
   stepTitle: string;
@@ -139,6 +156,8 @@ export type SimulationEventDetails =
   | MessageTransferEventDetails
   | DroppedEventDetails
   | ThroughputCalculationEventDetails
+  | PeerMovedEventDetails
+  | EntityStatusChangedEventDetails
   | RoutingTableChangeDetails
   | SimulationStepBoundaryDetails;
 

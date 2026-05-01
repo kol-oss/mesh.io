@@ -1,7 +1,9 @@
 import type { DragState } from "../../types/workspace/interaction";
-import { PlacementMode, SelectionSource, ToolbarMode } from "../../types/enums";
+import { PlacementMode, SelectionSource, StepType, ToolbarMode } from "../../types/enums";
 import type { NetworkEntity } from "../../types/entities";
 import {
+  type EntityStatusChangedEventDetails,
+  type PeerMovedEventDetails,
   SimulationEventType,
   SimulationMessageKind,
   type DroppedEventDetails,
@@ -14,7 +16,11 @@ import {
   type SimulationStepResult,
 } from "../../types/simulation";
 import type { WorkspacePanState } from "../../types/workspace/background";
-import type { MessageAnimation } from "../../types/workspace/scene";
+import type {
+  MessageAnimation,
+  MoveStepAnimation,
+  ToggleStepAnimation,
+} from "../../types/workspace/scene";
 import type { WorkflowStep } from "../../types/steps";
 import type { ToolbarPlacementMode } from "../../types/toolbar";
 import type { WorkspaceTextItem } from "../../types/workspace";
@@ -101,6 +107,7 @@ export default function Workspace({
     eventId: string | null;
     isHovered: boolean;
   }>({ eventId: null, isHovered: false });
+  const [moveStepAnimationProgress, setMoveStepAnimationProgress] = useState(1);
   const [packetInspectorWindows, setPacketInspectorWindows] = useState<
     Array<{ eventId: string; isOpen: boolean; pinned: boolean }>
   >([]);
@@ -126,6 +133,91 @@ export default function Workspace({
   const hintActiveRef = useRef(false);
   const restoreHintTimerRef = useRef<number | null>(null);
   const panStateRef = useRef<WorkspacePanState | null>(null);
+  const moveIndicatorDragStateRef = useRef<{
+    pointerId: number;
+    stepId: string;
+  } | null>(null);
+
+  const baseRenderedEntities = useMemo(
+    () =>
+      isSimulationActive && currentSimulationStepResult
+        ? currentSimulationStepResult.snapshot.entities
+        : entities,
+    [currentSimulationStepResult, entities, isSimulationActive],
+  );
+
+  const moveStepAnimationSource = useMemo(
+    () => buildMoveStepAnimation(currentSimulationEvent),
+    [currentSimulationEvent],
+  );
+
+  useEffect(() => {
+    if (!moveStepAnimationSource) {
+      return;
+    }
+
+    const animationDuration = 900;
+    let frameId = 0;
+    let startedAt: number | null = null;
+
+    const animate = (now: number) => {
+      if (startedAt === null) {
+        startedAt = now;
+      }
+
+      const elapsed = now - startedAt;
+      const nextProgress = Math.min(1, elapsed / animationDuration);
+      setMoveStepAnimationProgress(nextProgress);
+
+      if (nextProgress < 1) {
+        frameId = window.requestAnimationFrame(animate);
+      }
+    };
+
+    frameId = window.requestAnimationFrame(animate);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [moveStepAnimationSource]);
+
+  const moveStepAnimation = useMemo<MoveStepAnimation | null>(() => {
+    if (!moveStepAnimationSource) {
+      return null;
+    }
+
+    return {
+      ...moveStepAnimationSource,
+      progress: moveStepAnimationProgress,
+    };
+  }, [moveStepAnimationProgress, moveStepAnimationSource]);
+
+  const toggleStepAnimation = useMemo<ToggleStepAnimation | null>(
+    () => buildToggleStepAnimation(currentSimulationEvent),
+    [currentSimulationEvent],
+  );
+
+  const renderedEntities = useMemo(() => {
+    if (!moveStepAnimation) {
+      return baseRenderedEntities;
+    }
+
+    return baseRenderedEntities.map((entity) => {
+      if (entity.type !== "PEER" || entity.id !== moveStepAnimation.peerId) {
+        return entity;
+      }
+
+      return {
+        ...entity,
+        x:
+          moveStepAnimation.fromX +
+          (moveStepAnimation.toX - moveStepAnimation.fromX) * moveStepAnimation.progress,
+        y:
+          moveStepAnimation.fromY +
+          (moveStepAnimation.toY - moveStepAnimation.fromY) * moveStepAnimation.progress,
+      };
+    });
+  }, [baseRenderedEntities, moveStepAnimation]);
 
   const {
     peers,
@@ -139,7 +231,7 @@ export default function Workspace({
     moveIndicators,
     selectedStepAffectedEntityIds,
   } = useWorkspaceDerived({
-    entities,
+    entities: renderedEntities,
     steps,
     selectedId,
     selectedSource,
@@ -344,9 +436,6 @@ export default function Workspace({
       },
     });
 
-  const isTableInspectionOpenForCurrentStep = tableInspectionWindows.some(
-    (w) => w.isOpen && (w.pinned || w.stepId === currentStepId),
-  );
   const inspectedTablePeerId =
     tableInspectionWindows.find((w) => w.isOpen && (w.pinned || w.stepId === currentStepId))
       ?.peerId ?? null;
@@ -406,6 +495,96 @@ export default function Workspace({
     simulationInspectionMode === ToolbarMode.RoutingTable
       ? inspectedTablePeerId
       : hoveredSimulationPeerId;
+
+  const getWorkspaceCoordsByClientPosition = useCallback(
+    (clientX: number, clientY: number) => {
+      const element = workspaceRef.current;
+      if (!element) {
+        return null;
+      }
+
+      const rect = element.getBoundingClientRect();
+      const localX = clientX - rect.left;
+      const localY = clientY - rect.top;
+
+      return {
+        x: Math.round(localX - workspaceSize.width / 2 - panOffset.x),
+        y: Math.round(localY - workspaceSize.height / 2 - panOffset.y),
+      };
+    },
+    [panOffset.x, panOffset.y, workspaceSize.height, workspaceSize.width],
+  );
+
+  const updateMoveStepTarget = useCallback(
+    (stepId: string, x: number, y: number) => {
+      const nextSteps = steps.map((step) => {
+        if (step.id !== stepId || step.type !== StepType.Move) {
+          return step;
+        }
+
+        return {
+          ...step,
+          x,
+          y,
+        };
+      });
+
+      setSteps(nextSteps);
+    },
+    [setSteps, steps],
+  );
+
+  const handleMoveIndicatorPointerDown = useCallback(
+    (stepId: string, event: ReactPointerEvent<HTMLElement>) => {
+      if (isSimulationActive || event.button !== 0) {
+        return;
+      }
+
+      event.stopPropagation();
+      event.preventDefault();
+      event.currentTarget.setPointerCapture(event.pointerId);
+      moveIndicatorDragStateRef.current = {
+        pointerId: event.pointerId,
+        stepId,
+      };
+    },
+    [isSimulationActive],
+  );
+
+  const handleMoveIndicatorPointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      const dragState = moveIndicatorDragStateRef.current;
+      if (!dragState || dragState.pointerId !== event.pointerId || isSimulationActive) {
+        return;
+      }
+
+      event.stopPropagation();
+      event.preventDefault();
+
+      const coords = getWorkspaceCoordsByClientPosition(event.clientX, event.clientY);
+      if (!coords) {
+        return;
+      }
+
+      updateMoveStepTarget(dragState.stepId, coords.x, coords.y);
+    },
+    [getWorkspaceCoordsByClientPosition, isSimulationActive, updateMoveStepTarget],
+  );
+
+  const handleMoveIndicatorPointerEnd = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    const dragState = moveIndicatorDragStateRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) {
+      return;
+    }
+
+    try {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    } catch {
+      // Pointer capture may already be released.
+    }
+
+    moveIndicatorDragStateRef.current = null;
+  }, []);
 
   const handleSimulationPeerHoverChange = useCallback(
     (peerId: string | null) => {
@@ -684,6 +863,8 @@ export default function Workspace({
           rangePolygons={rangePolygons}
           moveIndicators={moveIndicators}
           messageAnimations={simulationMessageAnimations}
+          moveStepAnimation={moveStepAnimation}
+          toggleStepAnimation={toggleStepAnimation}
           texts={texts}
           obstacles={obstacles}
           peers={peers}
@@ -707,6 +888,9 @@ export default function Workspace({
           handleObstaclePointerDown={handleSimulationObstaclePointerDown}
           handleObstacleResizeStart={handleSimulationObstacleResizeStart}
           handlePeerPointerDown={handleSimulationPeerPointerDown}
+          handleMoveIndicatorPointerDown={handleMoveIndicatorPointerDown}
+          handleMoveIndicatorPointerMove={handleMoveIndicatorPointerMove}
+          handleMoveIndicatorPointerEnd={handleMoveIndicatorPointerEnd}
           onPeerHoverChange={handleTableInspectionPeerHoverChange}
           onMessageAnimationHoverChange={handleMessageAnimationHoverChange}
           onMessageAnimationInspectRequest={handleMessageAnimationInspectRequest}
@@ -903,4 +1087,40 @@ const getDroppedMessageAnimation = (
 
 const toMessageAnimations = (animations: Array<MessageAnimation | null>) => {
   return animations.filter((animation): animation is MessageAnimation => animation !== null);
+};
+
+const buildMoveStepAnimation = (
+  currentEvent: SimulationEvent | null,
+): Omit<MoveStepAnimation, "progress"> | null => {
+  if (!currentEvent || currentEvent.type !== SimulationEventType.SystemPeerMoved) {
+    return null;
+  }
+
+  const details = currentEvent.details as PeerMovedEventDetails;
+  return {
+    peerId: details.peerId,
+    fromX: details.fromX,
+    fromY: details.fromY,
+    toX: details.toX,
+    toY: details.toY,
+  };
+};
+
+const buildToggleStepAnimation = (
+  currentEvent: SimulationEvent | null,
+): ToggleStepAnimation | null => {
+  if (!currentEvent || currentEvent.type !== SimulationEventType.SystemEntityStatusChanged) {
+    return null;
+  }
+
+  const details = currentEvent.details as EntityStatusChangedEventDetails;
+  if (details.entityType !== "PEER" && details.entityType !== "LINK") {
+    return null;
+  }
+
+  return {
+    entityId: details.entityId,
+    entityType: details.entityType,
+    nextEnabled: details.nextEnabled,
+  };
 };

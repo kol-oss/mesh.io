@@ -14,6 +14,8 @@ export default function WorkspaceScene({
   rangePolygons,
   moveIndicators,
   messageAnimations,
+  moveStepAnimation,
+  toggleStepAnimation,
   texts,
   obstacles,
   peers,
@@ -37,6 +39,9 @@ export default function WorkspaceScene({
   handleObstaclePointerDown,
   handleObstacleResizeStart,
   handlePeerPointerDown,
+  handleMoveIndicatorPointerDown,
+  handleMoveIndicatorPointerMove,
+  handleMoveIndicatorPointerEnd,
   onPeerHoverChange,
   onMessageAnimationHoverChange,
   onMessageAnimationInspectRequest,
@@ -71,7 +76,7 @@ export default function WorkspaceScene({
           return (
             <g
               key={link.id}
-              className={`workspace__static-link ${link.enabled ? "workspace__static-link--enabled" : "workspace__static-link--disabled"}${isSelected ? " workspace__static-link--selected" : ""}`}
+              className={`workspace__static-link ${link.enabled ? "workspace__static-link--enabled" : "workspace__static-link--disabled"}${isSelected ? " workspace__static-link--selected" : ""}${toggleStepAnimation?.entityType === "LINK" && toggleStepAnimation.entityId === link.id ? " workspace__static-link--status-transition" : ""}`}
             >
               <line
                 className="workspace__static-link-hit"
@@ -158,6 +163,24 @@ export default function WorkspaceScene({
         ))}
       </svg>
 
+      <svg className="workspace__step-indicator-ranges" aria-hidden="true">
+        {moveIndicators.map((indicator) => {
+          if (indicator.targetRange <= 0) {
+            return null;
+          }
+
+          return (
+            <circle
+              key={`range-${indicator.draft ? "draft" : (indicator.stepId ?? "step")}`}
+              className={`workspace__step-indicator-range${indicator.draft ? " workspace__step-indicator-range--draft" : ""}`}
+              cx={centerX + indicator.targetX}
+              cy={centerY + indicator.targetY}
+              r={indicator.targetRange}
+            />
+          );
+        })}
+      </svg>
+
       <svg className="workspace__step-indicators" aria-hidden="true">
         {moveIndicators.map((indicator, index) => {
           const sourceX = centerX + indicator.sourceX;
@@ -225,12 +248,20 @@ export default function WorkspaceScene({
 
       {moveIndicators.map((indicator, index) => (
         <span
-          key={`target-${indicator.draft ? "draft" : "step"}-${index}`}
-          className={`workspace__step-indicator-target${indicator.draft ? " workspace__step-indicator-target--draft" : ""}`}
+          key={`target-${indicator.draft ? "draft" : (indicator.stepId ?? "step")}-${index}`}
+          className={`workspace__step-indicator-target${indicator.draft ? " workspace__step-indicator-target--draft" : ""}${!indicator.draft && indicator.stepId ? " workspace__step-indicator-target--interactive" : ""}`}
           style={{
             left: `calc(50% + ${indicator.targetX}px)`,
             top: `calc(50% + ${indicator.targetY}px)`,
           }}
+          onPointerDown={
+            !indicator.draft && indicator.stepId
+              ? (event) => handleMoveIndicatorPointerDown(indicator.stepId as string, event)
+              : undefined
+          }
+          onPointerMove={!indicator.draft ? handleMoveIndicatorPointerMove : undefined}
+          onPointerUp={!indicator.draft ? handleMoveIndicatorPointerEnd : undefined}
+          onPointerCancel={!indicator.draft ? handleMoveIndicatorPointerEnd : undefined}
           aria-hidden="true"
         >
           <Radio size={20} />
@@ -364,7 +395,7 @@ export default function WorkspaceScene({
         return (
           <div key={peer.id}>
             <button
-              className={`workspace__peer${isSelected ? " workspace__peer--selected" : ""}${activeDragEntityId === peer.id ? " workspace__peer--dragging" : ""}${peer.enabled ? "" : " workspace__peer--disabled"}`}
+              className={`workspace__peer${isSelected ? " workspace__peer--selected" : ""}${activeDragEntityId === peer.id ? " workspace__peer--dragging" : ""}${peer.enabled ? "" : " workspace__peer--disabled"}${moveStepAnimation?.peerId === peer.id ? " workspace__peer--moving" : ""}${toggleStepAnimation?.entityType === "PEER" && toggleStepAnimation.entityId === peer.id ? " workspace__peer--status-transition" : ""}`}
               style={{
                 left: `calc(50% + ${peer.x}px)`,
                 top: `calc(50% + ${peer.y}px)`,

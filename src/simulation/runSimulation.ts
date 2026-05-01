@@ -5,6 +5,8 @@ import { RefreshAction, type WorkflowStep } from "../types/steps";
 import {
   SimulationEventType,
   SimulationMessageKind,
+  type EntityStatusChangedEventDetails,
+  type PeerMovedEventDetails,
   type SimulationInput,
   type SimulationPacket,
   type SimulationResult,
@@ -271,17 +273,36 @@ class RuntimeNetwork implements SimulationNetworkRuntime {
     this.peers.get(peerId)?.setPosition(x, y);
   }
 
-  toggleEntity(entityId: string) {
+  toggleEntity(entityId: string): {
+    entityType: NetworkEntity["type"];
+    previousEnabled: boolean;
+    nextEnabled: boolean;
+  } | null {
     const peer = this.peers.get(entityId);
     if (peer) {
-      peer.setEnabled(!peer.getPeerEntity().enabled);
-      return;
+      const previousEnabled = peer.getPeerEntity().enabled;
+      const nextEnabled = !previousEnabled;
+      peer.setEnabled(nextEnabled);
+      return {
+        entityType: "PEER",
+        previousEnabled,
+        nextEnabled,
+      };
     }
 
     const link = this.links.get(entityId);
     if (link) {
-      link.enabled = !link.enabled;
+      const previousEnabled = link.enabled;
+      const nextEnabled = !previousEnabled;
+      link.enabled = nextEnabled;
+      return {
+        entityType: "LINK",
+        previousEnabled,
+        nextEnabled,
+      };
     }
+
+    return null;
   }
 
   exportEntities() {
@@ -401,14 +422,46 @@ const processStep = (
   eventRecorder: SimulationEventRecorder,
 ) => {
   if (step.type === StepType.Move) {
+    const peer = network.getPeer(step.movePeerId);
+    if (!peer) {
+      return;
+    }
+
+    const currentPeer = peer.getPeerEntity();
+    const moveDetails: PeerMovedEventDetails = {
+      peerId: step.movePeerId,
+      fromX: currentPeer.x,
+      fromY: currentPeer.y,
+      toX: step.x,
+      toY: step.y,
+    };
+
     network.updatePeerPosition(step.movePeerId, step.x, step.y);
     network.refreshConnectivity();
+    eventRecorder.save(step.movePeerId, SimulationEventType.SystemPeerMoved, moveDetails);
     return;
   }
 
   if (step.type === StepType.ToggleStatus) {
-    network.toggleEntity(step.targetEntityId);
+    const toggleResult = network.toggleEntity(step.targetEntityId);
+    if (!toggleResult) {
+      return;
+    }
+
     network.refreshConnectivity();
+
+    const statusDetails: EntityStatusChangedEventDetails = {
+      entityId: step.targetEntityId,
+      entityType: toggleResult.entityType,
+      previousEnabled: toggleResult.previousEnabled,
+      nextEnabled: toggleResult.nextEnabled,
+    };
+
+    eventRecorder.save(
+      step.targetEntityId,
+      SimulationEventType.SystemEntityStatusChanged,
+      statusDetails,
+    );
     return;
   }
 
