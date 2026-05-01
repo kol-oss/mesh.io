@@ -10,6 +10,18 @@
     color: #1f2937;
   }
 
+  &__link {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.2s ease;
+
+    &:hover,
+    &:focus-visible {
+      color: #0f7fd0;
+    }
+  }
+
   &:last-child {
     margin-bottom: 0;
   }
