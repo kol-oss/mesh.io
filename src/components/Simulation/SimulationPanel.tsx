@@ -11,6 +11,7 @@ import { ui } from "../../i18n/messages";
 import {
   type EntityStatusChangedEventDetails,
   type PeerMovedEventDetails,
+  type RouteSelectedEventDetails,
   SimulationMessageKind,
   SimulationEventType,
   type BatmanRouteRecord,
@@ -106,9 +107,10 @@ export default function SimulationPanel({
     currentStepResult.snapshot.peers.map((peer) => [peer.id, peer.name]),
   );
   const routeChange = getRouteChange(currentEvent);
+  const selectedRoute = getSelectedRoute(currentEvent);
   const currentMessage = getEventMessage(currentEvent);
   const title = getEventTitle(currentEvent);
-  const description = getEventDescription(currentEvent);
+  const description = getEventDescription(currentEvent, peerNameById);
   const eventOwner = peerNameById.has(currentEvent.peerId)
     ? renderPeerName(
         currentEvent.peerId,
@@ -116,7 +118,7 @@ export default function SimulationPanel({
         onPeerHoverChange,
       )
     : currentEvent.peerId;
-  const routeRows = routeChange ? getRouteRows(routeChange) : [];
+  const routeRows = routeChange ? getRouteRows(routeChange) : selectedRoute ? [selectedRoute] : [];
   const ogmBroadcastThroughputExplanation = getOgmBroadcastThroughputExplanation(
     currentEvent,
     currentMessage,
@@ -126,9 +128,8 @@ export default function SimulationPanel({
   const routeSequenceWindowExplanation = routeChange
     ? getRouteSequenceWindowExplanation(currentEvent)
     : null;
-  const messageSummary = routeChange
-    ? null
-    : getMessageSummary(currentEvent, peerNameById, onPeerHoverChange);
+  const messageSummary =
+    routeRows.length > 0 ? null : getMessageSummary(currentEvent, peerNameById, onPeerHoverChange);
   const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     event.stopPropagation();
   };
@@ -169,7 +170,7 @@ export default function SimulationPanel({
 
       <section className="simulation-panel__section">
         <p className="simulation-panel__description">{description}</p>
-        {routeChange ? (
+        {routeRows.length > 0 ? (
           <div className="simulation-panel__table-block">
             <table className="simulation-panel__table-view">
               <thead>
@@ -401,8 +402,8 @@ const getEventTitle = (event: SimulationEvent) => {
       return getRouteRemoveTitle(message, routeChange);
     case SimulationEventType.SystemMessageBroadcast:
       return getBroadcastTitle(event, message);
-    case SimulationEventType.SystemMessageSent:
-      return ui.simulation.sendMessage;
+    case SimulationEventType.SystemRouteSelected:
+      return ui.simulation.routeSelected;
     case SimulationEventType.SystemThroughputCalculated:
       return ui.simulation.throughputRecalculated;
     case SimulationEventType.SystemMessageDropped:
@@ -416,7 +417,7 @@ const getEventTitle = (event: SimulationEvent) => {
   }
 };
 
-const getEventDescription = (event: SimulationEvent) => {
+const getEventDescription = (event: SimulationEvent, peerNameById: Map<string, string>) => {
   const actor = ui.simulation.eventNodeLabel;
   const routeChange = getRouteChange(event);
   const message = getEventMessage(event);
@@ -436,8 +437,14 @@ const getEventDescription = (event: SimulationEvent) => {
   switch (event.type) {
     case SimulationEventType.SystemMessageBroadcast:
       return getBroadcastDescription(event, message);
-    case SimulationEventType.SystemMessageSent:
-      return ui.simulation.eventSent(actor);
+    case SimulationEventType.SystemRouteSelected: {
+      const details = event.details as RouteSelectedEventDetails;
+      return ui.simulation.eventRouteSelected(
+        getPeerDisplayName(details.selectedRoute.originatorPeerId, peerNameById),
+        getPeerDisplayName(details.selectedRoute.hopPeerId, peerNameById),
+        details.selectedRoute.quality,
+      );
+    }
     case SimulationEventType.SystemThroughputCalculated:
       return getThroughputCalculatedDescription(actor, event);
     case SimulationEventType.SystemMessageDropped:
@@ -477,6 +484,15 @@ const getRouteRows = (details: RoutingTableChangeDetails): BatmanRouteRecord[] =
   return details.previousRoute ? [details.previousRoute] : [];
 };
 
+const getSelectedRoute = (event: SimulationEvent): BatmanRouteRecord | null => {
+  if (event.type !== SimulationEventType.SystemRouteSelected) {
+    return null;
+  }
+
+  const details = event.details as RouteSelectedEventDetails;
+  return details.selectedRoute;
+};
+
 const getMessageSummary = (
   event: SimulationEvent,
   peerNameById: Map<string, string>,
@@ -485,6 +501,36 @@ const getMessageSummary = (
   const message = getEventMessage(event);
   if (!message) {
     return null;
+  }
+
+  if (event.type === SimulationEventType.SystemRouteSelected) {
+    const details = event.details as RouteSelectedEventDetails;
+    return [
+      {
+        label: ui.simulation.summaryDestination,
+        value: renderPeerName(
+          details.destinationPeerId,
+          getPeerLabel(details.destinationPeerId, peerNameById),
+          onPeerHoverChange,
+        ),
+      },
+      {
+        label: ui.simulation.tableNextHop,
+        value: renderPeerName(
+          details.selectedRoute.hopPeerId,
+          getPeerLabel(details.selectedRoute.hopPeerId, peerNameById),
+          onPeerHoverChange,
+        ),
+      },
+      {
+        label: ui.simulation.tableTq,
+        value: String(details.selectedRoute.quality),
+      },
+      {
+        label: ui.simulation.tableLastSeen,
+        value: String(details.selectedRoute.lastTick),
+      },
+    ];
   }
 
   if (message.kind === SimulationMessageKind.Packet) {
@@ -850,4 +896,8 @@ const renderPeerName = (
 
 const getPeerLabel = (peerId: string, peerNameById: Map<string, string>) => {
   return peerNameById.get(peerId) ?? peerId;
+};
+
+const getPeerDisplayName = (peerId: string, peerNameById: Map<string, string>) => {
+  return peerNameById.get(peerId) ?? ui.common.unknown;
 };

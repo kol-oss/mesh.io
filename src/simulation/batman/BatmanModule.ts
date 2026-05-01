@@ -164,31 +164,13 @@ class BatmanOriginatorTable {
   }
 
   getMaxQualityHop(originatorPeerId: string) {
-    const routes = this.originators.get(originatorPeerId);
-    if (!routes || routes.size === 0) {
-      return null;
-    }
-
-    let selected: BatmanRoute | null = null;
-    for (const route of routes.values()) {
-      if (!selected) {
-        selected = route;
-        continue;
-      }
-
-      const selectedQuality = selected.throughput;
-      const routeQuality = route.throughput;
-      if (routeQuality > selectedQuality) {
-        selected = route;
-        continue;
-      }
-
-      if (routeQuality === selectedQuality && route.hopPeerId === originatorPeerId) {
-        selected = route;
-      }
-    }
-
+    const selected = this.getBestRoute(originatorPeerId);
     return selected?.hopPeerId ?? null;
+  }
+
+  getBestRouteRecord(originatorPeerId: string): BatmanRouteRecord | null {
+    const bestRoute = this.getBestRoute(originatorPeerId);
+    return bestRoute ? this.toRouteRecord(originatorPeerId, bestRoute) : null;
   }
 
   private getBestRoute(originatorPeerId: string): BatmanRoute | null {
@@ -518,8 +500,8 @@ export class BatmanModule implements PacketCapableModule {
       return false;
     }
 
-    const nextHopPeerId = this.originatorTable.getMaxQualityHop(packet.destinationPeerId);
-    if (!nextHopPeerId) {
+    const selectedRoute = this.originatorTable.getBestRouteRecord(packet.destinationPeerId);
+    if (!selectedRoute) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(packet),
         reason: ui.runtime.noRouteForDestination,
@@ -527,7 +509,13 @@ export class BatmanModule implements PacketCapableModule {
       return false;
     }
 
-    return this.write(packet, nextHopPeerId);
+    this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemRouteSelected, {
+      destinationPeerId: packet.destinationPeerId,
+      selectedRoute,
+      message: cloneMessage(packet),
+    });
+
+    return this.write(packet, selectedRoute.hopPeerId);
   }
 
   private write(message: SimulationMessage, hopPeerId: string) {

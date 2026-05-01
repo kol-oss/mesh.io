@@ -255,10 +255,13 @@ export const messageCatalog = {
       routeUpdated: "Route Updated",
       originatorRemoved: "Originator Removed",
       routeRemoved: "Route Removed",
+      routeSelected: "Route Selected",
       peerMoved: "Peer Moved",
       entityStatusChanged: "Entity Status Changed",
       packetStructureReadMore: "Read more",
       eventSent: (actor: string) => `${actor} sent a message to the selected next hop.`,
+      eventRouteSelected: (destinationLabel: string, nextHopLabel: string, quality: number) =>
+        `Selected route to ${destinationLabel} via ${nextHopLabel} with throughput ${quality}.`,
       eventPeerMoved: (x: number, y: number) => `Peer is moved to point (${x}, ${y}).`,
       eventEntityStatusChanged: (entityLabel: string, enabled: boolean) =>
         `${entityLabel} is now ${enabled ? "enabled" : "disabled"}.`,

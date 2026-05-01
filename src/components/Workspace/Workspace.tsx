@@ -4,11 +4,11 @@ import type { NetworkEntity } from "../../types/entities";
 import {
   type EntityStatusChangedEventDetails,
   type PeerMovedEventDetails,
+  type RouteSelectedEventDetails,
   SimulationEventType,
   SimulationMessageKind,
   type DroppedEventDetails,
   type BroadcastEventDetails,
-  type MessageTransferEventDetails,
   type ThroughputCalculationEventDetails,
   type SimulationEvent,
   type SimulationMessage,
@@ -995,10 +995,15 @@ const buildSimulationMessageAnimations = (
       .filter((animation): animation is MessageAnimation => animation !== null);
   }
 
-  if (currentEvent.type === SimulationEventType.SystemMessageSent) {
-    const details = currentEvent.details as MessageTransferEventDetails;
+  if (currentEvent.type === SimulationEventType.SystemRouteSelected) {
+    const details = currentEvent.details as RouteSelectedEventDetails;
     return toMessageAnimations([
-      createAnimation(currentEvent.peerId, details.hopPeerId, "sent", "default"),
+      createAnimation(
+        currentEvent.peerId,
+        details.selectedRoute.hopPeerId,
+        "route-selected",
+        "default",
+      ),
     ]);
   }
 

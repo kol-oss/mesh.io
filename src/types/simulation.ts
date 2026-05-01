@@ -3,7 +3,7 @@ import type { WorkflowStep } from "./steps";
 
 export const SimulationEventType = {
   SystemMessageBroadcast: "SYSTEM_MESSAGE_BROADCAST",
-  SystemMessageSent: "SYSTEM_MESSAGE_SENT",
+  SystemRouteSelected: "SYSTEM_ROUTE_SELECTED",
   SystemThroughputCalculated: "SYSTEM_THROUGHPUT_CALCULATED",
   SystemMessageDropped: "SYSTEM_MESSAGE_DROPPED",
   SystemPeerMoved: "SYSTEM_PEER_MOVED",
@@ -130,6 +130,12 @@ export type ThroughputCalculationEventDetails = {
   };
 };
 
+export type RouteSelectedEventDetails = {
+  destinationPeerId: string;
+  selectedRoute: BatmanRouteRecord;
+  message: SimulationPacket;
+};
+
 export type PeerMovedEventDetails = {
   peerId: string;
   fromX: number;
@@ -154,6 +160,7 @@ export type SimulationStepBoundaryDetails = {
 export type SimulationEventDetails =
   | BroadcastEventDetails
   | MessageTransferEventDetails
+  | RouteSelectedEventDetails
   | DroppedEventDetails
   | ThroughputCalculationEventDetails
   | PeerMovedEventDetails
