@@ -198,7 +198,12 @@ export default function TableInspectionWindow({
       </section>
 
       <footer className="simulation-panel__footer">
-        <Link className="simulation-panel__read-more" to="/docs" target="_blank" rel="noreferrer">
+        <Link
+          className="simulation-panel__read-more"
+          to="/docs/batman#route-selection"
+          target="_blank"
+          rel="noreferrer"
+        >
           <ExternalLink size={12} />
           {ui.simulation.packetStructureReadMore}
         </Link>

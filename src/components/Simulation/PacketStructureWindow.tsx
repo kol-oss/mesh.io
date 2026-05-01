@@ -99,6 +99,7 @@ export default function PacketStructureWindow({
   );
   const inspectorTitle = getPacketInspectorTitle(eventMessage);
   const packetStructureAria = getPacketInspectorStructureAria(eventMessage);
+  const readMorePath = getPacketReadMorePath(eventMessage);
 
   return (
     <aside
@@ -186,7 +187,12 @@ export default function PacketStructureWindow({
         )}
       </section>
       <footer className="simulation-panel__footer">
-        <Link className="simulation-panel__read-more" to="/docs" target="_blank" rel="noreferrer">
+        <Link
+          className="simulation-panel__read-more"
+          to={readMorePath}
+          target="_blank"
+          rel="noreferrer"
+        >
           <ExternalLink size={12} />
           {ui.simulation.packetStructureReadMore}
         </Link>
@@ -209,6 +215,18 @@ const getPacketInspectorStructureAria = (message: SimulationMessage | null) => {
   }
 
   return ui.packet.structureAria;
+};
+
+const getPacketReadMorePath = (message: SimulationMessage | null) => {
+  if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+    return "/docs/batman#echo-location-protocol";
+  }
+
+  if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
+    return "/docs/batman#originator-message";
+  }
+
+  return "/docs/batman#what-you-need-to-know";
 };
 
 const getBatmanOgmStructureRows = (

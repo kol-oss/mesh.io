@@ -20,6 +20,29 @@ const SECTION_IDS = [
 
 export default function Help() {
   useEffect(() => {
+    const scrollToHashSection = () => {
+      const sectionId = window.location.hash.replace("#", "");
+      if (!sectionId) {
+        return;
+      }
+
+      const section = document.getElementById(sectionId);
+      if (!section) {
+        return;
+      }
+
+      window.requestAnimationFrame(() => {
+        section.scrollIntoView({ block: "start" });
+      });
+    };
+
+    scrollToHashSection();
+    window.addEventListener("hashchange", scrollToHashSection);
+
+    return () => window.removeEventListener("hashchange", scrollToHashSection);
+  }, []);
+
+  useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY + 100;
 

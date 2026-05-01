@@ -131,6 +131,13 @@ export default function SimulationPanel({
     : null;
   const messageSummary =
     routeRows.length > 0 ? null : getMessageSummary(currentEvent, peerNameById, onPeerHoverChange);
+  const readMorePath = getSimulationReadMorePath(
+    currentEvent,
+    currentMessage,
+    routeChange !== null,
+    throughputBreakdown !== null,
+    routeSequenceWindowExplanation !== null,
+  );
   const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     event.stopPropagation();
   };
@@ -358,7 +365,12 @@ export default function SimulationPanel({
       </section>
 
       <footer className="simulation-panel__footer">
-        <Link className="simulation-panel__read-more" to="/docs" target="_blank" rel="noreferrer">
+        <Link
+          className="simulation-panel__read-more"
+          to={readMorePath}
+          target="_blank"
+          rel="noreferrer"
+        >
           <ExternalLink size={12} />
           {ui.simulation.packetStructureReadMore}
         </Link>
@@ -416,6 +428,42 @@ const getEventTitle = (event: SimulationEvent) => {
     default:
       return ui.simulation.genericEvent;
   }
+};
+
+const getSimulationReadMorePath = (
+  event: SimulationEvent,
+  message: SimulationMessage | null,
+  hasRouteChange: boolean,
+  hasThroughputBreakdown: boolean,
+  hasSequenceWindowExplanation: boolean,
+) => {
+  if (hasThroughputBreakdown) {
+    return "/docs/batman#throughput-calculation";
+  }
+
+  if (hasSequenceWindowExplanation) {
+    return "/docs/batman#sequence-protection-window";
+  }
+
+  if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+    return "/docs/batman#echo-location-protocol";
+  }
+
+  if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
+    return "/docs/batman#originator-message";
+  }
+
+  if (
+    hasRouteChange ||
+    event.type === SimulationEventType.SystemRouteSelected ||
+    event.type === SimulationEventType.RoutingTableInsert ||
+    event.type === SimulationEventType.RoutingTableUpdate ||
+    event.type === SimulationEventType.RoutingTableRemove
+  ) {
+    return "/docs/batman#route-selection";
+  }
+
+  return "/docs/batman#what-you-need-to-know";
 };
 
 const getEventDescription = (event: SimulationEvent, peerNameById: Map<string, string>) => {
