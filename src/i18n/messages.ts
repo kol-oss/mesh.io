@@ -23,7 +23,7 @@ export const messageCatalog = {
       collapseNavigationAria: "Collapse navigation",
     },
     help: {
-      headerLinkAbout: "Overview",
+      headerLinkAbout: "Workspace",
       headerLinkBatman: "B.A.T.M.A.N.",
       headerLinkOlsr: "OLSR",
       headerLinkAodv: "AODV",
@@ -32,7 +32,7 @@ export const messageCatalog = {
       sidebarDocumentationHeading: "DOCUMENTATION",
       sidebarModeling: "Modeling",
       simulationButton: "Model",
-      sectionAboutTitle: "Overview",
+      sectionAboutTitle: "Workspace",
       sectionAboutText:
         "Mesh IO is an educational simulator for routing behavior in dynamic mesh topologies.",
       sectionBatmanTitle: "B.A.T.M.A.N.",

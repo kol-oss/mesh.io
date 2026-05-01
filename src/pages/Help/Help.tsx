@@ -1,62 +1,13 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
-
 import { ui } from "../../i18n/messages";
-import Tooltip from "../../components/Tooltip/Tooltip";
-import { TooltipPlacement } from "../../types/enums";
-import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
+import TextBlock from "../../components/Help/TextBlock";
+import ModellingTrap from "../../components/Help/ModellingTrap";
+import SourceBlock from "../../components/Help/SourceBlock";
 
-type HelpSection = {
-  id: string;
-  label: string;
-  title: string;
-  text: string;
-};
+const fakeText =
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
 
 export default function Help() {
-  const sections: HelpSection[] = [
-    {
-      id: "about-us",
-      label: ui.help.headerLinkAbout,
-      title: ui.help.sectionAboutTitle,
-      text: ui.help.sectionAboutText,
-    },
-    {
-      id: "batman",
-      label: ui.help.headerLinkBatman,
-      title: ui.help.sectionBatmanTitle,
-      text: ui.help.sectionBatmanText,
-    },
-    {
-      id: "olsr",
-      label: ui.help.headerLinkOlsr,
-      title: ui.help.sectionOlsrTitle,
-      text: ui.help.sectionOlsrText,
-    },
-    {
-      id: "aodv",
-      label: ui.help.headerLinkAodv,
-      title: ui.help.sectionAodvTitle,
-      text: ui.help.sectionAodvText,
-    },
-    {
-      id: "dsr",
-      label: ui.help.headerLinkDsr,
-      title: ui.help.sectionDsrTitle,
-      text: ui.help.sectionDsrText,
-    },
-  ];
-  const documentationSections = sections.filter((section) => section.id !== "about-us");
-
-  const [activeSectionId, setActiveSectionId] = useState(sections[0].id);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const { widthPercent, onResizeStart } = useSidebarResize();
-
-  const handleSidebarToggle = () => {
-    setIsSidebarCollapsed((prev) => !prev);
-  };
-
   return (
     <div className="help-page">
       <header className="help-page__header">
@@ -74,16 +25,9 @@ export default function Help() {
           </div>
 
           <nav className="help-page__links" aria-label={ui.navigation.menuHelp}>
-            {sections.map((section) => (
-              <a
-                key={section.id}
-                href={`#${section.id}`}
-                className={`help-page__link${activeSectionId === section.id ? " help-page__link--active" : ""}`}
-                onClick={() => setActiveSectionId(section.id)}
-              >
-                {section.label}
-              </a>
-            ))}
+            <a href="#batman" className="help-page__link help-page__link--active">
+              B.A.T.M.A.N.
+            </a>
           </nav>
 
           <Link className="help-page__simulation-button" to="/" target="_blank" rel="noreferrer">
@@ -93,115 +37,123 @@ export default function Help() {
       </header>
 
       <div className="help-page__body">
-        {isSidebarCollapsed ? (
-          <div className="help-page__sidebar-collapsed">
-            <Tooltip
-              content={ui.navigation.expandSidebarTooltip}
-              placement={TooltipPlacement.Bottom}
-            >
-              <button
-                className="help-page__sidebar-toggle"
-                type="button"
-                aria-label={ui.navigation.expandNavigationAria}
-                onClick={handleSidebarToggle}
-              >
-                <PanelLeftOpen size={15} />
-              </button>
-            </Tooltip>
-          </div>
-        ) : (
-          <aside className="navigation help-page__sidebar" style={{ width: `${widthPercent}%` }}>
-            <Tooltip
-              content={ui.navigation.collapseSidebarTooltip}
-              placement={TooltipPlacement.Bottom}
-            >
-              <button
-                className="navigation__compact-button"
-                type="button"
-                aria-label={ui.navigation.collapseNavigationAria}
-                onClick={handleSidebarToggle}
-              >
-                <PanelLeftClose size={15} />
-              </button>
-            </Tooltip>
+        <main className="help-page__content">
+          <section className="help-page__section" id="batman">
+            {/* Big Header */}
+            <div className="help-page__big-header">
+              <h1 className="help-page__big-title">B.A.T.M.A.N. V</h1>
+              <p className="help-page__big-subtitle">Better Approach To Mobile Ad-hoc Networking</p>
+            </div>
 
-            <nav className="help-page__sidebar-content" aria-label={ui.navigation.menuHelp}>
-              <section className="help-page__sidebar-group" aria-labelledby="help-about-us-heading">
-                <p className="help-page__sidebar-heading" id="help-about-us-heading">
-                  {ui.help.sidebarAboutUsHeading}
-                </p>
-                <ul className="help-page__sidebar-list">
-                  <li>
-                    <a
-                      className={`help-page__sidebar-link${activeSectionId === "about-us" ? " help-page__sidebar-link--active" : ""}`}
-                      href="#about-us"
-                      onClick={() => setActiveSectionId("about-us")}
-                    >
-                      <span className="help-page__sidebar-link-title">
-                        {ui.help.headerLinkAbout}
-                      </span>
-                    </a>
-                  </li>
-                  <li>
-                    <Link
-                      className="help-page__sidebar-link"
-                      to="/"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <span className="help-page__sidebar-link-title">
-                        {ui.help.sidebarModeling}
-                      </span>
-                    </Link>
-                  </li>
-                </ul>
-              </section>
+            {/* What You Need to Know */}
+            <div className="help-page__chapter" id="what-you-need-to-know">
+              <h2 className="help-page__chapter-title">What You Need to Know</h2>
+              <TextBlock>
+                {fakeText} {fakeText}
+              </TextBlock>
+              <TextBlock>
+                Understanding **B.A.T.M.A.N.** helps you grasp routing in **dynamic mesh networks**.
+                This protocol prioritizes **throughput** over hop count, making it ideal for
+                wireless networks.
+              </TextBlock>
+            </div>
 
-              <section
-                className="help-page__sidebar-group"
-                aria-labelledby="help-documentation-heading"
-              >
-                <p className="help-page__sidebar-heading" id="help-documentation-heading">
-                  {ui.help.sidebarDocumentationHeading}
-                </p>
-                <ul className="help-page__doc-list">
-                  {documentationSections.map((section, index) => (
-                    <li key={section.id}>
-                      <a
-                        className={`help-page__doc-link${activeSectionId === section.id ? " help-page__doc-link--active" : ""}`}
-                        href={`#${section.id}`}
-                        onClick={() => setActiveSectionId(section.id)}
-                      >
-                        <span className="help-page__doc-dot" aria-hidden="true" />
-                        <span className="help-page__doc-number">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-                        <span className="help-page__doc-title">{section.label}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            </nav>
-            <div
-              className="navigation__resizer"
-              role="separator"
-              aria-label={ui.navigation.resizeSidebarAria}
-              aria-orientation="vertical"
-              onPointerDown={onResizeStart}
-            />
-          </aside>
-        )}
+            {/* Echo Location Protocol (ELP) */}
+            <div className="help-page__chapter" id="what-you-need-to-know">
+              <h2 className="help-page__chapter-title">Echo Location Protocol (ELP)</h2>
+              <TextBlock>
+                {fakeText} The **Echo Location Protocol** measures link quality by sending periodic
+                packets. {fakeText}
+              </TextBlock>
+              <ModellingTrap>
+                <TextBlock>
+                  Do not confuse ELP measurement intervals with **refreshing display snapshots**.
+                  ELP operates at simulation tick-level, independent of UI rendering.
+                </TextBlock>
+              </ModellingTrap>
+              <SourceBlock>
+                <TextBlock>
+                  For detailed information about ELP, refer to the **B.A.T.M.A.N. V specification**.{" "}
+                  {fakeText}
+                </TextBlock>
+              </SourceBlock>
+            </div>
 
-        <main
-          className={`help-page__content${isSidebarCollapsed ? " help-page__content--sidebar-collapsed" : ""}`}
-        >
-          {sections.map((section) => (
-            <section className="help-page__section" id={section.id} key={section.id}>
-              <h2 className="help-page__section-title">{section.title}</h2>
-              <p className="help-page__section-text">{section.text}</p>
-            </section>
-          ))}
+            {/* Throughput Calculation */}
+            <div className="help-page__chapter" id="what-you-need-to-know">
+              <h2 className="help-page__chapter-title">Throughput Calculation</h2>
+              <TextBlock>
+                {fakeText} **Throughput** is calculated based on link quality metrics. {fakeText}
+              </TextBlock>
+              <TextBlock>
+                The formula uses **packet loss** and **retransmission rates** to estimate actual
+                bandwidth.
+              </TextBlock>
+              <ModellingTrap>
+                <TextBlock>
+                  High throughput values do not guarantee packet delivery. Use **OGM metrics** to
+                  understand path quality.
+                </TextBlock>
+              </ModellingTrap>
+            </div>
+
+            {/* Originator Message version 2 (OGMv2) */}
+            <div className="help-page__chapter" id="what-you-need-to-know">
+              <h2 className="help-page__chapter-title">Originator Message version 2 (OGMv2)</h2>
+              <TextBlock>
+                {fakeText} **OGMv2** messages propagate routing information through the network.{" "}
+                {fakeText}
+              </TextBlock>
+              <TextBlock>
+                Each OGM contains the **originator's address** and **throughput metrics** to
+                destination nodes.
+              </TextBlock>
+              <SourceBlock>
+                <TextBlock>
+                  OGMv2 replaces the older OGMv1 with improved **metric accuracy** and **hop
+                  validation**.
+                </TextBlock>
+              </SourceBlock>
+            </div>
+
+            {/* Sequence Protection Window */}
+            <div className="help-page__chapter" id="what-you-need-to-know">
+              <h2 className="help-page__chapter-title">Sequence Protection Window</h2>
+              <TextBlock>
+                {fakeText} The **sequence protection window** prevents duplicate OGM processing.{" "}
+                {fakeText}
+              </TextBlock>
+              <TextBlock>
+                B.A.T.M.A.N. maintains a **window of accepted sequence numbers** to reject
+                **outdated or replayed** messages.
+              </TextBlock>
+              <ModellingTrap>
+                <TextBlock>
+                  Sequence window violations indicate **looping packets** or **network
+                  instability**. Check your topology for loops.
+                </TextBlock>
+              </ModellingTrap>
+            </div>
+
+            {/* Route Selection */}
+            <div className="help-page__chapter" id="what-you-need-to-know">
+              <h2 className="help-page__chapter-title">Route Selection</h2>
+              <TextBlock>
+                {fakeText} **Route selection** favors paths with the **highest throughput** metrics.{" "}
+                {fakeText}
+              </TextBlock>
+              <TextBlock>
+                Unlike hop-count routing, B.A.T.M.A.N. **avoids poor-quality links** even if they
+                are **shorter**.
+              </TextBlock>
+              <SourceBlock>
+                <TextBlock>
+                  The routing table is recalculated every time a new **OGM** is received from a
+                  neighbor.
+                </TextBlock>
+              </SourceBlock>
+            </div>
+          </section>
         </main>
       </div>
     </div>

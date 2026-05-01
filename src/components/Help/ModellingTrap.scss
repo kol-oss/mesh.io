@@ -1,0 +1,42 @@
+.modelling-trap {
+  border-left: 4px solid #2563eb;
+  background-color: rgba(37, 99, 235, 0.08);
+  padding: 16px;
+  margin: 24px 0;
+  border-radius: 4px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  &__icon {
+    color: #2563eb;
+    flex-shrink: 0;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #2563eb;
+    text-transform: uppercase;
+  }
+
+  &__content {
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.6;
+
+    p {
+      margin: 0;
+
+      &:not(:last-child) {
+        margin-bottom: 12px;
+      }
+    }
+  }
+}
