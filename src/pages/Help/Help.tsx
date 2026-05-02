@@ -6,6 +6,7 @@ import ModellingTrap from "../../components/Help/ModellingTrap";
 import SourceBlock from "../../components/Help/SourceBlock";
 import PacketStructure from "../../components/Help/PacketStructure";
 import TableBlock from "../../components/Help/TableBlock";
+import FormulaBlock from "../../components/Help/FormulaBlock";
 
 const fakeText =
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
@@ -177,6 +178,14 @@ export default function Help() {
                 tools like `ethtool` to determine the theoretical bandwidth and duplex state of the
                 Ethernet link.
               </TextBlock>
+              <ModellingTrap>
+                <TextBlock>
+                  As throughput values are part of the Link Layer, inside the simulation they were
+                  made static and could be modified only by degradation via _penalty mechanism_
+                  inside configuration. By default wired link throughput is **1000 Mbps**, when for
+                  dynamic wireless link this value is **100 Mbps**.
+                </TextBlock>
+              </ModellingTrap>
               <TextBlock>
                 To achieve this, every node in the mesh network periodically broadcasts ELP packets
                 (typically every **500 milliseconds**) out of all its configured B.A.T.M.A.N.
@@ -306,23 +315,24 @@ export default function Help() {
                 comparing that to how many were expected based on the interval, the node derives a
                 throughput estimate that represents the effective data rate of the link.
               </TextBlock>
+              <FormulaBlock formula="throughput ≈ (received_packets / expected_packets) × packet_size / interval" />
               <TextBlock>
                 Because wireless conditions can fluctuate rapidly, this raw throughput estimate is
                 smoothed using an **Exponential Weighted Moving Average (EWMA)**. This prevents
                 transient interference or short-term variations from causing unstable routing
-                behavior.
+                behavior. In B.A.T.M.A.N. V, the smoothing factor α has a default value of 0.2,
+                meaning that each new measurement contributes 20% to the updated metric while 80% is
+                retained from the previous value. This balances responsiveness with stability,
+                preventing transient interference or short-term variations from causing unstable
+                routing behavior.
               </TextBlock>
-              <TextBlock>
-                {fakeText} **Throughput** is calculated based on link quality metrics. {fakeText}
-              </TextBlock>
-              <TextBlock>
-                The formula uses **packet loss** and **retransmission rates** to estimate actual
-                bandwidth.
-              </TextBlock>
+              <FormulaBlock formula="metric_new = (1 − α) × metric_old + α × metric_sample" />
               <ModellingTrap>
                 <TextBlock>
-                  High throughput values do not guarantee packet delivery. Use **OGM metrics** to
-                  understand path quality.
+                  The link quality for B.A.T.M.A.N. V is determined via **distance penalty
+                  mechanism**, that degradates link quality by specified percentage for every
+                  distance that link exceeds. Pay attention that this mechanism *is not applied* to
+                  the wired links.
                 </TextBlock>
               </ModellingTrap>
             </div>
