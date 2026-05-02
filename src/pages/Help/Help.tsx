@@ -238,19 +238,19 @@ export default function Help() {
                     {
                       label: "Originator Address",
                       bits: 48,
-                      description: "Address of the node that generated this ELP packet.",
+                      description: "MAC address of the node that generated this ELP packet.",
                     },
                   ],
                   [
                     {
                       label: "Neighbour Address A",
                       bits: 48,
-                      description: "First neighbour listed in the payload.",
+                      description: "MAC address of the first neighbour listed in the payload.",
                     },
                     {
                       label: "Neighbour Address B",
                       bits: 48,
-                      description: "Second neighbour listed in the payload.",
+                      description: "MAC address of the second neighbour listed in the payload.",
                     },
                   ],
                 ]}
@@ -341,12 +341,23 @@ export default function Help() {
             <div className="help-page__chapter" id="originator-message">
               <h2 className="help-page__chapter-title">Originator Message version 2 (OGMv2)</h2>
               <TextBlock>
-                {fakeText} **OGMv2** messages propagate routing information through the network.{" "}
-                {fakeText}
+                **Originator Messages version 2 (OGMv2)** in B.A.T.M.A.N. V are the core mechanism
+                for multi-hop route discovery and network-wide topology propagation. While ELP
+                operates strictly on a one-hop level, OGMv2 messages distribute reachability
+                information across the entire mesh, allowing each node to determine the best next
+                hop toward every known originator. Each node periodically (typically **every
+                second**) emits OGMv2 packets, identifying itself as the originator. These messages
+                are broadcast and forwarded by other nodes, propagating hop-by-hop through the
+                network.
               </TextBlock>
               <PacketStructure
                 rows={[
                   [
+                    {
+                      label: "Packet Type ",
+                      bits: 8,
+                      description: "Identifies this packet as an OGM message.",
+                    },
                     {
                       label: "Version",
                       bits: 8,
@@ -362,53 +373,108 @@ export default function Help() {
                       bits: 8,
                       description: "Maximum forwarding depth still allowed.",
                     },
-                    {
-                      label: "Throughput",
-                      bits: 8,
-                      description: "Current path throughput estimate carried with the OGM.",
-                    },
                   ],
                   [
                     {
                       label: "Sequence Number",
-                      bits: 16,
+                      bits: 32,
                       description: "Sequence protection value to identify new OGMs.",
-                    },
-                    {
-                      label: "GW Flags",
-                      bits: 8,
-                      description: "Gateway-related capability flags.",
-                    },
-                    {
-                      label: "GW Port",
-                      bits: 8,
-                      description: "Gateway service port metadata.",
                     },
                   ],
                   [
                     {
                       label: "Originator Address",
+                      bits: 48,
+                      description:
+                        "MAC address of the source node that originated the route advertisement.",
+                    },
+                  ],
+                  [
+                    {
+                      label: "Throughput",
                       bits: 32,
-                      description: "Source node that originated the route advertisement.",
+                      description: "Current path throughput estimate carried with the OGM.",
                     },
                   ],
                   [
                     {
                       label: "Sender Address",
-                      bits: 32,
-                      description: "Last-hop node that forwarded this OGM.",
+                      bits: 48,
+                      description: "MAC address of the last-hop node that forwarded this OGM.",
                     },
                   ],
                 ]}
               />
               <TextBlock>
-                Each OGM contains the **originator's address** and **throughput metrics** to
-                destination nodes.
+                When a node receives an OGMv2 packet, it first validates the message. Packets are
+                discarded if they fail checks such as protocol version mismatch, malformed headers,
+                or if they originate from the receiving node itself. Duplicate detection is also
+                performed *using the originator address and sequence number* to prevent reprocessing
+                of already seen messages.
+              </TextBlock>
+              <TextBlock>
+                Once validated, the node updates its **Originator Table**. Each OGMv2 carries a
+                monotonically increasing **Sequence Number** generated by the originator. This
+                sequence number allows nodes to determine the freshness of routing information and
+                to detect packet loss across multiple hops. Only newer or otherwise relevant
+                sequence numbers are considered for updating routing state.
+              </TextBlock>
+              <TextBlock>
+                Each node maintains, for every originator, a set of candidate next hops along with
+                their associated path metrics. When multiple OGMs for the same originator are
+                received via different neighbors, the node compares the resulting metrics and
+                selects the neighbor offering the highest effective throughput as the preferred next
+                hop. This selection process is continuous, allowing the routing table to adapt
+                dynamically to changing network conditions.
+              </TextBlock>
+              <TableBlock
+                introText="Originator Table entry"
+                ariaLabel="Originator Table entry"
+                headers={["Originator", "Next Hop", "Throughput", "Last Seen"]}
+                rows={[
+                  [
+                    "Originator MAC address",
+                    "Next hop MAC address",
+                    "Throughput value in Mbps",
+                    "Timestamp of the last received packet",
+                  ],
+                ]}
+              />
+              <TextBlock>
+                As the OGMv2 propagates through the network, each forwarding node updates the path
+                metric to reflect the cost of reaching the originator through that path. In
+                B.A.T.M.A.N. V, this metric is based on throughput rather than hop count. The
+                forwarding node combines the incoming metric with the throughput of the local link
+                (as measured by ELP) to produce a new, reduced metric that represents the cumulative
+                path quality.
+              </TextBlock>
+              <FormulaBlock formula="metric_path = min(metric_in, metric_link)" />
+              <TextBlock>
+                This approach ensures that the overall path metric is dominated by the weakest link
+                along the route, effectively modeling the bottleneck throughput of the path. As a
+                result, routes with fewer but poorer-quality links are naturally deprioritized in
+                favor of more reliable, higher-throughput paths. To further refine routing
+                decisions, B.A.T.M.A.N. V may apply additional penalties or adjustments during
+                forwarding, such as interface-specific considerations or hop-related dampening,
+                though the primary factor remains the throughput-based metric derived from ELP.
+              </TextBlock>
+              <ModellingTrap>
+                <TextBlock>
+                  The effective throughput degrades with each hop. To account for this, B.A.T.M.A.N.
+                  V applies an additional **penalty of 5.8% per wireless hop** whenever an OGMv2
+                  packet is retransmitted, that was also implemented inside the simulator.
+                </TextBlock>
+              </ModellingTrap>
+              <TextBlock>
+                OGMv2 forwarding is subject to loop avoidance and efficiency rules. Nodes only
+                rebroadcast OGMs if they provide new or improved information, reducing unnecessary
+                transmissions. Additionally, mechanisms such as **Sequence Number Windows** ensure
+                that the protocol scales without excessive overhead.
               </TextBlock>
               <SourceBlock>
                 <TextBlock>
-                  OGMv2 replaces the older OGMv1 with improved **metric accuracy** and **hop
-                  validation**.
+                  Open Mesh article "[Originator Message version 2
+                  (OGMv2)](https://www.open-mesh.org/projects/batman-adv/wiki/Ogmv2)".
                 </TextBlock>
               </SourceBlock>
             </div>
