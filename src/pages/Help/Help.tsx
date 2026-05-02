@@ -8,12 +8,10 @@ import PacketStructure from "../../components/Help/PacketStructure";
 import TableBlock from "../../components/Help/TableBlock";
 import FormulaBlock from "../../components/Help/FormulaBlock";
 
-const fakeText =
-  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
-
 const SECTION_IDS = [
   "batman",
   "what-you-need-to-know",
+  "batman-versioning",
   "echo-location-protocol",
   "throughput-calculation",
   "originator-message",
@@ -125,8 +123,8 @@ export default function Help() {
               </SourceBlock>
             </div>
 
-            {/* Throughput Calculation */}
-            <div className="help-page__chapter" id="throughput-calculation">
+            {/* B.A.T.M.A.N. Versioning */}
+            <div className="help-page__chapter" id="batman-versioning">
               <h2 className="help-page__chapter-title">B.A.T.M.A.N. Versioning</h2>
               <TextBlock>
                 The development of the B.A.T.M.A.N protocol started around 2006 and nowadays,
@@ -483,17 +481,31 @@ export default function Help() {
             <div className="help-page__chapter" id="sequence-protection-window">
               <h2 className="help-page__chapter-title">Sequence Protection Window</h2>
               <TextBlock>
-                {fakeText} The **sequence protection window** prevents duplicate OGM processing.{" "}
-                {fakeText}
+                The **Sequence Protection Window** in B.A.T.M.A.N. V is a sliding bitmap used to
+                track recently seen OGMv2 sequence numbers and prevent processing of duplicates,
+                replayed packets, or outdated routing information. Since OGMs are flooded across the
+                mesh and can arrive multiple times via different paths, this mechanism ensures that
+                each sequence number from an originator is handled only once.
               </TextBlock>
               <TextBlock>
-                B.A.T.M.A.N. maintains a **window of accepted sequence numbers** to reject
-                **outdated or replayed** messages.
+                Each originator has its own window, which represents a bounded range of recent
+                sequence numbers. When an OGMv2 arrives, the node checks whether its sequence number
+                is within this range. If it is and the corresponding bit is already set, the packet
+                is *treated as a duplicate and dropped*. If the bit is not set, the packet is
+                accepted and recorded in the window.
+              </TextBlock>
+              <TextBlock>
+                If a sequence number is newer than the current range, the window is shifted forward
+                to include it, discarding older entries. If it is too old and falls outside the
+                window, it is immediately rejected to avoid replay effects. In practice, this
+                creates a compact history of recently processed OGMs, allowing the protocol to
+                efficiently suppress redundancy while maintaining correct and up-to-date routing
+                state across the network.
               </TextBlock>
               <ModellingTrap>
                 <TextBlock>
-                  Sequence window violations indicate **looping packets** or **network
-                  instability**. Check your topology for loops.
+                  The size for **Sequence Protection Window** in B.A.T.M.A.N. V is configurable and
+                  typically set to **64 bits**, that was actually implemented in the simulator.
                 </TextBlock>
               </ModellingTrap>
             </div>
@@ -502,19 +514,19 @@ export default function Help() {
             <div className="help-page__chapter" id="route-selection">
               <h2 className="help-page__chapter-title">Route Selection</h2>
               <TextBlock>
-                {fakeText} **Route selection** favors paths with the **highest throughput** metrics.{" "}
-                {fakeText}
+                Route selection in B.A.T.M.A.N. V is performed using the best-received OGMv2 metrics
+                for each originator. After duplicate filtering via the **Sequence Protection
+                Window**, each valid OGM contributes a path metric derived from ELP-based throughput
+                measurements and hop-based degradation. The node maintains a set of candidate next
+                hops per originator and continuously compares their cumulative metrics.
               </TextBlock>
               <TextBlock>
-                Unlike hop-count routing, B.A.T.M.A.N. **avoids poor-quality links** even if they
-                are **shorter**.
+                The preferred route is always the one with the **highest effective throughput**,
+                meaning the path that preserves the largest remaining metric after all hop penalties
+                and link degradations are applied. This ensures that routing decisions are not based
+                on hop count, but on end-to-end link quality as observed through OGM propagation and
+                ELP measurements.
               </TextBlock>
-              <SourceBlock>
-                <TextBlock>
-                  The routing table is recalculated every time a new **OGM** is received from a
-                  neighbor.
-                </TextBlock>
-              </SourceBlock>
             </div>
           </section>
         </main>
