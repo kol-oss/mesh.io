@@ -226,6 +226,13 @@ class RuntimeNetwork implements SimulationNetworkRuntime {
 
         const sourceEntity = source.getPeerEntity();
         const destinationEntity = destination.getPeerEntity();
+        const hasSharedProtocol = sourceEntity.protocols.some((protocol) =>
+          destinationEntity.protocols.includes(protocol),
+        );
+        if (!hasSharedProtocol) {
+          continue;
+        }
+
         const distance = Math.hypot(
           destinationEntity.x - sourceEntity.x,
           destinationEntity.y - sourceEntity.y,

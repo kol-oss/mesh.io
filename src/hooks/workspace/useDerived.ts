@@ -104,6 +104,13 @@ export function useWorkspaceDerived({
       for (let j = i + 1; j < enabledPeers.length; j += 1) {
         const peerA = enabledPeers[i];
         const peerB = enabledPeers[j];
+        const hasSharedProtocol = peerA.protocols.some((protocol) =>
+          peerB.protocols.includes(protocol),
+        );
+        if (!hasSharedProtocol) {
+          continue;
+        }
+
         const deltaX = peerB.x - peerA.x;
         const deltaY = peerB.y - peerA.y;
         const distance = Math.hypot(deltaX, deltaY);

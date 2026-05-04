@@ -30,20 +30,19 @@ export default function PeerProperties({
   description,
 }: PeerPropertiesPanelProps) {
   const isLocked = selectedPeer.locked === true;
+  const selectedProtocol = selectedPeer.protocols[0] ?? null;
   const isPeerNameMissing = selectedPeer.name.trim() === "";
-  const isProtocolMissing = selectedPeer.protocols.length === 0;
+  const isProtocolMissing = selectedPeer.protocols.length !== 1;
   const isBatmanOgmMissing =
-    selectedPeer.protocols.includes(RoutingProtocol.BATMAN) && selectedPeer.batmanOgmInterval <= 0;
+    selectedProtocol === RoutingProtocol.BATMAN && selectedPeer.batmanOgmInterval <= 0;
   const isBatmanElpMissing =
-    selectedPeer.protocols.includes(RoutingProtocol.BATMAN) && selectedPeer.batmanElpInterval <= 0;
+    selectedProtocol === RoutingProtocol.BATMAN && selectedPeer.batmanElpInterval <= 0;
   const isBatmanPurgeMissing =
-    selectedPeer.protocols.includes(RoutingProtocol.BATMAN) && selectedPeer.batmanPurgeTimeout <= 0;
+    selectedProtocol === RoutingProtocol.BATMAN && selectedPeer.batmanPurgeTimeout <= 0;
   const isBatmanPenaltyDistanceMissing =
-    selectedPeer.protocols.includes(RoutingProtocol.BATMAN) &&
-    selectedPeer.batmanDistancePenaltyDistance <= 0;
+    selectedProtocol === RoutingProtocol.BATMAN && selectedPeer.batmanDistancePenaltyDistance <= 0;
   const isBatmanPenaltyPercentMissing =
-    selectedPeer.protocols.includes(RoutingProtocol.BATMAN) &&
-    selectedPeer.batmanDistancePenaltyPercent < 0;
+    selectedProtocol === RoutingProtocol.BATMAN && selectedPeer.batmanDistancePenaltyPercent < 0;
 
   const updatePeer = (changes: Partial<PeerEntity>) => {
     if (isLocked) return;
@@ -219,18 +218,13 @@ export default function PeerProperties({
             className={`properties__protocols ${isProtocolMissing ? "properties__required-outline" : ""}`}
           >
             {protocols.map((protocol) => {
-              const isActive = selectedPeer.protocols.includes(protocol);
+              const isActive = selectedProtocol === protocol;
               return (
                 <button
                   className={`properties__protocol ${isActive ? "properties__protocol--active" : ""}`}
                   key={protocol}
                   type="button"
-                  onClick={() => {
-                    const next = isActive
-                      ? selectedPeer.protocols.filter((p) => p !== protocol)
-                      : [...selectedPeer.protocols, protocol];
-                    updatePeer({ protocols: next });
-                  }}
+                  onClick={() => updatePeer({ protocols: [protocol] })}
                 >
                   {protocol}
                 </button>
@@ -239,7 +233,7 @@ export default function PeerProperties({
           </div>
         </label>
 
-        {selectedPeer.protocols.includes(RoutingProtocol.BATMAN) && (
+        {selectedProtocol === RoutingProtocol.BATMAN && (
           <>
             <label className="properties__field">
               {renderBatmanLabel(
@@ -288,7 +282,11 @@ export default function PeerProperties({
             </label>
 
             <label className="properties__field">
-              {renderBatmanLabel(ui.properties.fieldBatmanElpInterval, isBatmanElpMissing)}
+              <span
+                className={`properties__field-label ${isBatmanElpMissing ? "properties__field-label--required" : ""}`}
+              >
+                {ui.properties.fieldBatmanElpInterval}
+              </span>
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
@@ -297,7 +295,7 @@ export default function PeerProperties({
                   min="1"
                   value={selectedPeer.batmanElpInterval}
                   onChange={(event) =>
-                    updateBatmanPeers({
+                    updatePeer({
                       batmanElpInterval: parseNumberValue(
                         event.target.value,
                         selectedPeer.batmanElpInterval,
@@ -309,7 +307,11 @@ export default function PeerProperties({
             </label>
 
             <label className="properties__field">
-              {renderBatmanLabel(ui.properties.fieldBatmanOgmInterval, isBatmanOgmMissing)}
+              <span
+                className={`properties__field-label ${isBatmanOgmMissing ? "properties__field-label--required" : ""}`}
+              >
+                {ui.properties.fieldBatmanOgmInterval}
+              </span>
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
@@ -318,7 +320,7 @@ export default function PeerProperties({
                   min="1"
                   value={selectedPeer.batmanOgmInterval}
                   onChange={(event) =>
-                    updateBatmanPeers({
+                    updatePeer({
                       batmanOgmInterval: parseNumberValue(
                         event.target.value,
                         selectedPeer.batmanOgmInterval,
@@ -330,7 +332,11 @@ export default function PeerProperties({
             </label>
 
             <label className="properties__field">
-              {renderBatmanLabel(ui.properties.fieldBatmanPurgeTimeout, isBatmanPurgeMissing)}
+              <span
+                className={`properties__field-label ${isBatmanPurgeMissing ? "properties__field-label--required" : ""}`}
+              >
+                {ui.properties.fieldBatmanPurgeTimeout}
+              </span>
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
@@ -339,7 +345,7 @@ export default function PeerProperties({
                   min="1"
                   value={selectedPeer.batmanPurgeTimeout}
                   onChange={(event) =>
-                    updateBatmanPeers({
+                    updatePeer({
                       batmanPurgeTimeout: parseNumberValue(
                         event.target.value,
                         selectedPeer.batmanPurgeTimeout,

@@ -66,7 +66,7 @@ export const ConnectionType = {
 export type ConnectionType = (typeof ConnectionType)[keyof typeof ConnectionType];
 
 export const RoutingProtocol = {
-  HWMP: "HWMP",
+  DSDV: "DSDV",
   BATMAN: "BATMAN",
   OLSR: "OLSR",
   AODV: "AODV",

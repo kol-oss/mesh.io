@@ -3,7 +3,7 @@ import type { PeerRoutingProtocol } from "../types/navigation";
 import type { WorkflowStep } from "../types/steps";
 
 export const peerRoutingProtocols: PeerRoutingProtocol[] = [
-  RoutingProtocol.HWMP,
+  RoutingProtocol.DSDV,
   RoutingProtocol.BATMAN,
   RoutingProtocol.OLSR,
   RoutingProtocol.AODV,

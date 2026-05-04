@@ -25,6 +25,7 @@ const isNullableString = (value: unknown): value is string | null => {
 const isValidProtocolList = (value: unknown): value is PeerRoutingProtocol[] => {
   return (
     Array.isArray(value) &&
+    value.length === 1 &&
     value.every((item) => peerRoutingProtocols.includes(item as PeerRoutingProtocol))
   );
 };

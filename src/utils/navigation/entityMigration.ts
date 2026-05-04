@@ -28,6 +28,20 @@ export const obstacleDefaults = {
   height: 60,
 };
 
+const validProtocols = Object.values(RoutingProtocol);
+
+const normalizePeerProtocols = (value: unknown) => {
+  if (!Array.isArray(value)) {
+    return [...peerDefaults.protocols];
+  }
+
+  const firstValidProtocol = value.find((item): item is RoutingProtocol =>
+    validProtocols.includes(item as RoutingProtocol),
+  );
+
+  return firstValidProtocol ? [firstValidProtocol] : [...peerDefaults.protocols];
+};
+
 const hasPeerDefaults = (entity: NetworkEntity) => {
   if (entity.type !== EntityType.Peer) {
     return true;
@@ -40,6 +54,8 @@ const hasPeerDefaults = (entity: NetworkEntity) => {
     entity.range > 0 &&
     typeof entity.enabled === "boolean" &&
     Array.isArray(entity.protocols) &&
+    entity.protocols.length === 1 &&
+    validProtocols.includes(entity.protocols[0]) &&
     typeof entity.batmanDistancePenaltyDistance === "number" &&
     entity.batmanDistancePenaltyDistance > 0 &&
     typeof entity.batmanDistancePenaltyPercent === "number" &&
@@ -146,6 +162,7 @@ export const migrateEntities = (entities: NetworkEntity[]) => {
       ...peerDefaults,
       ...baseEntity,
       type: EntityType.Peer,
+      protocols: normalizePeerProtocols(entity.protocols),
     };
   });
 };
