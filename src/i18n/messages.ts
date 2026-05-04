@@ -407,7 +407,7 @@ export const messageCatalog = {
       bitsSuffix: "bits",
       notModeled: "Not modeled",
       unavailable: "Packet structure is not available for this event.",
-      fieldType: "Type",
+      fieldType: "Packet Type",
       fieldTypeDescription: "Identifies this control packet as ELP.",
       fieldVersion: "Version",
       fieldVersionDescription: "Protocol version used by the packet.",

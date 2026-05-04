@@ -655,23 +655,19 @@ export default function Workspace({
 
   const handleMessageAnimationHoverChange = useCallback(
     (isHovered: boolean) => {
-      if (!isPacketInspectionActive) {
-        return;
-      }
-
       setSimulationMessageHoverState({
         eventId: currentSimulationEventId,
         isHovered,
       });
 
-      if (!currentSimulationEventId) {
+      if (!isPacketInspectionActive || !currentSimulationEventId) {
         return;
       }
 
       setPacketInspectorWindows((prev) => {
         const existing = prev.find((w) => w.eventId === currentSimulationEventId);
         if (existing) {
-          if (existing.pinned && existing.eventId === currentSimulationEventId) {
+          if (existing.pinned) {
             return prev;
           }
 
