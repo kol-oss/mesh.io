@@ -206,7 +206,8 @@ export const composeStepsWithRefresh = (steps: WorkflowStep[], entities: Network
   const manualSteps = normalizeManualSteps(sortStepsByTick(steps));
   const executableManualSteps = manualSteps.filter(isExecutableManualStep);
   const peers = entities.filter((entity): entity is PeerEntity => entity.type === EntityType.Peer);
-  const maxTick = manualSteps.length === 0 ? 0 : Math.max(...manualSteps.map((step) => step.tick));
+  const maxTick =
+    manualSteps.length === 0 ? 1 : Math.max(1, ...manualSteps.map((step) => step.tick));
 
   const refreshByTick = new Map<number, RefreshStep[]>();
   for (const peer of peers) {
