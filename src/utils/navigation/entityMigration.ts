@@ -5,7 +5,7 @@ import { generateUUID } from "../uuid";
 export const peerDefaults = {
   x: 300,
   y: 100,
-  range: 75,
+  range: 150,
   enabled: true,
   protocols: [RoutingProtocol.BATMAN],
   batmanDistancePenaltyDistance: 75,
