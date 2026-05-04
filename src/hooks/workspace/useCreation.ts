@@ -115,10 +115,10 @@ export function useWorkspaceCreation({
   const getNextManualStepTick = useCallback(() => {
     const manualSteps = steps.filter((step) => !isRefreshStep(step));
     if (manualSteps.length === 0) {
-      return 1;
+      return 2;
     }
 
-    return Math.max(1, manualSteps[manualSteps.length - 1].tick);
+    return Math.max(2, manualSteps[manualSteps.length - 1].tick);
   }, [steps]);
 
   const createMessageStep = useCallback(

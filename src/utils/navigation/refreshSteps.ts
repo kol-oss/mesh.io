@@ -44,7 +44,7 @@ const buildBatmanRefreshTicks = (
   }
 
   let isEnabled = peer.enabled;
-  let activeStartTick: number | null = isEnabled ? 0 : null;
+  let activeStartTick: number | null = isEnabled ? 1 : null;
   const refreshTicks: Array<{ tick: number; startTick: number }> = [];
 
   for (let tick = 0; tick <= maxTick; tick += 1) {
@@ -58,6 +58,7 @@ const buildBatmanRefreshTicks = (
     if (
       nextEnabled &&
       activeStartTick !== null &&
+      tick >= activeStartTick &&
       (tick - activeStartTick) % normalizedInterval === 0
     ) {
       refreshTicks.push({ tick, startTick: activeStartTick });

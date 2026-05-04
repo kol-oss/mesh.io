@@ -231,7 +231,6 @@ export default function WorkspaceScene({
                     onMessageAnimationInspectRequest();
                   }}
                 />
-                <path className="workspace__message-animation-track" d={path} />
                 <g className="workspace__message-envelope">
                   <animateMotion dur="1.35s" repeatCount="indefinite" path={path} />
                   <rect x="-9" y="-6" width="18" height="12" rx="2.5" />

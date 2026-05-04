@@ -163,7 +163,7 @@ export default function StepProperties({
   };
 
   const updateStepTick = (nextTick: number) => {
-    const normalizedTick = Math.max(1, nextTick);
+    const normalizedTick = Math.max(2, nextTick);
     const stepIndex = steps.findIndex((step) => step.id === selectedStep.id);
     if (stepIndex === -1) {
       return;
@@ -258,7 +258,7 @@ export default function StepProperties({
                 <input
                   className="properties__input"
                   type="number"
-                  min="1"
+                  min="2"
                   value={selectedStep.tick}
                   onChange={(event) =>
                     updateStepTick(parseNumberValue(event.target.value, selectedStep.tick))
