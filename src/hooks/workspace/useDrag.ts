@@ -5,13 +5,15 @@ import { workspaceObstacleMinSize } from "../../constants/workspace";
 import { DragEntityType, DragMode, EntityType, PlacementMode, ResizeEdge } from "../../types/enums";
 import { toInt } from "../../utils/geometry";
 import type {
-  EntitySetter,
-  TextSetter,
   WorkspaceDragActions,
+  WorkspaceDragEntities,
+  WorkspaceDragEntitySetter,
   WorkspaceDragHandlers,
   WorkspaceDragRefs,
   WorkspaceDragSetters,
   WorkspaceDragState,
+  WorkspaceDragTexts,
+  WorkspaceDragTextSetter,
 } from "../../types/workspace/drag";
 import type { ObstacleResizeEdge } from "../../types/workspace/interaction";
 import type { ObstacleEntity, PeerEntity } from "../../types/entities";
@@ -19,10 +21,10 @@ import type { ToolbarPlacementMode } from "../../types/toolbar";
 import type { WorkspaceTextItem } from "../../types/workspace";
 
 type UseWorkspaceDragParams = {
-  entities: Parameters<EntitySetter>[0];
-  texts: Parameters<TextSetter>[0];
-  setEntities: EntitySetter;
-  setTexts: TextSetter;
+  entities: WorkspaceDragEntities;
+  texts: WorkspaceDragTexts;
+  setEntities: WorkspaceDragEntitySetter;
+  setTexts: WorkspaceDragTextSetter;
   placementMode: ToolbarPlacementMode;
   refs: WorkspaceDragRefs;
   setters: WorkspaceDragSetters;

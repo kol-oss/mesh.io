@@ -7,6 +7,7 @@ import type {
 } from "react";
 
 import type { ToolbarPlacementMode } from "../toolbar";
+import type { SetNullableStringState, WorkspacePoint, WorkspaceSize } from "./shared";
 
 export type WorkspacePanState = {
   pointerId: number;
@@ -27,15 +28,15 @@ export type WorkspaceBackgroundRefs = {
 export type WorkspaceBackgroundState = {
   placementMode: ToolbarPlacementMode;
   editingTextId: string | null;
-  panOffset: { x: number; y: number };
-  workspaceSize: { width: number; height: number };
+  panOffset: WorkspacePoint;
+  workspaceSize: WorkspaceSize;
 };
 
 export type WorkspaceBackgroundSetters = {
-  setSelectedTextId: Dispatch<SetStateAction<string | null>>;
-  setCreationSelectedEntityId: Dispatch<SetStateAction<string | null>>;
-  setMoveTargetPreview: Dispatch<SetStateAction<{ x: number; y: number } | null>>;
-  setPanOffset: Dispatch<SetStateAction<{ x: number; y: number }>>;
+  setSelectedTextId: SetNullableStringState;
+  setCreationSelectedEntityId: SetNullableStringState;
+  setMoveTargetPreview: Dispatch<SetStateAction<WorkspacePoint | null>>;
+  setPanOffset: Dispatch<SetStateAction<WorkspacePoint>>;
 };
 
 export type WorkspaceBackgroundActions = {

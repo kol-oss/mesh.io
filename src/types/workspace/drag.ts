@@ -1,25 +1,23 @@
-import type {
-  Dispatch,
-  MutableRefObject,
-  PointerEvent as ReactPointerEvent,
-  SetStateAction,
-} from "react";
+import type { MutableRefObject, PointerEvent as ReactPointerEvent } from "react";
 
 import type { DragState, ObstacleResizeEdge } from "./interaction";
 import type { NetworkEntity, ObstacleEntity, PeerEntity } from "../navigation";
 import type { WorkspaceTextItem } from "./index";
-
-export type EntitySetter = (value: NetworkEntity[]) => void;
-export type TextSetter = (value: WorkspaceTextItem[]) => void;
+import type { SetEntities, SetNullableStringState, SetTexts } from "./shared";
 
 export type WorkspaceDragRefs = {
   dragStateRef: MutableRefObject<DragState | null>;
 };
 
 export type WorkspaceDragSetters = {
-  setActiveDragEntityId: Dispatch<SetStateAction<string | null>>;
-  setSelectedTextId: Dispatch<SetStateAction<string | null>>;
+  setActiveDragEntityId: SetNullableStringState;
+  setSelectedTextId: SetNullableStringState;
 };
+
+export type WorkspaceDragEntities = NetworkEntity[];
+export type WorkspaceDragTexts = WorkspaceTextItem[];
+export type WorkspaceDragEntitySetter = SetEntities;
+export type WorkspaceDragTextSetter = SetTexts;
 
 export type WorkspaceDragState = {
   editingTextId: string | null;
