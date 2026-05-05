@@ -1,0 +1,8 @@
+export const BATMAN_PROTECTION_WINDOW = 64;
+export const BATMAN_MAX_THROUGHPUT = 2 ** 32;
+export const BATMAN_WIRELESS_BASE_THROUGHPUT = 100;
+export const BATMAN_STATIC_BASE_THROUGHPUT = 1000;
+export const BATMAN_ELP_EWMA_ALPHA = 0.2;
+export const BATMAN_OGM_HOP_PENALTY_PERCENT = 5.8;
+export const BATMAN_TIME_TO_LIVE = 50;
+export const BATMAN_V_VERSION = 5;

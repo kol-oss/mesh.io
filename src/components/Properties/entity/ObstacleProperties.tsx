@@ -10,7 +10,7 @@ import { parseNumberValue, parsePositiveNumberValue } from "../../../utils/prope
 export default function ObstacleProperties({
   widthPercent,
   onResizeStart,
-  selectedObstacle,
+  selected: selectedObstacle,
   entities,
   setEntities,
   title,

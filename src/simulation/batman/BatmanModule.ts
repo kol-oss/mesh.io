@@ -14,15 +14,16 @@ import {
 } from "../../types/simulation";
 import { SimulationEventRecorder } from "../core/EventRecorder";
 import type { PacketCapableModule, SimulationPeerNode } from "../core/runtimeTypes";
-
-const BATMAN_V_VERSION = 5;
-const BATMAN_TIME_TO_LIVE = 50;
-const BATMAN_PROTECTION_WINDOW = 64;
-const BATMAN_MAX_THROUGHPUT = 2 ** 32;
-const BATMAN_WIRELESS_BASE_THROUGHPUT = 100;
-const BATMAN_STATIC_BASE_THROUGHPUT = 1000;
-const BATMAN_ELP_EWMA_ALPHA = 0.2;
-const BATMAN_OGM_HOP_PENALTY_PERCENT = 5.8;
+import {
+  BATMAN_V_VERSION,
+  BATMAN_TIME_TO_LIVE,
+  BATMAN_PROTECTION_WINDOW,
+  BATMAN_MAX_THROUGHPUT,
+  BATMAN_WIRELESS_BASE_THROUGHPUT,
+  BATMAN_STATIC_BASE_THROUGHPUT,
+  BATMAN_ELP_EWMA_ALPHA,
+  BATMAN_OGM_HOP_PENALTY_PERCENT,
+} from "../../constants/simulation";
 
 const cloneMessage = <T extends SimulationMessage>(message: T): T => {
   return { ...message };

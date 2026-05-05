@@ -5,6 +5,20 @@ import type { RefreshStep, WorkflowStep } from "../workspace/steps";
 
 export type PropertiesResizeHandler = (event: ReactPointerEvent<HTMLDivElement>) => void;
 
+export type EntityPropertiesPanelProps<T extends NetworkEntity> = {
+  widthPercent: number;
+  onResizeStart: PropertiesResizeHandler;
+  selected: T;
+  entities: NetworkEntity[];
+  setEntities: (value: NetworkEntity[]) => void;
+  title: string;
+  description: string;
+};
+
+export type PeerPropertiesPanelProps = EntityPropertiesPanelProps<PeerEntity>;
+export type LinkPropertiesPanelProps = EntityPropertiesPanelProps<LinkEntity>;
+export type ObstaclePropertiesPanelProps = EntityPropertiesPanelProps<ObstacleEntity>;
+
 export type StepPropertiesPanelProps = {
   widthPercent: number;
   onResizeStart: PropertiesResizeHandler;
@@ -19,34 +33,4 @@ export type RefreshStepPropertiesPanelProps = {
   onResizeStart: PropertiesResizeHandler;
   selectedStep: RefreshStep;
   peers: PeerEntity[];
-};
-
-export type LinkPropertiesPanelProps = {
-  widthPercent: number;
-  onResizeStart: PropertiesResizeHandler;
-  selectedLink: LinkEntity;
-  entities: NetworkEntity[];
-  setEntities: (value: NetworkEntity[]) => void;
-  title: string;
-  description: string;
-};
-
-export type ObstaclePropertiesPanelProps = {
-  widthPercent: number;
-  onResizeStart: PropertiesResizeHandler;
-  selectedObstacle: ObstacleEntity;
-  entities: NetworkEntity[];
-  setEntities: (value: NetworkEntity[]) => void;
-  title: string;
-  description: string;
-};
-
-export type PeerPropertiesPanelProps = {
-  widthPercent: number;
-  onResizeStart: PropertiesResizeHandler;
-  selectedPeer: PeerEntity;
-  entities: NetworkEntity[];
-  setEntities: (value: NetworkEntity[]) => void;
-  title: string;
-  description: string;
 };

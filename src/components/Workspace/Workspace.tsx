@@ -1,30 +1,11 @@
 import type { DragState } from "../../types/workspace/interaction";
-import { PlacementMode, SelectionSource, StepType, ToolbarMode } from "../../types/enums";
+import { PlacementMode, SelectionSource, ToolbarMode } from "../../types/enums";
 import type { NetworkEntity } from "../../types/entities";
-import {
-  type EntityStatusChangedEventDetails,
-  type PeerMovedEventDetails,
-  type RouteSelectedEventDetails,
-  SimulationEventType,
-  SimulationMessageKind,
-  type DroppedEventDetails,
-  type BroadcastEventDetails,
-  type ThroughputCalculationEventDetails,
-  type SimulationEvent,
-  type SimulationMessage,
-  type SimulationPeerSnapshot,
-  type SimulationStepResult,
-} from "../../types/simulation";
+import { type SimulationEvent, type SimulationStepResult } from "../../types/simulation";
 import type { WorkspacePanState } from "../../types/workspace/background";
-import type {
-  MessageAnimation,
-  MoveStepAnimation,
-  ToggleStepAnimation,
-} from "../../types/workspace/scene";
 import type { WorkflowStep } from "../../types/steps";
 import type { ToolbarPlacementMode } from "../../types/toolbar";
 import type { WorkspaceTextItem } from "../../types/workspace";
-import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useWorkspaceBackground } from "../../hooks/workspace/useBackground";
@@ -34,6 +15,10 @@ import { useWorkspaceHints } from "../../hooks/workspace/useHints";
 import { useWorkspacePlacement } from "../../hooks/workspace/usePlacement";
 import { useWorkspaceTextEdit } from "../../hooks/workspace/useTextEdit";
 import { useWorkspaceDerived } from "../../hooks/workspace/useDerived";
+import { useWorkspaceAnimations } from "../../hooks/workspace/useAnimations";
+import { useWorkspaceWindowStates } from "../../hooks/workspace/useWindowStates";
+import { useMoveIndicatorHandlers } from "../../hooks/workspace/useMoveIndicators";
+import { useSimulationEventHandlers } from "../../hooks/workspace/useSimulationEventHandlers";
 import { ui } from "../../i18n/messages";
 import { useToast } from "../../hooks/useToast";
 import { clamp } from "../../utils/math/clamp";
@@ -103,28 +88,6 @@ export default function Workspace({
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [editingTextDraft, setEditingTextDraft] = useState("");
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
-  const [simulationMessageHoverState, setSimulationMessageHoverState] = useState<{
-    eventId: string | null;
-    isHovered: boolean;
-  }>({ eventId: null, isHovered: false });
-  const [moveStepAnimationProgress, setMoveStepAnimationProgress] = useState(1);
-  const [packetInspectorWindows, setPacketInspectorWindows] = useState<
-    Array<{ eventId: string; isOpen: boolean; pinned: boolean }>
-  >([]);
-  const [simulationTqDisclosureByEvent, setSimulationTqDisclosureByEvent] = useState<
-    Record<string, boolean>
-  >({});
-  const [simulationSequenceDisclosureByEvent, setSimulationSequenceDisclosureByEvent] = useState<
-    Record<string, boolean>
-  >({});
-  const [hoveredSimulationPeerState, setHoveredSimulationPeerState] = useState<{
-    eventId: string;
-    peerId: string | null;
-  } | null>(null);
-  const [tableInspectionWindows, setTableInspectionWindows] = useState<
-    Array<{ peerId: string; pinned: boolean; isOpen: boolean; stepId: string | null }>
-  >([]);
-  const tableInspectionSuppressHoverRef = useRef(false);
   const currentStepId = currentSimulationStepResult?.step.id ?? null;
   const linkSourcePeerIdRef = useRef<string | null>(null);
   const stepMessageSourcePeerIdRef = useRef<string | null>(null);
@@ -133,10 +96,6 @@ export default function Workspace({
   const hintActiveRef = useRef(false);
   const restoreHintTimerRef = useRef<number | null>(null);
   const panStateRef = useRef<WorkspacePanState | null>(null);
-  const moveIndicatorDragStateRef = useRef<{
-    pointerId: number;
-    stepId: string;
-  } | null>(null);
 
   const baseRenderedEntities = useMemo(
     () =>
@@ -146,78 +105,21 @@ export default function Workspace({
     [currentSimulationStepResult, entities, isSimulationActive],
   );
 
-  const moveStepAnimationSource = useMemo(
-    () => buildMoveStepAnimation(currentSimulationEvent),
-    [currentSimulationEvent],
+  const simulationAnimationFallbackPeers = useMemo(
+    () =>
+      baseRenderedEntities.filter(
+        (entity): entity is NetworkEntity & { type: "PEER" } => entity.type === "PEER",
+      ),
+    [baseRenderedEntities],
   );
 
-  useEffect(() => {
-    if (!moveStepAnimationSource) {
-      return;
-    }
-
-    const animationDuration = 900;
-    let frameId = 0;
-    let startedAt: number | null = null;
-
-    const animate = (now: number) => {
-      if (startedAt === null) {
-        startedAt = now;
-      }
-
-      const elapsed = now - startedAt;
-      const nextProgress = Math.min(1, elapsed / animationDuration);
-      setMoveStepAnimationProgress(nextProgress);
-
-      if (nextProgress < 1) {
-        frameId = window.requestAnimationFrame(animate);
-      }
-    };
-
-    frameId = window.requestAnimationFrame(animate);
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-    };
-  }, [moveStepAnimationSource]);
-
-  const moveStepAnimation = useMemo<MoveStepAnimation | null>(() => {
-    if (!moveStepAnimationSource) {
-      return null;
-    }
-
-    return {
-      ...moveStepAnimationSource,
-      progress: moveStepAnimationProgress,
-    };
-  }, [moveStepAnimationProgress, moveStepAnimationSource]);
-
-  const toggleStepAnimation = useMemo<ToggleStepAnimation | null>(
-    () => buildToggleStepAnimation(currentSimulationEvent),
-    [currentSimulationEvent],
-  );
-
-  const renderedEntities = useMemo(() => {
-    if (!moveStepAnimation) {
-      return baseRenderedEntities;
-    }
-
-    return baseRenderedEntities.map((entity) => {
-      if (entity.type !== "PEER" || entity.id !== moveStepAnimation.peerId) {
-        return entity;
-      }
-
-      return {
-        ...entity,
-        x:
-          moveStepAnimation.fromX +
-          (moveStepAnimation.toX - moveStepAnimation.fromX) * moveStepAnimation.progress,
-        y:
-          moveStepAnimation.fromY +
-          (moveStepAnimation.toY - moveStepAnimation.fromY) * moveStepAnimation.progress,
-      };
+  const { moveStepAnimation, toggleStepAnimation, simulationMessageAnimations, renderedEntities } =
+    useWorkspaceAnimations({
+      currentSimulationEvent,
+      currentSimulationStepResult,
+      baseRenderedEntities,
+      peers: simulationAnimationFallbackPeers,
     });
-  }, [baseRenderedEntities, moveStepAnimation]);
 
   const {
     peers,
@@ -239,6 +141,34 @@ export default function Workspace({
     placementMode,
     moveTargetPreview,
     workspaceSize,
+  });
+
+  const isPacketInspectionActive = simulationInspectionMode === ToolbarMode.PacketStructure;
+  const currentSimulationEventId = currentSimulationEvent?.id ?? null;
+
+  const {
+    packetInspectorWindows,
+    tableInspectionWindows,
+    simulationMessageHoverState,
+    simulationTqDisclosureByEvent,
+    simulationSequenceDisclosureByEvent,
+    hoveredSimulationPeerState,
+    tableInspectionSuppressHoverRef,
+    handleSimulationPeerHoverChange,
+    handleSimulationTqDisclosureToggle,
+    handleSimulationSequenceDisclosureToggle,
+    handleTableInspectionPeerHoverChange,
+    handleTableInspectionClose,
+    handleMessageAnimationHoverChange,
+    handleMessageAnimationInspectRequest,
+    handlePacketInspectorClose,
+    setTableInspectionWindows,
+  } = useWorkspaceWindowStates({
+    currentSimulationEvent,
+    currentStepId,
+    simulationInspectionMode,
+    isPacketInspectionActive,
+    currentSimulationEventId,
   });
 
   const showCreationToast = useCallback(
@@ -480,13 +410,6 @@ export default function Workspace({
             ) - panOffset.y,
         }
       : null;
-  const simulationMessageAnimations = useMemo(
-    () =>
-      buildSimulationMessageAnimations(currentSimulationEvent, currentSimulationStepResult, peers),
-    [currentSimulationEvent, currentSimulationStepResult, peers],
-  );
-  const isPacketInspectionActive = simulationInspectionMode === ToolbarMode.PacketStructure;
-  const currentSimulationEventId = currentSimulationEvent?.id ?? null;
   const hoveredSimulationPeerId =
     currentSimulationEvent && hoveredSimulationPeerState?.eventId === currentSimulationEvent.id
       ? hoveredSimulationPeerState.peerId
@@ -515,299 +438,38 @@ export default function Workspace({
     [panOffset.x, panOffset.y, workspaceSize.height, workspaceSize.width],
   );
 
-  const updateMoveStepTarget = useCallback(
-    (stepId: string, x: number, y: number) => {
-      const nextSteps = steps.map((step) => {
-        if (step.id !== stepId || step.type !== StepType.Move) {
-          return step;
-        }
+  const {
+    handleMoveIndicatorPointerDown,
+    handleMoveIndicatorPointerMove,
+    handleMoveIndicatorPointerEnd,
+  } = useMoveIndicatorHandlers({
+    steps,
+    setSteps,
+    isSimulationActive,
+    getWorkspaceCoordsByClientPosition,
+  });
 
-        return {
-          ...step,
-          x,
-          y,
-        };
-      });
-
-      setSteps(nextSteps);
-    },
-    [setSteps, steps],
-  );
-
-  const handleMoveIndicatorPointerDown = useCallback(
-    (stepId: string, event: ReactPointerEvent<HTMLElement>) => {
-      if (isSimulationActive || event.button !== 0) {
-        return;
-      }
-
-      event.stopPropagation();
-      event.preventDefault();
-      event.currentTarget.setPointerCapture(event.pointerId);
-      moveIndicatorDragStateRef.current = {
-        pointerId: event.pointerId,
-        stepId,
-      };
-    },
-    [isSimulationActive],
-  );
-
-  const handleMoveIndicatorPointerMove = useCallback(
-    (event: ReactPointerEvent<HTMLElement>) => {
-      const dragState = moveIndicatorDragStateRef.current;
-      if (!dragState || dragState.pointerId !== event.pointerId || isSimulationActive) {
-        return;
-      }
-
-      event.stopPropagation();
-      event.preventDefault();
-
-      const coords = getWorkspaceCoordsByClientPosition(event.clientX, event.clientY);
-      if (!coords) {
-        return;
-      }
-
-      updateMoveStepTarget(dragState.stepId, coords.x, coords.y);
-    },
-    [getWorkspaceCoordsByClientPosition, isSimulationActive, updateMoveStepTarget],
-  );
-
-  const handleMoveIndicatorPointerEnd = useCallback((event: ReactPointerEvent<HTMLElement>) => {
-    const dragState = moveIndicatorDragStateRef.current;
-    if (!dragState || dragState.pointerId !== event.pointerId) {
-      return;
-    }
-
-    try {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    } catch {
-      // Pointer capture may already be released.
-    }
-
-    moveIndicatorDragStateRef.current = null;
-  }, []);
-
-  const handleSimulationPeerHoverChange = useCallback(
-    (peerId: string | null) => {
-      if (!currentSimulationEvent) {
-        setHoveredSimulationPeerState(null);
-        return;
-      }
-
-      setHoveredSimulationPeerState({
-        eventId: currentSimulationEvent.id,
-        peerId,
-      });
-    },
-    [currentSimulationEvent],
-  );
-
-  const handleSimulationTqDisclosureToggle = useCallback((eventId: string) => {
-    setSimulationTqDisclosureByEvent((prev) => ({
-      ...prev,
-      [eventId]: !(prev[eventId] ?? false),
-    }));
-  }, []);
-
-  const handleSimulationSequenceDisclosureToggle = useCallback((eventId: string) => {
-    setSimulationSequenceDisclosureByEvent((prev) => ({
-      ...prev,
-      [eventId]: !(prev[eventId] ?? false),
-    }));
-  }, []);
-
-  const handleTableInspectionPeerHoverChange = useCallback(
-    (peerId: string | null) => {
-      if (simulationInspectionMode !== ToolbarMode.RoutingTable) {
-        return;
-      }
-
-      if (peerId === null) {
-        tableInspectionSuppressHoverRef.current = false;
-      }
-
-      if (tableInspectionSuppressHoverRef.current) {
-        return;
-      }
-
-      setTableInspectionWindows((prev) => {
-        if (peerId === null) {
-          return prev.filter((w) => w.pinned);
-        }
-
-        const existing = prev.find((w) => w.peerId === peerId);
-        if (existing) {
-          if (existing.pinned) return prev;
-          return prev.map((w) =>
-            w.peerId === peerId ? { ...w, isOpen: true, stepId: currentStepId } : w,
-          );
-        }
-
-        return [...prev, { peerId, pinned: false, isOpen: true, stepId: currentStepId }];
-      });
-    },
-    [currentStepId, simulationInspectionMode],
-  );
-
-  const handleTableInspectionClose = useCallback((peerId: string) => {
-    tableInspectionSuppressHoverRef.current = true;
-    setTableInspectionWindows((prev) => prev.filter((w) => w.peerId !== peerId));
-  }, []);
-
-  const handleMessageAnimationHoverChange = useCallback(
-    (isHovered: boolean) => {
-      setSimulationMessageHoverState({
-        eventId: currentSimulationEventId,
-        isHovered,
-      });
-
-      if (!isPacketInspectionActive || !currentSimulationEventId) {
-        return;
-      }
-
-      setPacketInspectorWindows((prev) => {
-        const existing = prev.find((w) => w.eventId === currentSimulationEventId);
-        if (existing) {
-          if (existing.pinned) {
-            return prev;
-          }
-
-          if (isHovered) {
-            return prev.map((w) =>
-              w.eventId === currentSimulationEventId ? { ...w, isOpen: true, pinned: false } : w,
-            );
-          }
-
-          // not hovered: close non-pinned instance for this event
-          return prev.filter((w) => w.eventId !== currentSimulationEventId || w.pinned);
-        }
-
-        if (isHovered) {
-          return [...prev, { eventId: currentSimulationEventId, isOpen: true, pinned: false }];
-        }
-
-        return prev;
-      });
-    },
-    [currentSimulationEventId, isPacketInspectionActive],
-  );
-
-  const handleMessageAnimationInspectRequest = useCallback(() => {
-    if (!currentSimulationEvent || !isPacketInspectionActive) {
-      return;
-    }
-
-    setPacketInspectorWindows((prev) => {
-      const existing = prev.find((w) => w.eventId === currentSimulationEvent.id);
-      if (existing) {
-        return prev.map((w) =>
-          w.eventId === currentSimulationEvent.id ? { ...w, isOpen: true, pinned: true } : w,
-        );
-      }
-
-      return [...prev, { eventId: currentSimulationEvent.id, isOpen: true, pinned: true }];
-    });
-  }, [currentSimulationEvent, isPacketInspectionActive]);
-
-  const handlePacketInspectorClose = useCallback((eventId: string) => {
-    setPacketInspectorWindows((prev) => prev.filter((w) => w.eventId !== eventId));
-  }, []);
-
-  const handleSimulationStaticLinkPointerDown = useCallback(
-    (linkId: string, event: ReactPointerEvent<SVGLineElement>) => {
-      if (!isSimulationActive) {
-        handleStaticLinkPointerDown(linkId, event);
-        return;
-      }
-
-      event.stopPropagation();
-      onEntitySelect(linkId);
-    },
-    [handleStaticLinkPointerDown, isSimulationActive, onEntitySelect],
-  );
-
-  const handleSimulationTextPointerDown = useCallback(
-    (item: WorkspaceTextItem, event: ReactPointerEvent<HTMLElement>) => {
-      handleTextPointerDown(item, event);
-    },
-    [handleTextPointerDown],
-  );
-
-  const handleSimulationTextDoubleClick = useCallback(
-    (item: WorkspaceTextItem) => {
-      handleTextDoubleClick(item);
-    },
-    [handleTextDoubleClick],
-  );
-
-  const handleSimulationObstaclePointerDown = useCallback(
-    (
-      obstacle: NetworkEntity & { type: "OBSTACLE" },
-      event: ReactPointerEvent<HTMLButtonElement>,
-    ) => {
-      if (!isSimulationActive) {
-        handleObstaclePointerDown(obstacle, event);
-        return;
-      }
-
-      event.stopPropagation();
-      onEntitySelect(obstacle.id);
-    },
-    [handleObstaclePointerDown, isSimulationActive, onEntitySelect],
-  );
-
-  const handleSimulationObstacleResizeStart = useCallback(
-    (
-      obstacle: NetworkEntity & { type: "OBSTACLE" },
-      edge: Parameters<typeof handleObstacleResizeStart>[1],
-      event: ReactPointerEvent<HTMLSpanElement>,
-    ) => {
-      if (!isSimulationActive) {
-        handleObstacleResizeStart(obstacle, edge, event);
-        return;
-      }
-
-      event.stopPropagation();
-      onEntitySelect(obstacle.id);
-    },
-    [handleObstacleResizeStart, isSimulationActive, onEntitySelect],
-  );
-
-  const handleSimulationPeerPointerDown = useCallback(
-    (peer: NetworkEntity & { type: "PEER" }, event: ReactPointerEvent<HTMLButtonElement>) => {
-      if (!isSimulationActive) {
-        handlePeerPointerDown(peer, event);
-        return;
-      }
-
-      event.stopPropagation();
-
-      if (simulationInspectionMode === ToolbarMode.RoutingTable) {
-        setTableInspectionWindows((prev) => {
-          const existing = prev.find((w) => w.peerId === peer.id);
-          if (existing) {
-            return prev.map((w) =>
-              w.peerId === peer.id
-                ? { ...w, pinned: true, isOpen: true, stepId: currentStepId }
-                : w,
-            );
-          }
-
-          return [...prev, { peerId: peer.id, pinned: true, isOpen: true, stepId: currentStepId }];
-        });
-        tableInspectionSuppressHoverRef.current = false;
-        return;
-      }
-
-      onEntitySelect(peer.id);
-    },
-    [
-      currentStepId,
-      handlePeerPointerDown,
-      isSimulationActive,
-      onEntitySelect,
-      simulationInspectionMode,
-    ],
-  );
+  const {
+    handleSimulationStaticLinkPointerDown,
+    handleSimulationTextPointerDown,
+    handleSimulationTextDoubleClick,
+    handleSimulationObstaclePointerDown,
+    handleSimulationObstacleResizeStart,
+    handleSimulationPeerPointerDown,
+  } = useSimulationEventHandlers({
+    isSimulationActive,
+    currentStepId,
+    simulationInspectionMode,
+    onEntitySelect,
+    handleStaticLinkPointerDown,
+    handleTextPointerDown,
+    handleTextDoubleClick,
+    handleObstaclePointerDown,
+    handleObstacleResizeStart,
+    handlePeerPointerDown,
+    setTableInspectionWindows,
+    tableInspectionSuppressHoverRef,
+  });
 
   return (
     <section
@@ -934,194 +596,3 @@ export default function Workspace({
     </section>
   );
 }
-
-const buildSimulationMessageAnimations = (
-  currentEvent: SimulationEvent | null,
-  currentStepResult: SimulationStepResult | null,
-  fallbackPeers: Array<NetworkEntity & { type: "PEER" }>,
-): MessageAnimation[] => {
-  if (!currentEvent || !currentStepResult) {
-    return [];
-  }
-
-  const peerById = new Map<string, SimulationPeerSnapshot | (NetworkEntity & { type: "PEER" })>();
-
-  for (const peer of currentStepResult.snapshot.peers) {
-    peerById.set(peer.id, peer);
-  }
-
-  for (const peer of fallbackPeers) {
-    if (!peerById.has(peer.id)) {
-      peerById.set(peer.id, peer);
-    }
-  }
-
-  const createAnimation = (
-    sourcePeerId: string | null,
-    targetPeerId: string | null,
-    suffix: string,
-    variant: MessageAnimation["variant"] = "default",
-  ): MessageAnimation | null => {
-    if (!sourcePeerId || !targetPeerId || sourcePeerId === targetPeerId) {
-      return null;
-    }
-
-    const sourcePeer = peerById.get(sourcePeerId);
-    const targetPeer = peerById.get(targetPeerId);
-    if (!sourcePeer || !targetPeer) {
-      return null;
-    }
-
-    return {
-      key: `${currentEvent.id}-${suffix}-${sourcePeerId}-${targetPeerId}`,
-      sourceX: sourcePeer.x,
-      sourceY: sourcePeer.y,
-      targetX: targetPeer.x,
-      targetY: targetPeer.y,
-      variant,
-    };
-  };
-
-  if (currentEvent.type === SimulationEventType.SystemMessageBroadcast) {
-    const details = currentEvent.details as BroadcastEventDetails;
-    return details.neighbourPeerIds
-      .map((peerId, index) =>
-        createAnimation(currentEvent.peerId, peerId, `broadcast-${index}`, "default"),
-      )
-      .filter((animation): animation is MessageAnimation => animation !== null);
-  }
-
-  if (currentEvent.type === SimulationEventType.SystemRouteSelected) {
-    const details = currentEvent.details as RouteSelectedEventDetails;
-    return toMessageAnimations([
-      createAnimation(
-        currentEvent.peerId,
-        details.selectedRoute.hopPeerId,
-        "route-selected",
-        "default",
-      ),
-    ]);
-  }
-
-  if (currentEvent.type === SimulationEventType.SystemMessageDropped) {
-    const details = currentEvent.details as DroppedEventDetails;
-    const droppedAnimation = getDroppedMessageAnimation(currentEvent.peerId, details.message);
-    return toMessageAnimations([
-      createAnimation(
-        droppedAnimation?.sourcePeerId ?? null,
-        droppedAnimation?.targetPeerId ?? null,
-        "dropped",
-        "dropped",
-      ),
-    ]);
-  }
-
-  if (currentEvent.type === SimulationEventType.SystemThroughputCalculated) {
-    const details = currentEvent.details as ThroughputCalculationEventDetails;
-    if (details.message.kind === SimulationMessageKind.BatmanOriginatorMessage) {
-      return toMessageAnimations([
-        createAnimation(
-          details.message.senderPeerId,
-          currentEvent.peerId,
-          "throughput",
-          "route-change",
-        ),
-      ]);
-    }
-
-    if (details.message.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
-      return toMessageAnimations([
-        createAnimation(
-          details.message.senderPeerId,
-          currentEvent.peerId,
-          "throughput",
-          "route-change",
-        ),
-      ]);
-    }
-
-    return [];
-  }
-
-  if (
-    currentEvent.type === SimulationEventType.RoutingTableInsert ||
-    currentEvent.type === SimulationEventType.RoutingTableUpdate ||
-    currentEvent.type === SimulationEventType.RoutingTableRemove
-  ) {
-    const details = currentEvent.details as { hopPeerId: string };
-    return toMessageAnimations([
-      createAnimation(details.hopPeerId, currentEvent.peerId, "route-change", "route-change"),
-    ]);
-  }
-
-  return [];
-};
-
-const getDroppedMessageAnimation = (
-  eventPeerId: string,
-  message: SimulationMessage,
-): { sourcePeerId: string; targetPeerId: string } | null => {
-  if (message.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
-    return message.senderPeerId !== eventPeerId
-      ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
-      : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
-  }
-
-  if (message.kind === SimulationMessageKind.BatmanOriginatorMessage) {
-    return message.senderPeerId !== eventPeerId
-      ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
-      : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
-  }
-
-  if (message.kind !== SimulationMessageKind.Packet) {
-    return null;
-  }
-
-  if (message.sourcePeerId && message.sourcePeerId !== eventPeerId) {
-    return { sourcePeerId: message.sourcePeerId, targetPeerId: eventPeerId };
-  }
-
-  return message.destinationPeerId !== eventPeerId
-    ? { sourcePeerId: eventPeerId, targetPeerId: message.destinationPeerId }
-    : null;
-};
-
-const toMessageAnimations = (animations: Array<MessageAnimation | null>) => {
-  return animations.filter((animation): animation is MessageAnimation => animation !== null);
-};
-
-const buildMoveStepAnimation = (
-  currentEvent: SimulationEvent | null,
-): Omit<MoveStepAnimation, "progress"> | null => {
-  if (!currentEvent || currentEvent.type !== SimulationEventType.SystemPeerMoved) {
-    return null;
-  }
-
-  const details = currentEvent.details as PeerMovedEventDetails;
-  return {
-    peerId: details.peerId,
-    fromX: details.fromX,
-    fromY: details.fromY,
-    toX: details.toX,
-    toY: details.toY,
-  };
-};
-
-const buildToggleStepAnimation = (
-  currentEvent: SimulationEvent | null,
-): ToggleStepAnimation | null => {
-  if (!currentEvent || currentEvent.type !== SimulationEventType.SystemEntityStatusChanged) {
-    return null;
-  }
-
-  const details = currentEvent.details as EntityStatusChangedEventDetails;
-  if (details.entityType !== "PEER" && details.entityType !== "LINK") {
-    return null;
-  }
-
-  return {
-    entityId: details.entityId,
-    entityType: details.entityType,
-    nextEnabled: details.nextEnabled,
-  };
-};

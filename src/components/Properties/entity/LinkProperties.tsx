@@ -10,7 +10,7 @@ import Select from "../../Select/Select";
 export default function LinkProperties({
   widthPercent,
   onResizeStart,
-  selectedLink,
+  selected: selectedLink,
   entities,
   setEntities,
   title,

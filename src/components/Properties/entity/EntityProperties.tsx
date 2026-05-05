@@ -49,7 +49,7 @@ export default function EntityProperties({
       <LinkProperties
         widthPercent={widthPercent}
         onResizeStart={onResizeStart}
-        selectedLink={selectedLink}
+        selected={selectedLink}
         entities={entities}
         setEntities={setEntities}
         title={header.title}
@@ -64,7 +64,7 @@ export default function EntityProperties({
       <ObstacleProperties
         widthPercent={widthPercent}
         onResizeStart={onResizeStart}
-        selectedObstacle={selectedObstacle}
+        selected={selectedObstacle}
         entities={entities}
         setEntities={setEntities}
         title={header.title}
@@ -78,7 +78,7 @@ export default function EntityProperties({
     <PeerProperties
       widthPercent={widthPercent}
       onResizeStart={onResizeStart}
-      selectedPeer={selectedPeer}
+      selected={selectedPeer}
       entities={entities}
       setEntities={setEntities}
       title={header.title}

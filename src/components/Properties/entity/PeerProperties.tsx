@@ -11,6 +11,13 @@ import {
 import { Link } from "react-router-dom";
 
 import { peerRoutingProtocols } from "../../../constants/protocol";
+import {
+  BATMAN_MIN_OGM_INTERVAL,
+  BATMAN_MIN_ELP_INTERVAL,
+  BATMAN_MIN_PURGE_TIMEOUT,
+  BATMAN_MIN_DISTANCE_PENALTY,
+  BATMAN_MIN_PENALTY_PERCENT,
+} from "../../../constants/validation";
 import Tooltip from "../../Tooltip/Tooltip";
 import { ui } from "../../../i18n/messages";
 import { EntityType, RoutingProtocol } from "../../../types/enums";
@@ -23,7 +30,7 @@ const protocols = peerRoutingProtocols;
 export default function PeerProperties({
   widthPercent,
   onResizeStart,
-  selectedPeer,
+  selected: selectedPeer,
   entities,
   setEntities,
   title,
@@ -34,15 +41,20 @@ export default function PeerProperties({
   const isPeerNameMissing = selectedPeer.name.trim() === "";
   const isProtocolMissing = selectedPeer.protocols.length !== 1;
   const isBatmanOgmMissing =
-    selectedProtocol === RoutingProtocol.BATMAN && selectedPeer.batmanOgmInterval <= 0;
+    selectedProtocol === RoutingProtocol.BATMAN &&
+    selectedPeer.batmanOgmInterval < BATMAN_MIN_OGM_INTERVAL;
   const isBatmanElpMissing =
-    selectedProtocol === RoutingProtocol.BATMAN && selectedPeer.batmanElpInterval <= 0;
+    selectedProtocol === RoutingProtocol.BATMAN &&
+    selectedPeer.batmanElpInterval < BATMAN_MIN_ELP_INTERVAL;
   const isBatmanPurgeMissing =
-    selectedProtocol === RoutingProtocol.BATMAN && selectedPeer.batmanPurgeTimeout <= 0;
+    selectedProtocol === RoutingProtocol.BATMAN &&
+    selectedPeer.batmanPurgeTimeout < BATMAN_MIN_PURGE_TIMEOUT;
   const isBatmanPenaltyDistanceMissing =
-    selectedProtocol === RoutingProtocol.BATMAN && selectedPeer.batmanDistancePenaltyDistance <= 0;
+    selectedProtocol === RoutingProtocol.BATMAN &&
+    selectedPeer.batmanDistancePenaltyDistance < BATMAN_MIN_DISTANCE_PENALTY;
   const isBatmanPenaltyPercentMissing =
-    selectedProtocol === RoutingProtocol.BATMAN && selectedPeer.batmanDistancePenaltyPercent < 0;
+    selectedProtocol === RoutingProtocol.BATMAN &&
+    selectedPeer.batmanDistancePenaltyPercent < BATMAN_MIN_PENALTY_PERCENT;
 
   const updatePeer = (changes: Partial<PeerEntity>) => {
     if (isLocked) return;
