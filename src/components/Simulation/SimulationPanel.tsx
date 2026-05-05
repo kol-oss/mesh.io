@@ -3,7 +3,11 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { Link } from "react-router-dom";
 
 import { ui } from "../../i18n/messages";
-import { type SimulationEvent, type SimulationStepResult } from "../../types/simulation";
+import {
+  QualityWindowBit,
+  type SimulationEvent,
+  type SimulationStepResult,
+} from "../../types/simulation";
 import {
   formatFixed,
   getEventDescription,
@@ -22,7 +26,7 @@ import {
   getThroughputBreakdown,
   getThroughputEwmaExplanation,
   renderPeerName,
-} from "../../utils/simulation/eventHelpers";
+} from "../../utils/simulation/eventPresentation";
 
 type SimulationPanelProps = {
   anchorX: number;
@@ -251,7 +255,7 @@ export default function SimulationPanel({
                     >
                       {row.qualityWindow.split("").map((bit, bitIndex) => (
                         <span
-                          className={`simulation-panel__quality-window-bit${bit === "1" ? " simulation-panel__quality-window-bit--active" : ""}`}
+                          className={`simulation-panel__quality-window-bit${bit === QualityWindowBit.Active ? " simulation-panel__quality-window-bit--active" : ""}`}
                           key={`${row.originatorPeerId}-${row.hopPeerId}-${bitIndex}`}
                         >
                           {bit}

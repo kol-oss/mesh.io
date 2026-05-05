@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { ui } from "../../i18n/messages";
+import { EntityType } from "../../types/enums";
 import {
   type EntityStatusChangedEventDetails,
   type PeerMovedEventDetails,
@@ -117,7 +118,7 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<st
     case SimulationEventType.SystemEntityStatusChanged: {
       const details = event.details as EntityStatusChangedEventDetails;
       const entityLabel =
-        details.entityType === "LINK" ? ui.entities.typeLink : ui.entities.typePeer;
+        details.entityType === EntityType.Link ? ui.entities.typeLink : ui.entities.typePeer;
       return ui.simulation.eventEntityStatusChanged(entityLabel, details.nextEnabled);
     }
     default:
@@ -248,7 +249,7 @@ export const getMessageSummary = (
     return [
       {
         label: ui.properties.fieldType,
-        value: details.entityType === "LINK" ? ui.entities.typeLink : ui.entities.typePeer,
+        value: details.entityType === EntityType.Link ? ui.entities.typeLink : ui.entities.typePeer,
       },
       {
         label: ui.properties.fieldStatus,

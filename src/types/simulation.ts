@@ -48,9 +48,22 @@ export type BatmanEchoLocationNeighbour = {
   address: string;
 };
 
+export const BatmanPacketType = {
+  EchoLocationProtocol: "ELP",
+} as const;
+
+export type BatmanPacketType = (typeof BatmanPacketType)[keyof typeof BatmanPacketType];
+
+export const QualityWindowBit = {
+  Active: "1",
+  Inactive: "0",
+} as const;
+
+export type QualityWindowBit = (typeof QualityWindowBit)[keyof typeof QualityWindowBit];
+
 export type BatmanEchoLocationMessage = {
   kind: typeof SimulationMessageKind.BatmanEchoLocationMessage;
-  packetType: "ELP";
+  packetType: typeof BatmanPacketType.EchoLocationProtocol;
   version: number;
   sourcePeerId: string;
   senderPeerId: string;
