@@ -543,6 +543,7 @@ const processStep = (
         return;
       }
 
+      module.tick();
       module.refreshFullDump();
       return;
     }
@@ -555,6 +556,7 @@ const processStep = (
         return;
       }
 
+      module.tick();
       module.refreshIncremental();
       return;
     }

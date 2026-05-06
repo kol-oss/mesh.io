@@ -102,7 +102,41 @@ export default function PeerProperties({
     setEntities(updatedEntities);
   };
 
+  const updateDsdvPeers = (changes: Partial<PeerEntity>) => {
+    if (isLocked) return;
+    const updatedEntities = entities.map((entity) => {
+      if (entity.type !== EntityType.Peer) {
+        return entity;
+      }
+
+      return {
+        ...entity,
+        ...changes,
+      };
+    });
+
+    setEntities(updatedEntities);
+  };
+
   const renderBatmanLabel = (label: string, isRequired: boolean) => (
+    <span className="properties__field-label properties__field-label--global">
+      <span
+        className={`properties__field-label-text ${isRequired ? "properties__field-label-text--required" : ""}`}
+      >
+        {label}
+      </span>
+      <Tooltip content={ui.properties.globalFieldTooltip}>
+        <span
+          className="properties__global-indicator"
+          aria-label={ui.properties.globalFieldTooltip}
+        >
+          <Globe size={12} />
+        </span>
+      </Tooltip>
+    </span>
+  );
+
+  const renderGlobalLabel = (label: string, isRequired: boolean) => (
     <span className="properties__field-label properties__field-label--global">
       <span
         className={`properties__field-label-text ${isRequired ? "properties__field-label-text--required" : ""}`}
@@ -387,11 +421,10 @@ export default function PeerProperties({
         {selectedProtocol === RoutingProtocol.DSDV && (
           <>
             <label className="properties__field">
-              <span
-                className={`properties__field-label ${isDsdvIncrementalMissing ? "properties__field-label--required" : ""}`}
-              >
-                {ui.properties.fieldDsdvIncrementalInterval}
-              </span>
+              {renderGlobalLabel(
+                ui.properties.fieldDsdvIncrementalInterval,
+                isDsdvIncrementalMissing,
+              )}
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
@@ -401,7 +434,7 @@ export default function PeerProperties({
                   max={DSDV_MAX_INTERVAL}
                   value={selectedPeer.dsdvIncrementalUpdateInterval}
                   onChange={(event) =>
-                    updatePeer({
+                    updateDsdvPeers({
                       dsdvIncrementalUpdateInterval: Math.max(
                         DSDV_MIN_INTERVAL,
                         Math.min(
@@ -419,11 +452,7 @@ export default function PeerProperties({
             </label>
 
             <label className="properties__field">
-              <span
-                className={`properties__field-label ${isDsdvFullDumpMissing ? "properties__field-label--required" : ""}`}
-              >
-                {ui.properties.fieldDsdvFullDumpInterval}
-              </span>
+              {renderGlobalLabel(ui.properties.fieldDsdvFullDumpInterval, isDsdvFullDumpMissing)}
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
@@ -433,7 +462,7 @@ export default function PeerProperties({
                   max={DSDV_MAX_INTERVAL}
                   value={selectedPeer.dsdvFullDumpInterval}
                   onChange={(event) =>
-                    updatePeer({
+                    updateDsdvPeers({
                       dsdvFullDumpInterval: Math.max(
                         DSDV_MIN_INTERVAL,
                         Math.min(

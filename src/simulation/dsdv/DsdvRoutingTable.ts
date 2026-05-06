@@ -23,20 +23,26 @@ type DsdvRouteState = {
 export class DsdvRoutingTable {
   private readonly routes = new Map<UUID, DsdvRouteState>();
 
+  private readonly pendingWithdrawals = new Map<UUID, DsdvRouteState>();
+
   private readonly routingPeer: SimulationPeerNode;
 
   private readonly eventRecorder: SimulationEventRecorder;
 
   private getRouteTimeout: () => number;
 
+  private getRouteExpiryTick: (nextHopPeerId: UUID, fallbackTick: number) => number;
+
   constructor(params: {
     routingPeer: SimulationPeerNode;
     eventRecorder: SimulationEventRecorder;
     getRouteTimeout: () => number;
+    getRouteExpiryTick: (nextHopPeerId: UUID, fallbackTick: number) => number;
   }) {
     this.routingPeer = params.routingPeer;
     this.eventRecorder = params.eventRecorder;
     this.getRouteTimeout = params.getRouteTimeout;
+    this.getRouteExpiryTick = params.getRouteExpiryTick;
   }
 
   upsertSelfRoute(sequenceNumber: number) {
@@ -123,6 +129,7 @@ export class DsdvRoutingTable {
       changed: true,
     };
 
+    this.pendingWithdrawals.delete(params.destinationPeerId);
     this.routes.set(params.destinationPeerId, nextState);
 
     const reason = current
@@ -157,26 +164,34 @@ export class DsdvRoutingTable {
 
       if (
         route.metric < DSDV_METRIC_INFINITY &&
-        tick - route.lastUpdateTick >= Math.max(1, this.getRouteTimeout())
+        tick >= this.getRouteExpiryTick(route.nextHopPeerId, route.lastUpdateTick)
       ) {
         const previousRoute = this.toRecord(route);
-        const oddSequence =
+        const withdrawalSequenceNumber =
           route.sequenceNumber % 2 === 0 ? route.sequenceNumber + 1 : route.sequenceNumber;
-        route.metric = DSDV_METRIC_INFINITY;
-        route.sequenceNumber = oddSequence;
-        route.lastUpdateTick = tick;
-        route.deleteAfterTick = tick + Math.max(1, this.getRouteTimeout());
-        route.changed = true;
+
+        this.routes.delete(destinationPeerId);
+        this.pendingWithdrawals.set(destinationPeerId, {
+          destinationPeerId: previousRoute.destinationPeerId,
+          nextHopPeerId: previousRoute.nextHopPeerId,
+          metric: DSDV_METRIC_INFINITY,
+          sequenceNumber: withdrawalSequenceNumber,
+          lastUpdateTick: tick,
+          deleteAfterTick: null,
+          changed: true,
+        });
         changed = true;
 
-        this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableUpdate, {
+        this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableRemove, {
           protocol: RoutingProtocol.DSDV,
-          destinationPeerId: route.destinationPeerId,
-          nextHopPeerId: route.nextHopPeerId,
+          destinationPeerId: previousRoute.destinationPeerId,
+          nextHopPeerId: previousRoute.nextHopPeerId,
           previousRoute,
-          nextRoute: this.toRecord(route),
-          reason: `Route expired after ${Math.max(1, this.getRouteTimeout())} ticks and was invalidated with odd sequence number.`,
+          nextRoute: null,
+          reason: `Route deleted because no DSDV full dump was received from next hop ${previousRoute.nextHopPeerId} by tick ${tick}.`,
         });
+
+        continue;
       }
 
       if (
@@ -212,7 +227,7 @@ export class DsdvRoutingTable {
   }
 
   getChangedRoutes() {
-    return [...this.routes.values()]
+    return [...this.routes.values(), ...this.pendingWithdrawals.values()]
       .filter((route) => route.changed)
       .map((route) => this.toRecord(route));
   }
@@ -221,6 +236,8 @@ export class DsdvRoutingTable {
     for (const route of this.routes.values()) {
       route.changed = false;
     }
+
+    this.pendingWithdrawals.clear();
   }
 
   getRoutes() {

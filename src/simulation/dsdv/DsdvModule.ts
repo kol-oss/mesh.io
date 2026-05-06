@@ -14,11 +14,18 @@ import type { PacketCapableModule, SimulationPeerNode } from "../core/runtimeTyp
 import { DsdvRoutingTable } from "./DsdvRoutingTable";
 import { cloneDsdvMessage, isDsdvSimulationMessage } from "./dsdvMessage";
 import {
+  DSDV_MAX_INTERVAL,
   DSDV_MAX_TIMEOUT,
   DSDV_METRIC_INFINITY,
+  DSDV_MIN_INTERVAL,
   DSDV_MIN_TIMEOUT,
   DSDV_SEQUENCE_INITIAL,
 } from "../../constants/dsdv";
+
+const clampInterval = (value: number) => {
+  const normalized = Math.floor(value);
+  return Math.max(DSDV_MIN_INTERVAL, Math.min(DSDV_MAX_INTERVAL, normalized));
+};
 
 const clampTimeout = (value: number) => {
   const normalized = Math.floor(value);
@@ -38,6 +45,11 @@ export class DsdvModule implements PacketCapableModule {
 
   private lastIncrementalBroadcastTick = 0;
 
+  private readonly fullDumpTimingByNeighbour = new Map<
+    UUID,
+    { lastTick: number; interval: number }
+  >();
+
   constructor(routingPeer: SimulationPeerNode, eventRecorder: SimulationEventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
@@ -45,6 +57,15 @@ export class DsdvModule implements PacketCapableModule {
       routingPeer,
       eventRecorder,
       getRouteTimeout: () => clampTimeout(this.routingPeer.getPeerEntity().dsdvRouteTimeout),
+      getRouteExpiryTick: (nextHopPeerId, fallbackTick) => {
+        const fullDumpTiming = this.fullDumpTimingByNeighbour.get(nextHopPeerId);
+        const fullDumpInterval =
+          fullDumpTiming?.interval ??
+          clampInterval(this.routingPeer.getPeerEntity().dsdvFullDumpInterval);
+        const routeTimeout = clampTimeout(this.routingPeer.getPeerEntity().dsdvRouteTimeout);
+        const lastFullDumpTick = fullDumpTiming?.lastTick ?? fallbackTick;
+        return lastFullDumpTick + fullDumpInterval + routeTimeout;
+      },
     });
 
     this.routingTable.upsertSelfRoute(this.ownSequenceNumber);
@@ -146,6 +167,13 @@ export class DsdvModule implements PacketCapableModule {
         reason: ui.runtime.nextHopNoDsdv,
       });
       return false;
+    }
+
+    if (message.updateType === DsdvUpdateType.FullDump) {
+      this.fullDumpTimingByNeighbour.set(message.senderPeerId, {
+        lastTick: this.eventRecorder.getCurrentTick(),
+        interval: clampInterval(sender.getPeerEntity().dsdvFullDumpInterval),
+      });
     }
 
     const acceptedDestinations: UUID[] = [];
