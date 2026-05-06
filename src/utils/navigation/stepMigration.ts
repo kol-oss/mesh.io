@@ -48,6 +48,9 @@ const hasNonEmptyString = (value: unknown): value is string => {
   return typeof value === "string" && value.trim().length > 0;
 };
 
+const hasOwn = <T extends object>(value: T, key: PropertyKey) =>
+  Object.prototype.hasOwnProperty.call(value, key);
+
 const normalizeMessageStep = (rawStep: LegacyStep, index: number): MessageStep => {
   return {
     ...createStepBase({
@@ -100,12 +103,12 @@ export const migrateSteps = (steps: WorkflowStep[]) => {
       !hasNonEmptyString(rawStep.id) ||
       !hasNonEmptyString(rawStep.title) ||
       (normalizedType === StepType.Message &&
-        (rawStep.sourcePeerId == null || rawStep.destinationPeerId == null)) ||
+        (!hasOwn(rawStep, "sourcePeerId") || !hasOwn(rawStep, "destinationPeerId"))) ||
       (normalizedType === StepType.Move &&
-        (rawStep.movePeerId == null ||
+        (!hasOwn(rawStep, "movePeerId") ||
           typeof rawStep.x !== "number" ||
           typeof rawStep.y !== "number")) ||
-      (normalizedType === StepType.ToggleStatus && rawStep.targetEntityId == null)
+      (normalizedType === StepType.ToggleStatus && !hasOwn(rawStep, "targetEntityId"))
     );
   });
 
