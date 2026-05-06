@@ -16,8 +16,10 @@ import {
 } from "../types/simulation";
 import { getObstacleBounds, hasLineOfSight } from "../utils/geometry";
 import { BatmanModule } from "./batman/BatmanModule";
+import { DsdvModule } from "./dsdv/DsdvModule";
 import { SimulationEventRecorder } from "./core/EventRecorder";
 import type {
+  PacketCapableModule,
   RoutingProtocolModule,
   SimulationNetworkRuntime,
   SnapshotCapablePeerNode,
@@ -45,6 +47,11 @@ class RuntimePeer implements SnapshotCapablePeerNode {
     for (const protocol of entity.protocols) {
       if (protocol === RoutingProtocol.BATMAN) {
         this.modules.set(protocol, new BatmanModule(this, eventRecorder));
+        continue;
+      }
+
+      if (protocol === RoutingProtocol.DSDV) {
+        this.modules.set(protocol, new DsdvModule(this, eventRecorder));
       }
     }
   }
@@ -143,7 +150,7 @@ class RuntimePeer implements SnapshotCapablePeerNode {
     return this.linkedPeerIds.has(peerId);
   }
 
-  getRoutingTable() {
+  getBatmanRoutingTable() {
     const batmanModule = this.modules.get(RoutingProtocol.BATMAN);
     if (!(batmanModule instanceof BatmanModule)) {
       return [];
@@ -152,13 +159,27 @@ class RuntimePeer implements SnapshotCapablePeerNode {
     return batmanModule.getRoutes();
   }
 
-  getNeighboursTable() {
+  getBatmanNeighboursTable() {
     const batmanModule = this.modules.get(RoutingProtocol.BATMAN);
     if (!(batmanModule instanceof BatmanModule)) {
       return [];
     }
 
     return batmanModule.getNeighboursTable();
+  }
+
+  getDsdvRoutingTable() {
+    const dsdvModule = this.modules.get(RoutingProtocol.DSDV);
+    if (!(dsdvModule instanceof DsdvModule)) {
+      return [];
+    }
+
+    return dsdvModule.getRoutes();
+  }
+
+  getPrimaryProtocol() {
+    const [protocol] = this.entity.protocols;
+    return protocol ?? null;
   }
 }
 
@@ -272,8 +293,10 @@ class RuntimeNetwork implements SimulationNetworkRuntime {
 
   tickModules() {
     for (const peer of this.getPeers()) {
-      const module = peer.getModule(RoutingProtocol.BATMAN);
-      module?.tick();
+      const protocols = peer.getPeerEntity().protocols;
+      for (const protocol of protocols) {
+        peer.getModule(protocol)?.tick();
+      }
     }
   }
 
@@ -350,8 +373,9 @@ class RuntimeNetwork implements SimulationNetworkRuntime {
       entities: this.exportEntities(),
       peers: this.getPeers().map((peer) => ({
         ...peer.getPeerEntity(),
-        routingTable: peer.getRoutingTable(),
-        neighboursTable: peer.getNeighboursTable(),
+        batmanRoutingTable: peer.getBatmanRoutingTable(),
+        batmanNeighboursTable: peer.getBatmanNeighboursTable(),
+        dsdvRoutingTable: peer.getDsdvRoutingTable(),
       })),
     };
   }
@@ -481,25 +505,57 @@ const processStep = (
   }
 
   if (step.type === StepType.Refresh) {
-    if (step.refreshProtocol !== RoutingProtocol.BATMAN) {
-      return;
-    }
-
     const peer = network.getPeer(step.refreshPeerId);
-    const module = peer?.getModule(RoutingProtocol.BATMAN);
-    if (!(module instanceof BatmanModule)) {
+    const module = peer?.getModule(step.refreshProtocol);
+    if (!module) {
       return;
     }
 
-    if (step.refreshAction === RefreshAction.BatmanElp) {
+    if (
+      step.refreshProtocol === RoutingProtocol.BATMAN &&
+      step.refreshAction === RefreshAction.BatmanElp
+    ) {
+      if (!(module instanceof BatmanModule)) {
+        return;
+      }
       module.refreshElp();
       return;
     }
 
-    if (step.refreshAction === RefreshAction.BatmanOgm) {
+    if (
+      step.refreshProtocol === RoutingProtocol.BATMAN &&
+      step.refreshAction === RefreshAction.BatmanOgm
+    ) {
+      if (!(module instanceof BatmanModule)) {
+        return;
+      }
       // Route aging and stale removals are processed on OGM refresh cadence.
       module.tick();
       module.refreshOgm();
+      return;
+    }
+
+    if (
+      step.refreshProtocol === RoutingProtocol.DSDV &&
+      step.refreshAction === RefreshAction.DsdvFullDump
+    ) {
+      if (!(module instanceof DsdvModule)) {
+        return;
+      }
+
+      module.refreshFullDump();
+      return;
+    }
+
+    if (
+      step.refreshProtocol === RoutingProtocol.DSDV &&
+      step.refreshAction === RefreshAction.DsdvIncremental
+    ) {
+      if (!(module instanceof DsdvModule)) {
+        return;
+      }
+
+      module.refreshIncremental();
       return;
     }
 
@@ -513,10 +569,13 @@ const processStep = (
   }
 
   const sourcePeer = network.getPeer(step.sourcePeerId);
-  const sourceModule = sourcePeer?.getModule(RoutingProtocol.BATMAN);
-  if (!(sourceModule instanceof BatmanModule)) {
+  const sourceProtocol = sourcePeer?.getPrimaryProtocol() ?? null;
+  const sourceModule = sourceProtocol ? sourcePeer?.getModule(sourceProtocol) : null;
+  if (!sourceModule || !isPacketCapableModule(sourceModule)) {
     eventRecorder.save(step.sourcePeerId, SimulationEventType.SystemMessageDropped, {
-      reason: sourcePeer ? ui.runtime.sourcePeerNoBatmanModule : ui.runtime.sourcePeerMissing,
+      reason: sourcePeer
+        ? ui.runtime.sourcePeerNoProtocolModule(sourceProtocol ?? ui.common.unknown)
+        : ui.runtime.sourcePeerMissing,
       reasonCode: "SOURCE_UNAVAILABLE",
     });
     return;
@@ -529,4 +588,8 @@ const processStep = (
     timeToLive: 50,
   };
   sourceModule.send(packet);
+};
+
+const isPacketCapableModule = (module: RoutingProtocolModule): module is PacketCapableModule => {
+  return typeof (module as PacketCapableModule).send === "function";
 };

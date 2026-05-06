@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import { ui } from "../../i18n/messages";
 import {
+  DsdvUpdateType,
   SimulationMessageKind,
   type SimulationEvent,
   type SimulationMessage,
@@ -180,6 +181,31 @@ export default function PacketStructureWindow({
               </div>
             ))}
           </div>
+        ) : eventMessage?.kind === SimulationMessageKind.DsdvRouteUpdateMessage ? (
+          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
+            {getDsdvStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
+              <div className="simulation-panel__packet-row" key={`packet-row-dsdv-${rowIndex}`}>
+                {row.map((field) => (
+                  <div
+                    key={`dsdv-${rowIndex}-${field.label}`}
+                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
+                    style={{ flex: field.bits }}
+                  >
+                    <span className="simulation-panel__packet-field-label">{field.label}</span>
+                    <span className="simulation-panel__packet-field-value">{field.value}</span>
+                    <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-description">
+                        {field.description}
+                      </span>
+                      <span className="simulation-panel__packet-tooltip-bits">
+                        {field.bits} {ui.packet.bitsSuffix}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         ) : (
           <p className="simulation-panel__description simulation-panel__description--secondary">
             {ui.packet.unavailable}
@@ -206,12 +232,20 @@ const getPacketInspectorTitle = (message: SimulationMessage | null) => {
     return ui.packet.elpTitle;
   }
 
+  if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
+    return ui.packet.dsdvTitle;
+  }
+
   return ui.packet.title;
 };
 
 const getPacketInspectorStructureAria = (message: SimulationMessage | null) => {
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
     return ui.packet.elpStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
+    return ui.packet.dsdvStructureAria;
   }
 
   return ui.packet.structureAria;
@@ -226,7 +260,91 @@ const getPacketReadMorePath = (message: SimulationMessage | null) => {
     return "/docs/batman#originator-message";
   }
 
+  if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
+    return "/docs/dsdv#routing-updates";
+  }
+
   return "/docs/batman#what-you-need-to-know";
+};
+
+const getDsdvUpdateTypeLabel = (updateType: DsdvUpdateType) => {
+  return updateType === DsdvUpdateType.Incremental
+    ? ui.simulation.summaryDsdvIncremental
+    : ui.simulation.summaryDsdvFullDump;
+};
+
+const getDsdvStructureRows = (
+  message: SimulationMessage,
+  peerNameById: Map<string, string>,
+): PacketStructureField[][] => {
+  if (message.kind !== SimulationMessageKind.DsdvRouteUpdateMessage) {
+    return [];
+  }
+
+  const routeRows: PacketStructureField[][] = message.entries.map((entry) => [
+    {
+      label: ui.packet.fieldDestination,
+      value: peerNameById.get(entry.destinationPeerId) ?? entry.destinationPeerId,
+      bits: 32,
+      description: "Destination node advertised by DSDV.",
+      blocked: false,
+    },
+    {
+      label: ui.packet.fieldNextHop,
+      value: peerNameById.get(entry.nextHopPeerId) ?? entry.nextHopPeerId,
+      bits: 32,
+      description: "Next hop selected by the sender for this destination.",
+      blocked: false,
+    },
+    {
+      label: ui.packet.fieldSequenceNumber,
+      value: String(entry.sequenceNumber),
+      bits: 32,
+      description: "Destination sequence number used by DSDV freshness rules.",
+      blocked: false,
+    },
+    {
+      label: ui.packet.fieldMetric,
+      value: String(entry.metric),
+      bits: 16,
+      description: "Hop count metric for the advertised destination.",
+      blocked: false,
+    },
+  ]);
+
+  return [
+    [
+      {
+        label: ui.packet.fieldType,
+        value: getDsdvUpdateTypeLabel(message.updateType),
+        bits: 8,
+        description: "DSDV update type: full dump or incremental.",
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldReserved,
+        value: "0x00",
+        bits: 8,
+        description: "Reserved byte in DSDV packet header.",
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldSenderAddress,
+        value: peerNameById.get(message.senderPeerId) ?? message.senderPeerId,
+        bits: 32,
+        description: "Sender node address for this DSDV update.",
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldHopCount,
+        value: String(message.hopCount),
+        bits: 16,
+        description: "Number of hops this update has traversed while being retransmitted.",
+        blocked: false,
+      },
+    ],
+    ...routeRows,
+  ];
 };
 
 const getBatmanOgmStructureRows = (

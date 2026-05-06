@@ -22,6 +22,9 @@ export type PeerValidationState = {
   isBatmanPurgeMissing: boolean;
   isBatmanPenaltyDistanceMissing: boolean;
   isBatmanPenaltyPercentMissing: boolean;
+  isDsdvIncrementalMissing: boolean;
+  isDsdvFullDumpMissing: boolean;
+  isDsdvRouteTimeoutMissing: boolean;
 };
 
 export function validatePeer(
@@ -43,6 +46,12 @@ export function validatePeer(
       peer.batmanDistancePenaltyDistance < minimums.distancePenalty,
     isBatmanPenaltyPercentMissing:
       selectedProtocol === "BATMAN" && peer.batmanDistancePenaltyPercent < minimums.penaltyPercent,
+    isDsdvIncrementalMissing:
+      selectedProtocol === "DSDV" && peer.dsdvIncrementalUpdateInterval < minimums.dsdvIncremental,
+    isDsdvFullDumpMissing:
+      selectedProtocol === "DSDV" && peer.dsdvFullDumpInterval < minimums.dsdvFullDump,
+    isDsdvRouteTimeoutMissing:
+      selectedProtocol === "DSDV" && peer.dsdvRouteTimeout < minimums.dsdvRouteTimeout,
   };
 }
 

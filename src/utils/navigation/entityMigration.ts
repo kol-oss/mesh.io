@@ -13,6 +13,9 @@ export const peerDefaults = {
   batmanElpInterval: 1,
   batmanOgmInterval: 1,
   batmanPurgeTimeout: 10,
+  dsdvIncrementalUpdateInterval: 1,
+  dsdvFullDumpInterval: 5,
+  dsdvRouteTimeout: 10,
 };
 
 export const linkDefaults = {
@@ -62,7 +65,10 @@ const hasPeerDefaults = (entity: NetworkEntity) => {
     entity.batmanDistancePenaltyPercent >= 0 &&
     typeof entity.batmanElpInterval === "number" &&
     typeof entity.batmanOgmInterval === "number" &&
-    typeof entity.batmanPurgeTimeout === "number"
+    typeof entity.batmanPurgeTimeout === "number" &&
+    typeof entity.dsdvIncrementalUpdateInterval === "number" &&
+    typeof entity.dsdvFullDumpInterval === "number" &&
+    typeof entity.dsdvRouteTimeout === "number"
   );
 };
 

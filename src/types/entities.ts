@@ -19,6 +19,9 @@ export type PeerEntity = BaseEntity & {
   batmanElpInterval: number;
   batmanOgmInterval: number;
   batmanPurgeTimeout: number;
+  dsdvIncrementalUpdateInterval: number;
+  dsdvFullDumpInterval: number;
+  dsdvRouteTimeout: number;
 };
 
 export type LinkEntity = BaseEntity & {

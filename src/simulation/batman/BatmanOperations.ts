@@ -168,6 +168,7 @@ export class BatmanOperations {
     }
 
     this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemRouteSelected, {
+      protocol: RoutingProtocol.BATMAN,
       destinationPeerId: packet.destinationPeerId,
       selectedRoute,
       message: cloneMessage(packet),

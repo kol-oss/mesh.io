@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { ui } from "../../i18n/messages";
+import { RoutingProtocol } from "../../types/enums";
 import { EntityType } from "../../types/enums";
 import {
   type DroppedEventDetails,
@@ -10,12 +11,19 @@ import {
   SimulationMessageKind,
   SimulationEventType,
   type BatmanRouteRecord,
+  type BatmanRoutingTableChangeDetails,
   type RoutingTableChangeDetails,
   type SimulationEvent,
   type SimulationMessage,
   type ThroughputCalculationEventDetails,
 } from "../../types/simulation";
 import type { UUID } from "../../types/uuid";
+
+const isBatmanRoute = (
+  route: RouteSelectedEventDetails["selectedRoute"],
+): route is BatmanRouteRecord => {
+  return "originatorPeerId" in route;
+};
 
 export const getEventTitle = (event: SimulationEvent) => {
   const message = getEventMessage(event);
@@ -103,6 +111,9 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
       return getBroadcastDescription(event, message);
     case SimulationEventType.SystemRouteSelected: {
       const details = event.details as RouteSelectedEventDetails;
+      if (!isBatmanRoute(details.selectedRoute)) {
+        return ui.simulation.eventEmitted(actor);
+      }
       return ui.simulation.eventRouteSelected(
         getPeerDisplayName(details.selectedRoute.originatorPeerId, peerNameById),
         getPeerDisplayName(details.selectedRoute.hopPeerId, peerNameById),
@@ -137,10 +148,11 @@ export const getRouteChange = (event: SimulationEvent): RoutingTableChangeDetail
     return null;
   }
 
-  return event.details as RoutingTableChangeDetails;
+  const details = event.details as RoutingTableChangeDetails;
+  return details.protocol === RoutingProtocol.BATMAN ? details : null;
 };
 
-export const getRouteRows = (details: RoutingTableChangeDetails): BatmanRouteRecord[] => {
+export const getRouteRows = (details: BatmanRoutingTableChangeDetails): BatmanRouteRecord[] => {
   if (details.nextRoute) {
     return [details.nextRoute];
   }
@@ -154,7 +166,7 @@ export const getSelectedRoute = (event: SimulationEvent): BatmanRouteRecord | nu
   }
 
   const details = event.details as RouteSelectedEventDetails;
-  return details.selectedRoute;
+  return isBatmanRoute(details.selectedRoute) ? details.selectedRoute : null;
 };
 
 export const getMessageSummary = (
@@ -169,6 +181,9 @@ export const getMessageSummary = (
 
   if (event.type === SimulationEventType.SystemRouteSelected) {
     const details = event.details as RouteSelectedEventDetails;
+    if (!isBatmanRoute(details.selectedRoute)) {
+      return null;
+    }
     return [
       {
         label: ui.simulation.summaryDestination,

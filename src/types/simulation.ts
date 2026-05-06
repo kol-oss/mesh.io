@@ -1,4 +1,5 @@
 import type { NetworkEntity, PeerEntity } from "./entities";
+import { RoutingProtocol } from "./enums";
 import type { WorkflowStep } from "./steps";
 import type { UUID } from "./uuid";
 
@@ -23,6 +24,7 @@ export const SimulationMessageKind = {
   Packet: "PACKET",
   BatmanOriginatorMessage: "BATMAN_ORIGINATOR_MESSAGE",
   BatmanEchoLocationMessage: "BATMAN_ECHO_LOCATION_MESSAGE",
+  DsdvRouteUpdateMessage: "DSDV_ROUTE_UPDATE_MESSAGE",
 } as const;
 
 export type SimulationMessageKind =
@@ -75,10 +77,34 @@ export type BatmanEchoLocationMessage = {
   neighbours: BatmanEchoLocationNeighbour[];
 };
 
+export const DsdvUpdateType = {
+  FullDump: "FULL_DUMP",
+  Incremental: "INCREMENTAL",
+} as const;
+
+export type DsdvUpdateType = (typeof DsdvUpdateType)[keyof typeof DsdvUpdateType];
+
+export type DsdvRouteEntryMessage = {
+  destinationPeerId: UUID;
+  nextHopPeerId: UUID;
+  sequenceNumber: number;
+  metric: number;
+};
+
+export type DsdvRouteUpdateMessage = {
+  kind: typeof SimulationMessageKind.DsdvRouteUpdateMessage;
+  updateType: DsdvUpdateType;
+  sourcePeerId: UUID;
+  senderPeerId: UUID;
+  hopCount: number;
+  entries: DsdvRouteEntryMessage[];
+};
+
 export type SimulationMessage =
   | SimulationPacket
   | BatmanOriginatorMessage
-  | BatmanEchoLocationMessage;
+  | BatmanEchoLocationMessage
+  | DsdvRouteUpdateMessage;
 
 export type BatmanRouteRecord = {
   originatorPeerId: UUID;
@@ -95,7 +121,16 @@ export type BatmanNeighbourRecord = {
   interval: number;
 };
 
-export type RoutingTableChangeDetails = {
+export type DsdvRouteRecord = {
+  destinationPeerId: UUID;
+  nextHopPeerId: UUID;
+  metric: number;
+  sequenceNumber: number;
+  lastUpdateTick: number;
+};
+
+export type BatmanRoutingTableChangeDetails = {
+  protocol: typeof RoutingProtocol.BATMAN;
   originatorPeerId: UUID;
   hopPeerId: UUID;
   previousRoute: BatmanRouteRecord | null;
@@ -104,10 +139,25 @@ export type RoutingTableChangeDetails = {
   reason: string;
 };
 
+export type DsdvRoutingTableChangeDetails = {
+  protocol: typeof RoutingProtocol.DSDV;
+  destinationPeerId: UUID;
+  nextHopPeerId: UUID;
+  previousRoute: DsdvRouteRecord | null;
+  nextRoute: DsdvRouteRecord | null;
+  message?: SimulationMessage;
+  reason: string;
+};
+
+export type RoutingTableChangeDetails =
+  | BatmanRoutingTableChangeDetails
+  | DsdvRoutingTableChangeDetails;
+
 export type BroadcastEventDetails = {
   neighbourPeerIds: UUID[];
   retransmit: boolean;
   message: SimulationMessage;
+  note?: string;
 };
 
 export type MessageTransferEventDetails = {
@@ -146,8 +196,9 @@ export type ThroughputCalculationEventDetails = {
 };
 
 export type RouteSelectedEventDetails = {
+  protocol: RoutingProtocol;
   destinationPeerId: UUID;
-  selectedRoute: BatmanRouteRecord;
+  selectedRoute: BatmanRouteRecord | DsdvRouteRecord;
   message: SimulationPacket;
 };
 
@@ -193,8 +244,9 @@ export type SimulationEvent = {
 };
 
 export type SimulationPeerSnapshot = PeerEntity & {
-  routingTable: BatmanRouteRecord[];
-  neighboursTable: BatmanNeighbourRecord[];
+  batmanRoutingTable: BatmanRouteRecord[];
+  batmanNeighboursTable: BatmanNeighbourRecord[];
+  dsdvRoutingTable: DsdvRouteRecord[];
 };
 
 export type SimulationTickSnapshot = {

@@ -79,13 +79,13 @@ export const buildSimulationMessageAnimations = (
 
   if (currentEvent.type === SimulationEventType.SystemRouteSelected) {
     const details = currentEvent.details as RouteSelectedEventDetails;
+    const hopPeerId =
+      "hopPeerId" in details.selectedRoute
+        ? details.selectedRoute.hopPeerId
+        : details.selectedRoute.nextHopPeerId;
+
     return toMessageAnimations([
-      createAnimation(
-        currentEvent.peerId,
-        details.selectedRoute.hopPeerId,
-        "route-selected",
-        "default",
-      ),
+      createAnimation(currentEvent.peerId, hopPeerId, "route-selected", "default"),
     ]);
   }
 
@@ -130,6 +130,17 @@ export const buildSimulationMessageAnimations = (
       ]);
     }
 
+    if (details.message.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
+      return toMessageAnimations([
+        createAnimation(
+          details.message.senderPeerId,
+          currentEvent.peerId,
+          "throughput",
+          "route-change",
+        ),
+      ]);
+    }
+
     return [];
   }
 
@@ -137,9 +148,14 @@ export const buildSimulationMessageAnimations = (
     currentEvent.type === SimulationEventType.RoutingTableInsert ||
     currentEvent.type === SimulationEventType.RoutingTableUpdate
   ) {
-    const details = currentEvent.details as { hopPeerId: UUID };
+    const details = currentEvent.details as { hopPeerId?: UUID; nextHopPeerId?: UUID };
+    const nextHopPeerId = details.hopPeerId ?? details.nextHopPeerId ?? null;
+    if (!nextHopPeerId) {
+      return [];
+    }
+
     return toMessageAnimations([
-      createAnimation(details.hopPeerId, currentEvent.peerId, "route-change", "route-change"),
+      createAnimation(nextHopPeerId, currentEvent.peerId, "route-change", "route-change"),
     ]);
   }
 
@@ -193,6 +209,12 @@ const getDroppedMessageAnimation = (
   }
 
   if (message.kind === SimulationMessageKind.BatmanOriginatorMessage) {
+    return message.senderPeerId !== eventPeerId
+      ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
+      : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
+  }
+
+  if (message.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
     return message.senderPeerId !== eventPeerId
       ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
       : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };

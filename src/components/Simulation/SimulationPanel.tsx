@@ -22,6 +22,7 @@ import {
   getRouteRows,
   getRouteSequenceWindowExplanation,
   getSelectedRoute,
+  isBatmanRouteRecord,
   getSimulationReadMorePath,
   getThroughputBaseExplanation,
   getThroughputBreakdown,
@@ -144,9 +145,11 @@ export default function SimulationPanel({
     throughputBreakdown !== null,
     routeSequenceWindowExplanation !== null,
   );
+
   const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     event.stopPropagation();
   };
+
   const handleHeaderPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     if (event.button !== 0) {
       return;
@@ -162,9 +165,11 @@ export default function SimulationPanel({
     event.stopPropagation();
     event.preventDefault();
   };
+
   const handleTqDisclosureToggle = () => {
     onTqDisclosureToggle(currentEvent.id);
   };
+
   const handleSequenceDisclosureToggle = () => {
     onSequenceDisclosureToggle(currentEvent.id);
   };
@@ -188,34 +193,66 @@ export default function SimulationPanel({
           <div className="simulation-panel__table-block">
             <table className="simulation-panel__table-view">
               <thead>
-                <tr>
-                  <th>{ui.simulation.tableOriginator}</th>
-                  <th>{ui.simulation.tableNextHop}</th>
-                  <th>{ui.simulation.tableTq}</th>
-                  <th>{ui.simulation.tableLastSeen}</th>
-                </tr>
+                {isBatmanRouteRecord(routeRows[0]) ? (
+                  <tr>
+                    <th>{ui.simulation.tableOriginator}</th>
+                    <th>{ui.simulation.tableNextHop}</th>
+                    <th>{ui.simulation.tableTq}</th>
+                    <th>{ui.simulation.tableLastSeen}</th>
+                  </tr>
+                ) : (
+                  <tr>
+                    <th>{ui.simulation.tableDestination}</th>
+                    <th>{ui.simulation.tableNextHop}</th>
+                    <th>{ui.simulation.tableMetric}</th>
+                    <th>{ui.simulation.tableSequence}</th>
+                    <th>{ui.simulation.tableInstalled}</th>
+                  </tr>
+                )}
               </thead>
               <tbody>
-                {routeRows.map((row, index) => (
-                  <tr key={`${row.originatorPeerId}-${row.hopPeerId}-${index}`}>
-                    <td>
-                      {renderPeerName(
-                        row.originatorPeerId,
-                        getPeerLabel(row.originatorPeerId, peerNameById),
-                        onPeerHoverChange,
-                      )}
-                    </td>
-                    <td>
-                      {renderPeerName(
-                        row.hopPeerId,
-                        getPeerLabel(row.hopPeerId, peerNameById),
-                        onPeerHoverChange,
-                      )}
-                    </td>
-                    <td>{row.quality}</td>
-                    <td>{row.lastTick}</td>
-                  </tr>
-                ))}
+                {routeRows.map((row, index) =>
+                  isBatmanRouteRecord(row) ? (
+                    <tr key={`${row.originatorPeerId}-${row.hopPeerId}-${index}`}>
+                      <td>
+                        {renderPeerName(
+                          row.originatorPeerId,
+                          getPeerLabel(row.originatorPeerId, peerNameById),
+                          onPeerHoverChange,
+                        )}
+                      </td>
+                      <td>
+                        {renderPeerName(
+                          row.hopPeerId,
+                          getPeerLabel(row.hopPeerId, peerNameById),
+                          onPeerHoverChange,
+                        )}
+                      </td>
+                      <td>{row.quality}</td>
+                      <td>{row.lastTick}</td>
+                    </tr>
+                  ) : (
+                    <tr key={`${row.destinationPeerId}-${row.nextHopPeerId}-${index}`}>
+                      <td>
+                        {renderPeerName(
+                          row.destinationPeerId,
+                          getPeerLabel(row.destinationPeerId, peerNameById),
+                          onPeerHoverChange,
+                        )}
+                      </td>
+                      <td>
+                        {renderPeerName(
+                          row.nextHopPeerId,
+                          getPeerLabel(row.nextHopPeerId, peerNameById),
+                          onPeerHoverChange,
+                        )}
+                      </td>
+                      <td>{row.metric}</td>
+                      <td>{row.sequenceNumber}</td>
+                      <td>{row.lastUpdateTick}</td>
+                    </tr>
+                  ),
+                )}
               </tbody>
             </table>
             {routeSequenceWindowExplanation ? (
@@ -241,8 +278,10 @@ export default function SimulationPanel({
                 ) : null}
               </div>
             ) : null}
-            {isSequenceDisclosureOpen && routeSequenceWindowExplanation
-              ? routeRows.map((row, index) => (
+            {isSequenceDisclosureOpen &&
+            routeSequenceWindowExplanation &&
+            isBatmanRouteRecord(routeRows[0])
+              ? routeRows.filter(isBatmanRouteRecord).map((row, index) => (
                   <div
                     className="simulation-panel__quality-window"
                     key={`window-${row.originatorPeerId}-${row.hopPeerId}-${index}`}

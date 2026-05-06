@@ -9,6 +9,7 @@ import {
 import { Link } from "react-router-dom";
 
 import { ui } from "../../i18n/messages";
+import { RoutingProtocol } from "../../types/enums";
 import type { SimulationStepResult } from "../../types/simulation";
 import type { UUID } from "../../types/uuid";
 
@@ -94,6 +95,8 @@ export default function TableInspectionWindow({
     return null;
   }
 
+  const selectedProtocol = inspectedPeer.protocols[0] ?? null;
+
   return (
     <aside
       className={`simulation-panel simulation-panel--inspector${isDragging ? " simulation-panel--dragging" : ""}`}
@@ -105,7 +108,9 @@ export default function TableInspectionWindow({
         onPointerDown={handleHeaderPointerDown}
       >
         <h2 className="simulation-panel__title">
-          {ui.simulation.tableInspectionTitle(inspectedPeer.name)}
+          {selectedProtocol === RoutingProtocol.DSDV
+            ? ui.simulation.tableInspectionTitleDsdv(inspectedPeer.name)
+            : ui.simulation.tableInspectionTitle(inspectedPeer.name)}
         </h2>
         <button
           className="simulation-panel__close-button"
@@ -119,89 +124,141 @@ export default function TableInspectionWindow({
       </header>
 
       <section className="simulation-panel__section" onMouseLeave={() => onPeerHoverChange(null)}>
-        <div className="simulation-panel__table-block">
-          <p className="simulation-panel__section-title">{ui.simulation.tableNeighbours}</p>
-          <table className="simulation-panel__table-view">
-            <thead>
-              <tr>
-                <th>{ui.simulation.tableNeighbour}</th>
-                <th>{ui.simulation.tableTq}</th>
-                <th>{ui.simulation.tableLastSeen}</th>
-                <th>{ui.simulation.summaryInterval}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {inspectedPeer.neighboursTable.length === 0 ? (
-                <tr>
-                  <td colSpan={4}>{ui.simulation.tableNoRecords}</td>
-                </tr>
-              ) : (
-                inspectedPeer.neighboursTable.map((row, index) => (
-                  <tr key={`${row.neighbourPeerId}-${index}`}>
-                    <td>
-                      {renderPeerName(
-                        row.neighbourPeerId,
-                        getPeerLabel(row.neighbourPeerId, peerNameById),
-                        onPeerHoverChange,
-                      )}
-                    </td>
-                    <td>{row.quality}</td>
-                    <td>{row.lastTick}</td>
-                    <td>{row.interval}</td>
+        {selectedProtocol === RoutingProtocol.BATMAN ? (
+          <>
+            <div className="simulation-panel__table-block">
+              <p className="simulation-panel__section-title">{ui.simulation.tableNeighbours}</p>
+              <table className="simulation-panel__table-view">
+                <thead>
+                  <tr>
+                    <th>{ui.simulation.tableNeighbour}</th>
+                    <th>{ui.simulation.tableTq}</th>
+                    <th>{ui.simulation.tableLastSeen}</th>
+                    <th>{ui.simulation.summaryInterval}</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody>
+                  {inspectedPeer.batmanNeighboursTable.length === 0 ? (
+                    <tr>
+                      <td colSpan={4}>{ui.simulation.tableNoRecords}</td>
+                    </tr>
+                  ) : (
+                    inspectedPeer.batmanNeighboursTable.map((row, index) => (
+                      <tr key={`${row.neighbourPeerId}-${index}`}>
+                        <td>
+                          {renderPeerName(
+                            row.neighbourPeerId,
+                            getPeerLabel(row.neighbourPeerId, peerNameById),
+                            onPeerHoverChange,
+                          )}
+                        </td>
+                        <td>{row.quality}</td>
+                        <td>{row.lastTick}</td>
+                        <td>{row.interval}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-        <div className="simulation-panel__table-block">
-          <p className="simulation-panel__section-title">{ui.simulation.tableOriginators}</p>
-          <table className="simulation-panel__table-view">
-            <thead>
-              <tr>
-                <th>{ui.simulation.tableOriginator}</th>
-                <th>{ui.simulation.tableNextHop}</th>
-                <th>{ui.simulation.tableTq}</th>
-                <th>{ui.simulation.tableLastSeen}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {inspectedPeer.routingTable.length === 0 ? (
-                <tr>
-                  <td colSpan={4}>{ui.simulation.tableNoRecords}</td>
-                </tr>
-              ) : (
-                inspectedPeer.routingTable.map((row, index) => (
-                  <tr key={`${row.originatorPeerId}-${row.hopPeerId}-${index}`}>
-                    <td>
-                      {renderPeerName(
-                        row.originatorPeerId,
-                        getPeerLabel(row.originatorPeerId, peerNameById),
-                        onPeerHoverChange,
-                      )}
-                    </td>
-                    <td>
-                      {renderPeerName(
-                        row.hopPeerId,
-                        getPeerLabel(row.hopPeerId, peerNameById),
-                        onPeerHoverChange,
-                      )}
-                    </td>
-                    <td>{row.quality}</td>
-                    <td>{row.lastTick}</td>
+            <div className="simulation-panel__table-block">
+              <p className="simulation-panel__section-title">{ui.simulation.tableOriginators}</p>
+              <table className="simulation-panel__table-view">
+                <thead>
+                  <tr>
+                    <th>{ui.simulation.tableOriginator}</th>
+                    <th>{ui.simulation.tableNextHop}</th>
+                    <th>{ui.simulation.tableTq}</th>
+                    <th>{ui.simulation.tableLastSeen}</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody>
+                  {inspectedPeer.batmanRoutingTable.length === 0 ? (
+                    <tr>
+                      <td colSpan={4}>{ui.simulation.tableNoRecords}</td>
+                    </tr>
+                  ) : (
+                    inspectedPeer.batmanRoutingTable.map((row, index) => (
+                      <tr key={`${row.originatorPeerId}-${row.hopPeerId}-${index}`}>
+                        <td>
+                          {renderPeerName(
+                            row.originatorPeerId,
+                            getPeerLabel(row.originatorPeerId, peerNameById),
+                            onPeerHoverChange,
+                          )}
+                        </td>
+                        <td>
+                          {renderPeerName(
+                            row.hopPeerId,
+                            getPeerLabel(row.hopPeerId, peerNameById),
+                            onPeerHoverChange,
+                          )}
+                        </td>
+                        <td>{row.quality}</td>
+                        <td>{row.lastTick}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : selectedProtocol === RoutingProtocol.DSDV ? (
+          <div className="simulation-panel__table-block">
+            <p className="simulation-panel__section-title">{ui.simulation.tableDsdvRoutes}</p>
+            <table className="simulation-panel__table-view">
+              <thead>
+                <tr>
+                  <th>{ui.simulation.tableDestination}</th>
+                  <th>{ui.simulation.tableNextHop}</th>
+                  <th>{ui.simulation.tableMetric}</th>
+                  <th>{ui.simulation.tableSequence}</th>
+                  <th>{ui.simulation.tableInstalled}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {inspectedPeer.dsdvRoutingTable.length === 0 ? (
+                  <tr>
+                    <td colSpan={5}>{ui.simulation.tableNoRecords}</td>
+                  </tr>
+                ) : (
+                  inspectedPeer.dsdvRoutingTable.map((row, index) => (
+                    <tr key={`${row.destinationPeerId}-${row.nextHopPeerId}-${index}`}>
+                      <td>
+                        {renderPeerName(
+                          row.destinationPeerId,
+                          getPeerLabel(row.destinationPeerId, peerNameById),
+                          onPeerHoverChange,
+                        )}
+                      </td>
+                      <td>
+                        {renderPeerName(
+                          row.nextHopPeerId,
+                          getPeerLabel(row.nextHopPeerId, peerNameById),
+                          onPeerHoverChange,
+                        )}
+                      </td>
+                      <td>{row.metric}</td>
+                      <td>{row.sequenceNumber}</td>
+                      <td>{row.lastUpdateTick}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
       </section>
 
       <footer className="simulation-panel__footer">
         <Link
           className="simulation-panel__read-more"
-          to="/docs/batman#route-selection"
+          to={
+            selectedProtocol === RoutingProtocol.DSDV
+              ? "/docs/dsdv#routing-table"
+              : "/docs/batman#route-selection"
+          }
           target="_blank"
           rel="noreferrer"
         >

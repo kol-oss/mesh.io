@@ -2,6 +2,7 @@ import type { RoutingProtocol } from "../../types/enums";
 import type {
   BatmanNeighbourRecord,
   BatmanRouteRecord,
+  DsdvRouteRecord,
   SimulationPacket,
   SimulationTickSnapshot,
 } from "../../types/simulation";
@@ -33,8 +34,9 @@ export interface PacketCapableModule extends RoutingProtocolModule {
 }
 
 export interface SnapshotCapablePeerNode extends SimulationPeerNode {
-  getRoutingTable(): BatmanRouteRecord[];
-  getNeighboursTable(): BatmanNeighbourRecord[];
+  getBatmanRoutingTable(): BatmanRouteRecord[];
+  getBatmanNeighboursTable(): BatmanNeighbourRecord[];
+  getDsdvRoutingTable(): DsdvRouteRecord[];
 }
 
 export interface SimulationNetworkRuntime {

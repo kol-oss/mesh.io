@@ -1,4 +1,5 @@
 import { ui } from "../../i18n/messages";
+import { RoutingProtocol } from "../../types/enums";
 import {
   SimulationEventType,
   type BatmanOriginatorMessage,
@@ -70,6 +71,7 @@ export class BatmanOriginatorTable {
         if (tick - route.lastTick > this.purgeTimeout) {
           routes.delete(hopPeerId);
           this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableRemove, {
+            protocol: RoutingProtocol.BATMAN,
             originatorPeerId,
             hopPeerId,
             previousRoute,
@@ -157,6 +159,7 @@ export class BatmanOriginatorTable {
     this.originators.set(originatorPeerId, routes);
 
     this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableInsert, {
+      protocol: RoutingProtocol.BATMAN,
       originatorPeerId,
       hopPeerId,
       previousRoute: null,
@@ -184,6 +187,7 @@ export class BatmanOriginatorTable {
     if (processed) {
       route.throughput = throughput;
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableUpdate, {
+        protocol: RoutingProtocol.BATMAN,
         originatorPeerId,
         hopPeerId,
         previousRoute,

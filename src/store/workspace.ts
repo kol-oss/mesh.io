@@ -5,7 +5,7 @@ import { useLocalStorage } from "../hooks/storage/useLocalStorage";
 import { useToast } from "../hooks/useToast";
 import { ui } from "../i18n/messages";
 import { runSimulation } from "../simulation/runSimulation";
-import { PlacementMode, SelectionSource, ToolbarMode } from "../types/enums";
+import { PlacementMode, RoutingProtocol, SelectionSource, ToolbarMode } from "../types/enums";
 import type { NetworkEntity } from "../types/entities";
 import {
   SimulationEventType,
@@ -59,6 +59,13 @@ const collapseOriginatorInsertUpdateEvents = (events: SimulationEvent[]) => {
 
     const currentDetails = current.details as RoutingTableChangeDetails;
     const nextDetails = next.details as RoutingTableChangeDetails;
+    if (
+      currentDetails.protocol !== RoutingProtocol.BATMAN ||
+      nextDetails.protocol !== RoutingProtocol.BATMAN
+    ) {
+      continue;
+    }
+
     if (
       currentDetails.originatorPeerId !== nextDetails.originatorPeerId ||
       currentDetails.hopPeerId !== nextDetails.hopPeerId

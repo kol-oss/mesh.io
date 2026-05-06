@@ -18,6 +18,12 @@ import {
   BATMAN_MIN_DISTANCE_PENALTY,
   BATMAN_MIN_PENALTY_PERCENT,
 } from "../../../constants/batman";
+import {
+  DSDV_MAX_INTERVAL,
+  DSDV_MAX_TIMEOUT,
+  DSDV_MIN_INTERVAL,
+  DSDV_MIN_TIMEOUT,
+} from "../../../constants/dsdv";
 import Tooltip from "../../Tooltip/Tooltip";
 import { ui } from "../../../i18n/messages";
 import { EntityType, RoutingProtocol } from "../../../types/enums";
@@ -55,6 +61,14 @@ export default function PeerProperties({
   const isBatmanPenaltyPercentMissing =
     selectedProtocol === RoutingProtocol.BATMAN &&
     selectedPeer.batmanDistancePenaltyPercent < BATMAN_MIN_PENALTY_PERCENT;
+  const isDsdvIncrementalMissing =
+    selectedProtocol === RoutingProtocol.DSDV &&
+    selectedPeer.dsdvIncrementalUpdateInterval < DSDV_MIN_INTERVAL;
+  const isDsdvFullDumpMissing =
+    selectedProtocol === RoutingProtocol.DSDV &&
+    selectedPeer.dsdvFullDumpInterval < DSDV_MIN_INTERVAL;
+  const isDsdvRouteTimeoutMissing =
+    selectedProtocol === RoutingProtocol.DSDV && selectedPeer.dsdvRouteTimeout < DSDV_MIN_TIMEOUT;
 
   const updatePeer = (changes: Partial<PeerEntity>) => {
     if (isLocked) return;
@@ -361,6 +375,100 @@ export default function PeerProperties({
                       batmanPurgeTimeout: parseNumberValue(
                         event.target.value,
                         selectedPeer.batmanPurgeTimeout,
+                      ),
+                    })
+                  }
+                />
+              </div>
+            </label>
+          </>
+        )}
+
+        {selectedProtocol === RoutingProtocol.DSDV && (
+          <>
+            <label className="properties__field">
+              <span
+                className={`properties__field-label ${isDsdvIncrementalMissing ? "properties__field-label--required" : ""}`}
+              >
+                {ui.properties.fieldDsdvIncrementalInterval}
+              </span>
+              <div className="properties__input-with-prefix">
+                <Clock3 size={12} />
+                <input
+                  className={`properties__input ${isDsdvIncrementalMissing ? "properties__required-outline" : ""}`}
+                  type="number"
+                  min={DSDV_MIN_INTERVAL}
+                  max={DSDV_MAX_INTERVAL}
+                  value={selectedPeer.dsdvIncrementalUpdateInterval}
+                  onChange={(event) =>
+                    updatePeer({
+                      dsdvIncrementalUpdateInterval: Math.max(
+                        DSDV_MIN_INTERVAL,
+                        Math.min(
+                          DSDV_MAX_INTERVAL,
+                          parseNumberValue(
+                            event.target.value,
+                            selectedPeer.dsdvIncrementalUpdateInterval,
+                          ),
+                        ),
+                      ),
+                    })
+                  }
+                />
+              </div>
+            </label>
+
+            <label className="properties__field">
+              <span
+                className={`properties__field-label ${isDsdvFullDumpMissing ? "properties__field-label--required" : ""}`}
+              >
+                {ui.properties.fieldDsdvFullDumpInterval}
+              </span>
+              <div className="properties__input-with-prefix">
+                <Clock3 size={12} />
+                <input
+                  className={`properties__input ${isDsdvFullDumpMissing ? "properties__required-outline" : ""}`}
+                  type="number"
+                  min={DSDV_MIN_INTERVAL}
+                  max={DSDV_MAX_INTERVAL}
+                  value={selectedPeer.dsdvFullDumpInterval}
+                  onChange={(event) =>
+                    updatePeer({
+                      dsdvFullDumpInterval: Math.max(
+                        DSDV_MIN_INTERVAL,
+                        Math.min(
+                          DSDV_MAX_INTERVAL,
+                          parseNumberValue(event.target.value, selectedPeer.dsdvFullDumpInterval),
+                        ),
+                      ),
+                    })
+                  }
+                />
+              </div>
+            </label>
+
+            <label className="properties__field">
+              <span
+                className={`properties__field-label ${isDsdvRouteTimeoutMissing ? "properties__field-label--required" : ""}`}
+              >
+                {ui.properties.fieldDsdvRouteTimeout}
+              </span>
+              <div className="properties__input-with-prefix">
+                <Clock3 size={12} />
+                <input
+                  className={`properties__input ${isDsdvRouteTimeoutMissing ? "properties__required-outline" : ""}`}
+                  type="number"
+                  min={DSDV_MIN_TIMEOUT}
+                  max={DSDV_MAX_TIMEOUT}
+                  value={selectedPeer.dsdvRouteTimeout}
+                  onChange={(event) =>
+                    updatePeer({
+                      dsdvRouteTimeout: Math.max(
+                        DSDV_MIN_TIMEOUT,
+                        Math.min(
+                          DSDV_MAX_TIMEOUT,
+                          parseNumberValue(event.target.value, selectedPeer.dsdvRouteTimeout),
+                        ),
                       ),
                     })
                   }

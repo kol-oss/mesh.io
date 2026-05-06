@@ -81,6 +81,10 @@ export class BatmanModule implements PacketCapableModule {
       return this.operations.processEchoLocation(message);
     }
 
+    if (message.kind !== SimulationMessageKind.BatmanOriginatorMessage) {
+      return false;
+    }
+
     return this.operations.processOgmMessage(message);
   }
 

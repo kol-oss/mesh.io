@@ -21,6 +21,7 @@ import { generateUUID, type UUID } from "../../types/uuid";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 
 import { BATMAN_DEFAULT_CONFIGURATION } from "../../constants/batman.ts";
+import { DSDV_DEFAULT_CONFIGURATION } from "../../constants/dsdv.ts";
 
 type UseWorkspaceCreationParams = {
   entities: NetworkEntity[];
@@ -50,6 +51,7 @@ export function useWorkspaceCreation({
         enabled: true,
         protocols: [RoutingProtocol.BATMAN],
         ...BATMAN_DEFAULT_CONFIGURATION,
+        ...DSDV_DEFAULT_CONFIGURATION,
       };
 
       setters.setEntities([...entities, nextPeer]);

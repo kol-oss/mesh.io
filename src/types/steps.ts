@@ -5,6 +5,8 @@ import type { UUID } from "./uuid";
 export const RefreshAction = {
   BatmanElp: "BATMAN_ELP",
   BatmanOgm: "BATMAN_OGM",
+  DsdvFullDump: "DSDV_FULL_DUMP",
+  DsdvIncremental: "DSDV_INCREMENTAL",
 } as const;
 
 export type RefreshAction = (typeof RefreshAction)[keyof typeof RefreshAction];
