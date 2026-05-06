@@ -7,6 +7,8 @@ import {
   type ToggleStatusStep,
   type WorkflowStep,
 } from "../../types/steps";
+import { generateUUID } from "../../types/uuid";
+import type { UUID } from "../../types/uuid";
 
 export const stepTypes = [
   StepType.Move,
@@ -30,14 +32,14 @@ const normalizeRawStepType = (rawType: unknown): WorkflowStep["type"] | null => 
 };
 
 type LegacyStep = Partial<{
-  id: string;
+  id: UUID;
   title: string;
   tick: number;
   type: string;
-  sourcePeerId: string | null;
-  destinationPeerId: string | null;
-  targetEntityId: string | null;
-  movePeerId: string | null;
+  sourcePeerId: UUID | null;
+  destinationPeerId: UUID | null;
+  targetEntityId: UUID | null;
+  movePeerId: UUID | null;
   x: number;
   y: number;
 }>;
@@ -49,27 +51,27 @@ const hasNonEmptyString = (value: unknown): value is string => {
 const normalizeMessageStep = (rawStep: LegacyStep, index: number): MessageStep => {
   return {
     ...createStepBase({
-      id: hasNonEmptyString(rawStep.id) ? rawStep.id : `step-migrated-${index}`,
+      id: hasNonEmptyString(rawStep.id) ? rawStep.id : generateUUID(),
       title: hasNonEmptyString(rawStep.title) ? rawStep.title : ui.steps.typeMessage,
       tick: typeof rawStep.tick === "number" ? rawStep.tick : index + 1,
     }),
     type: StepType.Message,
-    sourcePeerId: hasNonEmptyString(rawStep.sourcePeerId) ? rawStep.sourcePeerId : "",
+    sourcePeerId: hasNonEmptyString(rawStep.sourcePeerId) ? rawStep.sourcePeerId : null,
     destinationPeerId: hasNonEmptyString(rawStep.destinationPeerId)
       ? rawStep.destinationPeerId
-      : "",
+      : null,
   };
 };
 
 const normalizeMoveStep = (rawStep: LegacyStep, index: number): MoveStep => {
   return {
     ...createStepBase({
-      id: hasNonEmptyString(rawStep.id) ? rawStep.id : `step-migrated-${index}`,
+      id: hasNonEmptyString(rawStep.id) ? rawStep.id : generateUUID(),
       title: hasNonEmptyString(rawStep.title) ? rawStep.title : ui.steps.typeMove,
       tick: typeof rawStep.tick === "number" ? rawStep.tick : index + 1,
     }),
     type: StepType.Move,
-    movePeerId: hasNonEmptyString(rawStep.movePeerId) ? rawStep.movePeerId : "",
+    movePeerId: hasNonEmptyString(rawStep.movePeerId) ? rawStep.movePeerId : null,
     x: typeof rawStep.x === "number" ? rawStep.x : 0,
     y: typeof rawStep.y === "number" ? rawStep.y : 0,
   };
@@ -78,12 +80,12 @@ const normalizeMoveStep = (rawStep: LegacyStep, index: number): MoveStep => {
 const normalizeToggleStep = (rawStep: LegacyStep, index: number): ToggleStatusStep => {
   return {
     ...createStepBase({
-      id: hasNonEmptyString(rawStep.id) ? rawStep.id : `step-migrated-${index}`,
+      id: hasNonEmptyString(rawStep.id) ? rawStep.id : generateUUID(),
       title: hasNonEmptyString(rawStep.title) ? rawStep.title : ui.steps.typeToggle,
       tick: typeof rawStep.tick === "number" ? rawStep.tick : index + 1,
     }),
     type: StepType.ToggleStatus,
-    targetEntityId: hasNonEmptyString(rawStep.targetEntityId) ? rawStep.targetEntityId : "",
+    targetEntityId: hasNonEmptyString(rawStep.targetEntityId) ? rawStep.targetEntityId : null,
   };
 };
 

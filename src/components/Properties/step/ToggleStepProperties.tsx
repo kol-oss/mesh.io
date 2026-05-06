@@ -40,7 +40,7 @@ export default function ToggleStepProperties({
             value={toggleTargetValue}
             invalid={isStepToggleEntityMissing}
             options={toggleTargetOptions}
-            onChange={(value) => updateStep({ targetEntityId: value || "" })}
+            onChange={(value) => updateStep({ targetEntityId: value || null })}
           />
         </div>
 

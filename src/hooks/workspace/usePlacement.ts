@@ -3,6 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 
 import { PlacementMode } from "../../types/enums";
 import type { PeerEntity } from "../../types/entities";
+import type { UUID } from "../../types/uuid";
 import type {
   WorkspacePlacementActions,
   WorkspacePlacementHandlers,
@@ -29,7 +30,7 @@ export function useWorkspacePlacement({
   const stepMovePeerIdRef = refs.stepMovePeerIdRef;
 
   const handleStaticLinkPointerDown = useCallback(
-    (linkId: string, event: ReactPointerEvent<SVGLineElement>) => {
+    (linkId: UUID, event: ReactPointerEvent<SVGLineElement>) => {
       event.stopPropagation();
 
       if (state.placementMode === PlacementMode.Toggle) {

@@ -4,6 +4,7 @@ import type { DragState, ObstacleResizeEdge } from "./interaction";
 import type { NetworkEntity, ObstacleEntity, PeerEntity } from "../navigation";
 import type { WorkspaceTextItem } from "./index";
 import type { SetEntities, SetNullableStringState, SetTexts } from "./shared";
+import type { UUID } from "../uuid";
 
 export type WorkspaceDragRefs = {
   dragStateRef: MutableRefObject<DragState | null>;
@@ -20,11 +21,11 @@ export type WorkspaceDragEntitySetter = SetEntities;
 export type WorkspaceDragTextSetter = SetTexts;
 
 export type WorkspaceDragState = {
-  editingTextId: string | null;
+  editingTextId: UUID | null;
 };
 
 export type WorkspaceDragActions = {
-  onEntitySelect: (id: string) => void;
+  onEntitySelect: (id: UUID) => void;
   onTogglePlacementHint: () => void;
 };
 

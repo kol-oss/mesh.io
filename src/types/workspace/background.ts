@@ -8,6 +8,7 @@ import type {
 
 import type { ToolbarPlacementMode } from "../toolbar";
 import type { SetNullableStringState, WorkspacePoint, WorkspaceSize } from "./shared";
+import type { UUID } from "../uuid";
 
 export type WorkspacePanState = {
   pointerId: number;
@@ -19,15 +20,15 @@ export type WorkspacePanState = {
 
 export type WorkspaceBackgroundRefs = {
   workspaceRef: RefObject<HTMLElement | null>;
-  linkSourcePeerIdRef: MutableRefObject<string | null>;
-  stepMessageSourcePeerIdRef: MutableRefObject<string | null>;
-  stepMovePeerIdRef: MutableRefObject<string | null>;
+  linkSourcePeerIdRef: MutableRefObject<UUID | null>;
+  stepMessageSourcePeerIdRef: MutableRefObject<UUID | null>;
+  stepMovePeerIdRef: MutableRefObject<UUID | null>;
   panStateRef: MutableRefObject<WorkspacePanState | null>;
 };
 
 export type WorkspaceBackgroundState = {
   placementMode: ToolbarPlacementMode;
-  editingTextId: string | null;
+  editingTextId: UUID | null;
   panOffset: WorkspacePoint;
   workspaceSize: WorkspaceSize;
 };
@@ -44,7 +45,7 @@ export type WorkspaceBackgroundActions = {
   createTextAt: (x: number, y: number) => void;
   createPeerAt: (x: number, y: number) => void;
   createObstacleAt: (x: number, y: number) => void;
-  createMoveStep: (movePeerId: string, x: number, y: number) => void;
+  createMoveStep: (movePeerId: UUID, x: number, y: number) => void;
   onClearSelection: () => void;
   showPlacementHint: () => void;
   scheduleHintRestore: (mode: ToolbarPlacementMode) => void;

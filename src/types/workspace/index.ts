@@ -1,5 +1,7 @@
+import type { UUID } from "../uuid";
+
 export type WorkspaceTextItem = {
-  id: string;
+  id: UUID;
   text: string;
   x: number;
   y: number;

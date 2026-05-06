@@ -9,6 +9,7 @@ import type {
   SimulationPeerSnapshot,
   ThroughputCalculationEventDetails,
 } from "../../types/simulation";
+import type { UUID } from "../../types/uuid";
 import { SimulationEventType, SimulationMessageKind } from "../../types/simulation";
 import type {
   MessageAnimation,
@@ -29,7 +30,7 @@ export const buildSimulationMessageAnimations = (
     return [];
   }
 
-  const peerById = new Map<string, SimulationPeerSnapshot | (NetworkEntity & { type: "PEER" })>();
+  const peerById = new Map<UUID, SimulationPeerSnapshot | (NetworkEntity & { type: "PEER" })>();
 
   for (const peer of currentStepResult.snapshot.peers) {
     peerById.set(peer.id, peer);
@@ -42,8 +43,8 @@ export const buildSimulationMessageAnimations = (
   }
 
   const createAnimation = (
-    sourcePeerId: string | null,
-    targetPeerId: string | null,
+    sourcePeerId: UUID | null,
+    targetPeerId: UUID | null,
     suffix: string,
     variant: MessageAnimation["variant"] = "default",
   ): MessageAnimation | null => {
@@ -136,7 +137,7 @@ export const buildSimulationMessageAnimations = (
     currentEvent.type === SimulationEventType.RoutingTableInsert ||
     currentEvent.type === SimulationEventType.RoutingTableUpdate
   ) {
-    const details = currentEvent.details as { hopPeerId: string };
+    const details = currentEvent.details as { hopPeerId: UUID };
     return toMessageAnimations([
       createAnimation(details.hopPeerId, currentEvent.peerId, "route-change", "route-change"),
     ]);
@@ -182,9 +183,9 @@ export const buildToggleStepAnimation = (
 };
 
 const getDroppedMessageAnimation = (
-  eventPeerId: string,
+  eventPeerId: UUID,
   message: SimulationMessage,
-): { sourcePeerId: string; targetPeerId: string } | null => {
+): { sourcePeerId: UUID; targetPeerId: UUID } | null => {
   if (message.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
     return message.senderPeerId !== eventPeerId
       ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }

@@ -7,11 +7,12 @@ import type {
 
 import type { PeerEntity } from "../navigation";
 import type { ToolbarPlacementMode } from "../toolbar";
+import type { UUID } from "../uuid";
 
 export type WorkspacePlacementRefs = {
-  linkSourcePeerIdRef: MutableRefObject<string | null>;
-  stepMessageSourcePeerIdRef: MutableRefObject<string | null>;
-  stepMovePeerIdRef: MutableRefObject<string | null>;
+  linkSourcePeerIdRef: MutableRefObject<UUID | null>;
+  stepMessageSourcePeerIdRef: MutableRefObject<UUID | null>;
+  stepMovePeerIdRef: MutableRefObject<UUID | null>;
 };
 
 export type WorkspacePlacementState = {
@@ -19,16 +20,16 @@ export type WorkspacePlacementState = {
 };
 
 export type WorkspacePlacementSetters = {
-  setCreationSelectedEntityId: Dispatch<SetStateAction<string | null>>;
+  setCreationSelectedEntityId: Dispatch<SetStateAction<UUID | null>>;
 };
 
 export type WorkspacePlacementActions = {
-  onEntitySelect: (id: string) => void;
+  onEntitySelect: (id: UUID) => void;
   showPlacementHint: () => void;
   scheduleHintRestore: (mode: ToolbarPlacementMode) => void;
-  createMessageStep: (sourcePeerId: string, destinationPeerId: string) => void;
-  createToggleStep: (targetEntityId: string) => void;
-  createLink: (sourcePeerId: string, destinationPeerId: string) => void;
+  createMessageStep: (sourcePeerId: UUID, destinationPeerId: UUID) => void;
+  createToggleStep: (targetEntityId: UUID) => void;
+  createLink: (sourcePeerId: UUID, destinationPeerId: UUID) => void;
   handlePeerPointerDownForDrag: (
     peer: PeerEntity,
     event: ReactPointerEvent<HTMLButtonElement>,
@@ -36,6 +37,6 @@ export type WorkspacePlacementActions = {
 };
 
 export type WorkspacePlacementHandlers = {
-  handleStaticLinkPointerDown: (linkId: string, event: ReactPointerEvent<SVGLineElement>) => void;
+  handleStaticLinkPointerDown: (linkId: UUID, event: ReactPointerEvent<SVGLineElement>) => void;
   handlePeerPointerDown: (peer: PeerEntity, event: ReactPointerEvent<HTMLButtonElement>) => void;
 };

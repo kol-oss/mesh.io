@@ -1,7 +1,8 @@
 import { EntityType, RoutingProtocol } from "./enums";
+import { type UUID } from "./uuid";
 
 export type BaseEntity = {
-  id: string;
+  id: UUID;
   name: string;
   locked?: boolean;
 };
@@ -22,8 +23,8 @@ export type PeerEntity = BaseEntity & {
 
 export type LinkEntity = BaseEntity & {
   type: typeof EntityType.Link;
-  sourcePeerId: string | null;
-  destinationPeerId: string | null;
+  sourcePeerId: UUID | null;
+  destinationPeerId: UUID | null;
   enabled: boolean;
 };
 

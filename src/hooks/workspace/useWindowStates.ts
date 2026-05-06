@@ -1,36 +1,37 @@
 import { useCallback, useRef, useState } from "react";
 import { ToolbarMode } from "../../types/enums";
 import type { SimulationEvent } from "../../types/simulation";
+import type { UUID } from "../../types/uuid";
 
 type PacketInspectorWindow = {
-  eventId: string;
+  eventId: UUID;
   isOpen: boolean;
   pinned: boolean;
 };
 
 type TableInspectionWindow = {
-  peerId: string;
+  peerId: UUID;
   pinned: boolean;
   isOpen: boolean;
-  stepId: string | null;
+  stepId: UUID | null;
 };
 
 type MessageHoverState = {
-  eventId: string | null;
+  eventId: UUID | null;
   isHovered: boolean;
 };
 
 type SimulationPeerHoverState = {
-  eventId: string;
-  peerId: string | null;
+  eventId: UUID;
+  peerId: UUID | null;
 } | null;
 
 type Props = {
   currentSimulationEvent: SimulationEvent | null;
-  currentStepId: string | null;
+  currentStepId: UUID | null;
   simulationInspectionMode: ToolbarMode;
   isPacketInspectionActive: boolean;
-  currentSimulationEventId: string | null;
+  currentSimulationEventId: UUID | null;
 };
 
 type Return = {
@@ -41,14 +42,14 @@ type Return = {
   simulationSequenceDisclosureByEvent: Record<string, boolean>;
   hoveredSimulationPeerState: SimulationPeerHoverState;
   tableInspectionSuppressHoverRef: React.MutableRefObject<boolean>;
-  handleSimulationPeerHoverChange: (peerId: string | null) => void;
-  handleSimulationTqDisclosureToggle: (eventId: string) => void;
-  handleSimulationSequenceDisclosureToggle: (eventId: string) => void;
-  handleTableInspectionPeerHoverChange: (peerId: string | null) => void;
-  handleTableInspectionClose: (peerId: string) => void;
+  handleSimulationPeerHoverChange: (peerId: UUID | null) => void;
+  handleSimulationTqDisclosureToggle: (eventId: UUID) => void;
+  handleSimulationSequenceDisclosureToggle: (eventId: UUID) => void;
+  handleTableInspectionPeerHoverChange: (peerId: UUID | null) => void;
+  handleTableInspectionClose: (peerId: UUID) => void;
   handleMessageAnimationHoverChange: (isHovered: boolean) => void;
   handleMessageAnimationInspectRequest: () => void;
-  handlePacketInspectorClose: (eventId: string) => void;
+  handlePacketInspectorClose: (eventId: UUID) => void;
   setPacketInspectorWindows: React.Dispatch<React.SetStateAction<PacketInspectorWindow[]>>;
   setTableInspectionWindows: React.Dispatch<React.SetStateAction<TableInspectionWindow[]>>;
 };
@@ -77,7 +78,7 @@ export const useWorkspaceWindowStates = ({
   const tableInspectionSuppressHoverRef = useRef(false);
 
   const handleSimulationPeerHoverChange = useCallback(
-    (peerId: string | null) => {
+    (peerId: UUID | null) => {
       if (!currentSimulationEvent) {
         setHoveredSimulationPeerState(null);
         return;
@@ -91,14 +92,14 @@ export const useWorkspaceWindowStates = ({
     [currentSimulationEvent],
   );
 
-  const handleSimulationTqDisclosureToggle = useCallback((eventId: string) => {
+  const handleSimulationTqDisclosureToggle = useCallback((eventId: UUID) => {
     setSimulationTqDisclosureByEvent((prev) => ({
       ...prev,
       [eventId]: !(prev[eventId] ?? false),
     }));
   }, []);
 
-  const handleSimulationSequenceDisclosureToggle = useCallback((eventId: string) => {
+  const handleSimulationSequenceDisclosureToggle = useCallback((eventId: UUID) => {
     setSimulationSequenceDisclosureByEvent((prev) => ({
       ...prev,
       [eventId]: !(prev[eventId] ?? false),
@@ -106,7 +107,7 @@ export const useWorkspaceWindowStates = ({
   }, []);
 
   const handleTableInspectionPeerHoverChange = useCallback(
-    (peerId: string | null) => {
+    (peerId: UUID | null) => {
       if (simulationInspectionMode !== ToolbarMode.RoutingTable) {
         return;
       }
@@ -138,7 +139,7 @@ export const useWorkspaceWindowStates = ({
     [currentStepId, simulationInspectionMode],
   );
 
-  const handleTableInspectionClose = useCallback((peerId: string) => {
+  const handleTableInspectionClose = useCallback((peerId: UUID) => {
     tableInspectionSuppressHoverRef.current = true;
     setTableInspectionWindows((prev) => prev.filter((w) => w.peerId !== peerId));
   }, []);
@@ -197,7 +198,7 @@ export const useWorkspaceWindowStates = ({
     });
   }, [currentSimulationEvent, isPacketInspectionActive]);
 
-  const handlePacketInspectorClose = useCallback((eventId: string) => {
+  const handlePacketInspectorClose = useCallback((eventId: UUID) => {
     setPacketInspectorWindows((prev) => prev.filter((w) => w.eventId !== eventId));
   }, []);
 

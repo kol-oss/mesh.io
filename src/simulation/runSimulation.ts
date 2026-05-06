@@ -2,6 +2,7 @@ import { RoutingProtocol, StepType } from "../types/enums";
 import { ui } from "../i18n/messages";
 import type { LinkEntity, NetworkEntity, PeerEntity } from "../types/entities";
 import { RefreshAction, type WorkflowStep } from "../types/steps";
+import type { UUID } from "../types/uuid";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -29,9 +30,9 @@ const cloneEntity = <T extends NetworkEntity>(entity: T): T => ({ ...entity });
 class RuntimePeer implements SnapshotCapablePeerNode {
   private readonly modules = new Map<RoutingProtocol, RoutingProtocolModule>();
 
-  private readonly rangedPeerIds = new Set<string>();
+  private readonly rangedPeerIds = new Set<UUID>();
 
-  private readonly linkedPeerIds = new Set<string>();
+  private readonly linkedPeerIds = new Set<UUID>();
 
   private readonly entity: PeerEntity;
 
@@ -86,15 +87,15 @@ class RuntimePeer implements SnapshotCapablePeerNode {
     this.linkedPeerIds.clear();
   }
 
-  addRangedPeer(peerId: string) {
+  addRangedPeer(peerId: UUID) {
     this.rangedPeerIds.add(peerId);
   }
 
-  addLinkedPeer(peerId: string) {
+  addLinkedPeer(peerId: UUID) {
     this.linkedPeerIds.add(peerId);
   }
 
-  getNeighbour(peerId: string) {
+  getNeighbour(peerId: UUID) {
     if (!this.isActive()) {
       return null;
     }
@@ -134,11 +135,11 @@ class RuntimePeer implements SnapshotCapablePeerNode {
     return neighbours;
   }
 
-  isRangedNeighbour(peerId: string) {
+  isRangedNeighbour(peerId: UUID) {
     return this.rangedPeerIds.has(peerId);
   }
 
-  isLinkedNeighbour(peerId: string) {
+  isLinkedNeighbour(peerId: UUID) {
     return this.linkedPeerIds.has(peerId);
   }
 
@@ -162,11 +163,11 @@ class RuntimePeer implements SnapshotCapablePeerNode {
 }
 
 class RuntimeNetwork implements SimulationNetworkRuntime {
-  private readonly peers = new Map<string, RuntimePeer>();
+  private readonly peers = new Map<UUID, RuntimePeer>();
 
-  private readonly links = new Map<string, RuntimeLink>();
+  private readonly links = new Map<UUID, RuntimeLink>();
 
-  private readonly entityOrder: Array<{ type: NetworkEntity["type"]; id: string }> = [];
+  private readonly entityOrder: Array<{ type: NetworkEntity["type"]; id: UUID }> = [];
 
   private readonly obstacles: NetworkEntity[] = [];
 
@@ -191,7 +192,7 @@ class RuntimeNetwork implements SimulationNetworkRuntime {
     this.refreshConnectivity();
   }
 
-  getPeer(peerId: string) {
+  getPeer(peerId: UUID) {
     return this.peers.get(peerId) ?? null;
   }
 
@@ -276,11 +277,11 @@ class RuntimeNetwork implements SimulationNetworkRuntime {
     }
   }
 
-  updatePeerPosition(peerId: string, x: number, y: number) {
+  updatePeerPosition(peerId: UUID, x: number, y: number) {
     this.peers.get(peerId)?.setPosition(x, y);
   }
 
-  toggleEntity(entityId: string): {
+  toggleEntity(entityId: UUID): {
     entityType: NetworkEntity["type"];
     previousEnabled: boolean;
     nextEnabled: boolean;
@@ -313,17 +314,17 @@ class RuntimeNetwork implements SimulationNetworkRuntime {
   }
 
   exportEntities() {
-    const peerEntities = new Map<string, NetworkEntity>();
+    const peerEntities = new Map<UUID, NetworkEntity>();
     for (const peer of this.getPeers()) {
       peerEntities.set(peer.id, { ...peer.getPeerEntity() });
     }
 
-    const linkEntities = new Map<string, NetworkEntity>();
+    const linkEntities = new Map<UUID, NetworkEntity>();
     for (const link of this.links.values()) {
       linkEntities.set(link.id, { ...link });
     }
 
-    const obstacleEntities = new Map<string, NetworkEntity>();
+    const obstacleEntities = new Map<UUID, NetworkEntity>();
     for (const obstacle of this.obstacles) {
       obstacleEntities.set(obstacle.id, { ...obstacle });
     }
@@ -428,6 +429,10 @@ const processStep = (
   eventRecorder: SimulationEventRecorder,
 ) => {
   if (step.type === StepType.Move) {
+    if (!step.movePeerId) {
+      return;
+    }
+
     const peer = network.getPeer(step.movePeerId);
     if (!peer) {
       return;
@@ -449,6 +454,10 @@ const processStep = (
   }
 
   if (step.type === StepType.ToggleStatus) {
+    if (!step.targetEntityId) {
+      return;
+    }
+
     const toggleResult = network.toggleEntity(step.targetEntityId);
     if (!toggleResult) {
       return;
@@ -496,6 +505,10 @@ const processStep = (
 
     module.tick();
     module.refresh();
+    return;
+  }
+
+  if (!step.sourcePeerId || !step.destinationPeerId) {
     return;
   }
 

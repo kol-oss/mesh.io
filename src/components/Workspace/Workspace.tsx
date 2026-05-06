@@ -26,6 +26,7 @@ import PacketStructureWindow from "../Simulation/PacketStructureWindow";
 import SimulationPanel from "../Simulation/SimulationPanel";
 import TableInspectionWindow from "../Simulation/TableInspectionWindow";
 import WorkspaceScene from "./WorkspaceScene";
+import type { UUID } from "../../types/uuid";
 
 type WorkspaceProps = {
   entities: NetworkEntity[];
@@ -34,7 +35,7 @@ type WorkspaceProps = {
   setSteps: (value: WorkflowStep[]) => void;
   texts: WorkspaceTextItem[];
   setTexts: (value: WorkspaceTextItem[]) => void;
-  selectedId: string | null;
+  selectedId: UUID | null;
   selectedSource: SelectionSource | null;
   placementMode: ToolbarPlacementMode;
   simulationInspectionMode: ToolbarMode;
@@ -47,8 +48,8 @@ type WorkspaceProps = {
   isSimulationActive: boolean;
   onPrevSimulationEvent: () => void;
   onNextSimulationEvent: () => void;
-  onEntitySelect: (id: string) => void;
-  onStepSelect: (id: string) => void;
+  onEntitySelect: (id: UUID) => void;
+  onStepSelect: (id: UUID) => void;
   onClearSelection: () => void;
 };
 
@@ -81,17 +82,17 @@ export default function Workspace({
   const [workspaceSize, setWorkspaceSize] = useState({ width: 0, height: 0 });
 
   const dragStateRef = useRef<DragState | null>(null);
-  const [activeDragEntityId, setActiveDragEntityId] = useState<string | null>(null);
+  const [activeDragEntityId, setActiveDragEntityId] = useState<UUID | null>(null);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
-  const [creationSelectedEntityId, setCreationSelectedEntityId] = useState<string | null>(null);
+  const [creationSelectedEntityId, setCreationSelectedEntityId] = useState<UUID | null>(null);
   const [moveTargetPreview, setMoveTargetPreview] = useState<{ x: number; y: number } | null>(null);
-  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const [editingTextId, setEditingTextId] = useState<UUID | null>(null);
   const [editingTextDraft, setEditingTextDraft] = useState("");
-  const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+  const [selectedTextId, setSelectedTextId] = useState<UUID | null>(null);
   const currentStepId = currentSimulationStepResult?.step.id ?? null;
-  const linkSourcePeerIdRef = useRef<string | null>(null);
-  const stepMessageSourcePeerIdRef = useRef<string | null>(null);
-  const stepMovePeerIdRef = useRef<string | null>(null);
+  const linkSourcePeerIdRef = useRef<UUID | null>(null);
+  const stepMessageSourcePeerIdRef = useRef<UUID | null>(null);
+  const stepMovePeerIdRef = useRef<UUID | null>(null);
   const placementModeRef = useRef<ToolbarPlacementMode>(placementMode);
   const hintActiveRef = useRef(false);
   const restoreHintTimerRef = useRef<number | null>(null);

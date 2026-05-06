@@ -15,6 +15,7 @@ import {
   type SimulationMessage,
   type ThroughputCalculationEventDetails,
 } from "../../types/simulation";
+import type { UUID } from "../../types/uuid";
 
 export const getEventTitle = (event: SimulationEvent) => {
   const message = getEventMessage(event);
@@ -80,7 +81,7 @@ export const getSimulationReadMorePath = (
   return "/docs/batman#what-you-need-to-know";
 };
 
-export const getEventDescription = (event: SimulationEvent, peerNameById: Map<string, string>) => {
+export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UUID, string>) => {
   const actor = ui.simulation.eventNodeLabel;
   const routeChange = getRouteChange(event);
   const message = getEventMessage(event);
@@ -158,8 +159,8 @@ export const getSelectedRoute = (event: SimulationEvent): BatmanRouteRecord | nu
 
 export const getMessageSummary = (
   event: SimulationEvent,
-  peerNameById: Map<string, string>,
-  onPeerHoverChange: (peerId: string | null) => void,
+  peerNameById: Map<UUID, string>,
+  onPeerHoverChange: (peerId: UUID | null) => void,
 ): Array<{ label: string; value: ReactNode }> | null => {
   const message = getEventMessage(event);
   if (!message) {
@@ -551,9 +552,9 @@ const getRouteRemoveDescription = (reason: string) => {
 };
 
 export const renderPeerName = (
-  peerId: string,
+  peerId: UUID,
   peerName: string,
-  onPeerHoverChange: (peerId: string | null) => void,
+  onPeerHoverChange: (peerId: UUID | null) => void,
 ): ReactNode => {
   return (
     <span
@@ -566,11 +567,11 @@ export const renderPeerName = (
   );
 };
 
-export const getPeerLabel = (peerId: string, peerNameById: Map<string, string>) => {
+export const getPeerLabel = (peerId: UUID, peerNameById: Map<UUID, string>) => {
   return peerNameById.get(peerId) ?? peerId;
 };
 
-const getPeerDisplayName = (peerId: string, peerNameById: Map<string, string>) => {
+const getPeerDisplayName = (peerId: UUID, peerNameById: Map<UUID, string>) => {
   return peerNameById.get(peerId) ?? ui.common.unknown;
 };
 

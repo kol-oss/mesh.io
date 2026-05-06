@@ -20,7 +20,7 @@ import type {
   WorkspaceCreationSetters,
 } from "../../types/workspace/creation";
 import { ui } from "../../i18n/messages";
-import { generateUUID } from "../../utils/uuid";
+import { generateUUID, type UUID } from "../../types/uuid";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 
 type UseWorkspaceCreationParams = {
@@ -85,7 +85,7 @@ export function useWorkspaceCreation({
   );
 
   const createLink = useCallback(
-    (sourcePeerId: string, destinationPeerId: string) => {
+    (sourcePeerId: UUID, destinationPeerId: UUID) => {
       const nextLink: LinkEntity = {
         id: generateUUID(),
         name: ui.entities.typeLink,
@@ -122,9 +122,9 @@ export function useWorkspaceCreation({
   }, [steps]);
 
   const createMessageStep = useCallback(
-    (sourcePeerId: string, destinationPeerId: string) => {
+    (sourcePeerId: UUID, destinationPeerId: UUID) => {
       const step: MessageStep = {
-        id: `step-${generateUUID()}`,
+        id: generateUUID(),
         title: ui.steps.typeMessage,
         type: StepType.Message,
         tick: getNextManualStepTick(),
@@ -138,9 +138,9 @@ export function useWorkspaceCreation({
   );
 
   const createMoveStep = useCallback(
-    (movePeerId: string, x: number, y: number) => {
+    (movePeerId: UUID, x: number, y: number) => {
       const step: MoveStep = {
-        id: `step-${generateUUID()}`,
+        id: generateUUID(),
         title: ui.steps.typeMove,
         type: StepType.Move,
         tick: getNextManualStepTick(),
@@ -155,9 +155,9 @@ export function useWorkspaceCreation({
   );
 
   const createToggleStep = useCallback(
-    (targetEntityId: string) => {
+    (targetEntityId: UUID) => {
       const step: ToggleStatusStep = {
-        id: `step-${generateUUID()}`,
+        id: generateUUID(),
         title: ui.steps.typeToggle,
         type: StepType.ToggleStatus,
         tick: getNextManualStepTick(),
@@ -172,7 +172,7 @@ export function useWorkspaceCreation({
   const createTextAt = useCallback(
     (x: number, y: number) => {
       const nextText: WorkspaceTextItem = {
-        id: `text-${generateUUID()}`,
+        id: generateUUID(),
         text: ui.workspace.createdText,
         x,
         y,

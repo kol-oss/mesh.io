@@ -17,7 +17,7 @@ import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
 import { EntityType } from "../../types/enums";
 import type { NetworkEntity } from "../../types/entities";
-import { generateUUID } from "../../utils/uuid";
+import { generateUUID, type UUID } from "../../types/uuid";
 import {
   migrateEntities,
   obstacleDefaults,
@@ -29,8 +29,8 @@ import Entity from "./Entity";
 type EntitiesProps = {
   entities: NetworkEntity[];
   setEntities: (value: NetworkEntity[]) => void;
-  selectedId: string | null;
-  onSelect: (id: string) => void;
+  selectedId: UUID | null;
+  onSelect: (id: UUID) => void;
   onClearSelection: () => void;
 };
 
@@ -87,7 +87,7 @@ export default function Entities({
   }, [selectedId, entities, setEntities, showToast, onSelect, onClearSelection]);
 
   const handleToggleLock = useCallback(
-    (id: string) => {
+    (id: UUID) => {
       const updatedEntities = entities.map((e) => (e.id === id ? { ...e, locked: !e.locked } : e));
       setEntities(updatedEntities);
     },

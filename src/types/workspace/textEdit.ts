@@ -1,11 +1,12 @@
 import type { Dispatch, SetStateAction } from "react";
 
 import type { WorkspaceTextItem } from "./index";
+import type { UUID } from "../uuid";
 
 export type WorkspaceTextEditSetters = {
   setTexts: (value: WorkspaceTextItem[]) => void;
-  setSelectedTextId: Dispatch<SetStateAction<string | null>>;
-  setEditingTextId: Dispatch<SetStateAction<string | null>>;
+  setSelectedTextId: Dispatch<SetStateAction<UUID | null>>;
+  setEditingTextId: Dispatch<SetStateAction<UUID | null>>;
   setEditingTextDraft: Dispatch<SetStateAction<string>>;
 };
 

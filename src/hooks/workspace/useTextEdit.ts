@@ -5,10 +5,11 @@ import type {
   WorkspaceTextEditSetters,
 } from "../../types/workspace/textEdit";
 import type { WorkspaceTextItem } from "../../types/workspace";
+import type { UUID } from "../../types/uuid";
 
 type UseWorkspaceTextEditParams = {
   texts: WorkspaceTextItem[];
-  editingTextId: string | null;
+  editingTextId: UUID | null;
   editingTextDraft: string;
   setters: WorkspaceTextEditSetters;
 };

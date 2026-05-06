@@ -5,18 +5,19 @@ import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
 import { SelectionSource } from "../../types/enums";
 import type { NetworkEntity } from "../../types/entities";
 import type { WorkflowStep } from "../../types/steps";
+import type { UUID } from "../../types/uuid";
 import NavigationHeader from "./NavigationHeader";
 import NavigationMenu from "./NavigationMenu";
 
 type NavigationProps = {
-  selectedId: string | null;
+  selectedId: UUID | null;
   selectedSource: SelectionSource | null;
   entities: NetworkEntity[];
   setEntities: (value: NetworkEntity[]) => void;
   steps: WorkflowStep[];
   setSteps: (value: WorkflowStep[]) => void;
-  onEntitySelect: (id: string) => void;
-  onStepSelect: (id: string) => void;
+  onEntitySelect: (id: UUID) => void;
+  onStepSelect: (id: UUID) => void;
   onClearSelection: () => void;
   onFileNew: () => void;
   onFileExport: () => void;

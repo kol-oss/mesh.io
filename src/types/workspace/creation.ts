@@ -1,4 +1,5 @@
 import type { SetEntities, SetSteps, SetTexts } from "./shared";
+import type { UUID } from "../uuid";
 
 export type WorkspaceCreationSetters = {
   setEntities: SetEntities;
@@ -7,7 +8,7 @@ export type WorkspaceCreationSetters = {
 };
 
 export type WorkspaceCreationCallbacks = {
-  onEntitySelect: (id: string) => void;
-  onStepSelect: (id: string) => void;
+  onEntitySelect: (id: UUID) => void;
+  onStepSelect: (id: UUID) => void;
   showCreationToast: (text: string) => void;
 };

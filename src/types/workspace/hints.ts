@@ -2,19 +2,20 @@ import type { MutableRefObject } from "react";
 
 import type { PeerEntity } from "../navigation";
 import type { ToolbarPlacementMode } from "../toolbar";
+import type { UUID } from "../uuid";
 
 export type WorkspaceHintRefs = {
   placementModeRef: MutableRefObject<ToolbarPlacementMode>;
   hintActiveRef: MutableRefObject<boolean>;
   restoreHintTimerRef: MutableRefObject<number | null>;
-  linkSourcePeerIdRef: MutableRefObject<string | null>;
-  stepMessageSourcePeerIdRef: MutableRefObject<string | null>;
-  stepMovePeerIdRef: MutableRefObject<string | null>;
+  linkSourcePeerIdRef: MutableRefObject<UUID | null>;
+  stepMessageSourcePeerIdRef: MutableRefObject<UUID | null>;
+  stepMovePeerIdRef: MutableRefObject<UUID | null>;
 };
 
 export type WorkspaceHintState = {
   placementMode: ToolbarPlacementMode;
-  resolvedCreationSelectedEntityId: string | null;
+  resolvedCreationSelectedEntityId: UUID | null;
   peers: PeerEntity[];
 };
 

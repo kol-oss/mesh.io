@@ -17,6 +17,7 @@ import { useLocalStorage } from "../../hooks/storage/useLocalStorage";
 import { useToast } from "../../hooks/useToast";
 import { StepType } from "../../types/enums";
 import type { MessageStep, MoveStep, ToggleStatusStep, WorkflowStep } from "../../types/steps";
+import { generateUUID, type UUID } from "../../types/uuid";
 import { migrateSteps } from "../../utils/navigation/stepMigration";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 import Tooltip from "../Tooltip/Tooltip";
@@ -25,8 +26,8 @@ import Step from "./Step";
 type StepsProps = {
   steps: WorkflowStep[];
   setSteps: (value: WorkflowStep[]) => void;
-  selectedId: string | null;
-  onSelect: (id: string) => void;
+  selectedId: UUID | null;
+  onSelect: (id: UUID) => void;
   onClearSelection: () => void;
 };
 
@@ -189,27 +190,27 @@ export default function Steps({
     const newStep: WorkflowStep =
       type === StepType.Message
         ? ({
-            id: `step-${Date.now()}`,
+            id: generateUUID(),
             title: ui.steps.typeMessage,
             type: StepType.Message,
             tick: nextTick,
-            sourcePeerId: "",
-            destinationPeerId: "",
+            sourcePeerId: null,
+            destinationPeerId: null,
           } satisfies MessageStep)
         : type === StepType.ToggleStatus
           ? ({
-              id: `step-${Date.now()}`,
+              id: generateUUID(),
               title: ui.steps.typeToggle,
               type: StepType.ToggleStatus,
               tick: nextTick,
-              targetEntityId: "",
+              targetEntityId: null,
             } satisfies ToggleStatusStep)
           : ({
-              id: `step-${Date.now()}`,
+              id: generateUUID(),
               title: ui.steps.typeMove,
               type: StepType.Move,
               tick: nextTick,
-              movePeerId: "",
+              movePeerId: null,
               x: 0,
               y: 0,
             } satisfies MoveStep);

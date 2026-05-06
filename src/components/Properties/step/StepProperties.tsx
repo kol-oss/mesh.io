@@ -55,25 +55,25 @@ export default function StepProperties({
   const messageSourceValue =
     selectedStep.type === StepType.Message &&
     peers.some((peer) => peer.id === selectedStep.sourcePeerId)
-      ? selectedStep.sourcePeerId
+      ? (selectedStep.sourcePeerId ?? "")
       : "";
 
   const messageDestinationValue =
     selectedStep.type === StepType.Message &&
-    selectedStep.destinationPeerId !== messageSourceValue &&
+    selectedStep.destinationPeerId !== (messageSourceValue || null) &&
     peers.some((peer) => peer.id === selectedStep.destinationPeerId)
-      ? selectedStep.destinationPeerId
+      ? (selectedStep.destinationPeerId ?? "")
       : "";
 
   const toggleTargetValue =
     selectedStep.type === StepType.ToggleStatus &&
     toggleTargets.some((entity) => entity.id === selectedStep.targetEntityId)
-      ? selectedStep.targetEntityId
+      ? (selectedStep.targetEntityId ?? "")
       : "";
 
   const moveTargetValue =
     selectedStep.type === StepType.Move && peers.some((peer) => peer.id === selectedStep.movePeerId)
-      ? selectedStep.movePeerId
+      ? (selectedStep.movePeerId ?? "")
       : "";
 
   const toggleTargetEntity = toggleTargets.find((entity) => entity.id === toggleTargetValue);
@@ -140,8 +140,8 @@ export default function StepProperties({
       return {
         ...base,
         type: StepType.Message,
-        sourcePeerId: "",
-        destinationPeerId: "",
+        sourcePeerId: null,
+        destinationPeerId: null,
       } satisfies MessageStep;
     }
 
@@ -149,14 +149,14 @@ export default function StepProperties({
       return {
         ...base,
         type: StepType.ToggleStatus,
-        targetEntityId: "",
+        targetEntityId: null,
       } satisfies ToggleStatusStep;
     }
 
     return {
       ...base,
       type: StepType.Move,
-      movePeerId: "",
+      movePeerId: null,
       x: 0,
       y: 0,
     } satisfies MoveStep;

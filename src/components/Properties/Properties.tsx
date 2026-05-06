@@ -2,11 +2,12 @@ import { useSidebarResize } from "../../hooks/navigation/useSidebarResize";
 import { SelectionSource, SidebarResizeSide } from "../../types/enums";
 import type { NetworkEntity } from "../../types/entities";
 import type { WorkflowStep } from "../../types/steps";
+import type { UUID } from "../../types/uuid";
 import EntityProperties from "./entity/EntityProperties";
 import StepProperties from "./step/StepProperties";
 
 type PropertiesProps = {
-  selectedId: string | null;
+  selectedId: UUID | null;
   selectedSource: SelectionSource | null;
   entities: NetworkEntity[];
   setEntities: (value: NetworkEntity[]) => void;

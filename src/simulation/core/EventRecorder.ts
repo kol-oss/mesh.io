@@ -3,7 +3,7 @@ import type {
   SimulationEventDetails,
   SimulationEventType,
 } from "../../types/simulation";
-import { generateUUID } from "../../utils/uuid";
+import { generateUUID, type UUID } from "../../types/uuid";
 
 export class SimulationEventRecorder {
   private readonly events: SimulationEvent[] = [];
@@ -12,13 +12,13 @@ export class SimulationEventRecorder {
 
   private currentTick = 1;
 
-  private currentStepId: string | null = null;
+  private currentStepId: UUID | null = null;
 
-  setCurrentStep(stepId: string | null) {
+  setCurrentStep(stepId: UUID | null) {
     this.currentStepId = stepId;
   }
 
-  save(peerId: string, type: SimulationEventType, details: SimulationEventDetails) {
+  save(peerId: UUID, type: SimulationEventType, details: SimulationEventDetails) {
     const event: SimulationEvent = {
       id: generateUUID(),
       tick: this.currentTick,

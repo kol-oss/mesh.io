@@ -6,6 +6,7 @@ import type {
   SimulationTickSnapshot,
 } from "../../types/simulation";
 import type { NetworkEntity, PeerEntity } from "../../types/entities";
+import type { UUID } from "../../types/uuid";
 
 export interface RoutingProtocolModule {
   read(message: unknown): boolean;
@@ -14,16 +15,16 @@ export interface RoutingProtocolModule {
 }
 
 export interface SimulationPeerNode {
-  readonly id: string;
+  readonly id: UUID;
   readonly name: string;
   isActive(): boolean;
   supports(protocol: RoutingProtocol): boolean;
   getModule(protocol: RoutingProtocol): RoutingProtocolModule | null;
-  getNeighbour(peerId: string): SimulationPeerNode | null;
+  getNeighbour(peerId: UUID): SimulationPeerNode | null;
   getNeighbours(): SimulationPeerNode[];
   getRangedNeighbours(): SimulationPeerNode[];
-  isLinkedNeighbour(peerId: string): boolean;
-  isRangedNeighbour(peerId: string): boolean;
+  isLinkedNeighbour(peerId: UUID): boolean;
+  isRangedNeighbour(peerId: UUID): boolean;
   getPeerEntity(): PeerEntity;
 }
 
@@ -37,7 +38,7 @@ export interface SnapshotCapablePeerNode extends SimulationPeerNode {
 }
 
 export interface SimulationNetworkRuntime {
-  getPeer(peerId: string): SnapshotCapablePeerNode | null;
+  getPeer(peerId: UUID): SnapshotCapablePeerNode | null;
   getPeers(): SnapshotCapablePeerNode[];
   refreshConnectivity(): void;
   tickModules(): void;

@@ -8,6 +8,7 @@ import {
   type SimulationEvent,
   type SimulationStepResult,
 } from "../../types/simulation";
+import type { UUID } from "../../types/uuid";
 import {
   formatFixed,
   getEventDescription,
@@ -39,11 +40,11 @@ type SimulationPanelProps = {
   currentStepResult: SimulationStepResult | null;
   isTqDisclosureOpen: boolean;
   isSequenceDisclosureOpen: boolean;
-  onPeerHoverChange: (peerId: string | null) => void;
+  onPeerHoverChange: (peerId: UUID | null) => void;
   onNextEvent: () => void;
   onPrevEvent: () => void;
-  onTqDisclosureToggle: (eventId: string) => void;
-  onSequenceDisclosureToggle: (eventId: string) => void;
+  onTqDisclosureToggle: (eventId: UUID) => void;
+  onSequenceDisclosureToggle: (eventId: UUID) => void;
 };
 
 export default function SimulationPanel({

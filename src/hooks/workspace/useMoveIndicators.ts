@@ -1,6 +1,7 @@
 import { useCallback, useRef } from "react";
 import { StepType } from "../../types/enums";
 import type { WorkflowStep } from "../../types/steps";
+import type { UUID } from "../../types/uuid";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 type Props = {
@@ -14,8 +15,8 @@ type Props = {
 };
 
 type Return = {
-  moveIndicatorDragStateRef: React.MutableRefObject<{ pointerId: number; stepId: string } | null>;
-  handleMoveIndicatorPointerDown: (stepId: string, event: ReactPointerEvent<HTMLElement>) => void;
+  moveIndicatorDragStateRef: React.MutableRefObject<{ pointerId: number; stepId: UUID } | null>;
+  handleMoveIndicatorPointerDown: (stepId: UUID, event: ReactPointerEvent<HTMLElement>) => void;
   handleMoveIndicatorPointerMove: (event: ReactPointerEvent<HTMLElement>) => void;
   handleMoveIndicatorPointerEnd: (event: ReactPointerEvent<HTMLElement>) => void;
 };
@@ -26,10 +27,10 @@ export const useMoveIndicatorHandlers = ({
   isSimulationActive,
   getWorkspaceCoordsByClientPosition,
 }: Props): Return => {
-  const moveIndicatorDragStateRef = useRef<{ pointerId: number; stepId: string } | null>(null);
+  const moveIndicatorDragStateRef = useRef<{ pointerId: number; stepId: UUID } | null>(null);
 
   const updateMoveStepTarget = useCallback(
-    (stepId: string, x: number, y: number) => {
+    (stepId: UUID, x: number, y: number) => {
       const nextSteps = steps.map((step) => {
         if (step.id !== stepId || step.type !== StepType.Move) {
           return step;
@@ -48,7 +49,7 @@ export const useMoveIndicatorHandlers = ({
   );
 
   const handleMoveIndicatorPointerDown = useCallback(
-    (stepId: string, event: ReactPointerEvent<HTMLElement>) => {
+    (stepId: UUID, event: ReactPointerEvent<HTMLElement>) => {
       if (isSimulationActive || event.button !== 0) {
         return;
       }

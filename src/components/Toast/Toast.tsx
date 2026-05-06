@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import type { UUID } from "../../types/uuid";
 
 export type ToastMessage = {
-  id: string;
+  id: UUID;
   text: string;
   duration?: number | null;
 };

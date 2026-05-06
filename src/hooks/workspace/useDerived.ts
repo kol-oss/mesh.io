@@ -13,6 +13,7 @@ import type { RangePolygon } from "../../types/workspace/interaction";
 import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../types/entities";
 import type { WorkflowStep } from "../../types/steps";
 import type { ToolbarPlacementMode } from "../../types/toolbar";
+import type { UUID } from "../../types/uuid";
 import {
   getObstacleBounds,
   getRayDistanceWithObstacleBlocking,
@@ -23,9 +24,9 @@ import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 type UseWorkspaceDerivedParams = {
   entities: NetworkEntity[];
   steps: WorkflowStep[];
-  selectedId: string | null;
+  selectedId: UUID | null;
   selectedSource: SelectionSource | null;
-  creationSelectedEntityId: string | null;
+  creationSelectedEntityId: UUID | null;
   placementMode: ToolbarPlacementMode;
   moveTargetPreview: { x: number; y: number } | null;
   workspaceSize: { width: number; height: number };
@@ -207,7 +208,7 @@ export function useWorkspaceDerived({
     }
 
     const step = steps.find((candidate) => candidate.id === selectedId);
-    if (!step || step.type !== StepType.Move || isRefreshStep(step) || step.movePeerId === "") {
+    if (!step || step.type !== StepType.Move || isRefreshStep(step) || step.movePeerId === null) {
       return null;
     }
 
@@ -258,27 +259,27 @@ export function useWorkspaceDerived({
 
   const selectedStepAffectedEntityIds = useMemo(() => {
     if (selectedSource !== SelectionSource.Steps || !selectedId) {
-      return new Set<string>();
+      return new Set<UUID>();
     }
 
     const step = steps.find((candidate) => candidate.id === selectedId);
     if (!step) {
-      return new Set<string>();
+      return new Set<UUID>();
     }
 
-    const ids = new Set<string>();
+    const ids = new Set<UUID>();
 
     if (step.type === StepType.Message) {
-      if (step.sourcePeerId !== "") ids.add(step.sourcePeerId);
-      if (step.destinationPeerId !== "") ids.add(step.destinationPeerId);
+      if (step.sourcePeerId !== null) ids.add(step.sourcePeerId);
+      if (step.destinationPeerId !== null) ids.add(step.destinationPeerId);
     }
 
     if (step.type === StepType.Move) {
-      if (step.movePeerId !== "") ids.add(step.movePeerId);
+      if (step.movePeerId !== null) ids.add(step.movePeerId);
     }
 
     if (step.type === StepType.ToggleStatus) {
-      if (step.targetEntityId !== "") ids.add(step.targetEntityId);
+      if (step.targetEntityId !== null) ids.add(step.targetEntityId);
     }
 
     if (step.type === StepType.Refresh) {

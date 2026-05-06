@@ -255,7 +255,7 @@ export default function WorkspaceScene({
           }}
           onPointerDown={
             !indicator.draft && indicator.stepId
-              ? (event) => handleMoveIndicatorPointerDown(indicator.stepId as string, event)
+              ? (event) => handleMoveIndicatorPointerDown(indicator.stepId!, event)
               : undefined
           }
           onPointerMove={!indicator.draft ? handleMoveIndicatorPointerMove : undefined}

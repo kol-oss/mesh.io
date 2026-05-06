@@ -1,5 +1,6 @@
 import { StepType } from "./enums";
 import type { PeerRoutingProtocol } from "./navigation";
+import type { UUID } from "./uuid";
 
 export const RefreshAction = {
   BatmanElp: "BATMAN_ELP",
@@ -9,32 +10,32 @@ export const RefreshAction = {
 export type RefreshAction = (typeof RefreshAction)[keyof typeof RefreshAction];
 
 export type BaseStep = {
-  id: string;
+  id: UUID;
   title: string;
   tick: number;
 };
 
 export type MessageStep = BaseStep & {
   type: typeof StepType.Message;
-  sourcePeerId: string;
-  destinationPeerId: string;
+  sourcePeerId: UUID | null;
+  destinationPeerId: UUID | null;
 };
 
 export type MoveStep = BaseStep & {
   type: typeof StepType.Move;
-  movePeerId: string;
+  movePeerId: UUID | null;
   x: number;
   y: number;
 };
 
 export type ToggleStatusStep = BaseStep & {
   type: typeof StepType.ToggleStatus;
-  targetEntityId: string;
+  targetEntityId: UUID | null;
 };
 
 export type RefreshStep = BaseStep & {
   type: typeof StepType.Refresh;
-  refreshPeerId: string;
+  refreshPeerId: UUID;
   refreshProtocol: PeerRoutingProtocol;
   refreshAction?: RefreshAction;
   refreshStartTick: number;

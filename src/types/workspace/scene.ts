@@ -4,9 +4,10 @@ import { SelectionSource } from "../enums";
 import type { Connection, ObstacleResizeEdge, RangePolygon } from "./interaction";
 import type { ObstacleEntity, PeerEntity } from "../navigation";
 import type { WorkspaceTextItem } from "./index";
+import type { UUID } from "../uuid";
 
 export type MoveIndicator = {
-  stepId: string | null;
+  stepId: UUID | null;
   sourceX: number;
   sourceY: number;
   targetX: number;
@@ -25,7 +26,7 @@ export type MessageAnimation = {
 };
 
 export type MoveStepAnimation = {
-  peerId: string;
+  peerId: UUID;
   fromX: number;
   fromY: number;
   toX: number;
@@ -34,7 +35,7 @@ export type MoveStepAnimation = {
 };
 
 export type ToggleStepAnimation = {
-  entityId: string;
+  entityId: UUID;
   entityType: "PEER" | "LINK";
   nextEnabled: boolean;
 };
@@ -43,7 +44,7 @@ export type WorkspaceSceneProps = {
   centerX: number;
   centerY: number;
   staticLinks: Array<{
-    id: string;
+    id: UUID;
     enabled: boolean;
     sourceX: number;
     sourceY: number;
@@ -60,18 +61,18 @@ export type WorkspaceSceneProps = {
   obstacles: ObstacleEntity[];
   peers: PeerEntity[];
   selectedSource: SelectionSource | null;
-  selectedId: string | null;
-  hoveredSimulationPeerId: string | null;
-  resolvedCreationSelectedEntityId: string | null;
-  selectedStepAffectedEntityIds: Set<string>;
-  editingTextId: string | null;
+  selectedId: UUID | null;
+  hoveredSimulationPeerId: UUID | null;
+  resolvedCreationSelectedEntityId: UUID | null;
+  selectedStepAffectedEntityIds: Set<UUID>;
+  editingTextId: UUID | null;
   editingTextDraft: string;
-  selectedTextId: string | null;
-  activeDragEntityId: string | null;
+  selectedTextId: UUID | null;
+  activeDragEntityId: UUID | null;
   setEditingTextDraft: (value: string) => void;
   commitTextEdit: () => void;
   cancelTextEdit: () => void;
-  handleStaticLinkPointerDown: (linkId: string, event: ReactPointerEvent<SVGLineElement>) => void;
+  handleStaticLinkPointerDown: (linkId: UUID, event: ReactPointerEvent<SVGLineElement>) => void;
   handleTextPointerDown: (item: WorkspaceTextItem, event: ReactPointerEvent<HTMLElement>) => void;
   handleTextDoubleClick: (item: WorkspaceTextItem) => void;
   handleEntityPointerMove: (event: ReactPointerEvent<HTMLElement>) => void;
@@ -86,10 +87,10 @@ export type WorkspaceSceneProps = {
     event: ReactPointerEvent<HTMLSpanElement>,
   ) => void;
   handlePeerPointerDown: (peer: PeerEntity, event: ReactPointerEvent<HTMLButtonElement>) => void;
-  handleMoveIndicatorPointerDown: (stepId: string, event: ReactPointerEvent<HTMLElement>) => void;
+  handleMoveIndicatorPointerDown: (stepId: UUID, event: ReactPointerEvent<HTMLElement>) => void;
   handleMoveIndicatorPointerMove: (event: ReactPointerEvent<HTMLElement>) => void;
   handleMoveIndicatorPointerEnd: (event: ReactPointerEvent<HTMLElement>) => void;
-  onPeerHoverChange: (peerId: string | null) => void;
+  onPeerHoverChange: (peerId: UUID | null) => void;
   onMessageAnimationHoverChange: (isHovered: boolean) => void;
   onMessageAnimationInspectRequest: () => void;
 };

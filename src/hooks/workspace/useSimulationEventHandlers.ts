@@ -2,15 +2,16 @@ import { useCallback } from "react";
 import { ToolbarMode } from "../../types/enums";
 import type { ResizeEdge } from "../../types/enums";
 import type { NetworkEntity } from "../../types/entities";
+import type { UUID } from "../../types/uuid";
 import type { WorkspaceTextItem } from "../../types/workspace";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 type Props = {
   isSimulationActive: boolean;
-  currentStepId: string | null;
+  currentStepId: UUID | null;
   simulationInspectionMode: ToolbarMode;
-  onEntitySelect: (id: string) => void;
-  handleStaticLinkPointerDown: (linkId: string, event: ReactPointerEvent<SVGLineElement>) => void;
+  onEntitySelect: (id: UUID) => void;
+  handleStaticLinkPointerDown: (linkId: UUID, event: ReactPointerEvent<SVGLineElement>) => void;
   handleTextPointerDown: (item: WorkspaceTextItem, event: ReactPointerEvent<HTMLElement>) => void;
   handleTextDoubleClick: (item: WorkspaceTextItem) => void;
   handleObstaclePointerDown: (
@@ -28,15 +29,15 @@ type Props = {
   ) => void;
   setTableInspectionWindows: (
     updater: (
-      prev: Array<{ peerId: string; pinned: boolean; isOpen: boolean; stepId: string | null }>,
-    ) => Array<{ peerId: string; pinned: boolean; isOpen: boolean; stepId: string | null }>,
+      prev: Array<{ peerId: UUID; pinned: boolean; isOpen: boolean; stepId: UUID | null }>,
+    ) => Array<{ peerId: UUID; pinned: boolean; isOpen: boolean; stepId: UUID | null }>,
   ) => void;
   tableInspectionSuppressHoverRef: React.MutableRefObject<boolean>;
 };
 
 type Return = {
   handleSimulationStaticLinkPointerDown: (
-    linkId: string,
+    linkId: UUID,
     event: ReactPointerEvent<SVGLineElement>,
   ) => void;
   handleSimulationTextPointerDown: (
@@ -74,7 +75,7 @@ export const useSimulationEventHandlers = ({
   tableInspectionSuppressHoverRef,
 }: Props): Return => {
   const handleSimulationStaticLinkPointerDown = useCallback(
-    (linkId: string, event: ReactPointerEvent<SVGLineElement>) => {
+    (linkId: UUID, event: ReactPointerEvent<SVGLineElement>) => {
       if (!isSimulationActive) {
         handleStaticLinkPointerDown(linkId, event);
         return;

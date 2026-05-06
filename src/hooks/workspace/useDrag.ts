@@ -19,6 +19,7 @@ import type { ObstacleResizeEdge } from "../../types/workspace/interaction";
 import type { ObstacleEntity, PeerEntity } from "../../types/entities";
 import type { ToolbarPlacementMode } from "../../types/toolbar";
 import type { WorkspaceTextItem } from "../../types/workspace";
+import type { UUID } from "../../types/uuid";
 
 type UseWorkspaceDragParams = {
   entities: WorkspaceDragEntities;
@@ -46,7 +47,7 @@ export function useWorkspaceDrag({
   const dragStateRef = refs.dragStateRef;
 
   const updatePeerPosition = useCallback(
-    (peerId: string, x: number, y: number) => {
+    (peerId: UUID, x: number, y: number) => {
       setEntities(
         entities.map((entity) => {
           if (entity.type !== EntityType.Peer || entity.id !== peerId) {
@@ -65,7 +66,7 @@ export function useWorkspaceDrag({
   );
 
   const updateObstaclePosition = useCallback(
-    (obstacleId: string, x: number, y: number) => {
+    (obstacleId: UUID, x: number, y: number) => {
       setEntities(
         entities.map((entity) => {
           if (entity.type !== EntityType.Obstacle || entity.id !== obstacleId) {
@@ -84,7 +85,7 @@ export function useWorkspaceDrag({
   );
 
   const updateObstacleBounds = useCallback(
-    (obstacleId: string, x: number, y: number, width: number, height: number) => {
+    (obstacleId: UUID, x: number, y: number, width: number, height: number) => {
       setEntities(
         entities.map((entity) => {
           if (entity.type !== EntityType.Obstacle || entity.id !== obstacleId) {
@@ -105,7 +106,7 @@ export function useWorkspaceDrag({
   );
 
   const updateTextPosition = useCallback(
-    (textId: string, x: number, y: number) => {
+    (textId: UUID, x: number, y: number) => {
       setTexts(
         texts.map((item) =>
           item.id === textId

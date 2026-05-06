@@ -1,7 +1,8 @@
 import { ConnectionType, DragEntityType, DragMode, ResizeEdge } from "../enums";
+import type { UUID } from "../uuid";
 
 export type DragState = {
-  entityId: string;
+  entityId: UUID;
   entityType: DragEntityType;
   mode: DragMode;
   resizeEdge?: ResizeEdge;
@@ -19,8 +20,8 @@ export type ObstacleResizeEdge = ResizeEdge;
 export type Connection =
   | {
       type: typeof ConnectionType.Mutual;
-      sourceId: string;
-      targetId: string;
+      sourceId: UUID;
+      targetId: UUID;
       sourceX: number;
       sourceY: number;
       targetX: number;
@@ -28,8 +29,8 @@ export type Connection =
     }
   | {
       type: typeof ConnectionType.OneWay;
-      sourceId: string;
-      targetId: string;
+      sourceId: UUID;
+      targetId: UUID;
       sourceX: number;
       sourceY: number;
       targetX: number;
@@ -44,7 +45,7 @@ export type ObstacleBounds = {
 };
 
 export type RangePolygon = {
-  peerId: string;
+  peerId: UUID;
   enabled: boolean;
   selected: boolean;
   path: string;

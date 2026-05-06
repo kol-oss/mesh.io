@@ -6,6 +6,7 @@ import { EntityType } from "../../../types/enums";
 import type { LinkEntity, PeerEntity } from "../../../types/entities";
 import type { LinkPropertiesPanelProps } from "../../../types/properties";
 import Select from "../../Select/Select";
+import type { UUID } from "../../../types/uuid";
 
 export default function LinkProperties({
   widthPercent,
@@ -129,7 +130,7 @@ export default function LinkProperties({
                 invalid={isLinkSourceMissing}
                 options={linkPeerOptions}
                 onChange={(value) => {
-                  const nextSource = value || null;
+                  const nextSource = (value as UUID) || null;
                   const nextDestination =
                     nextSource && selectedLink.destinationPeerId === nextSource
                       ? null
@@ -154,7 +155,7 @@ export default function LinkProperties({
                 invalid={isLinkDestinationMissing}
                 options={linkPeerOptions.filter((peer) => peer.value !== sourceValue)}
                 onChange={(value) => {
-                  const nextDestination = value || null;
+                  const nextDestination = (value as UUID) || null;
                   if (nextDestination && nextDestination === sourceValue) {
                     return;
                   }

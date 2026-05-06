@@ -7,6 +7,7 @@ import {
   type SimulationMessage,
   type ThroughputCalculationEventDetails,
 } from "../../types/simulation";
+import type { UUID } from "../../types/uuid";
 import {
   formatFixed,
   getEventDescription as getBatmanEventDescription,
@@ -62,7 +63,7 @@ export const getEventTitle = (event: SimulationEvent) => {
   return ui.simulation.genericEvent;
 };
 
-export const getEventDescription = (event: SimulationEvent, peerNameById: Map<string, string>) => {
+export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UUID, string>) => {
   const message = getEventMessage(event);
   const protocol = detectEventProtocol(event, message);
 
@@ -97,8 +98,8 @@ export const getSimulationReadMorePath = (
 
 export const getMessageSummary = (
   event: SimulationEvent,
-  peerNameById: Map<string, string>,
-  onPeerHoverChange: (peerId: string | null) => void,
+  peerNameById: Map<UUID, string>,
+  onPeerHoverChange: (peerId: UUID | null) => void,
 ) => {
   const message = getEventMessage(event);
   const protocol = detectEventProtocol(event, message);

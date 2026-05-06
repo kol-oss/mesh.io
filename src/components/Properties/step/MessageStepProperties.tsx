@@ -44,10 +44,10 @@ export default function MessageStepProperties({
             invalid={isStepMessageSourceMissing}
             options={peerSelectOptions}
             onChange={(value) => {
-              const nextSource = value || "";
+              const nextSource = value || null;
               const nextDestination =
                 nextSource && selectedStep.destinationPeerId === nextSource
-                  ? ""
+                  ? null
                   : selectedStep.destinationPeerId;
 
               updateStep({
@@ -69,7 +69,7 @@ export default function MessageStepProperties({
             invalid={isStepMessageDestinationMissing}
             options={peerSelectOptions.filter((peer) => peer.value !== messageSourceValue)}
             onChange={(value) => {
-              const nextDestination = value || "";
+              const nextDestination = value || null;
               if (nextDestination && nextDestination === messageSourceValue) {
                 return;
               }

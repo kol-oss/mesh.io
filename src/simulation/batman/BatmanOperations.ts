@@ -10,6 +10,7 @@ import {
   type SimulationPacket,
   type ThroughputCalculationEventDetails,
 } from "../../types/simulation";
+import type { UUID } from "../../types/uuid";
 import { SimulationEventRecorder } from "../core/EventRecorder";
 import type { SimulationPeerNode } from "../core/runtimeTypes";
 import {
@@ -29,7 +30,7 @@ import {
 import { cloneMessage } from "./batmanMessage";
 
 type BatmanNeighbourEntry = {
-  neighbourId: string;
+  neighbourId: UUID;
   lastSeen: number;
   lastInterval: number;
   ewmaThroughput: number;
@@ -42,13 +43,13 @@ export class BatmanOperations {
 
   private readonly originatorTable: BatmanOriginatorTable;
 
-  private readonly neighbourTable: Map<string, BatmanNeighbourEntry>;
+  private readonly neighbourTable: Map<UUID, BatmanNeighbourEntry>;
 
   constructor(params: {
     routingPeer: SimulationPeerNode;
     eventRecorder: SimulationEventRecorder;
     originatorTable: BatmanOriginatorTable;
-    neighbourTable: Map<string, BatmanNeighbourEntry>;
+    neighbourTable: Map<UUID, BatmanNeighbourEntry>;
   }) {
     this.routingPeer = params.routingPeer;
     this.eventRecorder = params.eventRecorder;
@@ -175,7 +176,7 @@ export class BatmanOperations {
     return this.write(packet, selectedRoute.hopPeerId);
   }
 
-  write(message: SimulationMessage, hopPeerId: string) {
+  write(message: SimulationMessage, hopPeerId: UUID) {
     const hop = this.routingPeer.getNeighbour(hopPeerId);
     if (!hop) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {

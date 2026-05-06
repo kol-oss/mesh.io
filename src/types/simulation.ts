@@ -1,5 +1,6 @@
 import type { NetworkEntity, PeerEntity } from "./entities";
 import type { WorkflowStep } from "./steps";
+import type { UUID } from "./uuid";
 
 export const SimulationEventType = {
   SystemMessageBroadcast: "SYSTEM_MESSAGE_BROADCAST",
@@ -29,16 +30,16 @@ export type SimulationMessageKind =
 
 export type SimulationPacket = {
   kind: typeof SimulationMessageKind.Packet;
-  sourcePeerId: string | null;
-  destinationPeerId: string;
+  sourcePeerId: UUID | null;
+  destinationPeerId: UUID;
   timeToLive: number;
 };
 
 export type BatmanOriginatorMessage = {
   kind: typeof SimulationMessageKind.BatmanOriginatorMessage;
   version: number;
-  sourcePeerId: string;
-  senderPeerId: string;
+  sourcePeerId: UUID;
+  senderPeerId: UUID;
   sequence: number;
   timeToLive: number;
   throughput: number;
@@ -65,8 +66,8 @@ export type BatmanEchoLocationMessage = {
   kind: typeof SimulationMessageKind.BatmanEchoLocationMessage;
   packetType: typeof BatmanPacketType.EchoLocationProtocol;
   version: number;
-  sourcePeerId: string;
-  senderPeerId: string;
+  sourcePeerId: UUID;
+  senderPeerId: UUID;
   timeToLive: number;
   numNeighbours: number;
   sequence: number;
@@ -80,23 +81,23 @@ export type SimulationMessage =
   | BatmanEchoLocationMessage;
 
 export type BatmanRouteRecord = {
-  originatorPeerId: string;
-  hopPeerId: string;
+  originatorPeerId: UUID;
+  hopPeerId: UUID;
   quality: number;
   qualityWindow: string;
   lastTick: number;
 };
 
 export type BatmanNeighbourRecord = {
-  neighbourPeerId: string;
+  neighbourPeerId: UUID;
   quality: number;
   lastTick: number;
   interval: number;
 };
 
 export type RoutingTableChangeDetails = {
-  originatorPeerId: string;
-  hopPeerId: string;
+  originatorPeerId: UUID;
+  hopPeerId: UUID;
   previousRoute: BatmanRouteRecord | null;
   nextRoute: BatmanRouteRecord | null;
   message?: SimulationMessage;
@@ -104,13 +105,13 @@ export type RoutingTableChangeDetails = {
 };
 
 export type BroadcastEventDetails = {
-  neighbourPeerIds: string[];
+  neighbourPeerIds: UUID[];
   retransmit: boolean;
   message: SimulationMessage;
 };
 
 export type MessageTransferEventDetails = {
-  hopPeerId: string;
+  hopPeerId: UUID;
   message: SimulationMessage;
 };
 
@@ -145,13 +146,13 @@ export type ThroughputCalculationEventDetails = {
 };
 
 export type RouteSelectedEventDetails = {
-  destinationPeerId: string;
+  destinationPeerId: UUID;
   selectedRoute: BatmanRouteRecord;
   message: SimulationPacket;
 };
 
 export type PeerMovedEventDetails = {
-  peerId: string;
+  peerId: UUID;
   fromX: number;
   fromY: number;
   toX: number;
@@ -159,14 +160,14 @@ export type PeerMovedEventDetails = {
 };
 
 export type EntityStatusChangedEventDetails = {
-  entityId: string;
+  entityId: UUID;
   entityType: NetworkEntity["type"];
   previousEnabled: boolean;
   nextEnabled: boolean;
 };
 
 export type SimulationStepBoundaryDetails = {
-  stepId: string;
+  stepId: UUID;
   stepTitle: string;
   stepType: WorkflowStep["type"];
 };
@@ -183,10 +184,10 @@ export type SimulationEventDetails =
   | SimulationStepBoundaryDetails;
 
 export type SimulationEvent = {
-  id: string;
+  id: UUID;
   tick: number;
-  stepId: string | null;
-  peerId: string;
+  stepId: UUID | null;
+  peerId: UUID;
   type: SimulationEventType;
   details: SimulationEventDetails;
 };

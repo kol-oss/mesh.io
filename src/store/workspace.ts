@@ -15,6 +15,7 @@ import {
 } from "../types/simulation";
 import type { WorkflowStep } from "../types/steps";
 import type { ToolbarPlacementMode } from "../types/toolbar";
+import type { UUID } from "../types/uuid";
 import type { WorkspaceTextItem } from "../types/workspace";
 import {
   composeStepsWithRefresh,
@@ -75,7 +76,7 @@ export function useWorkspaceStore() {
   const { showToast } = useToast();
   const simulationRunLockRef = useRef(false);
   const [placementMode, setPlacementMode] = useState<ToolbarPlacementMode>(null);
-  const [selectedId, setSelectedId] = useLocalStorage<string | null>(storageKeys.selectedId, null);
+  const [selectedId, setSelectedId] = useLocalStorage<UUID | null>(storageKeys.selectedId, null);
   const [selectedSource, setSelectedSource] = useLocalStorage<SelectionSource | null>(
     storageKeys.selectedSource,
     null,
@@ -152,7 +153,7 @@ export function useWorkspaceStore() {
   }, []);
 
   const handleEntitySelect = useCallback(
-    (id: string) => {
+    (id: UUID) => {
       if (selectedSource === SelectionSource.Entities && selectedId === id) {
         clearSelection();
         return;
@@ -165,7 +166,7 @@ export function useWorkspaceStore() {
   );
 
   const handleWorkspaceEntitySelect = useCallback(
-    (id: string) => {
+    (id: UUID) => {
       setSelectedId(id);
       setSelectedSource(SelectionSource.Entities);
     },
@@ -173,7 +174,7 @@ export function useWorkspaceStore() {
   );
 
   const handleWorkspaceStepSelect = useCallback(
-    (id: string) => {
+    (id: UUID) => {
       setSimulationPlayback((prev) => {
         if (!prev.result) {
           return prev;
@@ -200,7 +201,7 @@ export function useWorkspaceStore() {
   );
 
   const handleStepSelect = useCallback(
-    (id: string) => {
+    (id: UUID) => {
       if (selectedSource === SelectionSource.Steps && selectedId === id) {
         clearSelection();
         return;

@@ -9,6 +9,7 @@ import {
   type BatmanOriginatorMessage,
   type SimulationPacket,
 } from "../../types/simulation";
+import type { UUID } from "../../types/uuid";
 import { SimulationEventRecorder } from "../core/EventRecorder";
 import type { PacketCapableModule, SimulationPeerNode } from "../core/runtimeTypes";
 import { BatmanOriginatorTable } from "./BatmanOriginatorTable";
@@ -20,7 +21,7 @@ import {
   BATMAN_MAX_THROUGHPUT,
 } from "../../constants/simulation";
 type BatmanNeighbourEntry = {
-  neighbourId: string;
+  neighbourId: UUID;
   lastSeen: number;
   lastInterval: number;
   ewmaThroughput: number;
@@ -41,7 +42,7 @@ export class BatmanModule implements PacketCapableModule {
 
   private lastElpTickSent: number | null = null;
 
-  private readonly neighbourTable = new Map<string, BatmanNeighbourEntry>();
+  private readonly neighbourTable = new Map<UUID, BatmanNeighbourEntry>();
 
   constructor(routingPeer: SimulationPeerNode, eventRecorder: SimulationEventRecorder) {
     this.routingPeer = routingPeer;

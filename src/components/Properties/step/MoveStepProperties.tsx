@@ -40,7 +40,7 @@ export default function MoveStepProperties({
           invalid={isStepMoveEntityMissing}
           options={peerSelectOptions}
           onChange={(value) => {
-            const nextMovePeerId = value || "";
+            const nextMovePeerId = value || null;
             const selectedPeer = peers.find((peer) => peer.id === nextMovePeerId);
             const hasMoveCoordinates = selectedStep.x !== 0 || selectedStep.y !== 0;
 

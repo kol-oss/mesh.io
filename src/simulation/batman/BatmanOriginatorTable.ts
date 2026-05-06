@@ -4,20 +4,21 @@ import {
   type BatmanOriginatorMessage,
   type BatmanRouteRecord,
 } from "../../types/simulation";
+import type { UUID } from "../../types/uuid";
 import { SimulationEventRecorder } from "../core/EventRecorder";
 import type { SimulationPeerNode } from "../core/runtimeTypes";
 import { cloneMessage } from "./batmanMessage";
 import { BatmanSequenceWindow } from "./BatmanSequenceWindow";
 
 type BatmanRoute = {
-  hopPeerId: string;
+  hopPeerId: UUID;
   throughput: number;
   sequenceWindow: BatmanSequenceWindow;
   lastTick: number;
 };
 
 export class BatmanOriginatorTable {
-  private readonly originators = new Map<string, Map<string, BatmanRoute>>();
+  private readonly originators = new Map<UUID, Map<UUID, BatmanRoute>>();
 
   private readonly routingPeer: SimulationPeerNode;
 
@@ -36,8 +37,8 @@ export class BatmanOriginatorTable {
   }
 
   process(
-    originatorPeerId: string,
-    hopPeerId: string,
+    originatorPeerId: UUID,
+    hopPeerId: UUID,
     message: BatmanOriginatorMessage,
     throughput: number,
     reason: string,
@@ -89,12 +90,12 @@ export class BatmanOriginatorTable {
     }
   }
 
-  getMaxQualityHop(originatorPeerId: string) {
+  getMaxQualityHop(originatorPeerId: UUID) {
     const selected = this.getBestRoute(originatorPeerId);
     return selected?.hopPeerId ?? null;
   }
 
-  getBestRouteRecord(originatorPeerId: string): BatmanRouteRecord | null {
+  getBestRouteRecord(originatorPeerId: UUID): BatmanRouteRecord | null {
     const bestRoute = this.getBestRoute(originatorPeerId);
     return bestRoute ? this.toRouteRecord(originatorPeerId, bestRoute) : null;
   }
@@ -116,7 +117,7 @@ export class BatmanOriginatorTable {
     });
   }
 
-  private getBestRoute(originatorPeerId: string): BatmanRoute | null {
+  private getBestRoute(originatorPeerId: UUID): BatmanRoute | null {
     const routes = this.originators.get(originatorPeerId);
     if (!routes || routes.size === 0) {
       return null;
@@ -138,8 +139,8 @@ export class BatmanOriginatorTable {
   }
 
   private insert(
-    originatorPeerId: string,
-    hopPeerId: string,
+    originatorPeerId: UUID,
+    hopPeerId: UUID,
     message: BatmanOriginatorMessage,
     throughput: number,
     reason: string,
@@ -151,7 +152,7 @@ export class BatmanOriginatorTable {
       lastTick: this.eventRecorder.getCurrentTick(),
     };
 
-    const routes = this.originators.get(originatorPeerId) ?? new Map<string, BatmanRoute>();
+    const routes = this.originators.get(originatorPeerId) ?? new Map<UUID, BatmanRoute>();
     routes.set(hopPeerId, route);
     this.originators.set(originatorPeerId, routes);
 
@@ -166,8 +167,8 @@ export class BatmanOriginatorTable {
   }
 
   private update(
-    originatorPeerId: string,
-    hopPeerId: string,
+    originatorPeerId: UUID,
+    hopPeerId: UUID,
     message: BatmanOriginatorMessage,
     throughput: number,
     reason: string,
@@ -195,7 +196,7 @@ export class BatmanOriginatorTable {
     return processed;
   }
 
-  private toRouteRecord(originatorPeerId: string, route: BatmanRoute): BatmanRouteRecord {
+  private toRouteRecord(originatorPeerId: UUID, route: BatmanRoute): BatmanRouteRecord {
     return {
       originatorPeerId,
       hopPeerId: route.hopPeerId,

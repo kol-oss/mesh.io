@@ -1,8 +1,9 @@
 import type { NetworkEntity } from "../../types/entities";
+import type { UUID } from "../../types/uuid";
 
 export function createEntityUpdater<T extends NetworkEntity>(
   entities: NetworkEntity[],
-  entityId: string,
+  entityId: UUID,
   entityType: T["type"],
   isLocked: boolean,
   setEntities: (entities: NetworkEntity[]) => void,

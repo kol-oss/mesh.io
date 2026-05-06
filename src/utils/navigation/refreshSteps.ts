@@ -185,17 +185,17 @@ export const normalizeManualSteps = (steps: WorkflowStep[]) => {
 const isExecutableManualStep = (step: ManualWorkflowStep) => {
   if (isMessageStep(step)) {
     return (
-      step.sourcePeerId.length > 0 &&
-      step.destinationPeerId.length > 0 &&
+      step.sourcePeerId !== null &&
+      step.destinationPeerId !== null &&
       step.sourcePeerId !== step.destinationPeerId
     );
   }
 
   if (isMoveStep(step)) {
-    return step.movePeerId.length > 0;
+    return step.movePeerId !== null;
   }
 
-  return step.targetEntityId.length > 0;
+  return step.targetEntityId !== null;
 };
 
 export const sanitizeManualSteps = (steps: WorkflowStep[]) => {

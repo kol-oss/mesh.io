@@ -10,14 +10,15 @@ import { Link } from "react-router-dom";
 
 import { ui } from "../../i18n/messages";
 import type { SimulationStepResult } from "../../types/simulation";
+import type { UUID } from "../../types/uuid";
 
 type TableInspectionWindowProps = {
   isOpen: boolean;
   currentStepResult: SimulationStepResult | null;
-  currentEventId: string | null;
-  inspectedPeerId: string | null;
+  currentEventId: UUID | null;
+  inspectedPeerId: UUID | null;
   onClose: () => void;
-  onPeerHoverChange: (peerId: string | null) => void;
+  onPeerHoverChange: (peerId: UUID | null) => void;
 };
 
 export default function TableInspectionWindow({
@@ -213,9 +214,9 @@ export default function TableInspectionWindow({
 }
 
 const renderPeerName = (
-  peerId: string,
+  peerId: UUID,
   peerName: string,
-  onPeerHoverChange: (peerId: string | null) => void,
+  onPeerHoverChange: (peerId: UUID | null) => void,
 ): ReactNode => {
   return (
     <span
@@ -228,6 +229,6 @@ const renderPeerName = (
   );
 };
 
-const getPeerLabel = (peerId: string, peerNameById: Map<string, string>) => {
+const getPeerLabel = (peerId: UUID, peerNameById: Map<UUID, string>) => {
   return peerNameById.get(peerId) ?? peerId;
 };
