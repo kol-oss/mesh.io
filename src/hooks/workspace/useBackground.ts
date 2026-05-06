@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-import { workspacePanLimit } from "../../constants/workspace";
+import { PAN_LIMIT } from "../../constants/workspace";
 import { PlacementMode } from "../../types/enums";
 import type {
   WorkspaceBackgroundActions,
@@ -180,8 +180,8 @@ export function useWorkspaceBackground({
       const deltaX = event.clientX - pan.startClientX;
       const deltaY = event.clientY - pan.startClientY;
       setters.setPanOffset({
-        x: clamp(pan.startPanX + deltaX, -workspacePanLimit, workspacePanLimit),
-        y: clamp(pan.startPanY + deltaY, -workspacePanLimit, workspacePanLimit),
+        x: clamp(pan.startPanX + deltaX, -PAN_LIMIT, PAN_LIMIT),
+        y: clamp(pan.startPanY + deltaY, -PAN_LIMIT, PAN_LIMIT),
       });
     },
     [getWorkspaceCoords, panStateRef, setters, state.placementMode, stepMovePeerIdRef],

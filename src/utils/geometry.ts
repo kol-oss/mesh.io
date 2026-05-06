@@ -1,4 +1,4 @@
-import { workspaceObstacleMinSize } from "../constants/workspace";
+import { OBSTACLE_MIN_WIDTH, OBSTACLE_MIN_HEIGHT } from "../constants/obstacle";
 import type { ObstacleEntity } from "../types/entities";
 import type { ObstacleBounds } from "../types/workspace/interaction";
 
@@ -22,8 +22,8 @@ export const shortenLine = (x1: number, y1: number, x2: number, y2: number, amou
 };
 
 export const getObstacleBounds = (obstacle: ObstacleEntity): ObstacleBounds => {
-  const halfWidth = Math.max(workspaceObstacleMinSize, obstacle.width) / 2;
-  const halfHeight = Math.max(workspaceObstacleMinSize, obstacle.height) / 2;
+  const halfWidth = Math.max(OBSTACLE_MIN_WIDTH, obstacle.width) / 2;
+  const halfHeight = Math.max(OBSTACLE_MIN_HEIGHT, obstacle.height) / 2;
 
   return {
     left: obstacle.x - halfWidth,

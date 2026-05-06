@@ -1,6 +1,3 @@
-export const workspacePanLimit = 2000;
-export const workspaceRangeSamples = 180;
-export const workspaceObstacleMinSize = 1;
-export const workspaceNewPeerRange = 150;
-export const workspaceNewObstacleWidth = 100;
-export const workspaceNewObstacleHeight = 60;
+export const PAN_LIMIT = 2000;
+export const RANGE_SAMPLES = 180;
+export const NEW_PEER_RANGE = 150;

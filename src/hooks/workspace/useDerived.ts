@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { workspaceRangeSamples } from "../../constants/workspace";
+import { RANGE_SAMPLES } from "../../constants/workspace";
 import {
   ConnectionType,
   EntityType,
@@ -174,8 +174,8 @@ export function useWorkspaceDerived({
         const baseX = centerX + peer.x;
         const baseY = centerY + peer.y;
 
-        for (let index = 0; index <= workspaceRangeSamples; index += 1) {
-          const angle = (index / workspaceRangeSamples) * Math.PI * 2;
+        for (let index = 0; index <= RANGE_SAMPLES; index += 1) {
+          const angle = (index / RANGE_SAMPLES) * Math.PI * 2;
           const dirX = Math.cos(angle);
           const dirY = Math.sin(angle);
           const distance = getRayDistanceWithObstacleBlocking(

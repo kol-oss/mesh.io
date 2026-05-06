@@ -17,7 +17,7 @@ import {
   BATMAN_MIN_PURGE_TIMEOUT,
   BATMAN_MIN_DISTANCE_PENALTY,
   BATMAN_MIN_PENALTY_PERCENT,
-} from "../../../constants/validation";
+} from "../../../constants/batman";
 import Tooltip from "../../Tooltip/Tooltip";
 import { ui } from "../../../i18n/messages";
 import { EntityType, RoutingProtocol } from "../../../types/enums";

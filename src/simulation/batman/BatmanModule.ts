@@ -16,10 +16,10 @@ import { BatmanOriginatorTable } from "./BatmanOriginatorTable";
 import { cloneMessage, isSimulationMessage } from "./batmanMessage";
 import { BatmanOperations } from "./BatmanOperations";
 import {
-  BATMAN_V_VERSION,
-  BATMAN_TIME_TO_LIVE,
   BATMAN_MAX_THROUGHPUT,
-} from "../../constants/simulation";
+  BATMAN_TIME_TO_LIVE,
+  BATMAN_VERSION,
+} from "../../constants/batman.ts";
 type BatmanNeighbourEntry = {
   neighbourId: UUID;
   lastSeen: number;
@@ -105,7 +105,7 @@ export class BatmanModule implements PacketCapableModule {
     this.ogmSequence += 1;
     const message: BatmanOriginatorMessage = {
       kind: SimulationMessageKind.BatmanOriginatorMessage,
-      version: BATMAN_V_VERSION,
+      version: BATMAN_VERSION,
       sourcePeerId: this.routingPeer.id,
       senderPeerId: this.routingPeer.id,
       sequence: this.ogmSequence,
@@ -166,7 +166,7 @@ export class BatmanModule implements PacketCapableModule {
     const elpMessage: BatmanEchoLocationMessage = {
       kind: SimulationMessageKind.BatmanEchoLocationMessage,
       packetType: BatmanPacketType.EchoLocationProtocol,
-      version: BATMAN_V_VERSION,
+      version: BATMAN_VERSION,
       sourcePeerId: this.routingPeer.id,
       senderPeerId: this.routingPeer.id,
       timeToLive: BATMAN_TIME_TO_LIVE,

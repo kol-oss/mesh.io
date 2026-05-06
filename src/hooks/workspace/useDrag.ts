@@ -1,7 +1,7 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback } from "react";
 
-import { workspaceObstacleMinSize } from "../../constants/workspace";
+import { OBSTACLE_MIN_WIDTH, OBSTACLE_MIN_HEIGHT } from "../../constants/obstacle";
 import { DragEntityType, DragMode, EntityType, PlacementMode, ResizeEdge } from "../../types/enums";
 import { toInt } from "../../utils/geometry";
 import type {
@@ -288,8 +288,8 @@ export function useWorkspaceDrag({
         return;
       }
 
-      const startWidth = dragState.startWidth ?? workspaceObstacleMinSize;
-      const startHeight = dragState.startHeight ?? workspaceObstacleMinSize;
+      const startWidth = dragState.startWidth ?? OBSTACLE_MIN_WIDTH;
+      const startHeight = dragState.startHeight ?? OBSTACLE_MIN_HEIGHT;
       const startLeft = dragState.startX - startWidth / 2;
       const startRight = dragState.startX + startWidth / 2;
       const startTop = dragState.startY - startHeight / 2;
@@ -306,25 +306,25 @@ export function useWorkspaceDrag({
       let nextObstacleHeight = startHeight;
 
       if (edge === ResizeEdge.Left) {
-        const nextLeft = Math.min(startRight - workspaceObstacleMinSize, startLeft + deltaX);
+        const nextLeft = Math.min(startRight - OBSTACLE_MIN_WIDTH, startLeft + deltaX);
         nextObstacleWidth = startRight - nextLeft;
         nextObstacleX = (nextLeft + startRight) / 2;
       }
 
       if (edge === ResizeEdge.Right) {
-        const nextRight = Math.max(startLeft + workspaceObstacleMinSize, startRight + deltaX);
+        const nextRight = Math.max(startLeft + OBSTACLE_MIN_WIDTH, startRight + deltaX);
         nextObstacleWidth = nextRight - startLeft;
         nextObstacleX = (startLeft + nextRight) / 2;
       }
 
       if (edge === ResizeEdge.Top) {
-        const nextTop = Math.min(startBottom - workspaceObstacleMinSize, startTop + deltaY);
+        const nextTop = Math.min(startBottom - OBSTACLE_MIN_HEIGHT, startTop + deltaY);
         nextObstacleHeight = startBottom - nextTop;
         nextObstacleY = (nextTop + startBottom) / 2;
       }
 
       if (edge === ResizeEdge.Bottom) {
-        const nextBottom = Math.max(startTop + workspaceObstacleMinSize, startBottom + deltaY);
+        const nextBottom = Math.max(startTop + OBSTACLE_MIN_HEIGHT, startBottom + deltaY);
         nextObstacleHeight = nextBottom - startTop;
         nextObstacleY = (startTop + nextBottom) / 2;
       }
@@ -333,8 +333,8 @@ export function useWorkspaceDrag({
         dragState.entityId,
         toInt(nextObstacleX),
         toInt(nextObstacleY),
-        Math.max(workspaceObstacleMinSize, toInt(nextObstacleWidth)),
-        Math.max(workspaceObstacleMinSize, toInt(nextObstacleHeight)),
+        Math.max(OBSTACLE_MIN_WIDTH, toInt(nextObstacleWidth)),
+        Math.max(OBSTACLE_MIN_HEIGHT, toInt(nextObstacleHeight)),
       );
     },
     [

@@ -1,8 +1,8 @@
-import { BATMAN_PROTECTION_WINDOW } from "../../constants/simulation";
 import { QualityWindowBit } from "../../types/simulation";
+import { BATMAN_PROTECTION_WINDOW_SIZE } from "../../constants/batman.ts";
 
 export class BatmanSequenceWindow {
-  private readonly bits = Array<boolean>(BATMAN_PROTECTION_WINDOW).fill(false);
+  private readonly bits = Array<boolean>(BATMAN_PROTECTION_WINDOW_SIZE).fill(false);
 
   private lastSequence: number | null = null;
 
@@ -14,7 +14,7 @@ export class BatmanSequenceWindow {
     }
 
     const diff = sequence - this.lastSequence;
-    if (diff <= 0 && Math.abs(diff) < BATMAN_PROTECTION_WINDOW) {
+    if (diff <= 0 && Math.abs(diff) < BATMAN_PROTECTION_WINDOW_SIZE) {
       const index = Math.abs(diff);
       if (this.bits[index]) {
         return false;
@@ -25,10 +25,10 @@ export class BatmanSequenceWindow {
     }
 
     if (diff > 0) {
-      if (diff >= BATMAN_PROTECTION_WINDOW) {
+      if (diff >= BATMAN_PROTECTION_WINDOW_SIZE) {
         this.bits.fill(false);
       } else {
-        for (let index = BATMAN_PROTECTION_WINDOW - 1; index >= diff; index -= 1) {
+        for (let index = BATMAN_PROTECTION_WINDOW_SIZE - 1; index >= diff; index -= 1) {
           this.bits[index] = this.bits[index - diff];
         }
 

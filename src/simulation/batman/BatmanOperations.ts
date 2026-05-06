@@ -13,13 +13,6 @@ import {
 import type { UUID } from "../../types/uuid";
 import { SimulationEventRecorder } from "../core/EventRecorder";
 import type { SimulationPeerNode } from "../core/runtimeTypes";
-import {
-  BATMAN_ELP_EWMA_ALPHA,
-  BATMAN_OGM_HOP_PENALTY_PERCENT,
-  BATMAN_STATIC_BASE_THROUGHPUT,
-  BATMAN_V_VERSION,
-  BATMAN_WIRELESS_BASE_THROUGHPUT,
-} from "../../constants/simulation";
 import { BatmanOriginatorTable } from "./BatmanOriginatorTable";
 import {
   applyDistancePenalty,
@@ -28,6 +21,13 @@ import {
   getDistanceBetweenPeers,
 } from "./batmanMath";
 import { cloneMessage } from "./batmanMessage";
+import {
+  BATMAN_EWMA_ALPHA,
+  BATMAN_OGM_HOP_PENALTY_PERCENT,
+  BATMAN_STATIC_BASE_THROUGHPUT,
+  BATMAN_VERSION,
+  BATMAN_WIRELESS_BASE_THROUGHPUT,
+} from "../../constants/batman.ts";
 
 type BatmanNeighbourEntry = {
   neighbourId: UUID;
@@ -62,7 +62,7 @@ export class BatmanOperations {
       return true;
     }
 
-    if (message.version !== BATMAN_V_VERSION) {
+    if (message.version !== BATMAN_VERSION) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
         reason: ui.runtime.ogmUnsupportedVersion(message.version),
@@ -228,7 +228,7 @@ export class BatmanOperations {
       return true;
     }
 
-    if (message.version !== BATMAN_V_VERSION) {
+    if (message.version !== BATMAN_VERSION) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
         reason: ui.runtime.elpUnsupportedVersion(message.version),
@@ -280,7 +280,7 @@ export class BatmanOperations {
     const rawMetric = baseThroughput * receptionRatio;
 
     const nextEwma = previous
-      ? BATMAN_ELP_EWMA_ALPHA * rawMetric + (1 - BATMAN_ELP_EWMA_ALPHA) * previous.ewmaThroughput
+      ? BATMAN_EWMA_ALPHA * rawMetric + (1 - BATMAN_EWMA_ALPHA) * previous.ewmaThroughput
       : rawMetric;
 
     this.neighbourTable.set(message.senderPeerId, {

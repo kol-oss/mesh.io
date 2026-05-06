@@ -37,15 +37,3 @@ export type ObstacleEntity = BaseEntity & {
 };
 
 export type NetworkEntity = PeerEntity | LinkEntity | ObstacleEntity;
-
-export const isPeerEntity = (entity: NetworkEntity): entity is PeerEntity => {
-  return entity.type === EntityType.Peer;
-};
-
-export const isLinkEntity = (entity: NetworkEntity): entity is LinkEntity => {
-  return entity.type === EntityType.Link;
-};
-
-export const isObstacleEntity = (entity: NetworkEntity): entity is ObstacleEntity => {
-  return entity.type === EntityType.Obstacle;
-};

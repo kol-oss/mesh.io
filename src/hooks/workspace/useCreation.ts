@@ -1,10 +1,7 @@
 import { useCallback } from "react";
 
-import {
-  workspaceNewObstacleHeight,
-  workspaceNewObstacleWidth,
-  workspaceNewPeerRange,
-} from "../../constants/workspace";
+import { OBSTACLE_DEFAULT_WIDTH, OBSTACLE_DEFAULT_HEIGHT } from "../../constants/obstacle.ts";
+import { NEW_PEER_RANGE } from "../../constants/workspace";
 import { EntityType, RoutingProtocol, StepType } from "../../types/enums";
 import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../types/entities";
 import type {
@@ -22,6 +19,8 @@ import type {
 import { ui } from "../../i18n/messages";
 import { generateUUID, type UUID } from "../../types/uuid";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
+
+import { BATMAN_DEFAULT_CONFIGURATION } from "../../constants/batman.ts";
 
 type UseWorkspaceCreationParams = {
   entities: NetworkEntity[];
@@ -47,14 +46,10 @@ export function useWorkspaceCreation({
         locked: false,
         x,
         y,
-        range: workspaceNewPeerRange,
+        range: NEW_PEER_RANGE,
         enabled: true,
         protocols: [RoutingProtocol.BATMAN],
-        batmanDistancePenaltyDistance: 75,
-        batmanDistancePenaltyPercent: 5,
-        batmanElpInterval: 1,
-        batmanOgmInterval: 1,
-        batmanPurgeTimeout: 10,
+        ...BATMAN_DEFAULT_CONFIGURATION,
       };
 
       setters.setEntities([...entities, nextPeer]);
@@ -73,8 +68,8 @@ export function useWorkspaceCreation({
         locked: false,
         x,
         y,
-        width: workspaceNewObstacleWidth,
-        height: workspaceNewObstacleHeight,
+        width: OBSTACLE_DEFAULT_WIDTH,
+        height: OBSTACLE_DEFAULT_HEIGHT,
       };
 
       setters.setEntities([...entities, nextObstacle]);
