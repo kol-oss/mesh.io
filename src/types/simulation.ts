@@ -115,8 +115,9 @@ export type MessageTransferEventDetails = {
 };
 
 export type DroppedEventDetails = {
-  message: SimulationMessage;
+  message?: SimulationMessage;
   reason: string;
+  reasonCode?: "NO_ROUTE" | "SOURCE_UNAVAILABLE";
 };
 
 export type ThroughputCalculationEventDetails = {

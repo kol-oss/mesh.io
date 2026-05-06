@@ -273,6 +273,7 @@ export const messageCatalog = {
       ogmDropped: "OGMv2 Retransmission Cancelled",
       elpDropped: "ELP Dropped",
       packetDropped: "Packet Dropped",
+      packetSendFailed: "Packet Send Failed",
       dropMessage: "Drop Message",
       originatorAdded: "Originator Added",
       routeAdded: "Route Added",
@@ -345,6 +346,8 @@ export const messageCatalog = {
         `${actor} already received OGMv2 with such originator and sequence number with better throughput, so it did not continue processing this OGMv2, and B.A.T.M.A.N. V propagation stopped at this hop.`,
       droppedPacket: (actor: string) =>
         `${actor} could not forward this packet, so delivery stopped at this hop.`,
+      packetSendFailedReason: (reason: string) =>
+        `The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${reason}.`,
       droppedGeneric: (actor: string) => `${actor} dropped a message during processing.`,
       tqQuestionChanged: "How did B.A.T.M.A.N. V throughput change?",
       tqQuestionWhat: "What is B.A.T.M.A.N. V throughput?",
@@ -385,6 +388,7 @@ export const messageCatalog = {
       routeRemoveBodyMiddle: "The route is no longer treated as valid",
       routeRemoveBodySuffix:
         "B.A.T.M.A.N. V drops this record when the route becomes stale, so this next hop is no longer trusted as a valid path to that originator.",
+      routeRemoveReasonLabel: (reason: string) => `Reason: ${reason}`,
       ogmRebroadcastPrefix: "rebroadcasts",
       ogmRebroadcastBodyNode:
         "The node rebroadcasts an OGMv2 after receiving it from a neighbour. This forwards throughput-aware evidence deeper into the mesh so downstream nodes can compare candidate next hops for the same originator.",

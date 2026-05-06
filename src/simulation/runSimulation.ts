@@ -409,7 +409,6 @@ export function runSimulation(input: SimulationInput): SimulationResult {
       });
     }
 
-    network.tickModules();
     eventRecorder.addTick(1);
     simulationTick += 1;
   }
@@ -489,10 +488,13 @@ const processStep = (
     }
 
     if (step.refreshAction === RefreshAction.BatmanOgm) {
+      // Route aging and stale removals are processed on OGM refresh cadence.
+      module.tick();
       module.refreshOgm();
       return;
     }
 
+    module.tick();
     module.refresh();
     return;
   }
@@ -500,16 +502,9 @@ const processStep = (
   const sourcePeer = network.getPeer(step.sourcePeerId);
   const sourceModule = sourcePeer?.getModule(RoutingProtocol.BATMAN);
   if (!(sourceModule instanceof BatmanModule)) {
-    const packet: SimulationPacket = {
-      kind: SimulationMessageKind.Packet,
-      sourcePeerId: null,
-      destinationPeerId: step.destinationPeerId,
-      timeToLive: 50,
-    };
-
     eventRecorder.save(step.sourcePeerId, SimulationEventType.SystemMessageDropped, {
-      message: packet,
       reason: sourcePeer ? ui.runtime.sourcePeerNoBatmanModule : ui.runtime.sourcePeerMissing,
+      reasonCode: "SOURCE_UNAVAILABLE",
     });
     return;
   }

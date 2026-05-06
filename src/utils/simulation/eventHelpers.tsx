@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { ui } from "../../i18n/messages";
 import { EntityType } from "../../types/enums";
 import {
+  type DroppedEventDetails,
   type EntityStatusChangedEventDetails,
   type PeerMovedEventDetails,
   type RouteSelectedEventDetails,
@@ -33,7 +34,7 @@ export const getEventTitle = (event: SimulationEvent) => {
     case SimulationEventType.SystemThroughputCalculated:
       return ui.simulation.throughputRecalculated;
     case SimulationEventType.SystemMessageDropped:
-      return getDroppedTitle(message);
+      return getDroppedTitle(event, message);
     case SimulationEventType.SystemPeerMoved:
       return ui.simulation.peerMoved;
     case SimulationEventType.SystemEntityStatusChanged:
@@ -93,7 +94,7 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<st
       return getRouteUpdateDescription();
     }
 
-    return getRouteRemoveDescription();
+    return getRouteRemoveDescription(routeChange.reason);
   }
 
   switch (event.type) {
@@ -110,7 +111,7 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<st
     case SimulationEventType.SystemThroughputCalculated:
       return getThroughputCalculatedDescription(actor, event);
     case SimulationEventType.SystemMessageDropped:
-      return getDroppedDescription(actor, message);
+      return getDroppedDescription(actor, event, message);
     case SimulationEventType.SystemPeerMoved: {
       const details = event.details as PeerMovedEventDetails;
       return ui.simulation.eventPeerMoved(details.toX, details.toY);
@@ -287,7 +288,11 @@ const getBroadcastTitle = (event: SimulationEvent, message: SimulationMessage | 
   return ui.simulation.broadcastMessage;
 };
 
-const getDroppedTitle = (message: SimulationMessage | null) => {
+const getDroppedTitle = (event: SimulationEvent, message: SimulationMessage | null) => {
+  if (isSourcePacketSendFailure(event, message)) {
+    return ui.simulation.packetSendFailed;
+  }
+
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
     return ui.simulation.elpDropped;
   }
@@ -323,7 +328,16 @@ const getBroadcastDescription = (event: SimulationEvent, message: SimulationMess
   return <>{ui.simulation.broadcastUnknownBody}</>;
 };
 
-const getDroppedDescription = (actor: string, message: SimulationMessage | null) => {
+const getDroppedDescription = (
+  actor: string,
+  event: SimulationEvent,
+  message: SimulationMessage | null,
+) => {
+  if (isSourcePacketSendFailure(event, message)) {
+    const details = event.details as DroppedEventDetails;
+    return <>{ui.simulation.packetSendFailedReason(details.reason)}</>;
+  }
+
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
     return <>{ui.simulation.droppedGeneric(actor)}</>;
   }
@@ -527,11 +541,11 @@ export const getRouteSequenceWindowExplanation = (event: SimulationEvent) => {
   return ui.simulation.sequenceWindowAnswer(message.sequence);
 };
 
-const getRouteRemoveDescription = () => {
+const getRouteRemoveDescription = (reason: string) => {
   return (
     <>
       {ui.simulation.routeRemoveBodyPrefix} {ui.simulation.routeRemoveBodyMiddle}.{" "}
-      {ui.simulation.routeRemoveBodySuffix}
+      {ui.simulation.routeRemoveBodySuffix} {ui.simulation.routeRemoveReasonLabel(reason)}
     </>
   );
 };
@@ -558,4 +572,17 @@ export const getPeerLabel = (peerId: string, peerNameById: Map<string, string>) 
 
 const getPeerDisplayName = (peerId: string, peerNameById: Map<string, string>) => {
   return peerNameById.get(peerId) ?? ui.common.unknown;
+};
+
+const isSourcePacketSendFailure = (event: SimulationEvent, message: SimulationMessage | null) => {
+  if (event.type !== SimulationEventType.SystemMessageDropped) {
+    return false;
+  }
+
+  const details = event.details as DroppedEventDetails;
+  if (details.reasonCode === "NO_ROUTE" || details.reasonCode === "SOURCE_UNAVAILABLE") {
+    return true;
+  }
+
+  return message?.kind === SimulationMessageKind.Packet && message.sourcePeerId === null;
 };

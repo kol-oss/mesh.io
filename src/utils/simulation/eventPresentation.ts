@@ -31,6 +31,12 @@ const detectEventProtocol = (event: SimulationEvent, message: SimulationMessage 
   if (
     message?.kind === SimulationMessageKind.BatmanOriginatorMessage ||
     message?.kind === SimulationMessageKind.BatmanEchoLocationMessage ||
+    event.type === SimulationEventType.SystemMessageBroadcast ||
+    event.type === SimulationEventType.SystemRouteSelected ||
+    event.type === SimulationEventType.SystemThroughputCalculated ||
+    event.type === SimulationEventType.SystemMessageDropped ||
+    event.type === SimulationEventType.SystemPeerMoved ||
+    event.type === SimulationEventType.SystemEntityStatusChanged ||
     event.type === SimulationEventType.RoutingTableInsert ||
     event.type === SimulationEventType.RoutingTableUpdate ||
     event.type === SimulationEventType.RoutingTableRemove

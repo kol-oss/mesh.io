@@ -160,8 +160,8 @@ export class BatmanOperations {
     const selectedRoute = this.originatorTable.getBestRouteRecord(packet.destinationPeerId);
     if (!selectedRoute) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
-        message: cloneMessage(packet),
         reason: ui.runtime.noRouteForDestination,
+        reasonCode: "NO_ROUTE",
       });
       return false;
     }

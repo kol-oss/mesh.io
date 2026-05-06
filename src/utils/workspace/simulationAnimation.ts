@@ -90,6 +90,10 @@ export const buildSimulationMessageAnimations = (
 
   if (currentEvent.type === SimulationEventType.SystemMessageDropped) {
     const details = currentEvent.details as DroppedEventDetails;
+    if (!details.message) {
+      return [];
+    }
+
     const droppedAnimation = getDroppedMessageAnimation(currentEvent.peerId, details.message);
     return toMessageAnimations([
       createAnimation(
@@ -130,8 +134,7 @@ export const buildSimulationMessageAnimations = (
 
   if (
     currentEvent.type === SimulationEventType.RoutingTableInsert ||
-    currentEvent.type === SimulationEventType.RoutingTableUpdate ||
-    currentEvent.type === SimulationEventType.RoutingTableRemove
+    currentEvent.type === SimulationEventType.RoutingTableUpdate
   ) {
     const details = currentEvent.details as { hopPeerId: string };
     return toMessageAnimations([
@@ -195,6 +198,11 @@ const getDroppedMessageAnimation = (
   }
 
   if (message.kind !== SimulationMessageKind.Packet) {
+    return null;
+  }
+
+  // Source-side send failure: packet never left the node, so no link animation.
+  if (message.sourcePeerId === null) {
     return null;
   }
 
