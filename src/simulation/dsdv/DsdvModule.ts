@@ -124,6 +124,13 @@ export class DsdvModule implements PacketCapableModule {
       return;
     }
 
+    // Increment sequence number on any changes to broadcast
+    const changedRoutes = this.routingTable.getChangedRoutes();
+    if (changedRoutes.length > 0) {
+      this.ownSequenceNumber += 2;
+      this.routingTable.upsertSelfRoute(this.ownSequenceNumber);
+    }
+
     this.broadcastRouteUpdate({
       updateType: DsdvUpdateType.Incremental,
       retransmit: false,
