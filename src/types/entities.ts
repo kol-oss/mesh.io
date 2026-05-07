@@ -22,6 +22,8 @@ export type PeerEntity = BaseEntity & {
   dsdvIncrementalUpdateInterval: number;
   dsdvFullDumpInterval: number;
   dsdvRouteTimeout: number;
+  olsrHelloInterval: number;
+  olsrTcInterval: number;
 };
 
 export type LinkEntity = BaseEntity & {

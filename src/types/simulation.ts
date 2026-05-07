@@ -25,6 +25,8 @@ export const SimulationMessageKind = {
   BatmanOriginatorMessage: "BATMAN_ORIGINATOR_MESSAGE",
   BatmanEchoLocationMessage: "BATMAN_ECHO_LOCATION_MESSAGE",
   DsdvRouteUpdateMessage: "DSDV_ROUTE_UPDATE_MESSAGE",
+  OlsrHelloMessage: "OLSR_HELLO_MESSAGE",
+  OlsrTcMessage: "OLSR_TC_MESSAGE",
 } as const;
 
 export type SimulationMessageKind =
@@ -100,11 +102,31 @@ export type DsdvRouteUpdateMessage = {
   entries: DsdvRouteEntryMessage[];
 };
 
+export type OlsrHelloMessage = {
+  kind: typeof SimulationMessageKind.OlsrHelloMessage;
+  sourcePeerId: UUID;
+  senderPeerId: UUID;
+  interval: number;
+  neighbours: UUID[];
+  mprPeerIds: UUID[];
+};
+
+export type OlsrTcMessage = {
+  kind: typeof SimulationMessageKind.OlsrTcMessage;
+  sourcePeerId: UUID;
+  senderPeerId: UUID;
+  ansn: number;
+  timeToLive: number;
+  advertisedNeighbours: UUID[];
+};
+
 export type SimulationMessage =
   | SimulationPacket
   | BatmanOriginatorMessage
   | BatmanEchoLocationMessage
-  | DsdvRouteUpdateMessage;
+  | DsdvRouteUpdateMessage
+  | OlsrHelloMessage
+  | OlsrTcMessage;
 
 export type BatmanRouteRecord = {
   originatorPeerId: UUID;
@@ -129,6 +151,27 @@ export type DsdvRouteRecord = {
   lastUpdateTick: number;
 };
 
+export type OlsrRouteRecord = {
+  destinationPeerId: UUID;
+  nextHopPeerId: UUID;
+  metric: number;
+  sequenceNumber: number;
+  lastUpdateTick: number;
+};
+
+export type OlsrNeighbourRecord = {
+  neighbourPeerId: UUID;
+  status: "SYMMETRIC" | "MPR";
+  lastUpdateTick: number;
+};
+
+export type OlsrTopologyRecord = {
+  destinationPeerId: UUID;
+  lastHopPeerId: UUID;
+  sequenceNumber: number;
+  lastUpdateTick: number;
+};
+
 export type BatmanRoutingTableChangeDetails = {
   protocol: typeof RoutingProtocol.BATMAN;
   originatorPeerId: UUID;
@@ -149,9 +192,20 @@ export type DsdvRoutingTableChangeDetails = {
   reason: string;
 };
 
+export type OlsrRoutingTableChangeDetails = {
+  protocol: typeof RoutingProtocol.OLSR;
+  destinationPeerId: UUID;
+  nextHopPeerId: UUID;
+  previousRoute: OlsrRouteRecord | null;
+  nextRoute: OlsrRouteRecord | null;
+  message?: SimulationMessage;
+  reason: string;
+};
+
 export type RoutingTableChangeDetails =
   | BatmanRoutingTableChangeDetails
-  | DsdvRoutingTableChangeDetails;
+  | DsdvRoutingTableChangeDetails
+  | OlsrRoutingTableChangeDetails;
 
 export type BroadcastEventDetails = {
   neighbourPeerIds: UUID[];
@@ -198,7 +252,7 @@ export type ThroughputCalculationEventDetails = {
 export type RouteSelectedEventDetails = {
   protocol: RoutingProtocol;
   destinationPeerId: UUID;
-  selectedRoute: BatmanRouteRecord | DsdvRouteRecord;
+  selectedRoute: BatmanRouteRecord | DsdvRouteRecord | OlsrRouteRecord;
   message: SimulationPacket;
 };
 
@@ -247,6 +301,9 @@ export type SimulationPeerSnapshot = PeerEntity & {
   batmanRoutingTable: BatmanRouteRecord[];
   batmanNeighboursTable: BatmanNeighbourRecord[];
   dsdvRoutingTable: DsdvRouteRecord[];
+  olsrNeighbourTable: OlsrNeighbourRecord[];
+  olsrTopologyTable: OlsrTopologyRecord[];
+  olsrRoutingTable: OlsrRouteRecord[];
 };
 
 export type SimulationTickSnapshot = {

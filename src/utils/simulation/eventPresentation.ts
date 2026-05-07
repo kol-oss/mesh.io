@@ -8,6 +8,8 @@ import {
   type BroadcastEventDetails,
   type DsdvRouteUpdateMessage,
   type DroppedEventDetails,
+  type OlsrHelloMessage,
+  type OlsrTcMessage,
   type RoutingTableChangeDetails,
   type RouteSelectedEventDetails,
   type SimulationEvent,
@@ -43,6 +45,14 @@ const isDsdvMessage = (message: SimulationMessage | null): message is DsdvRouteU
   return message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage;
 };
 
+const isOlsrHelloMessage = (message: SimulationMessage | null): message is OlsrHelloMessage => {
+  return message?.kind === SimulationMessageKind.OlsrHelloMessage;
+};
+
+const isOlsrTcMessage = (message: SimulationMessage | null): message is OlsrTcMessage => {
+  return message?.kind === SimulationMessageKind.OlsrTcMessage;
+};
+
 const getRouteChange = (event: SimulationEvent): RoutingTableChangeDetails | null => {
   if (
     event.type !== SimulationEventType.RoutingTableInsert &&
@@ -73,6 +83,10 @@ const detectEventProtocol = (event: SimulationEvent, message: SimulationMessage 
     return RoutingProtocol.BATMAN;
   }
 
+  if (isOlsrHelloMessage(message) || isOlsrTcMessage(message)) {
+    return RoutingProtocol.OLSR;
+  }
+
   return null;
 };
 
@@ -89,6 +103,46 @@ export const getEventTitle = (event: SimulationEvent) => {
   }
 
   if (protocol !== RoutingProtocol.DSDV) {
+    if (protocol !== RoutingProtocol.OLSR) {
+      return ui.simulation.genericEvent;
+    }
+
+    if (event.type === SimulationEventType.SystemMessageBroadcast) {
+      if (isOlsrHelloMessage(message)) {
+        return ui.simulation.olsrHelloBroadcast;
+      }
+
+      if (isOlsrTcMessage(message)) {
+        return ui.simulation.olsrTcBroadcast;
+      }
+
+      return ui.simulation.broadcastMessage;
+    }
+
+    if (event.type === SimulationEventType.RoutingTableInsert) {
+      return ui.simulation.olsrRouteAdded;
+    }
+
+    if (event.type === SimulationEventType.RoutingTableUpdate) {
+      return ui.simulation.olsrRouteUpdated;
+    }
+
+    if (event.type === SimulationEventType.RoutingTableRemove) {
+      return ui.simulation.olsrRouteRemoved;
+    }
+
+    if (event.type === SimulationEventType.SystemThroughputCalculated) {
+      return ui.simulation.olsrRouteCalculation;
+    }
+
+    if (event.type === SimulationEventType.SystemMessageDropped) {
+      return ui.simulation.packetSendFailed;
+    }
+
+    if (event.type === SimulationEventType.SystemRouteSelected) {
+      return ui.simulation.routeSelected;
+    }
+
     return ui.simulation.genericEvent;
   }
 
@@ -130,6 +184,49 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
   }
 
   if (protocol !== RoutingProtocol.DSDV) {
+    if (protocol !== RoutingProtocol.OLSR) {
+      return ui.simulation.eventEmitted(ui.simulation.eventNodeLabel);
+    }
+
+    const routeChange = getRouteChange(event);
+    if (routeChange && routeChange.protocol === RoutingProtocol.OLSR) {
+      if (event.type === SimulationEventType.RoutingTableInsert) {
+        return ui.simulation.olsrRouteInsertBody(routeChange.reason);
+      }
+
+      if (event.type === SimulationEventType.RoutingTableUpdate) {
+        return ui.simulation.olsrRouteUpdateBody(routeChange.reason);
+      }
+
+      return ui.simulation.olsrRouteRemoveBody(routeChange.reason);
+    }
+
+    if (event.type === SimulationEventType.SystemMessageBroadcast) {
+      const details = event.details as BroadcastEventDetails;
+      return ui.simulation.olsrBroadcastBody(details.note ?? "");
+    }
+
+    if (event.type === SimulationEventType.SystemMessageDropped) {
+      const details = event.details as DroppedEventDetails;
+      return ui.simulation.packetSendFailedReason(details.reason);
+    }
+
+    if (event.type === SimulationEventType.SystemRouteSelected) {
+      const details = event.details as RouteSelectedEventDetails;
+      if ("nextHopPeerId" in details.selectedRoute) {
+        return ui.simulation.eventRouteSelectedOlsr(
+          getPeerLabel(details.destinationPeerId, peerNameById),
+          getPeerLabel(details.selectedRoute.nextHopPeerId, peerNameById),
+          details.selectedRoute.metric,
+        );
+      }
+    }
+
+    if (event.type === SimulationEventType.SystemThroughputCalculated) {
+      const details = event.details as ThroughputCalculationEventDetails;
+      return details.reason;
+    }
+
     return ui.simulation.eventEmitted(ui.simulation.eventNodeLabel);
   }
 
@@ -214,6 +311,28 @@ export const getSimulationReadMorePath = (
     return "/docs/dsdv#what-you-need-to-know";
   }
 
+  if (protocol === RoutingProtocol.OLSR) {
+    if (
+      event.type === SimulationEventType.RoutingTableInsert ||
+      event.type === SimulationEventType.RoutingTableUpdate ||
+      event.type === SimulationEventType.RoutingTableRemove ||
+      event.type === SimulationEventType.SystemRouteSelected ||
+      event.type === SimulationEventType.SystemThroughputCalculated
+    ) {
+      return "/docs/olsr#route-selection";
+    }
+
+    if (isOlsrTcMessage(message)) {
+      return "/docs/olsr#topology-discovery";
+    }
+
+    if (isOlsrHelloMessage(message)) {
+      return "/docs/olsr#neighbor-sensing";
+    }
+
+    return "/docs/olsr#what-you-need-to-know";
+  }
+
   return "/docs/batman#what-you-need-to-know";
 };
 
@@ -230,6 +349,90 @@ export const getMessageSummary = (
   }
 
   if (protocol !== RoutingProtocol.DSDV) {
+    if (protocol !== RoutingProtocol.OLSR) {
+      return null;
+    }
+
+    if (event.type === SimulationEventType.SystemRouteSelected) {
+      const details = event.details as RouteSelectedEventDetails;
+      if (!("nextHopPeerId" in details.selectedRoute)) {
+        return null;
+      }
+
+      return [
+        {
+          label: ui.simulation.summaryDestination,
+          value: renderPeerName(
+            details.destinationPeerId,
+            getPeerLabel(details.destinationPeerId, peerNameById),
+            onPeerHoverChange,
+          ),
+        },
+        {
+          label: ui.simulation.tableNextHop,
+          value: renderPeerName(
+            details.selectedRoute.nextHopPeerId,
+            getPeerLabel(details.selectedRoute.nextHopPeerId, peerNameById),
+            onPeerHoverChange,
+          ),
+        },
+        {
+          label: ui.simulation.tableMetric,
+          value: String(details.selectedRoute.metric),
+        },
+      ];
+    }
+
+    if (isOlsrHelloMessage(message)) {
+      return [
+        {
+          label: ui.simulation.summaryType,
+          value: ui.simulation.summaryOlsrHello,
+        },
+        {
+          label: ui.simulation.summarySender,
+          value: renderPeerName(
+            message.senderPeerId,
+            getPeerLabel(message.senderPeerId, peerNameById),
+            onPeerHoverChange,
+          ),
+        },
+        {
+          label: ui.simulation.summaryInterval,
+          value: String(message.interval),
+        },
+        {
+          label: ui.simulation.summaryNeighbours,
+          value: String(message.neighbours.length),
+        },
+      ];
+    }
+
+    if (isOlsrTcMessage(message)) {
+      return [
+        {
+          label: ui.simulation.summaryType,
+          value: ui.simulation.summaryOlsrTc,
+        },
+        {
+          label: ui.simulation.summarySender,
+          value: renderPeerName(
+            message.senderPeerId,
+            getPeerLabel(message.senderPeerId, peerNameById),
+            onPeerHoverChange,
+          ),
+        },
+        {
+          label: ui.simulation.summaryAnsn,
+          value: String(message.ansn),
+        },
+        {
+          label: ui.simulation.summaryEntries,
+          value: String(message.advertisedNeighbours.length),
+        },
+      ];
+    }
+
     return null;
   }
 

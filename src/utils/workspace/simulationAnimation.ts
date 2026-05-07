@@ -141,6 +141,28 @@ export const buildSimulationMessageAnimations = (
       ]);
     }
 
+    if (details.message.kind === SimulationMessageKind.OlsrHelloMessage) {
+      return toMessageAnimations([
+        createAnimation(
+          details.message.senderPeerId,
+          currentEvent.peerId,
+          "throughput",
+          "route-change",
+        ),
+      ]);
+    }
+
+    if (details.message.kind === SimulationMessageKind.OlsrTcMessage) {
+      return toMessageAnimations([
+        createAnimation(
+          details.message.senderPeerId,
+          currentEvent.peerId,
+          "throughput",
+          "route-change",
+        ),
+      ]);
+    }
+
     return [];
   }
 
@@ -215,6 +237,18 @@ const getDroppedMessageAnimation = (
   }
 
   if (message.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
+    return message.senderPeerId !== eventPeerId
+      ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
+      : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
+  }
+
+  if (message.kind === SimulationMessageKind.OlsrHelloMessage) {
+    return message.senderPeerId !== eventPeerId
+      ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
+      : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
+  }
+
+  if (message.kind === SimulationMessageKind.OlsrTcMessage) {
     return message.senderPeerId !== eventPeerId
       ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
       : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };

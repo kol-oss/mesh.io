@@ -17,6 +17,7 @@ import {
 import { getObstacleBounds, hasLineOfSight } from "../utils/geometry";
 import { BatmanModule } from "./batman/BatmanModule";
 import { DsdvModule } from "./dsdv/DsdvModule";
+import { OlsrModule } from "./olsr/OlsrModule";
 import { SimulationEventRecorder } from "./core/EventRecorder";
 import type {
   PacketCapableModule,
@@ -52,6 +53,11 @@ class RuntimePeer implements SnapshotCapablePeerNode {
 
       if (protocol === RoutingProtocol.DSDV) {
         this.modules.set(protocol, new DsdvModule(this, eventRecorder));
+        continue;
+      }
+
+      if (protocol === RoutingProtocol.OLSR) {
+        this.modules.set(protocol, new OlsrModule(this, eventRecorder));
       }
     }
   }
@@ -180,6 +186,33 @@ class RuntimePeer implements SnapshotCapablePeerNode {
   getPrimaryProtocol() {
     const [protocol] = this.entity.protocols;
     return protocol ?? null;
+  }
+
+  getOlsrNeighbourTable() {
+    const olsrModule = this.modules.get(RoutingProtocol.OLSR);
+    if (!(olsrModule instanceof OlsrModule)) {
+      return [];
+    }
+
+    return olsrModule.getNeighbourTable();
+  }
+
+  getOlsrTopologyTable() {
+    const olsrModule = this.modules.get(RoutingProtocol.OLSR);
+    if (!(olsrModule instanceof OlsrModule)) {
+      return [];
+    }
+
+    return olsrModule.getTopologyTable();
+  }
+
+  getOlsrRoutingTable() {
+    const olsrModule = this.modules.get(RoutingProtocol.OLSR);
+    if (!(olsrModule instanceof OlsrModule)) {
+      return [];
+    }
+
+    return olsrModule.getRoutes();
   }
 }
 
@@ -376,6 +409,9 @@ class RuntimeNetwork implements SimulationNetworkRuntime {
         batmanRoutingTable: peer.getBatmanRoutingTable(),
         batmanNeighboursTable: peer.getBatmanNeighboursTable(),
         dsdvRoutingTable: peer.getDsdvRoutingTable(),
+        olsrNeighbourTable: peer.getOlsrNeighbourTable(),
+        olsrTopologyTable: peer.getOlsrTopologyTable(),
+        olsrRoutingTable: peer.getOlsrRoutingTable(),
       })),
     };
   }
@@ -558,6 +594,32 @@ const processStep = (
 
       module.tick();
       module.refreshIncremental();
+      return;
+    }
+
+    if (
+      step.refreshProtocol === RoutingProtocol.OLSR &&
+      step.refreshAction === RefreshAction.OlsrHello
+    ) {
+      if (!(module instanceof OlsrModule)) {
+        return;
+      }
+
+      module.tick();
+      module.refreshHello();
+      return;
+    }
+
+    if (
+      step.refreshProtocol === RoutingProtocol.OLSR &&
+      step.refreshAction === RefreshAction.OlsrTc
+    ) {
+      if (!(module instanceof OlsrModule)) {
+        return;
+      }
+
+      module.tick();
+      module.refreshTc();
       return;
     }
 

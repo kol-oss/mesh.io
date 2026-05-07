@@ -6,6 +6,8 @@ import { ui } from "../../i18n/messages";
 import {
   DsdvUpdateType,
   SimulationMessageKind,
+  type OlsrHelloMessage,
+  type OlsrTcMessage,
   type SimulationEvent,
   type SimulationMessage,
   type SimulationStepResult,
@@ -206,6 +208,59 @@ export default function PacketStructureWindow({
               </div>
             ))}
           </div>
+        ) : eventMessage?.kind === SimulationMessageKind.OlsrHelloMessage ? (
+          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
+            {getOlsrHelloStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
+              <div
+                className="simulation-panel__packet-row"
+                key={`packet-row-olsr-hello-${rowIndex}`}
+              >
+                {row.map((field) => (
+                  <div
+                    key={`olsr-hello-${rowIndex}-${field.label}`}
+                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
+                    style={{ flex: field.bits }}
+                  >
+                    <span className="simulation-panel__packet-field-label">{field.label}</span>
+                    <span className="simulation-panel__packet-field-value">{field.value}</span>
+                    <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-description">
+                        {field.description}
+                      </span>
+                      <span className="simulation-panel__packet-tooltip-bits">
+                        {field.bits} {ui.packet.bitsSuffix}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : eventMessage?.kind === SimulationMessageKind.OlsrTcMessage ? (
+          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
+            {getOlsrTcStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
+              <div className="simulation-panel__packet-row" key={`packet-row-olsr-tc-${rowIndex}`}>
+                {row.map((field) => (
+                  <div
+                    key={`olsr-tc-${rowIndex}-${field.label}`}
+                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
+                    style={{ flex: field.bits }}
+                  >
+                    <span className="simulation-panel__packet-field-label">{field.label}</span>
+                    <span className="simulation-panel__packet-field-value">{field.value}</span>
+                    <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-description">
+                        {field.description}
+                      </span>
+                      <span className="simulation-panel__packet-tooltip-bits">
+                        {field.bits} {ui.packet.bitsSuffix}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         ) : (
           <p className="simulation-panel__description simulation-panel__description--secondary">
             {ui.packet.unavailable}
@@ -236,6 +291,14 @@ const getPacketInspectorTitle = (message: SimulationMessage | null) => {
     return ui.packet.dsdvTitle;
   }
 
+  if (message?.kind === SimulationMessageKind.OlsrHelloMessage) {
+    return ui.packet.olsrHelloTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.OlsrTcMessage) {
+    return ui.packet.olsrTcTitle;
+  }
+
   return ui.packet.title;
 };
 
@@ -246,6 +309,14 @@ const getPacketInspectorStructureAria = (message: SimulationMessage | null) => {
 
   if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
     return ui.packet.dsdvStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.OlsrHelloMessage) {
+    return ui.packet.olsrHelloStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.OlsrTcMessage) {
+    return ui.packet.olsrTcStructureAria;
   }
 
   return ui.packet.structureAria;
@@ -264,7 +335,100 @@ const getPacketReadMorePath = (message: SimulationMessage | null) => {
     return "/docs/dsdv#full-and-incremental-updates";
   }
 
+  if (message?.kind === SimulationMessageKind.OlsrHelloMessage) {
+    return "/docs/olsr#neighbor-sensing";
+  }
+
+  if (message?.kind === SimulationMessageKind.OlsrTcMessage) {
+    return "/docs/olsr#topology-discovery";
+  }
+
   return "/docs/batman#what-you-need-to-know";
+};
+
+const getOlsrHelloStructureRows = (
+  message: OlsrHelloMessage,
+  peerNameById: Map<string, string>,
+): PacketStructureField[][] => {
+  return [
+    [
+      {
+        label: ui.packet.fieldType,
+        value: "HELLO",
+        bits: 16,
+        description: "OLSR HELLO control packet used for neighbour sensing.",
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldInterval,
+        value: String(message.interval),
+        bits: 16,
+        description: "Configured HELLO emission interval.",
+        blocked: false,
+      },
+    ],
+    [
+      {
+        label: ui.packet.fieldEntryCount,
+        value: String(message.neighbours.length),
+        bits: 16,
+        description: "Number of advertised symmetric neighbours.",
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldMprList,
+        value:
+          message.mprPeerIds.map((peerId) => peerNameById.get(peerId) ?? peerId).join(", ") ||
+          ui.packet.notAvailable,
+        bits: 48,
+        description: "Neighbour subset selected as MPR relays by the sender.",
+        blocked: false,
+      },
+    ],
+  ];
+};
+
+const getOlsrTcStructureRows = (
+  message: OlsrTcMessage,
+  peerNameById: Map<string, string>,
+): PacketStructureField[][] => {
+  return [
+    [
+      {
+        label: ui.packet.fieldType,
+        value: "TC",
+        bits: 16,
+        description: "OLSR topology control packet.",
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldAnsn,
+        value: String(message.ansn),
+        bits: 16,
+        description: "Advertised Neighbour Sequence Number used for freshness checks.",
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldTtl,
+        value: String(message.timeToLive),
+        bits: 16,
+        description: "Remaining relay depth for this TC packet.",
+        blocked: false,
+      },
+    ],
+    [
+      {
+        label: ui.packet.fieldAdvertisedNeighbours,
+        value:
+          message.advertisedNeighbours
+            .map((peerId) => peerNameById.get(peerId) ?? peerId)
+            .join(", ") || ui.packet.notAvailable,
+        bits: 64,
+        description: "MPR selectors advertised by the originator.",
+        blocked: false,
+      },
+    ],
+  ];
 };
 
 const getDsdvUpdateTypeLabel = (updateType: DsdvUpdateType) => {

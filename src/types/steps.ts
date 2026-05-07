@@ -7,6 +7,8 @@ export const RefreshAction = {
   BatmanOgm: "BATMAN_OGM",
   DsdvFullDump: "DSDV_FULL_DUMP",
   DsdvIncremental: "DSDV_INCREMENTAL",
+  OlsrHello: "OLSR_HELLO",
+  OlsrTc: "OLSR_TC",
 } as const;
 
 export type RefreshAction = (typeof RefreshAction)[keyof typeof RefreshAction];

@@ -114,7 +114,9 @@ export default function TableInspectionWindow({
         <h2 className="simulation-panel__title">
           {selectedProtocol === RoutingProtocol.DSDV
             ? ui.simulation.tableInspectionTitleDsdv(inspectedPeer.name)
-            : ui.simulation.tableInspectionTitle(inspectedPeer.name)}
+            : selectedProtocol === RoutingProtocol.OLSR
+              ? ui.simulation.tableInspectionTitleOlsr(inspectedPeer.name)
+              : ui.simulation.tableInspectionTitle(inspectedPeer.name)}
         </h2>
         <button
           className="simulation-panel__close-button"
@@ -252,6 +254,128 @@ export default function TableInspectionWindow({
               </tbody>
             </table>
           </div>
+        ) : selectedProtocol === RoutingProtocol.OLSR ? (
+          <>
+            <div className="simulation-panel__table-block">
+              <p className="simulation-panel__section-title">{ui.simulation.tableOlsrNeighbours}</p>
+              <table className="simulation-panel__table-view">
+                <thead>
+                  <tr>
+                    <th>{ui.simulation.tableNeighbour}</th>
+                    <th>{ui.simulation.tableNeighbourStatus}</th>
+                    <th>{ui.simulation.tableLastSeen}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {inspectedPeer.olsrNeighbourTable.length === 0 ? (
+                    <tr>
+                      <td colSpan={3}>{ui.simulation.tableNoRecords}</td>
+                    </tr>
+                  ) : (
+                    inspectedPeer.olsrNeighbourTable.map((row, index) => (
+                      <tr key={`${row.neighbourPeerId}-${index}`}>
+                        <td>
+                          {renderPeerName(
+                            row.neighbourPeerId,
+                            getPeerLabel(row.neighbourPeerId, peerNameById),
+                            onPeerHoverChange,
+                          )}
+                        </td>
+                        <td>{row.status}</td>
+                        <td>{row.lastUpdateTick}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="simulation-panel__table-block">
+              <p className="simulation-panel__section-title">{ui.simulation.tableOlsrTopology}</p>
+              <table className="simulation-panel__table-view">
+                <thead>
+                  <tr>
+                    <th>{ui.simulation.tableDestination}</th>
+                    <th>{ui.simulation.tableLastHop}</th>
+                    <th>{ui.simulation.tableAnsn}</th>
+                    <th>{ui.simulation.tableInstalled}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {inspectedPeer.olsrTopologyTable.length === 0 ? (
+                    <tr>
+                      <td colSpan={4}>{ui.simulation.tableNoRecords}</td>
+                    </tr>
+                  ) : (
+                    inspectedPeer.olsrTopologyTable.map((row, index) => (
+                      <tr key={`${row.destinationPeerId}-${row.lastHopPeerId}-${index}`}>
+                        <td>
+                          {renderPeerName(
+                            row.destinationPeerId,
+                            getPeerLabel(row.destinationPeerId, peerNameById),
+                            onPeerHoverChange,
+                          )}
+                        </td>
+                        <td>
+                          {renderPeerName(
+                            row.lastHopPeerId,
+                            getPeerLabel(row.lastHopPeerId, peerNameById),
+                            onPeerHoverChange,
+                          )}
+                        </td>
+                        <td>{row.sequenceNumber}</td>
+                        <td>{row.lastUpdateTick}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="simulation-panel__table-block">
+              <p className="simulation-panel__section-title">{ui.simulation.tableOlsrRoutes}</p>
+              <table className="simulation-panel__table-view">
+                <thead>
+                  <tr>
+                    <th>{ui.simulation.tableDestination}</th>
+                    <th>{ui.simulation.tableNextHop}</th>
+                    <th>{ui.simulation.tableMetric}</th>
+                    <th>{ui.simulation.tableAnsn}</th>
+                    <th>{ui.simulation.tableInstalled}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {inspectedPeer.olsrRoutingTable.length === 0 ? (
+                    <tr>
+                      <td colSpan={5}>{ui.simulation.tableNoRecords}</td>
+                    </tr>
+                  ) : (
+                    inspectedPeer.olsrRoutingTable.map((row, index) => (
+                      <tr key={`${row.destinationPeerId}-${row.nextHopPeerId}-${index}`}>
+                        <td>
+                          {renderPeerName(
+                            row.destinationPeerId,
+                            getPeerLabel(row.destinationPeerId, peerNameById),
+                            onPeerHoverChange,
+                          )}
+                        </td>
+                        <td>
+                          {renderPeerName(
+                            row.nextHopPeerId,
+                            getPeerLabel(row.nextHopPeerId, peerNameById),
+                            onPeerHoverChange,
+                          )}
+                        </td>
+                        <td>{row.metric}</td>
+                        <td>{row.sequenceNumber}</td>
+                        <td>{row.lastUpdateTick}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : null}
       </section>
 
@@ -261,7 +385,9 @@ export default function TableInspectionWindow({
           href={
             selectedProtocol === RoutingProtocol.DSDV
               ? "/docs/dsdv#routing-maintenance"
-              : "/docs/batman#route-selection"
+              : selectedProtocol === RoutingProtocol.OLSR
+                ? "/docs/olsr#route-selection"
+                : "/docs/batman#route-selection"
           }
           target="_blank"
           rel="noreferrer"

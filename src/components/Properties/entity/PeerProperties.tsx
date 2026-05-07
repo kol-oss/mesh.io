@@ -24,6 +24,7 @@ import {
   DSDV_MIN_INTERVAL,
   DSDV_MIN_TIMEOUT,
 } from "../../../constants/dsdv";
+import { OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "../../../constants/olsr";
 import Tooltip from "../../Tooltip/Tooltip";
 import { ui } from "../../../i18n/messages";
 import { EntityType, RoutingProtocol } from "../../../types/enums";
@@ -69,6 +70,10 @@ export default function PeerProperties({
     selectedPeer.dsdvFullDumpInterval < DSDV_MIN_INTERVAL;
   const isDsdvRouteTimeoutMissing =
     selectedProtocol === RoutingProtocol.DSDV && selectedPeer.dsdvRouteTimeout < DSDV_MIN_TIMEOUT;
+  const isOlsrHelloMissing =
+    selectedProtocol === RoutingProtocol.OLSR && selectedPeer.olsrHelloInterval < OLSR_MIN_INTERVAL;
+  const isOlsrTcMissing =
+    selectedProtocol === RoutingProtocol.OLSR && selectedPeer.olsrTcInterval < OLSR_MIN_INTERVAL;
 
   const updatePeer = (changes: Partial<PeerEntity>) => {
     if (isLocked) return;
@@ -103,6 +108,22 @@ export default function PeerProperties({
   };
 
   const updateDsdvPeers = (changes: Partial<PeerEntity>) => {
+    if (isLocked) return;
+    const updatedEntities = entities.map((entity) => {
+      if (entity.type !== EntityType.Peer) {
+        return entity;
+      }
+
+      return {
+        ...entity,
+        ...changes,
+      };
+    });
+
+    setEntities(updatedEntities);
+  };
+
+  const updateOlsrPeers = (changes: Partial<PeerEntity>) => {
     if (isLocked) return;
     const updatedEntities = entities.map((entity) => {
       if (entity.type !== EntityType.Peer) {
@@ -497,6 +518,60 @@ export default function PeerProperties({
                         Math.min(
                           DSDV_MAX_TIMEOUT,
                           parseNumberValue(event.target.value, selectedPeer.dsdvRouteTimeout),
+                        ),
+                      ),
+                    })
+                  }
+                />
+              </div>
+            </label>
+          </>
+        )}
+
+        {selectedProtocol === RoutingProtocol.OLSR && (
+          <>
+            <label className="properties__field">
+              {renderGlobalLabel(ui.properties.fieldOlsrHelloInterval, isOlsrHelloMissing)}
+              <div className="properties__input-with-prefix">
+                <Clock3 size={12} />
+                <input
+                  className={`properties__input ${isOlsrHelloMissing ? "properties__required-outline" : ""}`}
+                  type="number"
+                  min={OLSR_MIN_INTERVAL}
+                  max={OLSR_MAX_INTERVAL}
+                  value={selectedPeer.olsrHelloInterval}
+                  onChange={(event) =>
+                    updateOlsrPeers({
+                      olsrHelloInterval: Math.max(
+                        OLSR_MIN_INTERVAL,
+                        Math.min(
+                          OLSR_MAX_INTERVAL,
+                          parseNumberValue(event.target.value, selectedPeer.olsrHelloInterval),
+                        ),
+                      ),
+                    })
+                  }
+                />
+              </div>
+            </label>
+
+            <label className="properties__field">
+              {renderGlobalLabel(ui.properties.fieldOlsrTcInterval, isOlsrTcMissing)}
+              <div className="properties__input-with-prefix">
+                <Clock3 size={12} />
+                <input
+                  className={`properties__input ${isOlsrTcMissing ? "properties__required-outline" : ""}`}
+                  type="number"
+                  min={OLSR_MIN_INTERVAL}
+                  max={OLSR_MAX_INTERVAL}
+                  value={selectedPeer.olsrTcInterval}
+                  onChange={(event) =>
+                    updateOlsrPeers({
+                      olsrTcInterval: Math.max(
+                        OLSR_MIN_INTERVAL,
+                        Math.min(
+                          OLSR_MAX_INTERVAL,
+                          parseNumberValue(event.target.value, selectedPeer.olsrTcInterval),
                         ),
                       ),
                     })

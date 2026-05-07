@@ -22,6 +22,7 @@ import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 
 import { BATMAN_DEFAULT_CONFIGURATION } from "../../constants/batman.ts";
 import { DSDV_DEFAULT_CONFIGURATION } from "../../constants/dsdv.ts";
+import { OLSR_DEFAULT_CONFIGURATION } from "../../constants/olsr";
 
 type UseWorkspaceCreationParams = {
   entities: NetworkEntity[];
@@ -52,6 +53,7 @@ export function useWorkspaceCreation({
         protocols: [RoutingProtocol.BATMAN],
         ...BATMAN_DEFAULT_CONFIGURATION,
         ...DSDV_DEFAULT_CONFIGURATION,
+        ...OLSR_DEFAULT_CONFIGURATION,
       };
 
       setters.setEntities([...entities, nextPeer]);
