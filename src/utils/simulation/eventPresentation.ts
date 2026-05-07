@@ -195,11 +195,23 @@ export const getSimulationReadMorePath = (
   }
 
   if (protocol === RoutingProtocol.DSDV) {
-    if (isDsdvMessage(message)) {
-      return "/docs/dsdv#routing-updates";
+    if (
+      event.type === SimulationEventType.RoutingTableInsert ||
+      event.type === SimulationEventType.RoutingTableUpdate ||
+      event.type === SimulationEventType.RoutingTableRemove
+    ) {
+      return "/docs/dsdv#routing-maintenance";
     }
 
-    return "/docs/dsdv#routing-table";
+    if (event.type === SimulationEventType.SystemRouteSelected) {
+      return "/docs/dsdv#route-selection";
+    }
+
+    if (isDsdvMessage(message)) {
+      return "/docs/dsdv#full-and-incremental-updates";
+    }
+
+    return "/docs/dsdv#what-you-need-to-know";
   }
 
   return "/docs/batman#what-you-need-to-know";

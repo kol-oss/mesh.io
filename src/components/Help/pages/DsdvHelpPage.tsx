@@ -10,7 +10,7 @@ const SECTION_IDS = [
   "dsdv",
   "what-you-need-to-know",
   "sequence-numbering-and-metrics",
-  "full-and-incremental-updates",
+  "full-dumps-and-incremental-updates",
   "routing-maintenance",
   "route-selection",
 ];
@@ -41,13 +41,13 @@ export default function DsdvHelpPage() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + 100;
+      const scrollPosition = window.scrollY;
 
       for (let i = SECTION_IDS.length - 1; i >= 0; i -= 1) {
         const sectionId = SECTION_IDS[i];
         const element = document.getElementById(sectionId);
         if (element && element.offsetTop <= scrollPosition) {
-          window.history.replaceState(null, "", `/docs/batman#${sectionId}`);
+          window.history.replaceState(null, "", `/docs/dsdv#${sectionId}`);
           break;
         }
       }
@@ -316,7 +316,7 @@ export default function DsdvHelpPage() {
           </TextBlock>
         </ModellingTrap>
       </div>
-      <div className="help-page__chapter" id="routing-selection">
+      <div className="help-page__chapter" id="route-selection">
         <h2 className="help-page__chapter-title">Route Selection</h2>
         <TextBlock>
           Route selection in DSDV is performed using the freshest sequence number received for each

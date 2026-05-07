@@ -44,7 +44,7 @@ export default function BatmanHelpPage() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + 100;
+      const scrollPosition = window.scrollY;
 
       for (let i = SECTION_IDS.length - 1; i >= 0; i -= 1) {
         const sectionId = SECTION_IDS[i];

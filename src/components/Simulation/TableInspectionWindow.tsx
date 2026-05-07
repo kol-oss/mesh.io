@@ -6,7 +6,6 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
-import { Link } from "react-router-dom";
 
 import { ui } from "../../i18n/messages";
 import { RoutingProtocol } from "../../types/enums";
@@ -77,6 +76,10 @@ export default function TableInspectionWindow({
     event.preventDefault();
   };
 
+  const handlePanelPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
+    event.stopPropagation();
+  };
+
   if (!isOpen || !currentStepResult || !inspectedPeerId) {
     return null;
   }
@@ -101,6 +104,7 @@ export default function TableInspectionWindow({
     <aside
       className={`simulation-panel simulation-panel--inspector${isDragging ? " simulation-panel--dragging" : ""}`}
       aria-label={ui.simulation.panelAria}
+      onPointerDown={handlePanelPointerDown}
       style={{ transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)` }}
     >
       <header
@@ -252,11 +256,11 @@ export default function TableInspectionWindow({
       </section>
 
       <footer className="simulation-panel__footer">
-        <Link
+        <a
           className="simulation-panel__read-more"
-          to={
+          href={
             selectedProtocol === RoutingProtocol.DSDV
-              ? "/docs/dsdv#routing-table"
+              ? "/docs/dsdv#routing-maintenance"
               : "/docs/batman#route-selection"
           }
           target="_blank"
@@ -264,7 +268,7 @@ export default function TableInspectionWindow({
         >
           <ExternalLink size={12} />
           {ui.simulation.packetStructureReadMore}
-        </Link>
+        </a>
       </footer>
     </aside>
   );

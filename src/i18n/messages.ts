@@ -480,7 +480,7 @@ export const messageCatalog = {
       fieldIntervalDescription: "ELP transmission interval announced by the sender.",
       fieldEntryCount: "Entry Count",
       notAvailable: "N/A",
-      dsdvTitle: "Destination-Sequenced Distance Vector (DSDV) Update",
+      dsdvTitle: "DSDV Update Message",
     },
     refreshStep: {
       elpTitle: (peerName: string) => `ELP Refresh on ${peerName}`,

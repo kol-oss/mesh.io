@@ -261,7 +261,7 @@ const getPacketReadMorePath = (message: SimulationMessage | null) => {
   }
 
   if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
-    return "/docs/dsdv#routing-updates";
+    return "/docs/dsdv#full-and-incremental-updates";
   }
 
   return "/docs/batman#what-you-need-to-know";
