@@ -478,6 +478,7 @@ export const messageCatalog = {
       fieldNeighbourAddressDescription: "MAC address of a neighbour listed in this ELP message.",
       fieldNeighboursNumberDescription: "Number of neighbour addresses included in this ELP.",
       fieldIntervalDescription: "ELP transmission interval announced by the sender.",
+      fieldEntryCount: "Entry Count",
       notAvailable: "N/A",
       dsdvTitle: "Destination-Sequenced Distance Vector (DSDV) Update",
     },

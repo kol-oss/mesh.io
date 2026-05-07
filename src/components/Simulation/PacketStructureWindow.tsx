@@ -268,9 +268,7 @@ const getPacketReadMorePath = (message: SimulationMessage | null) => {
 };
 
 const getDsdvUpdateTypeLabel = (updateType: DsdvUpdateType) => {
-  return updateType === DsdvUpdateType.Incremental
-    ? ui.simulation.summaryDsdvIncremental
-    : ui.simulation.summaryDsdvFullDump;
+  return updateType === DsdvUpdateType.Incremental ? "0x02" : "0x01";
 };
 
 const getDsdvStructureRows = (
@@ -286,28 +284,21 @@ const getDsdvStructureRows = (
       label: ui.packet.fieldDestination,
       value: peerNameById.get(entry.destinationPeerId) ?? entry.destinationPeerId,
       bits: 32,
-      description: "Destination node advertised by DSDV.",
-      blocked: false,
-    },
-    {
-      label: ui.packet.fieldNextHop,
-      value: peerNameById.get(entry.nextHopPeerId) ?? entry.nextHopPeerId,
-      bits: 32,
-      description: "Next hop selected by the sender for this destination.",
+      description: "The IP address of the destination node for this route entry.",
       blocked: false,
     },
     {
       label: ui.packet.fieldSequenceNumber,
       value: String(entry.sequenceNumber),
       bits: 32,
-      description: "Destination sequence number used by DSDV freshness rules.",
+      description: "The latest sequence number received for this destination.",
       blocked: false,
     },
     {
       label: ui.packet.fieldMetric,
       value: String(entry.metric),
-      bits: 16,
-      description: "Hop count metric for the advertised destination.",
+      bits: 32,
+      description: "The number of hops to reach the destination.",
       blocked: false,
     },
   ]);
@@ -318,28 +309,24 @@ const getDsdvStructureRows = (
         label: ui.packet.fieldType,
         value: getDsdvUpdateTypeLabel(message.updateType),
         bits: 8,
-        description: "DSDV update type: full dump or incremental.",
+        description:
+          "Identifies the type of DSDV message: 0x01 for Full Dump; 0x02 for Incremental Update.",
         blocked: false,
       },
       {
         label: ui.packet.fieldReserved,
-        value: "0x00",
-        bits: 8,
-        description: "Reserved byte in DSDV packet header.",
-        blocked: false,
+        value: ui.packet.notAvailable,
+        bits: 24,
+        description: "Padding to maintain 32-bit alignment.",
+        blocked: true,
       },
+    ],
+    [
       {
-        label: ui.packet.fieldSenderAddress,
-        value: peerNameById.get(message.senderPeerId) ?? message.senderPeerId,
+        label: ui.packet.fieldEntryCount,
+        value: String(message.entries.length),
         bits: 32,
-        description: "Sender node address for this DSDV update.",
-        blocked: false,
-      },
-      {
-        label: ui.packet.fieldHopCount,
-        value: String(message.hopCount),
-        bits: 16,
-        description: "Number of hops this update has traversed while being retransmitted.",
+        description: "The number of route entries contained in this packet.",
         blocked: false,
       },
     ],
