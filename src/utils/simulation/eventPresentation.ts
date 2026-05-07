@@ -215,8 +215,8 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
       const details = event.details as RouteSelectedEventDetails;
       if ("nextHopPeerId" in details.selectedRoute) {
         return ui.simulation.eventRouteSelectedOlsr(
-          getPeerLabel(details.destinationPeerId, peerNameById),
-          getPeerLabel(details.selectedRoute.nextHopPeerId, peerNameById),
+          getPeerNameForDescription(details.destinationPeerId, peerNameById),
+          getPeerNameForDescription(details.selectedRoute.nextHopPeerId, peerNameById),
           details.selectedRoute.metric,
         );
       }
@@ -316,9 +316,20 @@ export const getSimulationReadMorePath = (
       event.type === SimulationEventType.RoutingTableInsert ||
       event.type === SimulationEventType.RoutingTableUpdate ||
       event.type === SimulationEventType.RoutingTableRemove ||
-      event.type === SimulationEventType.SystemRouteSelected ||
-      event.type === SimulationEventType.SystemThroughputCalculated
+      event.type === SimulationEventType.SystemRouteSelected
     ) {
+      return "/docs/olsr#route-selection";
+    }
+
+    if (event.type === SimulationEventType.SystemThroughputCalculated) {
+      if (isOlsrTcMessage(message)) {
+        return "/docs/olsr#topology-discovery";
+      }
+
+      if (isOlsrHelloMessage(message)) {
+        return "/docs/olsr#neighbor-sensing";
+      }
+
       return "/docs/olsr#route-selection";
     }
 
@@ -383,56 +394,6 @@ export const getMessageSummary = (
       ];
     }
 
-    if (isOlsrHelloMessage(message)) {
-      return [
-        {
-          label: ui.simulation.summaryType,
-          value: ui.simulation.summaryOlsrHello,
-        },
-        {
-          label: ui.simulation.summarySender,
-          value: renderPeerName(
-            message.senderPeerId,
-            getPeerLabel(message.senderPeerId, peerNameById),
-            onPeerHoverChange,
-          ),
-        },
-        {
-          label: ui.simulation.summaryInterval,
-          value: String(message.interval),
-        },
-        {
-          label: ui.simulation.summaryNeighbours,
-          value: String(message.neighbours.length),
-        },
-      ];
-    }
-
-    if (isOlsrTcMessage(message)) {
-      return [
-        {
-          label: ui.simulation.summaryType,
-          value: ui.simulation.summaryOlsrTc,
-        },
-        {
-          label: ui.simulation.summarySender,
-          value: renderPeerName(
-            message.senderPeerId,
-            getPeerLabel(message.senderPeerId, peerNameById),
-            onPeerHoverChange,
-          ),
-        },
-        {
-          label: ui.simulation.summaryAnsn,
-          value: String(message.ansn),
-        },
-        {
-          label: ui.simulation.summaryEntries,
-          value: String(message.advertisedNeighbours.length),
-        },
-      ];
-    }
-
     return null;
   }
 
@@ -475,6 +436,10 @@ export const getMessageSummary = (
   }
 
   return null;
+};
+
+const getPeerNameForDescription = (peerId: UUID, peerNameById: Map<UUID, string>) => {
+  return peerNameById.get(peerId) ?? ui.common.unknown;
 };
 
 export {

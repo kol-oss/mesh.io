@@ -1,6 +1,5 @@
 import { ExternalLink, X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { Link } from "react-router-dom";
 
 import { ui } from "../../i18n/messages";
 import {
@@ -80,6 +79,10 @@ export default function PacketStructureWindow({
     return null;
   }
 
+  const handlePanelPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
+    event.stopPropagation();
+  };
+
   const handleHeaderPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     if (event.button !== 0) {
       return;
@@ -108,6 +111,7 @@ export default function PacketStructureWindow({
     <aside
       className={`simulation-panel simulation-panel--inspector${isDragging ? " simulation-panel--dragging" : ""}`}
       aria-label={ui.packet.inspectorAria}
+      onPointerDown={handlePanelPointerDown}
       style={{ transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)` }}
     >
       <header className="simulation-panel__header" onPointerDown={handleHeaderPointerDown}>
@@ -202,6 +206,11 @@ export default function PacketStructureWindow({
                       <span className="simulation-panel__packet-tooltip-bits">
                         {field.bits} {ui.packet.bitsSuffix}
                       </span>
+                      {field.blocked ? (
+                        <span className="simulation-panel__packet-tooltip-note">
+                          {ui.packet.notModeled}
+                        </span>
+                      ) : null}
                     </span>
                   </div>
                 ))}
@@ -230,6 +239,11 @@ export default function PacketStructureWindow({
                       <span className="simulation-panel__packet-tooltip-bits">
                         {field.bits} {ui.packet.bitsSuffix}
                       </span>
+                      {field.blocked ? (
+                        <span className="simulation-panel__packet-tooltip-note">
+                          {ui.packet.notModeled}
+                        </span>
+                      ) : null}
                     </span>
                   </div>
                 ))}
@@ -268,15 +282,15 @@ export default function PacketStructureWindow({
         )}
       </section>
       <footer className="simulation-panel__footer">
-        <Link
+        <a
           className="simulation-panel__read-more"
-          to={readMorePath}
+          href={readMorePath}
           target="_blank"
           rel="noreferrer"
         >
           <ExternalLink size={12} />
           {ui.simulation.packetStructureReadMore}
-        </Link>
+        </a>
       </footer>
     </aside>
   );
@@ -350,41 +364,104 @@ const getOlsrHelloStructureRows = (
   message: OlsrHelloMessage,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
+  const neighbourRows =
+    message.neighbours.length > 0
+      ? message.neighbours.flatMap((peerId) => [
+          [
+            {
+              label: ui.packet.fieldLinkCode,
+              value: message.mprPeerIds.includes(peerId) ? "SYM/MPR" : "SYM",
+              bits: 8,
+              description:
+                "Defines the modeled symmetric-link state and whether the neighbour was selected as an MPR.",
+              blocked: false,
+            },
+            {
+              label: ui.packet.fieldReserved,
+              value: ui.packet.notAvailable,
+              bits: 8,
+              description: "Reserved field, transmitted as 0 in the RFC layout.",
+              blocked: true,
+            },
+            {
+              label: ui.packet.fieldLinkMessageSize,
+              value: ui.packet.notAvailable,
+              bits: 16,
+              description: "Size of the HELLO link-description block in the RFC layout.",
+              blocked: true,
+            },
+          ],
+          [
+            {
+              label: ui.packet.fieldNeighbourInterfaceAddress,
+              value: peerNameById.get(peerId) ?? peerId,
+              bits: 32,
+              description: "Neighbour interface address carried in the HELLO link block.",
+              blocked: false,
+            },
+          ],
+        ])
+      : [
+          [
+            {
+              label: ui.packet.fieldLinkCode,
+              value: ui.packet.notAvailable,
+              bits: 8,
+              description: "No neighbour interface addresses are advertised in this HELLO.",
+              blocked: true,
+            },
+            {
+              label: ui.packet.fieldReserved,
+              value: ui.packet.notAvailable,
+              bits: 8,
+              description: "Reserved field, transmitted as 0 in the RFC layout.",
+              blocked: true,
+            },
+            {
+              label: ui.packet.fieldLinkMessageSize,
+              value: ui.packet.notAvailable,
+              bits: 16,
+              description: "Size of the HELLO link-description block in the RFC layout.",
+              blocked: true,
+            },
+          ],
+          [
+            {
+              label: ui.packet.fieldNeighbourInterfaceAddress,
+              value: ui.packet.notAvailable,
+              bits: 32,
+              description: "No neighbour interface addresses are advertised in this HELLO.",
+              blocked: true,
+            },
+          ],
+        ];
+
   return [
     [
       {
-        label: ui.packet.fieldType,
-        value: "HELLO",
+        label: ui.packet.fieldReserved,
+        value: ui.packet.notAvailable,
         bits: 16,
-        description: "OLSR HELLO control packet used for neighbour sensing.",
-        blocked: false,
+        description: "Reserved field for future extensions, transmitted as 0.",
+        blocked: true,
       },
       {
-        label: ui.packet.fieldInterval,
+        label: ui.packet.fieldHtime,
         value: String(message.interval),
-        bits: 16,
-        description: "Configured HELLO emission interval.",
-        blocked: false,
-      },
-    ],
-    [
-      {
-        label: ui.packet.fieldEntryCount,
-        value: String(message.neighbours.length),
-        bits: 16,
-        description: "Number of advertised symmetric neighbours.",
+        bits: 8,
+        description: "Emission interval of the HELLO message.",
         blocked: false,
       },
       {
-        label: ui.packet.fieldMprList,
-        value:
-          message.mprPeerIds.map((peerId) => peerNameById.get(peerId) ?? peerId).join(", ") ||
-          ui.packet.notAvailable,
-        bits: 48,
-        description: "Neighbour subset selected as MPR relays by the sender.",
-        blocked: false,
+        label: ui.packet.fieldWillingness,
+        value: ui.packet.notAvailable,
+        bits: 8,
+        description:
+          "Node willingness to forward traffic for others. This simulation keeps it fixed and does not model the field explicitly.",
+        blocked: true,
       },
     ],
+    ...neighbourRows,
   ];
 };
 
@@ -392,15 +469,31 @@ const getOlsrTcStructureRows = (
   message: OlsrTcMessage,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
+  const advertisedRows =
+    message.advertisedNeighbours.length > 0
+      ? message.advertisedNeighbours.map((peerId) => [
+          {
+            label: ui.packet.fieldAdvertisedNeighbourMainAddress,
+            value: peerNameById.get(peerId) ?? peerId,
+            bits: 32,
+            description: "Address of a node that selected the sender as an MPR.",
+            blocked: false,
+          },
+        ])
+      : [
+          [
+            {
+              label: ui.packet.fieldAdvertisedNeighbourMainAddress,
+              value: ui.packet.notAvailable,
+              bits: 32,
+              description: "No MPR selectors are advertised in this TC message.",
+              blocked: true,
+            },
+          ],
+        ];
+
   return [
     [
-      {
-        label: ui.packet.fieldType,
-        value: "TC",
-        bits: 16,
-        description: "OLSR topology control packet.",
-        blocked: false,
-      },
       {
         label: ui.packet.fieldAnsn,
         value: String(message.ansn),
@@ -409,25 +502,14 @@ const getOlsrTcStructureRows = (
         blocked: false,
       },
       {
-        label: ui.packet.fieldTtl,
-        value: String(message.timeToLive),
+        label: ui.packet.fieldReserved,
+        value: ui.packet.notAvailable,
         bits: 16,
-        description: "Remaining relay depth for this TC packet.",
-        blocked: false,
+        description: "Reserved field, transmitted as 0.",
+        blocked: true,
       },
     ],
-    [
-      {
-        label: ui.packet.fieldAdvertisedNeighbours,
-        value:
-          message.advertisedNeighbours
-            .map((peerId) => peerNameById.get(peerId) ?? peerId)
-            .join(", ") || ui.packet.notAvailable,
-        bits: 64,
-        description: "MPR selectors advertised by the originator.",
-        blocked: false,
-      },
-    ],
+    ...advertisedRows,
   ];
 };
 

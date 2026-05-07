@@ -7,8 +7,10 @@ import {
   type OlsrHelloMessage,
   type OlsrNeighbourRecord,
   type OlsrRouteRecord,
+  type OlsrSelectorRecord,
   type OlsrTcMessage,
   type OlsrTopologyRecord,
+  type OlsrTwoHopRecord,
   type SimulationMessage,
   type SimulationPacket,
 } from "../../types/simulation";
@@ -22,6 +24,17 @@ type OlsrTopologyEntry = {
   lastHopPeerId: UUID;
   sequenceNumber: number;
   lastUpdateTick: number;
+};
+
+type OlsrTwoHopEntry = {
+  destinationPeerId: UUID;
+  viaPeerId: UUID;
+  lastUpdateTick: number;
+};
+
+type RouteComputationResult = {
+  routes: Map<UUID, OlsrRouteRecord>;
+  explanation: string;
 };
 
 const clampInterval = (value: number) => {
@@ -39,6 +52,10 @@ export class OlsrModule implements PacketCapableModule {
   private readonly selectorPeerIds = new Set<UUID>();
 
   private readonly mprPeerIds = new Set<UUID>();
+
+  private readonly selectorLastUpdateTick = new Map<UUID, number>();
+
+  private readonly twoHopEntries = new Map<string, OlsrTwoHopEntry>();
 
   private readonly topologyEntries = new Map<string, OlsrTopologyEntry>();
 
@@ -98,7 +115,7 @@ export class OlsrModule implements PacketCapableModule {
       sourcePeerId: this.routingPeer.id,
       senderPeerId: this.routingPeer.id,
       interval: clampInterval(this.routingPeer.getPeerEntity().olsrHelloInterval),
-      neighbours: this.getSymmetricNeighbours().map((peer) => peer.id),
+      neighbours: this.getLocalBroadcastNeighbours().map((peer) => peer.id),
       mprPeerIds: [...this.mprPeerIds],
     };
 
@@ -119,6 +136,21 @@ export class OlsrModule implements PacketCapableModule {
     }
 
     if (this.selectorPeerIds.size === 0) {
+      const tcMessage: OlsrTcMessage = {
+        kind: SimulationMessageKind.OlsrTcMessage,
+        sourcePeerId: this.routingPeer.id,
+        senderPeerId: this.routingPeer.id,
+        ansn: this.ansn,
+        timeToLive: OLSR_DEFAULT_TC_TTL,
+        advertisedNeighbours: [],
+      };
+
+      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageBroadcast, {
+        neighbourPeerIds: [],
+        retransmit: false,
+        message: cloneOlsrMessage(tcMessage),
+        note: `${this.routingPeer.name} did not send a TC message because its MPR Selector Set is empty. Only nodes selected as Multipoint Relays advertise topology information in OLSR.`,
+      });
       return;
     }
 
@@ -154,7 +186,22 @@ export class OlsrModule implements PacketCapableModule {
       if (tick - neighbour.lastUpdateTick > helloExpiry) {
         this.neighbourTable.delete(peerId);
         this.selectorPeerIds.delete(peerId);
+        this.selectorLastUpdateTick.delete(peerId);
         this.mprPeerIds.delete(peerId);
+
+        for (const key of [...this.twoHopEntries.keys()]) {
+          if (key.endsWith(`:${peerId}`)) {
+            this.twoHopEntries.delete(key);
+          }
+        }
+
+        changed = true;
+      }
+    }
+
+    for (const [key, entry] of this.twoHopEntries.entries()) {
+      if (tick - entry.lastUpdateTick > helloExpiry) {
+        this.twoHopEntries.delete(key);
         changed = true;
       }
     }
@@ -206,6 +253,35 @@ export class OlsrModule implements PacketCapableModule {
       .sort((left, right) => left.destinationPeerId.localeCompare(right.destinationPeerId));
   }
 
+  getTwoHopTable() {
+    return [...this.twoHopEntries.values()]
+      .map(
+        (entry): OlsrTwoHopRecord => ({
+          destinationPeerId: entry.destinationPeerId,
+          viaPeerId: entry.viaPeerId,
+          lastUpdateTick: entry.lastUpdateTick,
+        }),
+      )
+      .sort((left, right) => {
+        if (left.destinationPeerId !== right.destinationPeerId) {
+          return left.destinationPeerId.localeCompare(right.destinationPeerId);
+        }
+
+        return left.viaPeerId.localeCompare(right.viaPeerId);
+      });
+  }
+
+  getSelectorTable() {
+    return [...this.selectorPeerIds]
+      .map(
+        (selectorPeerId): OlsrSelectorRecord => ({
+          selectorPeerId,
+          lastUpdateTick: this.selectorLastUpdateTick.get(selectorPeerId) ?? 0,
+        }),
+      )
+      .sort((left, right) => left.selectorPeerId.localeCompare(right.selectorPeerId));
+  }
+
   getRoutes() {
     return [...this.routingTable.values()].sort((left, right) =>
       left.destinationPeerId.localeCompare(right.destinationPeerId),
@@ -229,14 +305,38 @@ export class OlsrModule implements PacketCapableModule {
     const tick = this.eventRecorder.getCurrentTick();
     this.neighbourTable.set(message.senderPeerId, {
       neighbourPeerId: message.senderPeerId,
-      status: this.mprPeerIds.has(message.senderPeerId) ? "MPR" : "SYMMETRIC",
+      status: message.mprPeerIds.includes(this.routingPeer.id) ? "MPR" : "SYMMETRIC",
       lastUpdateTick: tick,
     });
 
+    for (const key of [...this.twoHopEntries.keys()]) {
+      if (key.endsWith(`:${message.senderPeerId}`)) {
+        this.twoHopEntries.delete(key);
+      }
+    }
+
+    for (const destinationPeerId of message.neighbours) {
+      if (
+        destinationPeerId === this.routingPeer.id ||
+        destinationPeerId === message.senderPeerId ||
+        this.neighbourTable.has(destinationPeerId)
+      ) {
+        continue;
+      }
+
+      this.twoHopEntries.set(`${destinationPeerId}:${message.senderPeerId}`, {
+        destinationPeerId,
+        viaPeerId: message.senderPeerId,
+        lastUpdateTick: tick,
+      });
+    }
+
     if (message.mprPeerIds.includes(this.routingPeer.id)) {
       this.selectorPeerIds.add(message.senderPeerId);
+      this.selectorLastUpdateTick.set(message.senderPeerId, tick);
     } else {
       this.selectorPeerIds.delete(message.senderPeerId);
+      this.selectorLastUpdateTick.delete(message.senderPeerId);
     }
 
     this.recomputeMprSet();
@@ -309,7 +409,7 @@ export class OlsrModule implements PacketCapableModule {
   }
 
   private recomputeMprSet() {
-    const symmetricNeighbours = this.getSymmetricNeighbours();
+    const symmetricNeighbours = this.getKnownSymmetricNeighbours();
     this.mprPeerIds.clear();
 
     const directNeighbourIds = new Set(symmetricNeighbours.map((peer) => peer.id));
@@ -318,14 +418,14 @@ export class OlsrModule implements PacketCapableModule {
 
     for (const neighbour of symmetricNeighbours) {
       const twoHop = new Set<UUID>();
-      for (const neighbourOfNeighbour of neighbour.getNeighbours()) {
+      for (const neighbourOfNeighbour of this.twoHopEntries.values()) {
         if (
-          neighbourOfNeighbour.id !== this.routingPeer.id &&
-          neighbourOfNeighbour.supports(RoutingProtocol.OLSR) &&
-          !directNeighbourIds.has(neighbourOfNeighbour.id)
+          neighbourOfNeighbour.viaPeerId === neighbour.id &&
+          neighbourOfNeighbour.destinationPeerId !== this.routingPeer.id &&
+          !directNeighbourIds.has(neighbourOfNeighbour.destinationPeerId)
         ) {
-          twoHop.add(neighbourOfNeighbour.id);
-          uncoveredTwoHop.add(neighbourOfNeighbour.id);
+          twoHop.add(neighbourOfNeighbour.destinationPeerId);
+          uncoveredTwoHop.add(neighbourOfNeighbour.destinationPeerId);
         }
       }
       twoHopByNeighbour.set(neighbour.id, twoHop);
@@ -394,7 +494,8 @@ export class OlsrModule implements PacketCapableModule {
   }
 
   private recomputeRoutingTable(reason: string, message: SimulationMessage | null) {
-    const nextRoutes = this.calculateRoutes();
+    const computation = this.calculateRoutes(reason);
+    const nextRoutes = computation.routes;
     const previousRoutes = new Map(this.routingTable);
 
     for (const [destinationPeerId, previousRoute] of previousRoutes.entries()) {
@@ -409,7 +510,7 @@ export class OlsrModule implements PacketCapableModule {
         previousRoute,
         nextRoute: null,
         message: message ? cloneOlsrMessage(message) : undefined,
-        reason,
+        reason: `${computation.explanation} Removed route to ${this.getPeerDisplayName(destinationPeerId)} because it is no longer reachable in the recalculated topology.`,
       });
     }
 
@@ -423,7 +524,7 @@ export class OlsrModule implements PacketCapableModule {
           previousRoute: null,
           nextRoute,
           message: message ? cloneOlsrMessage(message) : undefined,
-          reason,
+          reason: `${computation.explanation} Inserted route to ${this.getPeerDisplayName(destinationPeerId)} via ${this.getPeerDisplayName(nextRoute.nextHopPeerId)} with hop count ${nextRoute.metric}.`,
         });
         continue;
       }
@@ -440,7 +541,7 @@ export class OlsrModule implements PacketCapableModule {
           previousRoute,
           nextRoute,
           message: message ? cloneOlsrMessage(message) : undefined,
-          reason,
+          reason: `${computation.explanation} Updated route to ${this.getPeerDisplayName(destinationPeerId)} via ${this.getPeerDisplayName(nextRoute.nextHopPeerId)} with hop count ${nextRoute.metric}.`,
         });
       }
     }
@@ -453,17 +554,22 @@ export class OlsrModule implements PacketCapableModule {
     if (message) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemThroughputCalculated, {
         message: cloneOlsrMessage(message),
-        reason,
+        reason: computation.explanation,
       });
     }
   }
 
-  private calculateRoutes() {
+  private calculateRoutes(trigger: string): RouteComputationResult {
     const routes = new Map<UUID, OlsrRouteRecord>();
     const queue: UUID[] = [];
     const tick = this.eventRecorder.getCurrentTick();
+    const steps: string[] = [];
 
-    const directNeighbours = this.getSymmetricNeighbours();
+    const directNeighbours = this.getKnownSymmetricNeighbours();
+    if (directNeighbours.length === 0) {
+      steps.push("Neighbor Set contributed no symmetric 1-hop neighbours.");
+    }
+
     for (const neighbour of directNeighbours) {
       routes.set(neighbour.id, {
         destinationPeerId: neighbour.id,
@@ -474,6 +580,44 @@ export class OlsrModule implements PacketCapableModule {
       });
       queue.push(neighbour.id);
     }
+
+    if (directNeighbours.length > 0) {
+      steps.push(
+        `Neighbor Set seeded 1-hop routes: ${directNeighbours
+          .map(
+            (peer) =>
+              `${this.getPeerDisplayName(peer.id)} via ${this.getPeerDisplayName(peer.id)} (1 hop)`,
+          )
+          .join(", ")}.`,
+      );
+    }
+
+    const twoHopSeedDescriptions: string[] = [];
+    for (const entry of this.twoHopEntries.values()) {
+      if (routes.has(entry.destinationPeerId) || !this.neighbourTable.has(entry.viaPeerId)) {
+        continue;
+      }
+
+      routes.set(entry.destinationPeerId, {
+        destinationPeerId: entry.destinationPeerId,
+        nextHopPeerId: entry.viaPeerId,
+        metric: 2,
+        sequenceNumber: 0,
+        lastUpdateTick: tick,
+      });
+      queue.push(entry.destinationPeerId);
+      twoHopSeedDescriptions.push(
+        `${this.getPeerDisplayName(entry.destinationPeerId)} via ${this.getPeerDisplayName(entry.viaPeerId)} (2 hops)`,
+      );
+    }
+
+    if (twoHopSeedDescriptions.length > 0) {
+      steps.push(`2-Hop Neighbor Set seeded routes: ${twoHopSeedDescriptions.join(", ")}.`);
+    } else {
+      steps.push("2-Hop Neighbor Set contributed no new routes.");
+    }
+
+    const topologyExpansionDescriptions: string[] = [];
 
     while (queue.length > 0) {
       const pivotDestinationId = queue.shift();
@@ -506,12 +650,36 @@ export class OlsrModule implements PacketCapableModule {
             lastUpdateTick: tick,
           });
           queue.push(entry.destinationPeerId);
+          topologyExpansionDescriptions.push(
+            `${this.getPeerDisplayName(entry.destinationPeerId)} via ${this.getPeerDisplayName(pivotRoute.nextHopPeerId)} (${candidateMetric} hops, announced by ${this.getPeerDisplayName(entry.lastHopPeerId)})`,
+          );
         }
       }
     }
 
     routes.delete(this.routingPeer.id);
-    return routes;
+
+    if (topologyExpansionDescriptions.length > 0) {
+      steps.push(`Topology Table expanded routes: ${topologyExpansionDescriptions.join(", ")}.`);
+    } else {
+      steps.push("Topology Table added no routes beyond the 1-hop and 2-hop sets.");
+    }
+
+    const finalRoutes = [...routes.values()].map(
+      (route) =>
+        `${this.getPeerDisplayName(route.destinationPeerId)} via ${this.getPeerDisplayName(route.nextHopPeerId)} (${route.metric} hops)`,
+    );
+
+    steps.push(
+      finalRoutes.length > 0
+        ? `Final OLSR Routing Table: ${finalRoutes.join(", ")}.`
+        : "Final OLSR Routing Table is empty.",
+    );
+
+    return {
+      routes,
+      explanation: `Trigger: ${trigger} Recalculation steps: ${steps.join(" ")}`,
+    };
   }
 
   private routeAndWrite(packet: SimulationPacket) {
@@ -575,7 +743,9 @@ export class OlsrModule implements PacketCapableModule {
     note: string,
     excludedPeerId?: UUID,
   ) {
-    const neighbours = this.getSymmetricNeighbours().filter((peer) => peer.id !== excludedPeerId);
+    const neighbours = this.getLocalBroadcastNeighbours().filter(
+      (peer) => peer.id !== excludedPeerId,
+    );
 
     this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageBroadcast, {
       neighbourPeerIds: neighbours.map((peer) => peer.id),
@@ -589,9 +759,26 @@ export class OlsrModule implements PacketCapableModule {
     }
   }
 
-  private getSymmetricNeighbours() {
+  private getLocalBroadcastNeighbours() {
     return this.routingPeer
       .getNeighbours()
       .filter((peer) => peer.supports(RoutingProtocol.OLSR) && peer.isActive());
+  }
+
+  private getKnownSymmetricNeighbours() {
+    const neighbours: SimulationPeerNode[] = [];
+
+    for (const record of this.neighbourTable.values()) {
+      const peer = this.routingPeer.getNeighbour(record.neighbourPeerId);
+      if (peer?.supports(RoutingProtocol.OLSR) && peer.isActive()) {
+        neighbours.push(peer);
+      }
+    }
+
+    return neighbours;
+  }
+
+  private getPeerDisplayName(peerId: UUID) {
+    return this.routingPeer.getNeighbour(peerId)?.name ?? ui.common.unknown;
   }
 }

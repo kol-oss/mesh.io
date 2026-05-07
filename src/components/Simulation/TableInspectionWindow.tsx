@@ -1,4 +1,4 @@
-import { ExternalLink, X } from "lucide-react";
+import { ChevronRight, ExternalLink, X } from "lucide-react";
 import {
   useEffect,
   useRef,
@@ -32,6 +32,16 @@ export default function TableInspectionWindow({
   // Drag state
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState({
+    batmanNeighbours: false,
+    batmanOriginators: true,
+    dsdvRoutes: false,
+    neighbours: false,
+    twoHop: true,
+    selectors: true,
+    topology: true,
+    routes: true,
+  });
   const dragStateRef = useRef<{
     startPointerX: number;
     startPointerY: number;
@@ -100,6 +110,41 @@ export default function TableInspectionWindow({
 
   const selectedProtocol = inspectedPeer.protocols[0] ?? null;
 
+  const toggleSection = (section: keyof typeof collapsedSections) => {
+    setCollapsedSections((current) => ({
+      ...current,
+      [section]: !current[section],
+    }));
+  };
+
+  const renderCollapsibleBlock = (
+    section: keyof typeof collapsedSections,
+    title: string,
+    table: ReactNode,
+  ) => {
+    const isOpen = !collapsedSections[section];
+
+    return (
+      <div className="simulation-panel__table-block">
+        <div className="simulation-panel__tq-disclosure">
+          <button
+            className="simulation-panel__tq-toggle"
+            type="button"
+            onClick={() => toggleSection(section)}
+            aria-expanded={isOpen}
+          >
+            <ChevronRight
+              size={12}
+              className={`simulation-panel__tq-toggle-icon${isOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
+            />
+            <span className="simulation-panel__tq-toggle-label">{title}</span>
+          </button>
+        </div>
+        {isOpen ? table : null}
+      </div>
+    );
+  };
+
   return (
     <aside
       className={`simulation-panel simulation-panel--inspector${isDragging ? " simulation-panel--dragging" : ""}`}
@@ -132,8 +177,9 @@ export default function TableInspectionWindow({
       <section className="simulation-panel__section" onMouseLeave={() => onPeerHoverChange(null)}>
         {selectedProtocol === RoutingProtocol.BATMAN ? (
           <>
-            <div className="simulation-panel__table-block">
-              <p className="simulation-panel__section-title">{ui.simulation.tableNeighbours}</p>
+            {renderCollapsibleBlock(
+              "batmanNeighbours",
+              ui.simulation.tableNeighbours,
               <table className="simulation-panel__table-view">
                 <thead>
                   <tr>
@@ -165,11 +211,12 @@ export default function TableInspectionWindow({
                     ))
                   )}
                 </tbody>
-              </table>
-            </div>
+              </table>,
+            )}
 
-            <div className="simulation-panel__table-block">
-              <p className="simulation-panel__section-title">{ui.simulation.tableOriginators}</p>
+            {renderCollapsibleBlock(
+              "batmanOriginators",
+              ui.simulation.tableOriginators,
               <table className="simulation-panel__table-view">
                 <thead>
                   <tr>
@@ -207,12 +254,13 @@ export default function TableInspectionWindow({
                     ))
                   )}
                 </tbody>
-              </table>
-            </div>
+              </table>,
+            )}
           </>
         ) : selectedProtocol === RoutingProtocol.DSDV ? (
-          <div className="simulation-panel__table-block">
-            <p className="simulation-panel__section-title">{ui.simulation.tableDsdvRoutes}</p>
+          renderCollapsibleBlock(
+            "dsdvRoutes",
+            ui.simulation.tableDsdvRoutes,
             <table className="simulation-panel__table-view">
               <thead>
                 <tr>
@@ -252,12 +300,13 @@ export default function TableInspectionWindow({
                   ))
                 )}
               </tbody>
-            </table>
-          </div>
+            </table>,
+          )
         ) : selectedProtocol === RoutingProtocol.OLSR ? (
           <>
-            <div className="simulation-panel__table-block">
-              <p className="simulation-panel__section-title">{ui.simulation.tableOlsrNeighbours}</p>
+            {renderCollapsibleBlock(
+              "neighbours",
+              ui.simulation.tableOlsrNeighbours,
               <table className="simulation-panel__table-view">
                 <thead>
                   <tr>
@@ -287,11 +336,86 @@ export default function TableInspectionWindow({
                     ))
                   )}
                 </tbody>
-              </table>
-            </div>
+              </table>,
+            )}
 
-            <div className="simulation-panel__table-block">
-              <p className="simulation-panel__section-title">{ui.simulation.tableOlsrTopology}</p>
+            {renderCollapsibleBlock(
+              "twoHop",
+              ui.simulation.tableOlsrTwoHop,
+              <table className="simulation-panel__table-view">
+                <thead>
+                  <tr>
+                    <th>{ui.simulation.tableDestination}</th>
+                    <th>{ui.simulation.tableVia}</th>
+                    <th>{ui.simulation.tableInstalled}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {inspectedPeer.olsrTwoHopTable.length === 0 ? (
+                    <tr>
+                      <td colSpan={3}>{ui.simulation.tableNoRecords}</td>
+                    </tr>
+                  ) : (
+                    inspectedPeer.olsrTwoHopTable.map((row, index) => (
+                      <tr key={`${row.destinationPeerId}-${row.viaPeerId}-${index}`}>
+                        <td>
+                          {renderPeerName(
+                            row.destinationPeerId,
+                            getPeerLabel(row.destinationPeerId, peerNameById),
+                            onPeerHoverChange,
+                          )}
+                        </td>
+                        <td>
+                          {renderPeerName(
+                            row.viaPeerId,
+                            getPeerLabel(row.viaPeerId, peerNameById),
+                            onPeerHoverChange,
+                          )}
+                        </td>
+                        <td>{row.lastUpdateTick}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>,
+            )}
+
+            {renderCollapsibleBlock(
+              "selectors",
+              ui.simulation.tableOlsrSelectors,
+              <table className="simulation-panel__table-view">
+                <thead>
+                  <tr>
+                    <th>{ui.simulation.tableSelector}</th>
+                    <th>{ui.simulation.tableInstalled}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {inspectedPeer.olsrSelectorTable.length === 0 ? (
+                    <tr>
+                      <td colSpan={2}>{ui.simulation.tableNoRecords}</td>
+                    </tr>
+                  ) : (
+                    inspectedPeer.olsrSelectorTable.map((row, index) => (
+                      <tr key={`${row.selectorPeerId}-${index}`}>
+                        <td>
+                          {renderPeerName(
+                            row.selectorPeerId,
+                            getPeerLabel(row.selectorPeerId, peerNameById),
+                            onPeerHoverChange,
+                          )}
+                        </td>
+                        <td>{row.lastUpdateTick}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>,
+            )}
+
+            {renderCollapsibleBlock(
+              "topology",
+              ui.simulation.tableOlsrTopology,
               <table className="simulation-panel__table-view">
                 <thead>
                   <tr>
@@ -329,11 +453,12 @@ export default function TableInspectionWindow({
                     ))
                   )}
                 </tbody>
-              </table>
-            </div>
+              </table>,
+            )}
 
-            <div className="simulation-panel__table-block">
-              <p className="simulation-panel__section-title">{ui.simulation.tableOlsrRoutes}</p>
+            {renderCollapsibleBlock(
+              "routes",
+              ui.simulation.tableOlsrRoutes,
               <table className="simulation-panel__table-view">
                 <thead>
                   <tr>
@@ -373,8 +498,8 @@ export default function TableInspectionWindow({
                     ))
                   )}
                 </tbody>
-              </table>
-            </div>
+              </table>,
+            )}
           </>
         ) : null}
       </section>

@@ -165,6 +165,17 @@ export type OlsrNeighbourRecord = {
   lastUpdateTick: number;
 };
 
+export type OlsrTwoHopRecord = {
+  destinationPeerId: UUID;
+  viaPeerId: UUID;
+  lastUpdateTick: number;
+};
+
+export type OlsrSelectorRecord = {
+  selectorPeerId: UUID;
+  lastUpdateTick: number;
+};
+
 export type OlsrTopologyRecord = {
   destinationPeerId: UUID;
   lastHopPeerId: UUID;
@@ -302,6 +313,8 @@ export type SimulationPeerSnapshot = PeerEntity & {
   batmanNeighboursTable: BatmanNeighbourRecord[];
   dsdvRoutingTable: DsdvRouteRecord[];
   olsrNeighbourTable: OlsrNeighbourRecord[];
+  olsrTwoHopTable: OlsrTwoHopRecord[];
+  olsrSelectorTable: OlsrSelectorRecord[];
   olsrTopologyTable: OlsrTopologyRecord[];
   olsrRoutingTable: OlsrRouteRecord[];
 };

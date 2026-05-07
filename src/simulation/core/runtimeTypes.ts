@@ -5,7 +5,9 @@ import type {
   DsdvRouteRecord,
   OlsrNeighbourRecord,
   OlsrRouteRecord,
+  OlsrSelectorRecord,
   OlsrTopologyRecord,
+  OlsrTwoHopRecord,
   SimulationPacket,
   SimulationTickSnapshot,
 } from "../../types/simulation";
@@ -41,6 +43,8 @@ export interface SnapshotCapablePeerNode extends SimulationPeerNode {
   getBatmanNeighboursTable(): BatmanNeighbourRecord[];
   getDsdvRoutingTable(): DsdvRouteRecord[];
   getOlsrNeighbourTable(): OlsrNeighbourRecord[];
+  getOlsrTwoHopTable(): OlsrTwoHopRecord[];
+  getOlsrSelectorTable(): OlsrSelectorRecord[];
   getOlsrTopologyTable(): OlsrTopologyRecord[];
   getOlsrRoutingTable(): OlsrRouteRecord[];
 }

@@ -257,9 +257,13 @@ export const messageCatalog = {
       tableNoRecords: "No records",
       tableDsdvRoutes: "DSDV Routing Table",
       tableOlsrRoutes: "OLSR Routing Table",
-      tableOlsrNeighbours: "OLSR Neighbour Table",
+      tableOlsrNeighbours: "Neighbor Set",
+      tableOlsrTwoHop: "2-Hop Neighbor Set",
+      tableOlsrSelectors: "MPR Selector Set",
       tableOlsrTopology: "OLSR Topology Table",
       tableLastHop: "Last Hop",
+      tableVia: "Via",
+      tableSelector: "Selector",
       tableNeighbourStatus: "Status",
       tableAnsn: "ANSN",
       tableInspectionTitle: (nodeName: string) => `B.A.T.M.A.N. V Structures on ${nodeName}`,
@@ -401,7 +405,8 @@ export const messageCatalog = {
         `The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${reason}.`,
       droppedGeneric: (actor: string) => `${actor} dropped a message during processing.`,
       dsdvBroadcastBody: (note: string) => `Node broadcast a DSDV routing update. ${note}`,
-      olsrBroadcastBody: (note: string) => `Node broadcast an OLSR control message. ${note}`,
+      olsrBroadcastBody: (note: string) =>
+        `OLSR control-message handling executed for this node. ${note}`,
       dsdvRouteInsertBody: (reason: string) =>
         `Node inserted a new DSDV route after accepting an incoming update. ${reason}`,
       dsdvRouteUpdateBody: (reason: string) =>
@@ -409,11 +414,11 @@ export const messageCatalog = {
       dsdvRouteRemoveBody: (reason: string) =>
         `Node removed a DSDV route after timeout-based garbage collection. ${reason}`,
       olsrRouteInsertBody: (reason: string) =>
-        `Node inserted a new OLSR route after shortest-path recalculation. ${reason}`,
+        `Node inserted a new OLSR route after recalculating routes from the Neighbor Set, 2-Hop Neighbor Set, and Topology Table. ${reason}`,
       olsrRouteUpdateBody: (reason: string) =>
-        `Node updated an OLSR route after shortest-path recalculation. ${reason}`,
+        `Node updated an OLSR route after recalculating routes from learned OLSR topology state. ${reason}`,
       olsrRouteRemoveBody: (reason: string) =>
-        `Node removed an OLSR route after topology change. ${reason}`,
+        `Node removed an OLSR route after neighbour or topology information changed. ${reason}`,
       tqQuestionChanged: "How did B.A.T.M.A.N. V throughput change?",
       tqQuestionWhat: "What is B.A.T.M.A.N. V throughput?",
       sequenceWindowQuestion: "What is Sequence Protection Window?",
@@ -514,6 +519,12 @@ export const messageCatalog = {
       fieldAnsn: "ANSN",
       fieldAdvertisedNeighbours: "Advertised Neighbours",
       fieldMprList: "MPR Set",
+      fieldHtime: "Htime",
+      fieldWillingness: "Willingness",
+      fieldLinkCode: "Link Code",
+      fieldLinkMessageSize: "Link Message Size",
+      fieldNeighbourInterfaceAddress: "Neighbor Interface Address",
+      fieldAdvertisedNeighbourMainAddress: "Advertised Neighbor Main Address",
       notAvailable: "N/A",
       dsdvTitle: "DSDV Update Message",
       olsrHelloTitle: "OLSR HELLO Message",

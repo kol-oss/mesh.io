@@ -206,6 +206,24 @@ class RuntimePeer implements SnapshotCapablePeerNode {
     return olsrModule.getTopologyTable();
   }
 
+  getOlsrTwoHopTable() {
+    const olsrModule = this.modules.get(RoutingProtocol.OLSR);
+    if (!(olsrModule instanceof OlsrModule)) {
+      return [];
+    }
+
+    return olsrModule.getTwoHopTable();
+  }
+
+  getOlsrSelectorTable() {
+    const olsrModule = this.modules.get(RoutingProtocol.OLSR);
+    if (!(olsrModule instanceof OlsrModule)) {
+      return [];
+    }
+
+    return olsrModule.getSelectorTable();
+  }
+
   getOlsrRoutingTable() {
     const olsrModule = this.modules.get(RoutingProtocol.OLSR);
     if (!(olsrModule instanceof OlsrModule)) {
@@ -410,6 +428,8 @@ class RuntimeNetwork implements SimulationNetworkRuntime {
         batmanNeighboursTable: peer.getBatmanNeighboursTable(),
         dsdvRoutingTable: peer.getDsdvRoutingTable(),
         olsrNeighbourTable: peer.getOlsrNeighbourTable(),
+        olsrTwoHopTable: peer.getOlsrTwoHopTable(),
+        olsrSelectorTable: peer.getOlsrSelectorTable(),
         olsrTopologyTable: peer.getOlsrTopologyTable(),
         olsrRoutingTable: peer.getOlsrRoutingTable(),
       })),
