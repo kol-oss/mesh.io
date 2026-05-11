@@ -191,9 +191,8 @@ export class DsrModule implements PacketCapableModule {
             : `Forwarded DSR Route Request ${requestId}.`,
       });
 
-      if (current.peer.id === destinationPeerId) {
+      if (current.peer.id === destinationPeerId && !discoveredPath) {
         discoveredPath = current.pathPeerIds;
-        break;
       }
 
       for (const neighbour of neighbours) {
@@ -210,16 +209,11 @@ export class DsrModule implements PacketCapableModule {
         discoveredDepthByPeer.set(neighbour.id, nextDepth);
         const nextPath = [...current.pathPeerIds, neighbour.id];
 
-        if (neighbour.id === destinationPeerId) {
+        if (neighbour.id === destinationPeerId && !discoveredPath) {
           discoveredPath = nextPath;
-          break;
         }
 
         queue.push({ peer: neighbour, pathPeerIds: nextPath });
-      }
-
-      if (discoveredPath) {
-        break;
       }
     }
 
