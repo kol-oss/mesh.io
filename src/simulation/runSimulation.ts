@@ -16,6 +16,7 @@ import {
 } from "../types/simulation";
 import { getObstacleBounds, hasLineOfSight } from "../utils/geometry";
 import { BatmanModule } from "./batman/BatmanModule";
+import { AodvModule } from "./aodv/AodvModule";
 import { DsdvModule } from "./dsdv/DsdvModule";
 import { DsrModule } from "./dsr/DsrModule";
 import { OlsrModule } from "./olsr/OlsrModule";
@@ -54,6 +55,11 @@ class RuntimePeer implements SnapshotCapablePeerNode {
 
       if (protocol === RoutingProtocol.DSDV) {
         this.modules.set(protocol, new DsdvModule(this, eventRecorder));
+        continue;
+      }
+
+      if (protocol === RoutingProtocol.AODV) {
+        this.modules.set(protocol, new AodvModule(this, eventRecorder));
         continue;
       }
 
@@ -187,6 +193,15 @@ class RuntimePeer implements SnapshotCapablePeerNode {
     }
 
     return dsdvModule.getRoutes();
+  }
+
+  getAodvRoutingTable() {
+    const aodvModule = this.modules.get(RoutingProtocol.AODV);
+    if (!(aodvModule instanceof AodvModule)) {
+      return [];
+    }
+
+    return aodvModule.getRoutes();
   }
 
   getPrimaryProtocol() {
@@ -442,6 +457,7 @@ class RuntimeNetwork implements SimulationNetworkRuntime {
         batmanRoutingTable: peer.getBatmanRoutingTable(),
         batmanNeighboursTable: peer.getBatmanNeighboursTable(),
         dsdvRoutingTable: peer.getDsdvRoutingTable(),
+        aodvRoutingTable: peer.getAodvRoutingTable(),
         dsrRoutingTable: peer.getDsrRoutingTable(),
         olsrNeighbourTable: peer.getOlsrNeighbourTable(),
         olsrTwoHopTable: peer.getOlsrTwoHopTable(),
@@ -630,6 +646,19 @@ const processStep = (
 
       module.tick();
       module.refreshIncremental();
+      return;
+    }
+
+    if (
+      step.refreshProtocol === RoutingProtocol.AODV &&
+      step.refreshAction === RefreshAction.AodvHello
+    ) {
+      if (!(module instanceof AodvModule)) {
+        return;
+      }
+
+      module.tick();
+      module.refreshHello();
       return;
     }
 

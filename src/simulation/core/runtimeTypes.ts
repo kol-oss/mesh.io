@@ -1,5 +1,6 @@
 import type { RoutingProtocol } from "../../types/enums";
 import type {
+  AodvRouteRecord,
   BatmanNeighbourRecord,
   BatmanRouteRecord,
   DsrRouteRecord,
@@ -43,6 +44,7 @@ export interface SnapshotCapablePeerNode extends SimulationPeerNode {
   getBatmanRoutingTable(): BatmanRouteRecord[];
   getBatmanNeighboursTable(): BatmanNeighbourRecord[];
   getDsdvRoutingTable(): DsdvRouteRecord[];
+  getAodvRoutingTable(): AodvRouteRecord[];
   getDsrRoutingTable(): DsrRouteRecord[];
   getOlsrNeighbourTable(): OlsrNeighbourRecord[];
   getOlsrTwoHopTable(): OlsrTwoHopRecord[];

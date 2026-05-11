@@ -141,6 +141,28 @@ export const buildSimulationMessageAnimations = (
       ]);
     }
 
+    if (details.message.kind === SimulationMessageKind.AodvRouteReplyMessage) {
+      return toMessageAnimations([
+        createAnimation(
+          details.message.senderPeerId,
+          details.message.targetPeerId,
+          "throughput",
+          "route-change",
+        ),
+      ]);
+    }
+
+    if (details.message.kind === SimulationMessageKind.AodvRouteErrorMessage) {
+      return toMessageAnimations([
+        createAnimation(
+          details.message.senderPeerId,
+          details.message.targetPeerId,
+          "throughput",
+          "route-change",
+        ),
+      ]);
+    }
+
     if (details.message.kind === SimulationMessageKind.OlsrHelloMessage) {
       return toMessageAnimations([
         createAnimation(

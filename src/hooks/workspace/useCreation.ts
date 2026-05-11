@@ -21,6 +21,7 @@ import { generateUUID, type UUID } from "../../types/uuid";
 import { isRefreshStep } from "../../utils/navigation/refreshSteps";
 
 import { BATMAN_DEFAULT_CONFIGURATION } from "../../constants/batman.ts";
+import { AODV_DEFAULT_CONFIGURATION } from "../../constants/aodv";
 import { DSDV_DEFAULT_CONFIGURATION } from "../../constants/dsdv.ts";
 import { OLSR_DEFAULT_CONFIGURATION } from "../../constants/olsr";
 
@@ -52,6 +53,7 @@ export function useWorkspaceCreation({
         enabled: true,
         protocols: [RoutingProtocol.BATMAN],
         ...BATMAN_DEFAULT_CONFIGURATION,
+        ...AODV_DEFAULT_CONFIGURATION,
         ...DSDV_DEFAULT_CONFIGURATION,
         ...OLSR_DEFAULT_CONFIGURATION,
       };

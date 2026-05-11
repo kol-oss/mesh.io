@@ -4,6 +4,10 @@ import {
   DsdvUpdateType,
   SimulationEventType,
   SimulationMessageKind,
+  type AodvHelloMessage,
+  type AodvRouteErrorMessage,
+  type AodvRouteReplyMessage,
+  type AodvRouteRequestMessage,
   type BatmanRouteRecord,
   type BroadcastEventDetails,
   type DsrRouteErrorMessage,
@@ -46,6 +50,28 @@ const isBatmanMessage = (message: SimulationMessage | null) => {
 
 const isDsdvMessage = (message: SimulationMessage | null): message is DsdvRouteUpdateMessage => {
   return message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage;
+};
+
+const isAodvRouteRequestMessage = (
+  message: SimulationMessage | null,
+): message is AodvRouteRequestMessage => {
+  return message?.kind === SimulationMessageKind.AodvRouteRequestMessage;
+};
+
+const isAodvRouteReplyMessage = (
+  message: SimulationMessage | null,
+): message is AodvRouteReplyMessage => {
+  return message?.kind === SimulationMessageKind.AodvRouteReplyMessage;
+};
+
+const isAodvRouteErrorMessage = (
+  message: SimulationMessage | null,
+): message is AodvRouteErrorMessage => {
+  return message?.kind === SimulationMessageKind.AodvRouteErrorMessage;
+};
+
+const isAodvHelloMessage = (message: SimulationMessage | null): message is AodvHelloMessage => {
+  return message?.kind === SimulationMessageKind.AodvHelloMessage;
 };
 
 const isOlsrHelloMessage = (message: SimulationMessage | null): message is OlsrHelloMessage => {
@@ -100,6 +126,15 @@ const detectEventProtocol = (event: SimulationEvent, message: SimulationMessage 
     return RoutingProtocol.DSDV;
   }
 
+  if (
+    isAodvRouteRequestMessage(message) ||
+    isAodvRouteReplyMessage(message) ||
+    isAodvRouteErrorMessage(message) ||
+    isAodvHelloMessage(message)
+  ) {
+    return RoutingProtocol.AODV;
+  }
+
   if (isBatmanMessage(message)) {
     return RoutingProtocol.BATMAN;
   }
@@ -132,7 +167,59 @@ export const getEventTitle = (event: SimulationEvent) => {
   }
 
   if (protocol !== RoutingProtocol.DSDV) {
-    if (protocol !== RoutingProtocol.OLSR && protocol !== RoutingProtocol.DSR) {
+    if (
+      protocol !== RoutingProtocol.AODV &&
+      protocol !== RoutingProtocol.OLSR &&
+      protocol !== RoutingProtocol.DSR
+    ) {
+      return ui.simulation.genericEvent;
+    }
+
+    if (protocol === RoutingProtocol.AODV) {
+      if (event.type === SimulationEventType.SystemMessageBroadcast) {
+        if (isAodvHelloMessage(message)) {
+          return ui.simulation.aodvHelloBroadcast;
+        }
+
+        if (isAodvRouteErrorMessage(message)) {
+          return ui.simulation.aodvRerrRaised;
+        }
+
+        return ui.simulation.aodvRreqBroadcast;
+      }
+
+      if (event.type === SimulationEventType.RoutingTableInsert) {
+        return ui.simulation.aodvRouteAdded;
+      }
+
+      if (event.type === SimulationEventType.RoutingTableUpdate) {
+        return ui.simulation.aodvRouteUpdated;
+      }
+
+      if (event.type === SimulationEventType.RoutingTableRemove) {
+        return ui.simulation.aodvRouteRemoved;
+      }
+
+      if (event.type === SimulationEventType.SystemThroughputCalculated) {
+        if (isAodvRouteReplyMessage(message)) {
+          return ui.simulation.aodvRrepForwarded;
+        }
+
+        if (isAodvRouteErrorMessage(message)) {
+          return ui.simulation.aodvRerrRaised;
+        }
+
+        return ui.simulation.aodvControlProcessed;
+      }
+
+      if (event.type === SimulationEventType.SystemMessageDropped) {
+        return ui.simulation.packetSendFailed;
+      }
+
+      if (event.type === SimulationEventType.SystemRouteSelected) {
+        return ui.simulation.routeSelected;
+      }
+
       return ui.simulation.genericEvent;
     }
 
@@ -253,7 +340,57 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
   }
 
   if (protocol !== RoutingProtocol.DSDV) {
-    if (protocol !== RoutingProtocol.OLSR && protocol !== RoutingProtocol.DSR) {
+    if (
+      protocol !== RoutingProtocol.AODV &&
+      protocol !== RoutingProtocol.OLSR &&
+      protocol !== RoutingProtocol.DSR
+    ) {
+      return ui.simulation.eventEmitted(ui.simulation.eventNodeLabel);
+    }
+
+    if (protocol === RoutingProtocol.AODV) {
+      const routeChange = getRouteChange(event);
+      if (routeChange && routeChange.protocol === RoutingProtocol.AODV) {
+        const namedReason = replacePeerIdsWithNames(routeChange.reason, peerNameById);
+        if (event.type === SimulationEventType.RoutingTableInsert) {
+          return ui.simulation.aodvRouteInsertBody(namedReason);
+        }
+
+        if (event.type === SimulationEventType.RoutingTableUpdate) {
+          return ui.simulation.aodvRouteUpdateBody(namedReason);
+        }
+
+        return ui.simulation.aodvRouteRemoveBody(namedReason);
+      }
+
+      if (event.type === SimulationEventType.SystemMessageBroadcast) {
+        const details = event.details as BroadcastEventDetails;
+        const namedNote = replacePeerIdsWithNames(details.note ?? "", peerNameById);
+        return ui.simulation.aodvBroadcastBody(namedNote);
+      }
+
+      if (event.type === SimulationEventType.SystemMessageDropped) {
+        const details = event.details as DroppedEventDetails;
+        return ui.simulation.packetSendFailedReason(details.reason);
+      }
+
+      if (event.type === SimulationEventType.SystemRouteSelected) {
+        const details = event.details as RouteSelectedEventDetails;
+        if ("nextHopPeerId" in details.selectedRoute) {
+          return ui.simulation.eventRouteSelectedAodv(
+            getPeerNameForDescription(details.destinationPeerId, peerNameById),
+            getPeerNameForDescription(details.selectedRoute.nextHopPeerId, peerNameById),
+            details.selectedRoute.metric,
+            details.selectedRoute.sequenceNumber,
+          );
+        }
+      }
+
+      if (event.type === SimulationEventType.SystemThroughputCalculated) {
+        const details = event.details as ThroughputCalculationEventDetails;
+        return replacePeerIdsWithNames(details.reason, peerNameById);
+      }
+
       return ui.simulation.eventEmitted(ui.simulation.eventNodeLabel);
     }
 
@@ -456,6 +593,30 @@ export const getSimulationReadMorePath = (
     return "/docs/dsr#what-you-need-to-know";
   }
 
+  if (protocol === RoutingProtocol.AODV) {
+    if (
+      event.type === SimulationEventType.RoutingTableInsert ||
+      event.type === SimulationEventType.RoutingTableUpdate ||
+      event.type === SimulationEventType.RoutingTableRemove
+    ) {
+      return "/docs/aodv#routing-table";
+    }
+
+    if (event.type === SimulationEventType.SystemRouteSelected) {
+      return "/docs/aodv#route-selection";
+    }
+
+    if (isAodvRouteRequestMessage(message) || isAodvRouteReplyMessage(message)) {
+      return "/docs/aodv#route-discovery";
+    }
+
+    if (isAodvRouteErrorMessage(message) || isAodvHelloMessage(message)) {
+      return "/docs/aodv#route-maintenance";
+    }
+
+    return "/docs/aodv#what-you-need-to-know";
+  }
+
   if (protocol === RoutingProtocol.OLSR) {
     if (
       event.type === SimulationEventType.RoutingTableInsert ||
@@ -505,8 +666,50 @@ export const getMessageSummary = (
   }
 
   if (protocol !== RoutingProtocol.DSDV) {
-    if (protocol !== RoutingProtocol.OLSR && protocol !== RoutingProtocol.DSR) {
+    if (
+      protocol !== RoutingProtocol.AODV &&
+      protocol !== RoutingProtocol.OLSR &&
+      protocol !== RoutingProtocol.DSR
+    ) {
       return null;
+    }
+
+    if (protocol === RoutingProtocol.AODV) {
+      if (event.type !== SimulationEventType.SystemRouteSelected) {
+        return null;
+      }
+
+      const details = event.details as RouteSelectedEventDetails;
+      if (!("nextHopPeerId" in details.selectedRoute)) {
+        return null;
+      }
+
+      return [
+        {
+          label: ui.simulation.summaryDestination,
+          value: renderPeerName(
+            details.destinationPeerId,
+            getPeerLabel(details.destinationPeerId, peerNameById),
+            onPeerHoverChange,
+          ),
+        },
+        {
+          label: ui.simulation.tableNextHop,
+          value: renderPeerName(
+            details.selectedRoute.nextHopPeerId,
+            getPeerLabel(details.selectedRoute.nextHopPeerId, peerNameById),
+            onPeerHoverChange,
+          ),
+        },
+        {
+          label: ui.simulation.tableMetric,
+          value: String(details.selectedRoute.metric),
+        },
+        {
+          label: ui.simulation.tableSequence,
+          value: String(details.selectedRoute.sequenceNumber),
+        },
+      ];
     }
 
     if (protocol === RoutingProtocol.DSR) {

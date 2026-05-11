@@ -62,6 +62,10 @@ const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
         (isFiniteNumber(value.dsdvFullDumpInterval) && value.dsdvFullDumpInterval > 0)) &&
       (value.dsdvRouteTimeout == null ||
         (isFiniteNumber(value.dsdvRouteTimeout) && value.dsdvRouteTimeout > 0)) &&
+      (value.aodvHelloInterval == null ||
+        (isFiniteNumber(value.aodvHelloInterval) && value.aodvHelloInterval > 0)) &&
+      (value.aodvRouteTimeout == null ||
+        (isFiniteNumber(value.aodvRouteTimeout) && value.aodvRouteTimeout > 0)) &&
       (value.olsrHelloInterval == null ||
         (isFiniteNumber(value.olsrHelloInterval) && value.olsrHelloInterval > 0)) &&
       (value.olsrTcInterval == null ||
@@ -127,6 +131,7 @@ const isValidWorkflowStep = (value: unknown): value is WorkflowStep => {
         value.refreshAction === RefreshAction.BatmanOgm ||
         value.refreshAction === RefreshAction.DsdvFullDump ||
         value.refreshAction === RefreshAction.DsdvIncremental ||
+        value.refreshAction === RefreshAction.AodvHello ||
         value.refreshAction === RefreshAction.OlsrHello ||
         value.refreshAction === RefreshAction.OlsrTc) &&
       (value.refreshStartTick == null || isFiniteNumber(value.refreshStartTick)) &&

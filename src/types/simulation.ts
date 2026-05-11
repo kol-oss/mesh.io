@@ -25,6 +25,10 @@ export const SimulationMessageKind = {
   BatmanOriginatorMessage: "BATMAN_ORIGINATOR_MESSAGE",
   BatmanEchoLocationMessage: "BATMAN_ECHO_LOCATION_MESSAGE",
   DsdvRouteUpdateMessage: "DSDV_ROUTE_UPDATE_MESSAGE",
+  AodvRouteRequestMessage: "AODV_ROUTE_REQUEST_MESSAGE",
+  AodvRouteReplyMessage: "AODV_ROUTE_REPLY_MESSAGE",
+  AodvRouteErrorMessage: "AODV_ROUTE_ERROR_MESSAGE",
+  AodvHelloMessage: "AODV_HELLO_MESSAGE",
   OlsrHelloMessage: "OLSR_HELLO_MESSAGE",
   OlsrTcMessage: "OLSR_TC_MESSAGE",
   DsrRouteRequestMessage: "DSR_ROUTE_REQUEST_MESSAGE",
@@ -105,6 +109,53 @@ export type DsdvRouteUpdateMessage = {
   entries: DsdvRouteEntryMessage[];
 };
 
+export type AodvRouteRequestMessage = {
+  kind: typeof SimulationMessageKind.AodvRouteRequestMessage;
+  sourcePeerId: UUID;
+  senderPeerId: UUID;
+  destinationPeerId: UUID;
+  requestId: number;
+  hopCount: number;
+  destinationSequenceNumber: number | null;
+  originatorSequenceNumber: number;
+};
+
+export type AodvRouteReplyMessage = {
+  kind: typeof SimulationMessageKind.AodvRouteReplyMessage;
+  sourcePeerId: UUID;
+  senderPeerId: UUID;
+  targetPeerId: UUID;
+  destinationPeerId: UUID;
+  destinationSequenceNumber: number;
+  originatorPeerId: UUID;
+  hopCount: number;
+  lifetime: number;
+  gratuitous: boolean;
+};
+
+export type AodvUnreachableDestination = {
+  destinationPeerId: UUID;
+  sequenceNumber: number;
+};
+
+export type AodvRouteErrorMessage = {
+  kind: typeof SimulationMessageKind.AodvRouteErrorMessage;
+  sourcePeerId: UUID;
+  senderPeerId: UUID;
+  targetPeerId: UUID | null;
+  unreachableDestinations: AodvUnreachableDestination[];
+  noDelete: boolean;
+};
+
+export type AodvHelloMessage = {
+  kind: typeof SimulationMessageKind.AodvHelloMessage;
+  sourcePeerId: UUID;
+  senderPeerId: UUID;
+  destinationSequenceNumber: number;
+  lifetime: number;
+  interval: number;
+};
+
 export type OlsrHelloMessage = {
   kind: typeof SimulationMessageKind.OlsrHelloMessage;
   sourcePeerId: UUID;
@@ -159,6 +210,10 @@ export type SimulationMessage =
   | BatmanOriginatorMessage
   | BatmanEchoLocationMessage
   | DsdvRouteUpdateMessage
+  | AodvRouteRequestMessage
+  | AodvRouteReplyMessage
+  | AodvRouteErrorMessage
+  | AodvHelloMessage
   | OlsrHelloMessage
   | OlsrTcMessage
   | DsrRouteRequestMessage
@@ -186,6 +241,17 @@ export type DsdvRouteRecord = {
   metric: number;
   sequenceNumber: number;
   lastUpdateTick: number;
+};
+
+export type AodvRouteRecord = {
+  destinationPeerId: UUID;
+  nextHopPeerId: UUID;
+  metric: number;
+  sequenceNumber: number;
+  lastUpdateTick: number;
+  validSequenceNumber: boolean;
+  valid: boolean;
+  precursors: UUID[];
 };
 
 export type OlsrRouteRecord = {
@@ -249,6 +315,16 @@ export type DsdvRoutingTableChangeDetails = {
   reason: string;
 };
 
+export type AodvRoutingTableChangeDetails = {
+  protocol: typeof RoutingProtocol.AODV;
+  destinationPeerId: UUID;
+  nextHopPeerId: UUID;
+  previousRoute: AodvRouteRecord | null;
+  nextRoute: AodvRouteRecord | null;
+  message?: SimulationMessage;
+  reason: string;
+};
+
 export type OlsrRoutingTableChangeDetails = {
   protocol: typeof RoutingProtocol.OLSR;
   destinationPeerId: UUID;
@@ -272,6 +348,7 @@ export type DsrRoutingTableChangeDetails = {
 export type RoutingTableChangeDetails =
   | BatmanRoutingTableChangeDetails
   | DsdvRoutingTableChangeDetails
+  | AodvRoutingTableChangeDetails
   | OlsrRoutingTableChangeDetails
   | DsrRoutingTableChangeDetails;
 
@@ -320,7 +397,12 @@ export type ThroughputCalculationEventDetails = {
 export type RouteSelectedEventDetails = {
   protocol: RoutingProtocol;
   destinationPeerId: UUID;
-  selectedRoute: BatmanRouteRecord | DsdvRouteRecord | OlsrRouteRecord | DsrRouteRecord;
+  selectedRoute:
+    | BatmanRouteRecord
+    | DsdvRouteRecord
+    | AodvRouteRecord
+    | OlsrRouteRecord
+    | DsrRouteRecord;
   message: SimulationPacket;
 };
 
@@ -369,6 +451,7 @@ export type SimulationPeerSnapshot = PeerEntity & {
   batmanRoutingTable: BatmanRouteRecord[];
   batmanNeighboursTable: BatmanNeighbourRecord[];
   dsdvRoutingTable: DsdvRouteRecord[];
+  aodvRoutingTable: AodvRouteRecord[];
   dsrRoutingTable: DsrRouteRecord[];
   olsrNeighbourTable: OlsrNeighbourRecord[];
   olsrTwoHopTable: OlsrTwoHopRecord[];

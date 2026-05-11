@@ -16,6 +16,8 @@ export const peerDefaults = {
   dsdvIncrementalUpdateInterval: 1,
   dsdvFullDumpInterval: 5,
   dsdvRouteTimeout: 10,
+  aodvHelloInterval: 2,
+  aodvRouteTimeout: 6,
   olsrHelloInterval: 2,
   olsrTcInterval: 5,
 };
@@ -71,6 +73,8 @@ const hasPeerDefaults = (entity: NetworkEntity) => {
     typeof entity.dsdvIncrementalUpdateInterval === "number" &&
     typeof entity.dsdvFullDumpInterval === "number" &&
     typeof entity.dsdvRouteTimeout === "number" &&
+    typeof entity.aodvHelloInterval === "number" &&
+    typeof entity.aodvRouteTimeout === "number" &&
     typeof entity.olsrHelloInterval === "number" &&
     typeof entity.olsrTcInterval === "number"
   );

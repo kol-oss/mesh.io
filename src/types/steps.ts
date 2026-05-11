@@ -7,6 +7,7 @@ export const RefreshAction = {
   BatmanOgm: "BATMAN_OGM",
   DsdvFullDump: "DSDV_FULL_DUMP",
   DsdvIncremental: "DSDV_INCREMENTAL",
+  AodvHello: "AODV_HELLO",
   OlsrHello: "OLSR_HELLO",
   OlsrTc: "OLSR_TC",
 } as const;

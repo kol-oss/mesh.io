@@ -118,53 +118,53 @@ export default function AODVHelpPage() {
               {
                 label: "Type",
                 bits: 8,
-                description: "Identifies message as a Route Request (Type 1).",
+                description: "RREQ control-message identifier.",
               },
               {
-                label: "Flags / Reserved",
+                label: "Flags (J/R/G/D/U)",
                 bits: 16,
-                description: "Contains Join, Repair, Gratuitous RREP flags and reserved bits.",
+                description: "Join/Repair/Gratuitous/Destination-only/Unknown-sequence flags.",
               },
               {
                 label: "Hop Count",
                 bits: 8,
-                description: "Number of hops from the Originator IP Address to the current node.",
+                description: "Hops from originator to current forwarding node.",
               },
             ],
             [
               {
                 label: "RREQ ID",
                 bits: 32,
-                description: "A sequence number uniquely identifying the particular RREQ.",
+                description: "Identifier for duplicate suppression.",
               },
             ],
             [
               {
-                label: "Destination IP Address",
+                label: "Destination",
                 bits: 32,
-                description: "The IP address of the destination for which a route is desired.",
+                description: "Requested destination node.",
               },
             ],
             [
               {
                 label: "Destination Sequence Number",
                 bits: 32,
-                description: "The latest sequence number received in the past by the originator.",
-              },
-            ],
-            [
-              {
-                label: "Originator IP Address",
-                bits: 32,
-                description: "The IP address of the node which originated the Route Request.",
-              },
-            ],
-            [
-              {
-                label: "Originator Sequence Number",
-                bits: 32,
                 description:
-                  "The current sequence number to be used in the route entry pointing to the originator.",
+                  "Last known destination sequence number (may be unknown in the simulator).",
+              },
+            ],
+            [
+              {
+                label: "Originator Address",
+                bits: 32,
+                description: "Node that started route discovery.",
+              },
+            ],
+            [
+              {
+                label: "Sequence Number",
+                bits: 32,
+                description: "Current originator sequence number.",
               },
             ],
           ]}
@@ -184,47 +184,45 @@ export default function AODVHelpPage() {
               {
                 label: "Type",
                 bits: 8,
-                description: "Identifies message as a Route Reply (Type 2).",
+                description: "RREP control-message identifier.",
               },
               {
-                label: "Flags / Rsrvd / Prefix",
+                label: "Prefix Size",
                 bits: 16,
-                description: "Repair/Acknowledge flags and Subnet prefix size.",
+                description: "Modeled as 0 in the simulator.",
               },
               {
                 label: "Hop Count",
                 bits: 8,
-                description: "Number of hops from the Originator IP Address to the Destination IP.",
+                description: "Distance to destination at current forwarding node.",
               },
             ],
             [
               {
-                label: "Destination IP Address",
+                label: "Destination",
                 bits: 32,
-                description: "The IP address of the destination for which a route is supplied.",
+                description: "Destination for which route is supplied.",
               },
             ],
             [
               {
                 label: "Destination Sequence Number",
                 bits: 32,
-                description: "The destination sequence number associated to the route.",
+                description: "Fresh destination sequence used for route selection.",
               },
             ],
             [
               {
-                label: "Originator IP Address",
+                label: "Originator Address",
                 bits: 32,
-                description:
-                  "The IP address of the node which originated the RREQ for which the route is supplied.",
+                description: "Node that initiated the corresponding RREQ.",
               },
             ],
             [
               {
                 label: "Lifetime",
                 bits: 32,
-                description:
-                  "The time in milliseconds for which nodes receiving the RREP consider the route to be valid.",
+                description: "Ticks for which installed route remains valid without refresh.",
               },
             ],
           ]}
@@ -252,33 +250,74 @@ export default function AODVHelpPage() {
               {
                 label: "Type",
                 bits: 8,
-                description: "Identifies message as a Route Error (Type 3).",
+                description: "RERR control-message identifier.",
               },
               {
-                label: "Flags / Reserved",
+                label: "Flags",
                 bits: 16,
-                description: "Contains No Delete flag and reserved bits.",
+                description: "No-delete flag and reserved bits.",
               },
               {
                 label: "DestCount",
                 bits: 8,
-                description: "The number of unreachable destinations included in the message.",
+                description: "Number of unreachable destinations in this message.",
               },
             ],
             [
               {
-                label: "Unreachable Dest IP Address",
+                label: "Unreachable Destination",
                 bits: 32,
-                description:
-                  "The IP address of the destination that has become unreachable due to a link break.",
+                description: "Destination invalidated by a detected link break.",
               },
             ],
             [
               {
-                label: "Unreachable Dest Sequence Number",
+                label: "Unreachable Destination Sequence Number",
                 bits: 32,
-                description:
-                  "The sequence number in the routing table entry for the destination currently being modified.",
+                description: "Updated sequence paired with the unreachable destination entry.",
+              },
+            ],
+          ]}
+        />
+        <PacketStructure
+          introText="HELLO Message Structure"
+          rows={[
+            [
+              {
+                label: "Type",
+                bits: 8,
+                description: "HELLO control-message identifier in the simulator model.",
+              },
+              {
+                label: "TTL",
+                bits: 8,
+                description: "Always 1 for local-neighbour sensing.",
+              },
+              {
+                label: "Interval",
+                bits: 16,
+                description: "Configured HELLO interval used by neighbours.",
+              },
+            ],
+            [
+              {
+                label: "Originator Address",
+                bits: 32,
+                description: "Neighbour announcing local reachability.",
+              },
+            ],
+            [
+              {
+                label: "Destination Sequence Number",
+                bits: 32,
+                description: "Latest destination sequence advertised by neighbour.",
+              },
+            ],
+            [
+              {
+                label: "Lifetime",
+                bits: 32,
+                description: "Route validity window refreshed by this HELLO.",
               },
             ],
           ]}
@@ -303,14 +342,22 @@ export default function AODVHelpPage() {
         <TableBlock
           introText="AODV Routing Table Entry"
           ariaLabel="Routing Table Entry"
-          headers={["Destination IP", "Next Hop", "Sequence Number", "Hop Count", "Precursors"]}
+          headers={[
+            "Destination",
+            "Next Hop",
+            "Metric",
+            "Sequence Number",
+            "Precursors",
+            "Last Update",
+          ]}
           rows={[
             [
-              "Target IP Address",
-              "Immediate neighbor IP",
-              "Freshness metric (Dest Seq Num)",
-              "Total hops to target",
-              "List of neighbors using this route",
+              "Destination node id/name",
+              "Immediate forwarding neighbour",
+              "Hop count to destination (metric)",
+              "Destination sequence number",
+              "Neighbour list that depends on this route",
+              "Tick when entry was last refreshed",
             ],
           ]}
         />

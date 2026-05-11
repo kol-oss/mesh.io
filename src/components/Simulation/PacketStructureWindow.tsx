@@ -217,6 +217,39 @@ export default function PacketStructureWindow({
               </div>
             ))}
           </div>
+        ) : eventMessage?.kind === SimulationMessageKind.AodvRouteRequestMessage ||
+          eventMessage?.kind === SimulationMessageKind.AodvRouteReplyMessage ||
+          eventMessage?.kind === SimulationMessageKind.AodvRouteErrorMessage ||
+          eventMessage?.kind === SimulationMessageKind.AodvHelloMessage ? (
+          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
+            {getAodvStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
+              <div className="simulation-panel__packet-row" key={`packet-row-aodv-${rowIndex}`}>
+                {row.map((field) => (
+                  <div
+                    key={`aodv-${rowIndex}-${field.label}`}
+                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
+                    style={{ flex: field.bits }}
+                  >
+                    <span className="simulation-panel__packet-field-label">{field.label}</span>
+                    <span className="simulation-panel__packet-field-value">{field.value}</span>
+                    <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-description">
+                        {field.description}
+                      </span>
+                      <span className="simulation-panel__packet-tooltip-bits">
+                        {field.bits} {ui.packet.bitsSuffix}
+                      </span>
+                      {field.blocked ? (
+                        <span className="simulation-panel__packet-tooltip-note">
+                          {ui.packet.notModeled}
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         ) : eventMessage?.kind === SimulationMessageKind.OlsrHelloMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getOlsrHelloStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
@@ -337,6 +370,22 @@ const getPacketInspectorTitle = (message: SimulationMessage | null) => {
     return ui.packet.dsdvTitle;
   }
 
+  if (message?.kind === SimulationMessageKind.AodvRouteRequestMessage) {
+    return ui.packet.aodvRreqTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteReplyMessage) {
+    return ui.packet.aodvRrepTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteErrorMessage) {
+    return ui.packet.aodvRerrTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvHelloMessage) {
+    return ui.packet.aodvHelloTitle;
+  }
+
   if (message?.kind === SimulationMessageKind.OlsrHelloMessage) {
     return ui.packet.olsrHelloTitle;
   }
@@ -367,6 +416,22 @@ const getPacketInspectorStructureAria = (message: SimulationMessage | null) => {
 
   if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
     return ui.packet.dsdvStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteRequestMessage) {
+    return ui.packet.aodvRreqStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteReplyMessage) {
+    return ui.packet.aodvRrepStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteErrorMessage) {
+    return ui.packet.aodvRerrStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvHelloMessage) {
+    return ui.packet.aodvHelloStructureAria;
   }
 
   if (message?.kind === SimulationMessageKind.OlsrHelloMessage) {
@@ -403,6 +468,22 @@ const getPacketReadMorePath = (message: SimulationMessage | null) => {
 
   if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
     return "/docs/dsdv#full-and-incremental-updates";
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteRequestMessage) {
+    return "/docs/aodv#route-discovery";
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteReplyMessage) {
+    return "/docs/aodv#route-discovery";
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteErrorMessage) {
+    return "/docs/aodv#route-maintenance";
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvHelloMessage) {
+    return "/docs/aodv#route-maintenance";
   }
 
   if (message?.kind === SimulationMessageKind.OlsrHelloMessage) {
@@ -578,6 +659,259 @@ const getDsrStructureRows = (
           value: peerNameById.get(message.brokenToPeerId) ?? message.brokenToPeerId,
           bits: 32,
           description: "Unreachable next-hop address for this failure.",
+          blocked: false,
+        },
+      ],
+    ];
+  }
+
+  return [];
+};
+
+const getAodvStructureRows = (
+  message: SimulationMessage,
+  peerNameById: Map<string, string>,
+): PacketStructureField[][] => {
+  if (message.kind === SimulationMessageKind.AodvRouteRequestMessage) {
+    return [
+      [
+        {
+          label: ui.packet.fieldType,
+          value: "RREQ",
+          bits: 8,
+          description: "Identifies this control packet as an AODV Route Request.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldFlags,
+          value: "J/R/G/D/U",
+          bits: 16,
+          description:
+            "Join, Repair, Gratuitous RREP, Destination-only, and Unknown-sequence flags.",
+          blocked: true,
+        },
+        {
+          label: ui.packet.fieldHopCount,
+          value: String(message.hopCount),
+          bits: 8,
+          description: "Hop count from the originator to the current forwarding node.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldRreqId,
+          value: String(message.requestId),
+          bits: 32,
+          description: "Identifier used to suppress duplicate RREQ processing.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldDestination,
+          value: peerNameById.get(message.destinationPeerId) ?? message.destinationPeerId,
+          bits: 32,
+          description: "Destination for which a route is being requested.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldDestinationSequenceNumber,
+          value:
+            message.destinationSequenceNumber === null
+              ? ui.packet.notAvailable
+              : String(message.destinationSequenceNumber),
+          bits: 32,
+          description: "Last known destination sequence number carried by the requester.",
+          blocked: message.destinationSequenceNumber === null,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldOriginatorAddress,
+          value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
+          bits: 32,
+          description: "Originator of the route discovery.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldSequenceNumber,
+          value: String(message.originatorSequenceNumber),
+          bits: 32,
+          description: "Current originator sequence number used to create the reverse route.",
+          blocked: false,
+        },
+      ],
+    ];
+  }
+
+  if (message.kind === SimulationMessageKind.AodvRouteReplyMessage) {
+    return [
+      [
+        {
+          label: ui.packet.fieldType,
+          value: "RREP",
+          bits: 8,
+          description: "Identifies this control packet as an AODV Route Reply.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldPrefixSize,
+          value: "0",
+          bits: 16,
+          description: "Subnet prefix size field from the RFC layout.",
+          blocked: true,
+        },
+        {
+          label: ui.packet.fieldHopCount,
+          value: String(message.hopCount),
+          bits: 8,
+          description: "Current distance in hops from the replying node to the destination.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldDestination,
+          value: peerNameById.get(message.destinationPeerId) ?? message.destinationPeerId,
+          bits: 32,
+          description: "Destination for which the route is being supplied.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldDestinationSequenceNumber,
+          value: String(message.destinationSequenceNumber),
+          bits: 32,
+          description: "Fresh destination sequence number associated with the route.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldOriginatorAddress,
+          value: peerNameById.get(message.originatorPeerId) ?? message.originatorPeerId,
+          bits: 32,
+          description: "Originator that started the corresponding route discovery.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldLifetime,
+          value: String(message.lifetime),
+          bits: 32,
+          description: "Amount of time the learned route may remain active.",
+          blocked: false,
+        },
+      ],
+    ];
+  }
+
+  if (message.kind === SimulationMessageKind.AodvRouteErrorMessage) {
+    const unreachableRows = message.unreachableDestinations.flatMap((entry) => [
+      [
+        {
+          label: ui.packet.fieldDestination,
+          value: peerNameById.get(entry.destinationPeerId) ?? entry.destinationPeerId,
+          bits: 32,
+          description: "Destination that became unreachable after a link break.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldDestinationSequenceNumber,
+          value: String(entry.sequenceNumber),
+          bits: 32,
+          description: "Sequence number paired with the unreachable destination.",
+          blocked: false,
+        },
+      ],
+    ]);
+
+    return [
+      [
+        {
+          label: ui.packet.fieldType,
+          value: "RERR",
+          bits: 8,
+          description: "Identifies this control packet as an AODV Route Error.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldFlags,
+          value: message.noDelete ? "N" : "0",
+          bits: 16,
+          description: "No-delete flag and reserved bits in the RERR header.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldDestCount,
+          value: String(message.unreachableDestinations.length),
+          bits: 8,
+          description: "Number of unreachable destinations encoded in this error.",
+          blocked: false,
+        },
+      ],
+      ...unreachableRows,
+    ];
+  }
+
+  if (message.kind === SimulationMessageKind.AodvHelloMessage) {
+    return [
+      [
+        {
+          label: ui.packet.fieldType,
+          value: "HELLO",
+          bits: 8,
+          description: "Modeled as a local-broadcast AODV HELLO message.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldTtl,
+          value: "1",
+          bits: 8,
+          description: "HELLO messages are transmitted with TTL = 1.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldInterval,
+          value: String(message.interval),
+          bits: 16,
+          description: "Advertised HELLO interval for neighbour connectivity checks.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldOriginatorAddress,
+          value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
+          bits: 32,
+          description: "Neighbour announcing that it remains locally reachable.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldDestinationSequenceNumber,
+          value: String(message.destinationSequenceNumber),
+          bits: 32,
+          description: "Latest destination sequence number advertised by the neighbour.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldLifetime,
+          value: String(message.lifetime),
+          bits: 32,
+          description: "How long the neighbour route should remain valid after this HELLO.",
           blocked: false,
         },
       ],

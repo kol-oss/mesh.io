@@ -19,6 +19,12 @@ import {
   BATMAN_MIN_PENALTY_PERCENT,
 } from "../../../constants/batman";
 import {
+  AODV_MAX_HELLO_INTERVAL,
+  AODV_MAX_ROUTE_TIMEOUT,
+  AODV_MIN_HELLO_INTERVAL,
+  AODV_MIN_ROUTE_TIMEOUT,
+} from "../../../constants/aodv";
+import {
   DSDV_MAX_INTERVAL,
   DSDV_MAX_TIMEOUT,
   DSDV_MIN_INTERVAL,
@@ -70,6 +76,12 @@ export default function PeerProperties({
     selectedPeer.dsdvFullDumpInterval < DSDV_MIN_INTERVAL;
   const isDsdvRouteTimeoutMissing =
     selectedProtocol === RoutingProtocol.DSDV && selectedPeer.dsdvRouteTimeout < DSDV_MIN_TIMEOUT;
+  const isAodvHelloMissing =
+    selectedProtocol === RoutingProtocol.AODV &&
+    selectedPeer.aodvHelloInterval < AODV_MIN_HELLO_INTERVAL;
+  const isAodvRouteTimeoutMissing =
+    selectedProtocol === RoutingProtocol.AODV &&
+    selectedPeer.aodvRouteTimeout < AODV_MIN_ROUTE_TIMEOUT;
   const isOlsrHelloMissing =
     selectedProtocol === RoutingProtocol.OLSR && selectedPeer.olsrHelloInterval < OLSR_MIN_INTERVAL;
   const isOlsrTcMissing =
@@ -124,6 +136,22 @@ export default function PeerProperties({
   };
 
   const updateOlsrPeers = (changes: Partial<PeerEntity>) => {
+    if (isLocked) return;
+    const updatedEntities = entities.map((entity) => {
+      if (entity.type !== EntityType.Peer) {
+        return entity;
+      }
+
+      return {
+        ...entity,
+        ...changes,
+      };
+    });
+
+    setEntities(updatedEntities);
+  };
+
+  const updateAodvPeers = (changes: Partial<PeerEntity>) => {
     if (isLocked) return;
     const updatedEntities = entities.map((entity) => {
       if (entity.type !== EntityType.Peer) {
@@ -572,6 +600,64 @@ export default function PeerProperties({
                         Math.min(
                           OLSR_MAX_INTERVAL,
                           parseNumberValue(event.target.value, selectedPeer.olsrTcInterval),
+                        ),
+                      ),
+                    })
+                  }
+                />
+              </div>
+            </label>
+          </>
+        )}
+
+        {selectedProtocol === RoutingProtocol.AODV && (
+          <>
+            <label className="properties__field">
+              {renderGlobalLabel(ui.properties.fieldAodvHelloInterval, isAodvHelloMissing)}
+              <div className="properties__input-with-prefix">
+                <Clock3 size={12} />
+                <input
+                  className={`properties__input ${isAodvHelloMissing ? "properties__required-outline" : ""}`}
+                  type="number"
+                  min={AODV_MIN_HELLO_INTERVAL}
+                  max={AODV_MAX_HELLO_INTERVAL}
+                  value={selectedPeer.aodvHelloInterval}
+                  onChange={(event) =>
+                    updateAodvPeers({
+                      aodvHelloInterval: Math.max(
+                        AODV_MIN_HELLO_INTERVAL,
+                        Math.min(
+                          AODV_MAX_HELLO_INTERVAL,
+                          parseNumberValue(event.target.value, selectedPeer.aodvHelloInterval),
+                        ),
+                      ),
+                    })
+                  }
+                />
+              </div>
+            </label>
+
+            <label className="properties__field">
+              <span
+                className={`properties__field-label ${isAodvRouteTimeoutMissing ? "properties__field-label--required" : ""}`}
+              >
+                {ui.properties.fieldAodvRouteTimeout}
+              </span>
+              <div className="properties__input-with-prefix">
+                <Clock3 size={12} />
+                <input
+                  className={`properties__input ${isAodvRouteTimeoutMissing ? "properties__required-outline" : ""}`}
+                  type="number"
+                  min={AODV_MIN_ROUTE_TIMEOUT}
+                  max={AODV_MAX_ROUTE_TIMEOUT}
+                  value={selectedPeer.aodvRouteTimeout}
+                  onChange={(event) =>
+                    updatePeer({
+                      aodvRouteTimeout: Math.max(
+                        AODV_MIN_ROUTE_TIMEOUT,
+                        Math.min(
+                          AODV_MAX_ROUTE_TIMEOUT,
+                          parseNumberValue(event.target.value, selectedPeer.aodvRouteTimeout),
                         ),
                       ),
                     })
