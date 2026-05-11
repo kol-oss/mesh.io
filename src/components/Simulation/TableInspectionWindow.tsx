@@ -36,6 +36,7 @@ export default function TableInspectionWindow({
     batmanNeighbours: false,
     batmanOriginators: true,
     dsdvRoutes: false,
+    dsrRoutes: false,
     neighbours: false,
     twoHop: true,
     selectors: true,
@@ -159,9 +160,11 @@ export default function TableInspectionWindow({
         <h2 className="simulation-panel__title">
           {selectedProtocol === RoutingProtocol.DSDV
             ? ui.simulation.tableInspectionTitleDsdv(inspectedPeer.name)
-            : selectedProtocol === RoutingProtocol.OLSR
-              ? ui.simulation.tableInspectionTitleOlsr(inspectedPeer.name)
-              : ui.simulation.tableInspectionTitle(inspectedPeer.name)}
+            : selectedProtocol === RoutingProtocol.DSR
+              ? ui.simulation.tableInspectionTitleDsr(inspectedPeer.name)
+              : selectedProtocol === RoutingProtocol.OLSR
+                ? ui.simulation.tableInspectionTitleOlsr(inspectedPeer.name)
+                : ui.simulation.tableInspectionTitle(inspectedPeer.name)}
         </h2>
         <button
           className="simulation-panel__close-button"
@@ -295,6 +298,57 @@ export default function TableInspectionWindow({
                       </td>
                       <td>{row.metric}</td>
                       <td>{row.sequenceNumber}</td>
+                      <td>{row.lastUpdateTick}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>,
+          )
+        ) : selectedProtocol === RoutingProtocol.DSR ? (
+          renderCollapsibleBlock(
+            "dsrRoutes",
+            ui.simulation.tableDsrRoutes,
+            <table className="simulation-panel__table-view">
+              <thead>
+                <tr>
+                  <th>{ui.simulation.tableDestination}</th>
+                  <th>{ui.simulation.tableNextHop}</th>
+                  <th>{ui.simulation.tableMetric}</th>
+                  <th>{ui.simulation.tableSequence}</th>
+                  <th>{ui.simulation.tablePath}</th>
+                  <th>{ui.simulation.tableInstalled}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {inspectedPeer.dsrRoutingTable.length === 0 ? (
+                  <tr>
+                    <td colSpan={6}>{ui.simulation.tableNoRecords}</td>
+                  </tr>
+                ) : (
+                  inspectedPeer.dsrRoutingTable.map((row, index) => (
+                    <tr key={`${row.destinationPeerId}-${row.nextHopPeerId}-${index}`}>
+                      <td>
+                        {renderPeerName(
+                          row.destinationPeerId,
+                          getPeerLabel(row.destinationPeerId, peerNameById),
+                          onPeerHoverChange,
+                        )}
+                      </td>
+                      <td>
+                        {renderPeerName(
+                          row.nextHopPeerId,
+                          getPeerLabel(row.nextHopPeerId, peerNameById),
+                          onPeerHoverChange,
+                        )}
+                      </td>
+                      <td>{row.metric}</td>
+                      <td>{row.sequenceNumber}</td>
+                      <td>
+                        {row.pathPeerIds
+                          .map((peerId) => getPeerLabel(peerId, peerNameById))
+                          .join(" -> ")}
+                      </td>
                       <td>{row.lastUpdateTick}</td>
                     </tr>
                   ))
@@ -510,9 +564,11 @@ export default function TableInspectionWindow({
           href={
             selectedProtocol === RoutingProtocol.DSDV
               ? "/docs/dsdv#routing-maintenance"
-              : selectedProtocol === RoutingProtocol.OLSR
-                ? "/docs/olsr#route-selection"
-                : "/docs/batman#route-selection"
+              : selectedProtocol === RoutingProtocol.DSR
+                ? "/docs/dsr#route-cache"
+                : selectedProtocol === RoutingProtocol.OLSR
+                  ? "/docs/olsr#route-selection"
+                  : "/docs/batman#route-selection"
           }
           target="_blank"
           rel="noreferrer"

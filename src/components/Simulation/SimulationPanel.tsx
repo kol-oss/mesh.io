@@ -206,6 +206,7 @@ export default function SimulationPanel({
                     <th>{ui.simulation.tableNextHop}</th>
                     <th>{ui.simulation.tableMetric}</th>
                     <th>{ui.simulation.tableSequence}</th>
+                    {"pathPeerIds" in routeRows[0] ? <th>{ui.simulation.tablePath}</th> : null}
                     <th>{ui.simulation.tableInstalled}</th>
                   </tr>
                 )}
@@ -249,6 +250,13 @@ export default function SimulationPanel({
                       </td>
                       <td>{row.metric}</td>
                       <td>{row.sequenceNumber}</td>
+                      {"pathPeerIds" in row && Array.isArray(row.pathPeerIds) ? (
+                        <td>
+                          {(row.pathPeerIds as UUID[])
+                            .map((peerId) => getPeerLabel(peerId, peerNameById))
+                            .join(" -> ")}
+                        </td>
+                      ) : null}
                       <td>{row.lastUpdateTick}</td>
                     </tr>
                   ),

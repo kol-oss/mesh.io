@@ -27,6 +27,9 @@ export const SimulationMessageKind = {
   DsdvRouteUpdateMessage: "DSDV_ROUTE_UPDATE_MESSAGE",
   OlsrHelloMessage: "OLSR_HELLO_MESSAGE",
   OlsrTcMessage: "OLSR_TC_MESSAGE",
+  DsrRouteRequestMessage: "DSR_ROUTE_REQUEST_MESSAGE",
+  DsrRouteReplyMessage: "DSR_ROUTE_REPLY_MESSAGE",
+  DsrRouteErrorMessage: "DSR_ROUTE_ERROR_MESSAGE",
 } as const;
 
 export type SimulationMessageKind =
@@ -120,13 +123,47 @@ export type OlsrTcMessage = {
   advertisedNeighbours: UUID[];
 };
 
+export type DsrRouteRequestMessage = {
+  kind: typeof SimulationMessageKind.DsrRouteRequestMessage;
+  sourcePeerId: UUID;
+  senderPeerId: UUID;
+  targetPeerId: UUID;
+  requestId: number;
+  hopLimit: number;
+  routePeerIds: UUID[];
+};
+
+export type DsrRouteReplyMessage = {
+  kind: typeof SimulationMessageKind.DsrRouteReplyMessage;
+  sourcePeerId: UUID;
+  senderPeerId: UUID;
+  targetPeerId: UUID;
+  requestId: number;
+  hopLimit: number;
+  routePeerIds: UUID[];
+};
+
+export type DsrRouteErrorMessage = {
+  kind: typeof SimulationMessageKind.DsrRouteErrorMessage;
+  sourcePeerId: UUID;
+  senderPeerId: UUID;
+  destinationPeerId: UUID;
+  brokenFromPeerId: UUID;
+  brokenToPeerId: UUID;
+  salvageCount: number;
+  routePeerIds: UUID[];
+};
+
 export type SimulationMessage =
   | SimulationPacket
   | BatmanOriginatorMessage
   | BatmanEchoLocationMessage
   | DsdvRouteUpdateMessage
   | OlsrHelloMessage
-  | OlsrTcMessage;
+  | OlsrTcMessage
+  | DsrRouteRequestMessage
+  | DsrRouteReplyMessage
+  | DsrRouteErrorMessage;
 
 export type BatmanRouteRecord = {
   originatorPeerId: UUID;
@@ -157,6 +194,15 @@ export type OlsrRouteRecord = {
   metric: number;
   sequenceNumber: number;
   lastUpdateTick: number;
+};
+
+export type DsrRouteRecord = {
+  destinationPeerId: UUID;
+  nextHopPeerId: UUID;
+  metric: number;
+  sequenceNumber: number;
+  lastUpdateTick: number;
+  pathPeerIds: UUID[];
 };
 
 export type OlsrNeighbourRecord = {
@@ -213,10 +259,21 @@ export type OlsrRoutingTableChangeDetails = {
   reason: string;
 };
 
+export type DsrRoutingTableChangeDetails = {
+  protocol: typeof RoutingProtocol.DSR;
+  destinationPeerId: UUID;
+  nextHopPeerId: UUID;
+  previousRoute: DsrRouteRecord | null;
+  nextRoute: DsrRouteRecord | null;
+  message?: SimulationMessage;
+  reason: string;
+};
+
 export type RoutingTableChangeDetails =
   | BatmanRoutingTableChangeDetails
   | DsdvRoutingTableChangeDetails
-  | OlsrRoutingTableChangeDetails;
+  | OlsrRoutingTableChangeDetails
+  | DsrRoutingTableChangeDetails;
 
 export type BroadcastEventDetails = {
   neighbourPeerIds: UUID[];
@@ -263,7 +320,7 @@ export type ThroughputCalculationEventDetails = {
 export type RouteSelectedEventDetails = {
   protocol: RoutingProtocol;
   destinationPeerId: UUID;
-  selectedRoute: BatmanRouteRecord | DsdvRouteRecord | OlsrRouteRecord;
+  selectedRoute: BatmanRouteRecord | DsdvRouteRecord | OlsrRouteRecord | DsrRouteRecord;
   message: SimulationPacket;
 };
 
@@ -312,6 +369,7 @@ export type SimulationPeerSnapshot = PeerEntity & {
   batmanRoutingTable: BatmanRouteRecord[];
   batmanNeighboursTable: BatmanNeighbourRecord[];
   dsdvRoutingTable: DsdvRouteRecord[];
+  dsrRoutingTable: DsrRouteRecord[];
   olsrNeighbourTable: OlsrNeighbourRecord[];
   olsrTwoHopTable: OlsrTwoHopRecord[];
   olsrSelectorTable: OlsrSelectorRecord[];

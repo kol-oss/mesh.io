@@ -163,6 +163,36 @@ export const buildSimulationMessageAnimations = (
       ]);
     }
 
+    if (details.message.kind === SimulationMessageKind.DsrRouteRequestMessage) {
+      const previousHopPeerId =
+        details.message.routePeerIds.length > 1
+          ? details.message.routePeerIds[details.message.routePeerIds.length - 2]
+          : null;
+      return toMessageAnimations([
+        createAnimation(previousHopPeerId, currentEvent.peerId, "throughput", "route-change"),
+      ]);
+    }
+
+    if (details.message.kind === SimulationMessageKind.DsrRouteReplyMessage) {
+      const senderPeerId = details.message.senderPeerId;
+      const senderIndex = details.message.routePeerIds.indexOf(senderPeerId);
+      const targetPeerId = senderIndex > 0 ? details.message.routePeerIds[senderIndex - 1] : null;
+      return toMessageAnimations([
+        createAnimation(senderPeerId, targetPeerId, "throughput", "route-change"),
+      ]);
+    }
+
+    if (details.message.kind === SimulationMessageKind.DsrRouteErrorMessage) {
+      return toMessageAnimations([
+        createAnimation(
+          details.message.brokenFromPeerId,
+          details.message.brokenToPeerId,
+          "throughput",
+          "route-change",
+        ),
+      ]);
+    }
+
     return [];
   }
 
@@ -252,6 +282,35 @@ const getDroppedMessageAnimation = (
     return message.senderPeerId !== eventPeerId
       ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
       : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
+  }
+
+  if (message.kind === SimulationMessageKind.DsrRouteRequestMessage) {
+    const previousHopPeerId =
+      message.routePeerIds.length > 1
+        ? message.routePeerIds[message.routePeerIds.length - 2]
+        : null;
+    if (!previousHopPeerId) {
+      return null;
+    }
+
+    return { sourcePeerId: previousHopPeerId, targetPeerId: eventPeerId };
+  }
+
+  if (message.kind === SimulationMessageKind.DsrRouteReplyMessage) {
+    const senderIndex = message.routePeerIds.indexOf(message.senderPeerId);
+    const previousPeerId = senderIndex > 0 ? message.routePeerIds[senderIndex - 1] : null;
+    if (!previousPeerId) {
+      return null;
+    }
+
+    return { sourcePeerId: message.senderPeerId, targetPeerId: previousPeerId };
+  }
+
+  if (message.kind === SimulationMessageKind.DsrRouteErrorMessage) {
+    return {
+      sourcePeerId: message.brokenFromPeerId,
+      targetPeerId: message.brokenToPeerId,
+    };
   }
 
   if (message.kind !== SimulationMessageKind.Packet) {

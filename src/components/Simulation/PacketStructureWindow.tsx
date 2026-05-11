@@ -275,6 +275,38 @@ export default function PacketStructureWindow({
               </div>
             ))}
           </div>
+        ) : eventMessage?.kind === SimulationMessageKind.DsrRouteRequestMessage ||
+          eventMessage?.kind === SimulationMessageKind.DsrRouteReplyMessage ||
+          eventMessage?.kind === SimulationMessageKind.DsrRouteErrorMessage ? (
+          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
+            {getDsrStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
+              <div className="simulation-panel__packet-row" key={`packet-row-dsr-${rowIndex}`}>
+                {row.map((field) => (
+                  <div
+                    key={`dsr-${rowIndex}-${field.label}`}
+                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
+                    style={{ flex: field.bits }}
+                  >
+                    <span className="simulation-panel__packet-field-label">{field.label}</span>
+                    <span className="simulation-panel__packet-field-value">{field.value}</span>
+                    <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-description">
+                        {field.description}
+                      </span>
+                      <span className="simulation-panel__packet-tooltip-bits">
+                        {field.bits} {ui.packet.bitsSuffix}
+                      </span>
+                      {field.blocked ? (
+                        <span className="simulation-panel__packet-tooltip-note">
+                          {ui.packet.notModeled}
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         ) : (
           <p className="simulation-panel__description simulation-panel__description--secondary">
             {ui.packet.unavailable}
@@ -313,6 +345,18 @@ const getPacketInspectorTitle = (message: SimulationMessage | null) => {
     return ui.packet.olsrTcTitle;
   }
 
+  if (message?.kind === SimulationMessageKind.DsrRouteRequestMessage) {
+    return ui.packet.dsrRreqTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteReplyMessage) {
+    return ui.packet.dsrRrepTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteErrorMessage) {
+    return ui.packet.dsrRerrTitle;
+  }
+
   return ui.packet.title;
 };
 
@@ -331,6 +375,18 @@ const getPacketInspectorStructureAria = (message: SimulationMessage | null) => {
 
   if (message?.kind === SimulationMessageKind.OlsrTcMessage) {
     return ui.packet.olsrTcStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteRequestMessage) {
+    return ui.packet.dsrRreqStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteReplyMessage) {
+    return ui.packet.dsrRrepStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteErrorMessage) {
+    return ui.packet.dsrRerrStructureAria;
   }
 
   return ui.packet.structureAria;
@@ -357,7 +413,178 @@ const getPacketReadMorePath = (message: SimulationMessage | null) => {
     return "/docs/olsr#topology-discovery";
   }
 
+  if (message?.kind === SimulationMessageKind.DsrRouteRequestMessage) {
+    return "/docs/dsr#route-discovery";
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteReplyMessage) {
+    return "/docs/dsr#route-discovery";
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteErrorMessage) {
+    return "/docs/dsr#route-maintenance";
+  }
+
   return "/docs/batman#what-you-need-to-know";
+};
+
+const getDsrStructureRows = (
+  message: SimulationMessage,
+  peerNameById: Map<string, string>,
+): PacketStructureField[][] => {
+  if (message.kind === SimulationMessageKind.DsrRouteRequestMessage) {
+    const hopRows =
+      message.routePeerIds.length > 0
+        ? message.routePeerIds.map((peerId) => [
+            {
+              label: ui.packet.fieldAddressList,
+              value: peerNameById.get(peerId) ?? peerId,
+              bits: 32,
+              description: "Accumulated hop address carried by Route Request.",
+              blocked: false,
+            },
+          ])
+        : [];
+
+    return [
+      [
+        {
+          label: ui.packet.fieldType,
+          value: "RREQ",
+          bits: 8,
+          description: "DSR Route Request option type.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldOptDataLen,
+          value: String(message.routePeerIds.length * 4 + 6),
+          bits: 8,
+          description: "Length of Route Request option payload.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldIdentification,
+          value: String(message.requestId),
+          bits: 16,
+          description: "Route Request identifier for duplicate suppression.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldTargetAddress,
+          value: peerNameById.get(message.targetPeerId) ?? message.targetPeerId,
+          bits: 32,
+          description: "Requested destination address.",
+          blocked: false,
+        },
+      ],
+      ...hopRows,
+    ];
+  }
+
+  if (message.kind === SimulationMessageKind.DsrRouteReplyMessage) {
+    const pathRows = message.routePeerIds.map((peerId) => [
+      {
+        label: ui.packet.fieldAddressList,
+        value: peerNameById.get(peerId) ?? peerId,
+        bits: 32,
+        description: "Hop address inside Route Reply source route.",
+        blocked: false,
+      },
+    ]);
+
+    return [
+      [
+        {
+          label: ui.packet.fieldType,
+          value: "RREP",
+          bits: 8,
+          description: "DSR Route Reply option type.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldOptDataLen,
+          value: String(message.routePeerIds.length * 4 + 1),
+          bits: 8,
+          description: "Length of Route Reply option payload.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldFlags,
+          value: "0",
+          bits: 8,
+          description: "Route Reply flags field.",
+          blocked: false,
+        },
+      ],
+      ...pathRows,
+    ];
+  }
+
+  if (message.kind === SimulationMessageKind.DsrRouteErrorMessage) {
+    return [
+      [
+        {
+          label: ui.packet.fieldType,
+          value: "RERR",
+          bits: 8,
+          description: "DSR Route Error option type.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldOptDataLen,
+          value: "12",
+          bits: 8,
+          description: "Length of Route Error option payload.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldErrorType,
+          value: "NODE_UNREACHABLE",
+          bits: 8,
+          description: "Error classification describing link failure.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldSalvage,
+          value: String(message.salvageCount),
+          bits: 8,
+          description: "Number of packet salvaging attempts already used.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldErrorSourceAddress,
+          value: peerNameById.get(message.brokenFromPeerId) ?? message.brokenFromPeerId,
+          bits: 32,
+          description: "Node that detected the broken link.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldErrorDestinationAddress,
+          value: peerNameById.get(message.destinationPeerId) ?? message.destinationPeerId,
+          bits: 32,
+          description: "Packet destination impacted by the error.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldTypeSpecificInformation,
+          value: peerNameById.get(message.brokenToPeerId) ?? message.brokenToPeerId,
+          bits: 32,
+          description: "Unreachable next-hop address for this failure.",
+          blocked: false,
+        },
+      ],
+    ];
+  }
+
+  return [];
 };
 
 const getOlsrHelloStructureRows = (

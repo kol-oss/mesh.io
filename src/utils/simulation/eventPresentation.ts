@@ -6,6 +6,9 @@ import {
   SimulationMessageKind,
   type BatmanRouteRecord,
   type BroadcastEventDetails,
+  type DsrRouteErrorMessage,
+  type DsrRouteReplyMessage,
+  type DsrRouteRequestMessage,
   type DsdvRouteUpdateMessage,
   type DroppedEventDetails,
   type OlsrHelloMessage,
@@ -53,6 +56,24 @@ const isOlsrTcMessage = (message: SimulationMessage | null): message is OlsrTcMe
   return message?.kind === SimulationMessageKind.OlsrTcMessage;
 };
 
+const isDsrRouteRequestMessage = (
+  message: SimulationMessage | null,
+): message is DsrRouteRequestMessage => {
+  return message?.kind === SimulationMessageKind.DsrRouteRequestMessage;
+};
+
+const isDsrRouteReplyMessage = (
+  message: SimulationMessage | null,
+): message is DsrRouteReplyMessage => {
+  return message?.kind === SimulationMessageKind.DsrRouteReplyMessage;
+};
+
+const isDsrRouteErrorMessage = (
+  message: SimulationMessage | null,
+): message is DsrRouteErrorMessage => {
+  return message?.kind === SimulationMessageKind.DsrRouteErrorMessage;
+};
+
 const getRouteChange = (event: SimulationEvent): RoutingTableChangeDetails | null => {
   if (
     event.type !== SimulationEventType.RoutingTableInsert &&
@@ -87,6 +108,14 @@ const detectEventProtocol = (event: SimulationEvent, message: SimulationMessage 
     return RoutingProtocol.OLSR;
   }
 
+  if (
+    isDsrRouteRequestMessage(message) ||
+    isDsrRouteReplyMessage(message) ||
+    isDsrRouteErrorMessage(message)
+  ) {
+    return RoutingProtocol.DSR;
+  }
+
   return null;
 };
 
@@ -103,7 +132,47 @@ export const getEventTitle = (event: SimulationEvent) => {
   }
 
   if (protocol !== RoutingProtocol.DSDV) {
-    if (protocol !== RoutingProtocol.OLSR) {
+    if (protocol !== RoutingProtocol.OLSR && protocol !== RoutingProtocol.DSR) {
+      return ui.simulation.genericEvent;
+    }
+
+    if (protocol === RoutingProtocol.DSR) {
+      if (event.type === SimulationEventType.SystemMessageBroadcast) {
+        return ui.simulation.dsrRreqBroadcast;
+      }
+
+      if (event.type === SimulationEventType.RoutingTableInsert) {
+        return ui.simulation.dsrRouteAdded;
+      }
+
+      if (event.type === SimulationEventType.RoutingTableUpdate) {
+        return ui.simulation.dsrRouteUpdated;
+      }
+
+      if (event.type === SimulationEventType.RoutingTableRemove) {
+        return ui.simulation.dsrRouteRemoved;
+      }
+
+      if (event.type === SimulationEventType.SystemThroughputCalculated) {
+        if (isDsrRouteReplyMessage(message)) {
+          return ui.simulation.dsrRrepForwarded;
+        }
+
+        if (isDsrRouteErrorMessage(message)) {
+          return ui.simulation.dsrRerrRaised;
+        }
+
+        return ui.simulation.dsrControlProcessed;
+      }
+
+      if (event.type === SimulationEventType.SystemMessageDropped) {
+        return ui.simulation.packetSendFailed;
+      }
+
+      if (event.type === SimulationEventType.SystemRouteSelected) {
+        return ui.simulation.routeSelected;
+      }
+
       return ui.simulation.genericEvent;
     }
 
@@ -184,7 +253,55 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
   }
 
   if (protocol !== RoutingProtocol.DSDV) {
-    if (protocol !== RoutingProtocol.OLSR) {
+    if (protocol !== RoutingProtocol.OLSR && protocol !== RoutingProtocol.DSR) {
+      return ui.simulation.eventEmitted(ui.simulation.eventNodeLabel);
+    }
+
+    if (protocol === RoutingProtocol.DSR) {
+      const routeChange = getRouteChange(event);
+      if (routeChange && routeChange.protocol === RoutingProtocol.DSR) {
+        const namedReason = replacePeerIdsWithNames(routeChange.reason, peerNameById);
+        if (event.type === SimulationEventType.RoutingTableInsert) {
+          return ui.simulation.dsrRouteInsertBody(namedReason);
+        }
+
+        if (event.type === SimulationEventType.RoutingTableUpdate) {
+          return ui.simulation.dsrRouteUpdateBody(namedReason);
+        }
+
+        return ui.simulation.dsrRouteRemoveBody(namedReason);
+      }
+
+      if (event.type === SimulationEventType.SystemMessageBroadcast) {
+        const details = event.details as BroadcastEventDetails;
+        const namedNote = replacePeerIdsWithNames(details.note ?? "", peerNameById);
+        return ui.simulation.dsrBroadcastBody(namedNote);
+      }
+
+      if (event.type === SimulationEventType.SystemMessageDropped) {
+        const details = event.details as DroppedEventDetails;
+        return ui.simulation.packetSendFailedReason(details.reason);
+      }
+
+      if (event.type === SimulationEventType.SystemRouteSelected) {
+        const details = event.details as RouteSelectedEventDetails;
+        if ("pathPeerIds" in details.selectedRoute) {
+          return ui.simulation.eventRouteSelectedDsr(
+            getPeerNameForDescription(details.destinationPeerId, peerNameById),
+            getPeerNameForDescription(details.selectedRoute.nextHopPeerId, peerNameById),
+            details.selectedRoute.metric,
+            details.selectedRoute.pathPeerIds
+              .map((peerId) => getPeerNameForDescription(peerId, peerNameById))
+              .join(" -> "),
+          );
+        }
+      }
+
+      if (event.type === SimulationEventType.SystemThroughputCalculated) {
+        const details = event.details as ThroughputCalculationEventDetails;
+        return replacePeerIdsWithNames(details.reason, peerNameById);
+      }
+
       return ui.simulation.eventEmitted(ui.simulation.eventNodeLabel);
     }
 
@@ -311,6 +428,34 @@ export const getSimulationReadMorePath = (
     return "/docs/dsdv#what-you-need-to-know";
   }
 
+  if (protocol === RoutingProtocol.DSR) {
+    if (
+      event.type === SimulationEventType.RoutingTableInsert ||
+      event.type === SimulationEventType.RoutingTableUpdate ||
+      event.type === SimulationEventType.RoutingTableRemove
+    ) {
+      return "/docs/dsr#route-cache";
+    }
+
+    if (event.type === SimulationEventType.SystemRouteSelected) {
+      return "/docs/dsr#route-selection";
+    }
+
+    if (isDsrRouteRequestMessage(message)) {
+      return "/docs/dsr#route-discovery";
+    }
+
+    if (isDsrRouteReplyMessage(message)) {
+      return "/docs/dsr#route-discovery";
+    }
+
+    if (isDsrRouteErrorMessage(message)) {
+      return "/docs/dsr#route-maintenance";
+    }
+
+    return "/docs/dsr#what-you-need-to-know";
+  }
+
   if (protocol === RoutingProtocol.OLSR) {
     if (
       event.type === SimulationEventType.RoutingTableInsert ||
@@ -360,7 +505,11 @@ export const getMessageSummary = (
   }
 
   if (protocol !== RoutingProtocol.DSDV) {
-    if (protocol !== RoutingProtocol.OLSR) {
+    if (protocol !== RoutingProtocol.OLSR && protocol !== RoutingProtocol.DSR) {
+      return null;
+    }
+
+    if (protocol === RoutingProtocol.DSR) {
       return null;
     }
 
@@ -440,6 +589,14 @@ export const getMessageSummary = (
 
 const getPeerNameForDescription = (peerId: UUID, peerNameById: Map<UUID, string>) => {
   return peerNameById.get(peerId) ?? ui.common.unknown;
+};
+
+const replacePeerIdsWithNames = (text: string, peerNameById: Map<UUID, string>) => {
+  // Replace UUID-like tokens in runtime reason strings with friendly peer names.
+  return text.replace(
+    /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi,
+    (peerId) => peerNameById.get(peerId as UUID) ?? peerId,
+  );
 };
 
 export {
