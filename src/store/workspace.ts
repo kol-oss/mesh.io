@@ -4,7 +4,7 @@ import { storageKeys } from "../constants/storage";
 import { useLocalStorage } from "../hooks/storage/useLocalStorage";
 import { useToast } from "../hooks/useToast";
 import { ui } from "../i18n/messages";
-import { runSimulation } from "../simulation/runSimulation";
+import { runSimulation } from "../processor/simulation";
 import { PlacementMode, RoutingProtocol, SelectionSource, ToolbarMode } from "../types/enums";
 import type { NetworkEntity } from "../types/entities";
 import {
