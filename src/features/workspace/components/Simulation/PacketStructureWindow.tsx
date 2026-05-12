@@ -1,0 +1,1308 @@
+import { ExternalLink, X } from "lucide-react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+
+import { ui } from "../../../../shared/i18n/messages";
+import {
+  DsdvUpdateType,
+  SimulationMessageKind,
+  type OlsrHelloMessage,
+  type OlsrTcMessage,
+  type SimulationEvent,
+  type SimulationMessage,
+  type SimulationStepResult,
+} from "../../../../shared/types/simulation";
+
+type PacketStructureWindowProps = {
+  isOpen: boolean;
+  currentEvent: SimulationEvent | null;
+  currentStepResult: SimulationStepResult | null;
+  onClose: () => void;
+};
+
+type PacketStructureField = {
+  label: string;
+  value: string;
+  bits: number;
+  description: string;
+  blocked: boolean;
+};
+
+export default function PacketStructureWindow({
+  isOpen,
+  currentEvent,
+  currentStepResult,
+  onClose,
+}: PacketStructureWindowProps) {
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStateRef = useRef<{
+    startPointerX: number;
+    startPointerY: number;
+    startOffsetX: number;
+    startOffsetY: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!isDragging) {
+      return;
+    }
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const dragState = dragStateRef.current;
+      if (!dragState) {
+        return;
+      }
+
+      setDragOffset({
+        x: dragState.startOffsetX + (event.clientX - dragState.startPointerX),
+        y: dragState.startOffsetY + (event.clientY - dragState.startPointerY),
+      });
+    };
+
+    const handlePointerEnd = () => {
+      dragStateRef.current = null;
+      setIsDragging(false);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerEnd);
+    window.addEventListener("pointercancel", handlePointerEnd);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerEnd);
+      window.removeEventListener("pointercancel", handlePointerEnd);
+    };
+  }, [isDragging]);
+
+  if (!isOpen || !currentEvent || !currentStepResult) {
+    return null;
+  }
+
+  const handlePanelPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
+    event.stopPropagation();
+  };
+
+  const handleHeaderPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    dragStateRef.current = {
+      startPointerX: event.clientX,
+      startPointerY: event.clientY,
+      startOffsetX: dragOffset.x,
+      startOffsetY: dragOffset.y,
+    };
+    setIsDragging(true);
+    event.stopPropagation();
+    event.preventDefault();
+  };
+
+  const eventMessage = getEventMessage(currentEvent);
+  const peerNameById = new Map(
+    currentStepResult.snapshot.peers.map((peer) => [peer.id, peer.name]),
+  );
+  const inspectorTitle = getPacketInspectorTitle(eventMessage);
+  const packetStructureAria = getPacketInspectorStructureAria(eventMessage);
+  const readMorePath = getPacketReadMorePath(eventMessage);
+
+  return (
+    <aside
+      className={`simulation-panel simulation-panel--inspector${isDragging ? " simulation-panel--dragging" : ""}`}
+      aria-label={ui.packet.inspectorAria}
+      onPointerDown={handlePanelPointerDown}
+      style={{ transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)` }}
+    >
+      <header className="simulation-panel__header" onPointerDown={handleHeaderPointerDown}>
+        <h2 className="simulation-panel__title">{inspectorTitle}</h2>
+        <button
+          className="simulation-panel__close-button"
+          type="button"
+          onClick={onClose}
+          onPointerDown={(event) => event.stopPropagation()}
+          aria-label={ui.packet.closeAria}
+        >
+          <X size={14} />
+        </button>
+      </header>
+      <section className="simulation-panel__section">
+        {eventMessage?.kind === SimulationMessageKind.BatmanOriginatorMessage ? (
+          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
+            {getBatmanOgmStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
+              <div className="simulation-panel__packet-row" key={`packet-row-${rowIndex}`}>
+                {row.map((field) => (
+                  <div
+                    key={`${rowIndex}-${field.label}`}
+                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
+                    style={{ flex: field.bits }}
+                  >
+                    <span className="simulation-panel__packet-field-label">{field.label}</span>
+                    <span className="simulation-panel__packet-field-value">{field.value}</span>
+                    <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-description">
+                        {field.description}
+                      </span>
+                      <span className="simulation-panel__packet-tooltip-bits">
+                        {field.bits} {ui.packet.bitsSuffix}
+                      </span>
+                      {field.blocked ? (
+                        <span className="simulation-panel__packet-tooltip-note">
+                          {ui.packet.notModeled}
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : eventMessage?.kind === SimulationMessageKind.BatmanEchoLocationMessage ? (
+          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
+            {getBatmanElpStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
+              <div className="simulation-panel__packet-row" key={`packet-row-elp-${rowIndex}`}>
+                {row.map((field) => (
+                  <div
+                    key={`elp-${rowIndex}-${field.label}`}
+                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
+                    style={{ flex: field.bits }}
+                  >
+                    <span className="simulation-panel__packet-field-label">{field.label}</span>
+                    <span className="simulation-panel__packet-field-value">{field.value}</span>
+                    <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-description">
+                        {field.description}
+                      </span>
+                      <span className="simulation-panel__packet-tooltip-bits">
+                        {field.bits} {ui.packet.bitsSuffix}
+                      </span>
+                      {field.blocked ? (
+                        <span className="simulation-panel__packet-tooltip-note">
+                          {ui.packet.notModeled}
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : eventMessage?.kind === SimulationMessageKind.DsdvRouteUpdateMessage ? (
+          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
+            {getDsdvStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
+              <div className="simulation-panel__packet-row" key={`packet-row-dsdv-${rowIndex}`}>
+                {row.map((field) => (
+                  <div
+                    key={`dsdv-${rowIndex}-${field.label}`}
+                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
+                    style={{ flex: field.bits }}
+                  >
+                    <span className="simulation-panel__packet-field-label">{field.label}</span>
+                    <span className="simulation-panel__packet-field-value">{field.value}</span>
+                    <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-description">
+                        {field.description}
+                      </span>
+                      <span className="simulation-panel__packet-tooltip-bits">
+                        {field.bits} {ui.packet.bitsSuffix}
+                      </span>
+                      {field.blocked ? (
+                        <span className="simulation-panel__packet-tooltip-note">
+                          {ui.packet.notModeled}
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : eventMessage?.kind === SimulationMessageKind.AodvRouteRequestMessage ||
+          eventMessage?.kind === SimulationMessageKind.AodvRouteReplyMessage ||
+          eventMessage?.kind === SimulationMessageKind.AodvRouteErrorMessage ||
+          eventMessage?.kind === SimulationMessageKind.AodvHelloMessage ? (
+          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
+            {getAodvStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
+              <div className="simulation-panel__packet-row" key={`packet-row-aodv-${rowIndex}`}>
+                {row.map((field) => (
+                  <div
+                    key={`aodv-${rowIndex}-${field.label}`}
+                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
+                    style={{ flex: field.bits }}
+                  >
+                    <span className="simulation-panel__packet-field-label">{field.label}</span>
+                    <span className="simulation-panel__packet-field-value">{field.value}</span>
+                    <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-description">
+                        {field.description}
+                      </span>
+                      <span className="simulation-panel__packet-tooltip-bits">
+                        {field.bits} {ui.packet.bitsSuffix}
+                      </span>
+                      {field.blocked ? (
+                        <span className="simulation-panel__packet-tooltip-note">
+                          {ui.packet.notModeled}
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : eventMessage?.kind === SimulationMessageKind.OlsrHelloMessage ? (
+          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
+            {getOlsrHelloStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
+              <div
+                className="simulation-panel__packet-row"
+                key={`packet-row-olsr-hello-${rowIndex}`}
+              >
+                {row.map((field) => (
+                  <div
+                    key={`olsr-hello-${rowIndex}-${field.label}`}
+                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
+                    style={{ flex: field.bits }}
+                  >
+                    <span className="simulation-panel__packet-field-label">{field.label}</span>
+                    <span className="simulation-panel__packet-field-value">{field.value}</span>
+                    <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-description">
+                        {field.description}
+                      </span>
+                      <span className="simulation-panel__packet-tooltip-bits">
+                        {field.bits} {ui.packet.bitsSuffix}
+                      </span>
+                      {field.blocked ? (
+                        <span className="simulation-panel__packet-tooltip-note">
+                          {ui.packet.notModeled}
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : eventMessage?.kind === SimulationMessageKind.OlsrTcMessage ? (
+          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
+            {getOlsrTcStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
+              <div className="simulation-panel__packet-row" key={`packet-row-olsr-tc-${rowIndex}`}>
+                {row.map((field) => (
+                  <div
+                    key={`olsr-tc-${rowIndex}-${field.label}`}
+                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
+                    style={{ flex: field.bits }}
+                  >
+                    <span className="simulation-panel__packet-field-label">{field.label}</span>
+                    <span className="simulation-panel__packet-field-value">{field.value}</span>
+                    <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-description">
+                        {field.description}
+                      </span>
+                      <span className="simulation-panel__packet-tooltip-bits">
+                        {field.bits} {ui.packet.bitsSuffix}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : eventMessage?.kind === SimulationMessageKind.DsrRouteRequestMessage ||
+          eventMessage?.kind === SimulationMessageKind.DsrRouteReplyMessage ||
+          eventMessage?.kind === SimulationMessageKind.DsrRouteErrorMessage ? (
+          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
+            {getDsrStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
+              <div className="simulation-panel__packet-row" key={`packet-row-dsr-${rowIndex}`}>
+                {row.map((field) => (
+                  <div
+                    key={`dsr-${rowIndex}-${field.label}`}
+                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
+                    style={{ flex: field.bits }}
+                  >
+                    <span className="simulation-panel__packet-field-label">{field.label}</span>
+                    <span className="simulation-panel__packet-field-value">{field.value}</span>
+                    <span className="simulation-panel__packet-tooltip" role="tooltip">
+                      <span className="simulation-panel__packet-tooltip-description">
+                        {field.description}
+                      </span>
+                      <span className="simulation-panel__packet-tooltip-bits">
+                        {field.bits} {ui.packet.bitsSuffix}
+                      </span>
+                      {field.blocked ? (
+                        <span className="simulation-panel__packet-tooltip-note">
+                          {ui.packet.notModeled}
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="simulation-panel__description simulation-panel__description--secondary">
+            {ui.packet.unavailable}
+          </p>
+        )}
+      </section>
+      <footer className="simulation-panel__footer">
+        <a
+          className="simulation-panel__read-more"
+          href={readMorePath}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <ExternalLink size={12} />
+          {ui.simulation.packetStructureReadMore}
+        </a>
+      </footer>
+    </aside>
+  );
+}
+
+const getPacketInspectorTitle = (message: SimulationMessage | null) => {
+  if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+    return ui.packet.elpTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
+    return ui.packet.dsdvTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteRequestMessage) {
+    return ui.packet.aodvRreqTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteReplyMessage) {
+    return ui.packet.aodvRrepTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteErrorMessage) {
+    return ui.packet.aodvRerrTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvHelloMessage) {
+    return ui.packet.aodvHelloTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.OlsrHelloMessage) {
+    return ui.packet.olsrHelloTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.OlsrTcMessage) {
+    return ui.packet.olsrTcTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteRequestMessage) {
+    return ui.packet.dsrRreqTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteReplyMessage) {
+    return ui.packet.dsrRrepTitle;
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteErrorMessage) {
+    return ui.packet.dsrRerrTitle;
+  }
+
+  return ui.packet.title;
+};
+
+const getPacketInspectorStructureAria = (message: SimulationMessage | null) => {
+  if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+    return ui.packet.elpStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
+    return ui.packet.dsdvStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteRequestMessage) {
+    return ui.packet.aodvRreqStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteReplyMessage) {
+    return ui.packet.aodvRrepStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteErrorMessage) {
+    return ui.packet.aodvRerrStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvHelloMessage) {
+    return ui.packet.aodvHelloStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.OlsrHelloMessage) {
+    return ui.packet.olsrHelloStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.OlsrTcMessage) {
+    return ui.packet.olsrTcStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteRequestMessage) {
+    return ui.packet.dsrRreqStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteReplyMessage) {
+    return ui.packet.dsrRrepStructureAria;
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteErrorMessage) {
+    return ui.packet.dsrRerrStructureAria;
+  }
+
+  return ui.packet.structureAria;
+};
+
+const getPacketReadMorePath = (message: SimulationMessage | null) => {
+  if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+    return "/docs/batman#echo-location-protocol";
+  }
+
+  if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
+    return "/docs/batman#originator-message";
+  }
+
+  if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
+    return "/docs/dsdv#full-and-incremental-updates";
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteRequestMessage) {
+    return "/docs/aodv#route-discovery";
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteReplyMessage) {
+    return "/docs/aodv#route-discovery";
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvRouteErrorMessage) {
+    return "/docs/aodv#route-maintenance";
+  }
+
+  if (message?.kind === SimulationMessageKind.AodvHelloMessage) {
+    return "/docs/aodv#route-maintenance";
+  }
+
+  if (message?.kind === SimulationMessageKind.OlsrHelloMessage) {
+    return "/docs/olsr#neighbor-sensing";
+  }
+
+  if (message?.kind === SimulationMessageKind.OlsrTcMessage) {
+    return "/docs/olsr#topology-discovery";
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteRequestMessage) {
+    return "/docs/dsr#route-discovery";
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteReplyMessage) {
+    return "/docs/dsr#route-discovery";
+  }
+
+  if (message?.kind === SimulationMessageKind.DsrRouteErrorMessage) {
+    return "/docs/dsr#route-maintenance";
+  }
+
+  return "/docs/batman#what-you-need-to-know";
+};
+
+const getDsrStructureRows = (
+  message: SimulationMessage,
+  peerNameById: Map<string, string>,
+): PacketStructureField[][] => {
+  if (message.kind === SimulationMessageKind.DsrRouteRequestMessage) {
+    const hopRows =
+      message.routePeerIds.length > 0
+        ? message.routePeerIds.map((peerId) => [
+            {
+              label: ui.packet.fieldAddressList,
+              value: peerNameById.get(peerId) ?? peerId,
+              bits: 32,
+              description: "Accumulated hop address carried by Route Request.",
+              blocked: false,
+            },
+          ])
+        : [];
+
+    return [
+      [
+        {
+          label: ui.packet.fieldType,
+          value: "RREQ",
+          bits: 8,
+          description: "DSR Route Request option type.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldOptDataLen,
+          value: String(message.routePeerIds.length * 4 + 6),
+          bits: 8,
+          description: "Length of Route Request option payload.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldIdentification,
+          value: String(message.requestId),
+          bits: 16,
+          description: "Route Request identifier for duplicate suppression.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldTargetAddress,
+          value: peerNameById.get(message.targetPeerId) ?? message.targetPeerId,
+          bits: 32,
+          description: "Requested destination address.",
+          blocked: false,
+        },
+      ],
+      ...hopRows,
+    ];
+  }
+
+  if (message.kind === SimulationMessageKind.DsrRouteReplyMessage) {
+    const pathRows = message.routePeerIds.map((peerId) => [
+      {
+        label: ui.packet.fieldAddressList,
+        value: peerNameById.get(peerId) ?? peerId,
+        bits: 32,
+        description: "Hop address inside Route Reply source route.",
+        blocked: false,
+      },
+    ]);
+
+    return [
+      [
+        {
+          label: ui.packet.fieldType,
+          value: "RREP",
+          bits: 8,
+          description: "DSR Route Reply option type.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldOptDataLen,
+          value: String(message.routePeerIds.length * 4 + 1),
+          bits: 8,
+          description: "Length of Route Reply option payload.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldFlags,
+          value: "0",
+          bits: 8,
+          description: "Route Reply flags field.",
+          blocked: false,
+        },
+      ],
+      ...pathRows,
+    ];
+  }
+
+  if (message.kind === SimulationMessageKind.DsrRouteErrorMessage) {
+    return [
+      [
+        {
+          label: ui.packet.fieldType,
+          value: "RERR",
+          bits: 8,
+          description: "DSR Route Error option type.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldOptDataLen,
+          value: "12",
+          bits: 8,
+          description: "Length of Route Error option payload.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldErrorType,
+          value: "NODE_UNREACHABLE",
+          bits: 8,
+          description: "Error classification describing link failure.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldSalvage,
+          value: String(message.salvageCount),
+          bits: 8,
+          description: "Number of packet salvaging attempts already used.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldErrorSourceAddress,
+          value: peerNameById.get(message.brokenFromPeerId) ?? message.brokenFromPeerId,
+          bits: 32,
+          description: "Node that detected the broken link.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldErrorDestinationAddress,
+          value: peerNameById.get(message.destinationPeerId) ?? message.destinationPeerId,
+          bits: 32,
+          description: "Packet destination impacted by the error.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldTypeSpecificInformation,
+          value: peerNameById.get(message.brokenToPeerId) ?? message.brokenToPeerId,
+          bits: 32,
+          description: "Unreachable next-hop address for this failure.",
+          blocked: false,
+        },
+      ],
+    ];
+  }
+
+  return [];
+};
+
+const getAodvStructureRows = (
+  message: SimulationMessage,
+  peerNameById: Map<string, string>,
+): PacketStructureField[][] => {
+  if (message.kind === SimulationMessageKind.AodvRouteRequestMessage) {
+    return [
+      [
+        {
+          label: ui.packet.fieldType,
+          value: "RREQ",
+          bits: 8,
+          description: "Identifies this control packet as an AODV Route Request.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldFlags,
+          value: "J/R/G/D/U",
+          bits: 16,
+          description:
+            "Join, Repair, Gratuitous RREP, Destination-only, and Unknown-sequence flags.",
+          blocked: true,
+        },
+        {
+          label: ui.packet.fieldHopCount,
+          value: String(message.hopCount),
+          bits: 8,
+          description: "Hop count from the originator to the current forwarding node.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldRreqId,
+          value: String(message.requestId),
+          bits: 32,
+          description: "Identifier used to suppress duplicate RREQ processing.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldDestination,
+          value: peerNameById.get(message.destinationPeerId) ?? message.destinationPeerId,
+          bits: 32,
+          description: "Destination for which a route is being requested.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldDestinationSequenceNumber,
+          value:
+            message.destinationSequenceNumber === null
+              ? ui.packet.notAvailable
+              : String(message.destinationSequenceNumber),
+          bits: 32,
+          description: "Last known destination sequence number carried by the requester.",
+          blocked: message.destinationSequenceNumber === null,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldOriginatorAddress,
+          value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
+          bits: 32,
+          description: "Originator of the route discovery.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldSequenceNumber,
+          value: String(message.originatorSequenceNumber),
+          bits: 32,
+          description: "Current originator sequence number used to create the reverse route.",
+          blocked: false,
+        },
+      ],
+    ];
+  }
+
+  if (message.kind === SimulationMessageKind.AodvRouteReplyMessage) {
+    return [
+      [
+        {
+          label: ui.packet.fieldType,
+          value: "RREP",
+          bits: 8,
+          description: "Identifies this control packet as an AODV Route Reply.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldPrefixSize,
+          value: "0",
+          bits: 16,
+          description: "Subnet prefix size field from the RFC layout.",
+          blocked: true,
+        },
+        {
+          label: ui.packet.fieldHopCount,
+          value: String(message.hopCount),
+          bits: 8,
+          description: "Current distance in hops from the replying node to the destination.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldDestination,
+          value: peerNameById.get(message.destinationPeerId) ?? message.destinationPeerId,
+          bits: 32,
+          description: "Destination for which the route is being supplied.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldDestinationSequenceNumber,
+          value: String(message.destinationSequenceNumber),
+          bits: 32,
+          description: "Fresh destination sequence number associated with the route.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldOriginatorAddress,
+          value: peerNameById.get(message.originatorPeerId) ?? message.originatorPeerId,
+          bits: 32,
+          description: "Originator that started the corresponding route discovery.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldLifetime,
+          value: String(message.lifetime),
+          bits: 32,
+          description: "Amount of time the learned route may remain active.",
+          blocked: false,
+        },
+      ],
+    ];
+  }
+
+  if (message.kind === SimulationMessageKind.AodvRouteErrorMessage) {
+    const unreachableRows = message.unreachableDestinations.flatMap((entry) => [
+      [
+        {
+          label: ui.packet.fieldDestination,
+          value: peerNameById.get(entry.destinationPeerId) ?? entry.destinationPeerId,
+          bits: 32,
+          description: "Destination that became unreachable after a link break.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldDestinationSequenceNumber,
+          value: String(entry.sequenceNumber),
+          bits: 32,
+          description: "Sequence number paired with the unreachable destination.",
+          blocked: false,
+        },
+      ],
+    ]);
+
+    return [
+      [
+        {
+          label: ui.packet.fieldType,
+          value: "RERR",
+          bits: 8,
+          description: "Identifies this control packet as an AODV Route Error.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldFlags,
+          value: message.noDelete ? "N" : "0",
+          bits: 16,
+          description: "No-delete flag and reserved bits in the RERR header.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldDestCount,
+          value: String(message.unreachableDestinations.length),
+          bits: 8,
+          description: "Number of unreachable destinations encoded in this error.",
+          blocked: false,
+        },
+      ],
+      ...unreachableRows,
+    ];
+  }
+
+  if (message.kind === SimulationMessageKind.AodvHelloMessage) {
+    return [
+      [
+        {
+          label: ui.packet.fieldType,
+          value: "HELLO",
+          bits: 8,
+          description: "Modeled as a local-broadcast AODV HELLO message.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldTtl,
+          value: "1",
+          bits: 8,
+          description: "HELLO messages are transmitted with TTL = 1.",
+          blocked: false,
+        },
+        {
+          label: ui.packet.fieldInterval,
+          value: String(message.interval),
+          bits: 16,
+          description: "Advertised HELLO interval for neighbour connectivity checks.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldOriginatorAddress,
+          value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
+          bits: 32,
+          description: "Neighbour announcing that it remains locally reachable.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldDestinationSequenceNumber,
+          value: String(message.destinationSequenceNumber),
+          bits: 32,
+          description: "Latest destination sequence number advertised by the neighbour.",
+          blocked: false,
+        },
+      ],
+      [
+        {
+          label: ui.packet.fieldLifetime,
+          value: String(message.lifetime),
+          bits: 32,
+          description: "How long the neighbour route should remain valid after this HELLO.",
+          blocked: false,
+        },
+      ],
+    ];
+  }
+
+  return [];
+};
+
+const getOlsrHelloStructureRows = (
+  message: OlsrHelloMessage,
+  peerNameById: Map<string, string>,
+): PacketStructureField[][] => {
+  const neighbourRows =
+    message.neighbours.length > 0
+      ? message.neighbours.flatMap((peerId) => [
+          [
+            {
+              label: ui.packet.fieldLinkCode,
+              value: message.mprPeerIds.includes(peerId) ? "SYM/MPR" : "SYM",
+              bits: 8,
+              description:
+                "Defines the modeled symmetric-link state and whether the neighbour was selected as an MPR.",
+              blocked: false,
+            },
+            {
+              label: ui.packet.fieldReserved,
+              value: ui.packet.notAvailable,
+              bits: 8,
+              description: "Reserved field, transmitted as 0 in the RFC layout.",
+              blocked: true,
+            },
+            {
+              label: ui.packet.fieldLinkMessageSize,
+              value: ui.packet.notAvailable,
+              bits: 16,
+              description: "Size of the HELLO link-description block in the RFC layout.",
+              blocked: true,
+            },
+          ],
+          [
+            {
+              label: ui.packet.fieldNeighbourInterfaceAddress,
+              value: peerNameById.get(peerId) ?? peerId,
+              bits: 32,
+              description: "Neighbour interface address carried in the HELLO link block.",
+              blocked: false,
+            },
+          ],
+        ])
+      : [
+          [
+            {
+              label: ui.packet.fieldLinkCode,
+              value: ui.packet.notAvailable,
+              bits: 8,
+              description: "No neighbour interface addresses are advertised in this HELLO.",
+              blocked: true,
+            },
+            {
+              label: ui.packet.fieldReserved,
+              value: ui.packet.notAvailable,
+              bits: 8,
+              description: "Reserved field, transmitted as 0 in the RFC layout.",
+              blocked: true,
+            },
+            {
+              label: ui.packet.fieldLinkMessageSize,
+              value: ui.packet.notAvailable,
+              bits: 16,
+              description: "Size of the HELLO link-description block in the RFC layout.",
+              blocked: true,
+            },
+          ],
+          [
+            {
+              label: ui.packet.fieldNeighbourInterfaceAddress,
+              value: ui.packet.notAvailable,
+              bits: 32,
+              description: "No neighbour interface addresses are advertised in this HELLO.",
+              blocked: true,
+            },
+          ],
+        ];
+
+  return [
+    [
+      {
+        label: ui.packet.fieldReserved,
+        value: ui.packet.notAvailable,
+        bits: 16,
+        description: "Reserved field for future extensions, transmitted as 0.",
+        blocked: true,
+      },
+      {
+        label: ui.packet.fieldHtime,
+        value: String(message.interval),
+        bits: 8,
+        description: "Emission interval of the HELLO message.",
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldWillingness,
+        value: ui.packet.notAvailable,
+        bits: 8,
+        description:
+          "Node willingness to forward traffic for others. This simulation keeps it fixed and does not model the field explicitly.",
+        blocked: true,
+      },
+    ],
+    ...neighbourRows,
+  ];
+};
+
+const getOlsrTcStructureRows = (
+  message: OlsrTcMessage,
+  peerNameById: Map<string, string>,
+): PacketStructureField[][] => {
+  const advertisedRows =
+    message.advertisedNeighbours.length > 0
+      ? message.advertisedNeighbours.map((peerId) => [
+          {
+            label: ui.packet.fieldAdvertisedNeighbourMainAddress,
+            value: peerNameById.get(peerId) ?? peerId,
+            bits: 32,
+            description: "Address of a node that selected the sender as an MPR.",
+            blocked: false,
+          },
+        ])
+      : [
+          [
+            {
+              label: ui.packet.fieldAdvertisedNeighbourMainAddress,
+              value: ui.packet.notAvailable,
+              bits: 32,
+              description: "No MPR selectors are advertised in this TC message.",
+              blocked: true,
+            },
+          ],
+        ];
+
+  return [
+    [
+      {
+        label: ui.packet.fieldAnsn,
+        value: String(message.ansn),
+        bits: 16,
+        description: "Advertised Neighbour Sequence Number used for freshness checks.",
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldReserved,
+        value: ui.packet.notAvailable,
+        bits: 16,
+        description: "Reserved field, transmitted as 0.",
+        blocked: true,
+      },
+    ],
+    ...advertisedRows,
+  ];
+};
+
+const getDsdvUpdateTypeLabel = (updateType: DsdvUpdateType) => {
+  return updateType === DsdvUpdateType.Incremental ? "0x02" : "0x01";
+};
+
+const getDsdvStructureRows = (
+  message: SimulationMessage,
+  peerNameById: Map<string, string>,
+): PacketStructureField[][] => {
+  if (message.kind !== SimulationMessageKind.DsdvRouteUpdateMessage) {
+    return [];
+  }
+
+  const routeRows: PacketStructureField[][] = message.entries.map((entry) => [
+    {
+      label: ui.packet.fieldDestination,
+      value: peerNameById.get(entry.destinationPeerId) ?? entry.destinationPeerId,
+      bits: 32,
+      description: "The IP address of the destination node for this route entry.",
+      blocked: false,
+    },
+    {
+      label: ui.packet.fieldSequenceNumber,
+      value: String(entry.sequenceNumber),
+      bits: 32,
+      description: "The latest sequence number received for this destination.",
+      blocked: false,
+    },
+    {
+      label: ui.packet.fieldMetric,
+      value: String(entry.metric),
+      bits: 32,
+      description: "The number of hops to reach the destination.",
+      blocked: false,
+    },
+  ]);
+
+  return [
+    [
+      {
+        label: ui.packet.fieldType,
+        value: getDsdvUpdateTypeLabel(message.updateType),
+        bits: 8,
+        description:
+          "Identifies the type of DSDV message: 0x01 for Full Dump; 0x02 for Incremental Update.",
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldReserved,
+        value: ui.packet.notAvailable,
+        bits: 24,
+        description: "Padding to maintain 32-bit alignment.",
+        blocked: true,
+      },
+    ],
+    [
+      {
+        label: ui.packet.fieldEntryCount,
+        value: String(message.entries.length),
+        bits: 32,
+        description: "The number of route entries contained in this packet.",
+        blocked: false,
+      },
+    ],
+    ...routeRows,
+  ];
+};
+
+const getBatmanOgmStructureRows = (
+  message: SimulationMessage,
+  peerNameById: Map<string, string>,
+): PacketStructureField[][] => {
+  if (message.kind !== SimulationMessageKind.BatmanOriginatorMessage) {
+    return [];
+  }
+
+  return [
+    [
+      {
+        label: ui.packet.fieldType,
+        value: "0x06",
+        bits: 8,
+        description: "Identifies this packet as an OGM message.",
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldVersion,
+        value: String(message.version),
+        bits: 8,
+        description: "OGM protocol version field.",
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldFlags,
+        value: ui.packet.notAvailable,
+        bits: 8,
+        description: "Control flags for additional OGM semantics.",
+        blocked: true,
+      },
+      {
+        label: ui.packet.fieldTtl,
+        value: String(message.timeToLive),
+        bits: 8,
+        description: "Maximum forwarding depth still allowed.",
+        blocked: false,
+      },
+    ],
+    [
+      {
+        label: ui.packet.fieldSequenceNumber,
+        value: String(message.sequence),
+        bits: 32,
+        description: "Sequence protection value to identify new OGMs.",
+        blocked: false,
+      },
+    ],
+    [
+      {
+        label: ui.packet.fieldOriginatorAddress,
+        value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
+        bits: 48,
+        description: "MAC address of the source node that originated the route advertisement.",
+        blocked: false,
+      },
+    ],
+    [
+      {
+        label: ui.packet.fieldThroughput,
+        value: String(message.throughput),
+        bits: 32,
+        description: "Current path throughput estimate carried with the OGM.",
+        blocked: false,
+      },
+    ],
+    [
+      {
+        label: ui.packet.fieldSenderAddress,
+        value: peerNameById.get(message.senderPeerId) ?? message.senderPeerId,
+        bits: 48,
+        description: "MAC address of the last-hop node that forwarded this OGM.",
+        blocked: false,
+      },
+    ],
+  ];
+};
+
+const getBatmanElpStructureRows = (
+  message: SimulationMessage,
+  peerNameById: Map<string, string>,
+): PacketStructureField[][] => {
+  if (message.kind !== SimulationMessageKind.BatmanEchoLocationMessage) {
+    return [];
+  }
+
+  const neighbourRows: PacketStructureField[][] = message.neighbours.map((neighbour) => [
+    {
+      label: ui.packet.fieldNeighbourAddress,
+      value: peerNameById.get(neighbour.address) ?? neighbour.address,
+      bits: 48,
+      description: "MAC address of a neighbour listed in this ELP message.",
+      blocked: false,
+    },
+  ]);
+
+  return [
+    [
+      {
+        label: ui.packet.fieldType,
+        value: "0x03",
+        bits: 8,
+        description: "Identifies this packet as an ELP message.",
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldVersion,
+        value: String(message.version),
+        bits: 8,
+        description: "Protocol version used by the sender.",
+        blocked: false,
+      },
+      {
+        label: ui.packet.fieldTtl,
+        value: String(message.timeToLive),
+        bits: 8,
+        description: "Remaining relay limit before the packet is discarded. Actually not used.",
+        blocked: false,
+      },
+      {
+        label: "Num Neigh",
+        value: String(message.numNeighbours),
+        bits: 8,
+        description: "Number of neighbour entries included in this packet.",
+        blocked: false,
+      },
+    ],
+    [
+      {
+        label: ui.packet.fieldSequenceNumber,
+        value: String(message.sequence),
+        bits: 32,
+        description: "Monotonic packet number used to detect stale or repeated updates.",
+        blocked: false,
+      },
+    ],
+    [
+      {
+        label: "Interval",
+        value: String(message.interval),
+        bits: 32,
+        description: "ELP transmission interval announced by the sender.",
+        blocked: false,
+      },
+    ],
+    [
+      {
+        label: ui.packet.fieldOriginatorAddress,
+        value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
+        bits: 48,
+        description: "MAC address of the node that generated this ELP packet.",
+        blocked: false,
+      },
+    ],
+    ...neighbourRows,
+  ];
+};
+
+const getEventMessage = (event: SimulationEvent): SimulationMessage | null => {
+  if (!("message" in event.details)) {
+    return null;
+  }
+
+  return event.details.message as SimulationMessage;
+};
