@@ -1,7 +1,7 @@
 import Navigation from "../../components/Navigation/Navigation";
 import Properties from "../../components/Properties/Properties";
 import Toolbar from "../../components/Toolbar/Toolbar";
-import WorkspaceCanvas from "../../components/Workspace/Workspace";
+import WorkspaceCanvas from "../../components/WorkspaceCanvas/WorkspaceCanvas";
 import { useWorkspaceStore } from "../../store/workspace";
 
 export default function Workspace() {
