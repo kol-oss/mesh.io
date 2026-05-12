@@ -1,6 +1,4 @@
 import { useState } from "react";
-
-import { ui } from "../../../../shared/i18n/messages";
 import type { WorkspaceSceneProps } from "../../../../shared/types/workspace/scene";
 import WorkspaceConnection from "../WorkspaceConnection/WorkspaceConnection";
 
@@ -43,7 +41,7 @@ export default function WorkspaceConnections({ centerX, centerY, connections }: 
           }}
           aria-hidden="true"
         >
-          {ui.workspace.connectionDistance(hoveredConnection.distance)}
+          {(`Distance: ${(hoveredConnection.distance).toFixed(1)}`)}
         </span>
       ) : null}
     </>

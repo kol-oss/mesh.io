@@ -11,7 +11,6 @@ import { Activity, ChevronRight, ChevronsRight, Eye, EyeOff, Mail, Plus } from "
 import { createPortal } from "react-dom";
 
 import { storageKeys } from "../../../../shared/constants/storage";
-import { ui } from "../../../../shared/i18n/messages";
 import { useListReorder } from "../../../../shared/hooks/useListReorder";
 import { useLocalStorage } from "../../../../shared/hooks/storage/useLocalStorage";
 import { useToast } from "../../../../shared/toast/useToast";
@@ -103,7 +102,7 @@ export default function Steps({
     const stepToDelete = visibleSteps[index];
     const updatedSteps = visibleSteps.filter((s) => s.id !== selectedId);
     setSteps(updatedSteps);
-    showToast(ui.steps.toastDeleted(stepToDelete?.title ?? ""));
+    showToast((`Step "${(stepToDelete?.title ?? "")}" deleted`));
     const nextStep = updatedSteps[index] ?? updatedSteps[index - 1];
     if (nextStep) {
       onSelect(nextStep.id);
@@ -191,7 +190,7 @@ export default function Steps({
       type === StepType.Message
         ? ({
             id: generateUUID(),
-            title: ui.steps.typeMessage,
+            title: "Message",
             type: StepType.Message,
             tick: nextTick,
             sourcePeerId: null,
@@ -200,14 +199,14 @@ export default function Steps({
         : type === StepType.ToggleStatus
           ? ({
               id: generateUUID(),
-              title: ui.steps.typeToggle,
+              title: "Toggle",
               type: StepType.ToggleStatus,
               tick: nextTick,
               targetEntityId: null,
             } satisfies ToggleStatusStep)
           : ({
               id: generateUUID(),
-              title: ui.steps.typeMove,
+              title: "Move",
               type: StepType.Move,
               tick: nextTick,
               movePeerId: null,
@@ -218,7 +217,7 @@ export default function Steps({
     setSteps(updatedSteps);
     onSelect(newStep.id);
     setIsAddMenuOpen(false);
-    showToast(ui.steps.toastAdded(newStep.title));
+    showToast((`Step "${(newStep.title)}" added`));
   };
 
   return (
@@ -237,9 +236,9 @@ export default function Steps({
             isOpened ? "navigation__steps-chevron--open" : ""
           }`}
         />
-        <span className="navigation__steps-title">{ui.steps.sectionTitle}</span>
+        <span className="navigation__steps-title">{"Steps"}</span>
         {isOpened && (
-          <Tooltip content={isRefreshHidden ? ui.steps.showRouting : ui.steps.hideRouting}>
+          <Tooltip content={isRefreshHidden ? "Show routing steps" : "Hide routing steps"}>
             <button
               className="navigation__steps-add"
               onClick={(event) => {
@@ -247,20 +246,20 @@ export default function Steps({
                 setIsRefreshHidden(!isRefreshHidden);
               }}
               type="button"
-              aria-label={isRefreshHidden ? ui.steps.showRouting : ui.steps.hideRouting}
+              aria-label={isRefreshHidden ? "Show routing steps" : "Hide routing steps"}
             >
               {isRefreshHidden ? <Eye size={14} /> : <EyeOff size={14} />}
             </button>
           </Tooltip>
         )}
         <div className="navigation__steps-add-wrap" ref={addMenuRef}>
-          <Tooltip content={ui.steps.addTooltip}>
+          <Tooltip content={"Add new step"}>
             <button
               ref={addButtonRef}
               className="navigation__steps-add"
               onClick={handleAddStepClick}
               type="button"
-              aria-label={ui.steps.addAria}
+              aria-label={"Add new step"}
             >
               <Plus size={14} />
             </button>
@@ -282,7 +281,7 @@ export default function Steps({
                 type="button"
               >
                 <ChevronsRight size={12} />
-                {ui.steps.typeMove}
+                {"Move"}
               </button>
               <button
                 className="navigation__steps-add-option"
@@ -290,7 +289,7 @@ export default function Steps({
                 type="button"
               >
                 <Mail size={12} />
-                {ui.steps.typeMessage}
+                {"Message"}
               </button>
               <button
                 className="navigation__steps-add-option"
@@ -298,7 +297,7 @@ export default function Steps({
                 type="button"
               >
                 <Activity size={12} />
-                {ui.steps.typeToggle}
+                {"Toggle"}
               </button>
             </div>,
             document.body,

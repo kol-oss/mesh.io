@@ -1,6 +1,4 @@
 import { Radio } from "lucide-react";
-
-import { ui } from "../../../../shared/i18n/messages";
 import type { PeerEntity } from "../../../../shared/types/navigation";
 
 type Props = {
@@ -43,7 +41,7 @@ export default function WorkspacePeerEntity({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
-      aria-label={ui.workspace.peerLabel(peer.name)}
+      aria-label={(`Peer ${(peer.name)}`)}
     >
       <span className="workspace__peer-icon">
         <Radio size={20} />

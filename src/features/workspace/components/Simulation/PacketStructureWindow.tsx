@@ -1,7 +1,5 @@
 import { ExternalLink, X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-
-import { ui } from "../../../../shared/i18n/messages";
 import {
   DsdvUpdateType,
   SimulationMessageKind,
@@ -110,7 +108,7 @@ export default function PacketStructureWindow({
   return (
     <aside
       className={`simulation-panel simulation-panel--inspector${isDragging ? " simulation-panel--dragging" : ""}`}
-      aria-label={ui.packet.inspectorAria}
+      aria-label={"Packet structure inspector"}
       onPointerDown={handlePanelPointerDown}
       style={{ transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)` }}
     >
@@ -121,7 +119,7 @@ export default function PacketStructureWindow({
           type="button"
           onClick={onClose}
           onPointerDown={(event) => event.stopPropagation()}
-          aria-label={ui.packet.closeAria}
+          aria-label={"Close packet structure"}
         >
           <X size={14} />
         </button>
@@ -144,11 +142,11 @@ export default function PacketStructureWindow({
                         {field.description}
                       </span>
                       <span className="simulation-panel__packet-tooltip-bits">
-                        {field.bits} {ui.packet.bitsSuffix}
+                        {field.bits} {"bits"}
                       </span>
                       {field.blocked ? (
                         <span className="simulation-panel__packet-tooltip-note">
-                          {ui.packet.notModeled}
+                          {"Not modeled"}
                         </span>
                       ) : null}
                     </span>
@@ -174,11 +172,11 @@ export default function PacketStructureWindow({
                         {field.description}
                       </span>
                       <span className="simulation-panel__packet-tooltip-bits">
-                        {field.bits} {ui.packet.bitsSuffix}
+                        {field.bits} {"bits"}
                       </span>
                       {field.blocked ? (
                         <span className="simulation-panel__packet-tooltip-note">
-                          {ui.packet.notModeled}
+                          {"Not modeled"}
                         </span>
                       ) : null}
                     </span>
@@ -204,11 +202,11 @@ export default function PacketStructureWindow({
                         {field.description}
                       </span>
                       <span className="simulation-panel__packet-tooltip-bits">
-                        {field.bits} {ui.packet.bitsSuffix}
+                        {field.bits} {"bits"}
                       </span>
                       {field.blocked ? (
                         <span className="simulation-panel__packet-tooltip-note">
-                          {ui.packet.notModeled}
+                          {"Not modeled"}
                         </span>
                       ) : null}
                     </span>
@@ -237,11 +235,11 @@ export default function PacketStructureWindow({
                         {field.description}
                       </span>
                       <span className="simulation-panel__packet-tooltip-bits">
-                        {field.bits} {ui.packet.bitsSuffix}
+                        {field.bits} {"bits"}
                       </span>
                       {field.blocked ? (
                         <span className="simulation-panel__packet-tooltip-note">
-                          {ui.packet.notModeled}
+                          {"Not modeled"}
                         </span>
                       ) : null}
                     </span>
@@ -270,11 +268,11 @@ export default function PacketStructureWindow({
                         {field.description}
                       </span>
                       <span className="simulation-panel__packet-tooltip-bits">
-                        {field.bits} {ui.packet.bitsSuffix}
+                        {field.bits} {"bits"}
                       </span>
                       {field.blocked ? (
                         <span className="simulation-panel__packet-tooltip-note">
-                          {ui.packet.notModeled}
+                          {"Not modeled"}
                         </span>
                       ) : null}
                     </span>
@@ -300,7 +298,7 @@ export default function PacketStructureWindow({
                         {field.description}
                       </span>
                       <span className="simulation-panel__packet-tooltip-bits">
-                        {field.bits} {ui.packet.bitsSuffix}
+                        {field.bits} {"bits"}
                       </span>
                     </span>
                   </div>
@@ -327,11 +325,11 @@ export default function PacketStructureWindow({
                         {field.description}
                       </span>
                       <span className="simulation-panel__packet-tooltip-bits">
-                        {field.bits} {ui.packet.bitsSuffix}
+                        {field.bits} {"bits"}
                       </span>
                       {field.blocked ? (
                         <span className="simulation-panel__packet-tooltip-note">
-                          {ui.packet.notModeled}
+                          {"Not modeled"}
                         </span>
                       ) : null}
                     </span>
@@ -342,7 +340,7 @@ export default function PacketStructureWindow({
           </div>
         ) : (
           <p className="simulation-panel__description simulation-panel__description--secondary">
-            {ui.packet.unavailable}
+            {"Packet structure is not available for this event."}
           </p>
         )}
       </section>
@@ -354,7 +352,7 @@ export default function PacketStructureWindow({
           rel="noreferrer"
         >
           <ExternalLink size={12} />
-          {ui.simulation.packetStructureReadMore}
+          {"Read more"}
         </a>
       </footer>
     </aside>
@@ -363,98 +361,98 @@ export default function PacketStructureWindow({
 
 const getPacketInspectorTitle = (message: SimulationMessage | null) => {
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
-    return ui.packet.elpTitle;
+    return "Echo Location Message (ELP)";
   }
 
   if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
-    return ui.packet.dsdvTitle;
+    return "DSDV Update Message";
   }
 
   if (message?.kind === SimulationMessageKind.AodvRouteRequestMessage) {
-    return ui.packet.aodvRreqTitle;
+    return "AODV Route Request (RREQ)";
   }
 
   if (message?.kind === SimulationMessageKind.AodvRouteReplyMessage) {
-    return ui.packet.aodvRrepTitle;
+    return "AODV Route Reply (RREP)";
   }
 
   if (message?.kind === SimulationMessageKind.AodvRouteErrorMessage) {
-    return ui.packet.aodvRerrTitle;
+    return "AODV Route Error (RERR)";
   }
 
   if (message?.kind === SimulationMessageKind.AodvHelloMessage) {
-    return ui.packet.aodvHelloTitle;
+    return "AODV HELLO Message";
   }
 
   if (message?.kind === SimulationMessageKind.OlsrHelloMessage) {
-    return ui.packet.olsrHelloTitle;
+    return "OLSR HELLO Message";
   }
 
   if (message?.kind === SimulationMessageKind.OlsrTcMessage) {
-    return ui.packet.olsrTcTitle;
+    return "OLSR TC Message";
   }
 
   if (message?.kind === SimulationMessageKind.DsrRouteRequestMessage) {
-    return ui.packet.dsrRreqTitle;
+    return "DSR Route Request (RREQ)";
   }
 
   if (message?.kind === SimulationMessageKind.DsrRouteReplyMessage) {
-    return ui.packet.dsrRrepTitle;
+    return "DSR Route Reply (RREP)";
   }
 
   if (message?.kind === SimulationMessageKind.DsrRouteErrorMessage) {
-    return ui.packet.dsrRerrTitle;
+    return "DSR Route Error (RERR)";
   }
 
-  return ui.packet.title;
+  return "Originator Message version 2 (OGMv2)";
 };
 
 const getPacketInspectorStructureAria = (message: SimulationMessage | null) => {
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
-    return ui.packet.elpStructureAria;
+    return "Echo Location Message structure";
   }
 
   if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
-    return ui.packet.dsdvStructureAria;
+    return "DSDV route update structure";
   }
 
   if (message?.kind === SimulationMessageKind.AodvRouteRequestMessage) {
-    return ui.packet.aodvRreqStructureAria;
+    return "AODV Route Request structure";
   }
 
   if (message?.kind === SimulationMessageKind.AodvRouteReplyMessage) {
-    return ui.packet.aodvRrepStructureAria;
+    return "AODV Route Reply structure";
   }
 
   if (message?.kind === SimulationMessageKind.AodvRouteErrorMessage) {
-    return ui.packet.aodvRerrStructureAria;
+    return "AODV Route Error structure";
   }
 
   if (message?.kind === SimulationMessageKind.AodvHelloMessage) {
-    return ui.packet.aodvHelloStructureAria;
+    return "AODV HELLO structure";
   }
 
   if (message?.kind === SimulationMessageKind.OlsrHelloMessage) {
-    return ui.packet.olsrHelloStructureAria;
+    return "OLSR HELLO message structure";
   }
 
   if (message?.kind === SimulationMessageKind.OlsrTcMessage) {
-    return ui.packet.olsrTcStructureAria;
+    return "OLSR TC message structure";
   }
 
   if (message?.kind === SimulationMessageKind.DsrRouteRequestMessage) {
-    return ui.packet.dsrRreqStructureAria;
+    return "DSR Route Request message structure";
   }
 
   if (message?.kind === SimulationMessageKind.DsrRouteReplyMessage) {
-    return ui.packet.dsrRrepStructureAria;
+    return "DSR Route Reply message structure";
   }
 
   if (message?.kind === SimulationMessageKind.DsrRouteErrorMessage) {
-    return ui.packet.dsrRerrStructureAria;
+    return "DSR Route Error message structure";
   }
 
-  return ui.packet.structureAria;
+  return "Originator Message version 2 structure";
 };
 
 const getPacketReadMorePath = (message: SimulationMessage | null) => {
@@ -518,7 +516,7 @@ const getDsrStructureRows = (
       message.routePeerIds.length > 0
         ? message.routePeerIds.map((peerId) => [
             {
-              label: ui.packet.fieldAddressList,
+              label: "Address [1...n]",
               value: peerNameById.get(peerId) ?? peerId,
               bits: 32,
               description: "Accumulated hop address carried by Route Request.",
@@ -530,21 +528,21 @@ const getDsrStructureRows = (
     return [
       [
         {
-          label: ui.packet.fieldType,
+          label: "Packet Type",
           value: "RREQ",
           bits: 8,
           description: "DSR Route Request option type.",
           blocked: false,
         },
         {
-          label: ui.packet.fieldOptDataLen,
+          label: "Opt Data Len",
           value: String(message.routePeerIds.length * 4 + 6),
           bits: 8,
           description: "Length of Route Request option payload.",
           blocked: false,
         },
         {
-          label: ui.packet.fieldIdentification,
+          label: "Identification",
           value: String(message.requestId),
           bits: 16,
           description: "Route Request identifier for duplicate suppression.",
@@ -553,7 +551,7 @@ const getDsrStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldTargetAddress,
+          label: "Target Address",
           value: peerNameById.get(message.targetPeerId) ?? message.targetPeerId,
           bits: 32,
           description: "Requested destination address.",
@@ -567,7 +565,7 @@ const getDsrStructureRows = (
   if (message.kind === SimulationMessageKind.DsrRouteReplyMessage) {
     const pathRows = message.routePeerIds.map((peerId) => [
       {
-        label: ui.packet.fieldAddressList,
+        label: "Address [1...n]",
         value: peerNameById.get(peerId) ?? peerId,
         bits: 32,
         description: "Hop address inside Route Reply source route.",
@@ -578,21 +576,21 @@ const getDsrStructureRows = (
     return [
       [
         {
-          label: ui.packet.fieldType,
+          label: "Packet Type",
           value: "RREP",
           bits: 8,
           description: "DSR Route Reply option type.",
           blocked: false,
         },
         {
-          label: ui.packet.fieldOptDataLen,
+          label: "Opt Data Len",
           value: String(message.routePeerIds.length * 4 + 1),
           bits: 8,
           description: "Length of Route Reply option payload.",
           blocked: false,
         },
         {
-          label: ui.packet.fieldFlags,
+          label: "Flags",
           value: "0",
           bits: 8,
           description: "Route Reply flags field.",
@@ -607,28 +605,28 @@ const getDsrStructureRows = (
     return [
       [
         {
-          label: ui.packet.fieldType,
+          label: "Packet Type",
           value: "RERR",
           bits: 8,
           description: "DSR Route Error option type.",
           blocked: false,
         },
         {
-          label: ui.packet.fieldOptDataLen,
+          label: "Opt Data Len",
           value: "12",
           bits: 8,
           description: "Length of Route Error option payload.",
           blocked: false,
         },
         {
-          label: ui.packet.fieldErrorType,
+          label: "Error Type",
           value: "NODE_UNREACHABLE",
           bits: 8,
           description: "Error classification describing link failure.",
           blocked: false,
         },
         {
-          label: ui.packet.fieldSalvage,
+          label: "Salvage",
           value: String(message.salvageCount),
           bits: 8,
           description: "Number of packet salvaging attempts already used.",
@@ -637,7 +635,7 @@ const getDsrStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldErrorSourceAddress,
+          label: "Error Source Address",
           value: peerNameById.get(message.brokenFromPeerId) ?? message.brokenFromPeerId,
           bits: 32,
           description: "Node that detected the broken link.",
@@ -646,7 +644,7 @@ const getDsrStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldErrorDestinationAddress,
+          label: "Error Destination Address",
           value: peerNameById.get(message.destinationPeerId) ?? message.destinationPeerId,
           bits: 32,
           description: "Packet destination impacted by the error.",
@@ -655,7 +653,7 @@ const getDsrStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldTypeSpecificInformation,
+          label: "Type-Specific Information",
           value: peerNameById.get(message.brokenToPeerId) ?? message.brokenToPeerId,
           bits: 32,
           description: "Unreachable next-hop address for this failure.",
@@ -676,14 +674,14 @@ const getAodvStructureRows = (
     return [
       [
         {
-          label: ui.packet.fieldType,
+          label: "Packet Type",
           value: "RREQ",
           bits: 8,
           description: "Identifies this control packet as an AODV Route Request.",
           blocked: false,
         },
         {
-          label: ui.packet.fieldFlags,
+          label: "Flags",
           value: "J/R/G/D/U",
           bits: 16,
           description:
@@ -691,7 +689,7 @@ const getAodvStructureRows = (
           blocked: true,
         },
         {
-          label: ui.packet.fieldHopCount,
+          label: "Hop Count",
           value: String(message.hopCount),
           bits: 8,
           description: "Hop count from the originator to the current forwarding node.",
@@ -700,7 +698,7 @@ const getAodvStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldRreqId,
+          label: "RREQ ID",
           value: String(message.requestId),
           bits: 32,
           description: "Identifier used to suppress duplicate RREQ processing.",
@@ -709,7 +707,7 @@ const getAodvStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldDestination,
+          label: "Destination",
           value: peerNameById.get(message.destinationPeerId) ?? message.destinationPeerId,
           bits: 32,
           description: "Destination for which a route is being requested.",
@@ -718,10 +716,10 @@ const getAodvStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldDestinationSequenceNumber,
+          label: "Destination Sequence Number",
           value:
             message.destinationSequenceNumber === null
-              ? ui.packet.notAvailable
+              ? "N/A"
               : String(message.destinationSequenceNumber),
           bits: 32,
           description: "Last known destination sequence number carried by the requester.",
@@ -730,7 +728,7 @@ const getAodvStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldOriginatorAddress,
+          label: "Originator Address",
           value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
           bits: 32,
           description: "Originator of the route discovery.",
@@ -739,7 +737,7 @@ const getAodvStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldSequenceNumber,
+          label: "Sequence Number",
           value: String(message.originatorSequenceNumber),
           bits: 32,
           description: "Current originator sequence number used to create the reverse route.",
@@ -753,21 +751,21 @@ const getAodvStructureRows = (
     return [
       [
         {
-          label: ui.packet.fieldType,
+          label: "Packet Type",
           value: "RREP",
           bits: 8,
           description: "Identifies this control packet as an AODV Route Reply.",
           blocked: false,
         },
         {
-          label: ui.packet.fieldPrefixSize,
+          label: "Prefix Size",
           value: "0",
           bits: 16,
           description: "Subnet prefix size field from the RFC layout.",
           blocked: true,
         },
         {
-          label: ui.packet.fieldHopCount,
+          label: "Hop Count",
           value: String(message.hopCount),
           bits: 8,
           description: "Current distance in hops from the replying node to the destination.",
@@ -776,7 +774,7 @@ const getAodvStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldDestination,
+          label: "Destination",
           value: peerNameById.get(message.destinationPeerId) ?? message.destinationPeerId,
           bits: 32,
           description: "Destination for which the route is being supplied.",
@@ -785,7 +783,7 @@ const getAodvStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldDestinationSequenceNumber,
+          label: "Destination Sequence Number",
           value: String(message.destinationSequenceNumber),
           bits: 32,
           description: "Fresh destination sequence number associated with the route.",
@@ -794,7 +792,7 @@ const getAodvStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldOriginatorAddress,
+          label: "Originator Address",
           value: peerNameById.get(message.originatorPeerId) ?? message.originatorPeerId,
           bits: 32,
           description: "Originator that started the corresponding route discovery.",
@@ -803,7 +801,7 @@ const getAodvStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldLifetime,
+          label: "Lifetime",
           value: String(message.lifetime),
           bits: 32,
           description: "Amount of time the learned route may remain active.",
@@ -817,7 +815,7 @@ const getAodvStructureRows = (
     const unreachableRows = message.unreachableDestinations.flatMap((entry) => [
       [
         {
-          label: ui.packet.fieldDestination,
+          label: "Destination",
           value: peerNameById.get(entry.destinationPeerId) ?? entry.destinationPeerId,
           bits: 32,
           description: "Destination that became unreachable after a link break.",
@@ -826,7 +824,7 @@ const getAodvStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldDestinationSequenceNumber,
+          label: "Destination Sequence Number",
           value: String(entry.sequenceNumber),
           bits: 32,
           description: "Sequence number paired with the unreachable destination.",
@@ -838,21 +836,21 @@ const getAodvStructureRows = (
     return [
       [
         {
-          label: ui.packet.fieldType,
+          label: "Packet Type",
           value: "RERR",
           bits: 8,
           description: "Identifies this control packet as an AODV Route Error.",
           blocked: false,
         },
         {
-          label: ui.packet.fieldFlags,
+          label: "Flags",
           value: message.noDelete ? "N" : "0",
           bits: 16,
           description: "No-delete flag and reserved bits in the RERR header.",
           blocked: false,
         },
         {
-          label: ui.packet.fieldDestCount,
+          label: "Dest Count",
           value: String(message.unreachableDestinations.length),
           bits: 8,
           description: "Number of unreachable destinations encoded in this error.",
@@ -867,21 +865,21 @@ const getAodvStructureRows = (
     return [
       [
         {
-          label: ui.packet.fieldType,
+          label: "Packet Type",
           value: "HELLO",
           bits: 8,
           description: "Modeled as a local-broadcast AODV HELLO message.",
           blocked: false,
         },
         {
-          label: ui.packet.fieldTtl,
+          label: "TTL",
           value: "1",
           bits: 8,
           description: "HELLO messages are transmitted with TTL = 1.",
           blocked: false,
         },
         {
-          label: ui.packet.fieldInterval,
+          label: "Interval",
           value: String(message.interval),
           bits: 16,
           description: "Advertised HELLO interval for neighbour connectivity checks.",
@@ -890,7 +888,7 @@ const getAodvStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldOriginatorAddress,
+          label: "Originator Address",
           value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
           bits: 32,
           description: "Neighbour announcing that it remains locally reachable.",
@@ -899,7 +897,7 @@ const getAodvStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldDestinationSequenceNumber,
+          label: "Destination Sequence Number",
           value: String(message.destinationSequenceNumber),
           bits: 32,
           description: "Latest destination sequence number advertised by the neighbour.",
@@ -908,7 +906,7 @@ const getAodvStructureRows = (
       ],
       [
         {
-          label: ui.packet.fieldLifetime,
+          label: "Lifetime",
           value: String(message.lifetime),
           bits: 32,
           description: "How long the neighbour route should remain valid after this HELLO.",
@@ -930,7 +928,7 @@ const getOlsrHelloStructureRows = (
       ? message.neighbours.flatMap((peerId) => [
           [
             {
-              label: ui.packet.fieldLinkCode,
+              label: "Link Code",
               value: message.mprPeerIds.includes(peerId) ? "SYM/MPR" : "SYM",
               bits: 8,
               description:
@@ -938,15 +936,15 @@ const getOlsrHelloStructureRows = (
               blocked: false,
             },
             {
-              label: ui.packet.fieldReserved,
-              value: ui.packet.notAvailable,
+              label: "Reserved",
+              value: "N/A",
               bits: 8,
               description: "Reserved field, transmitted as 0 in the RFC layout.",
               blocked: true,
             },
             {
-              label: ui.packet.fieldLinkMessageSize,
-              value: ui.packet.notAvailable,
+              label: "Link Message Size",
+              value: "N/A",
               bits: 16,
               description: "Size of the HELLO link-description block in the RFC layout.",
               blocked: true,
@@ -954,7 +952,7 @@ const getOlsrHelloStructureRows = (
           ],
           [
             {
-              label: ui.packet.fieldNeighbourInterfaceAddress,
+              label: "Neighbor Interface Address",
               value: peerNameById.get(peerId) ?? peerId,
               bits: 32,
               description: "Neighbour interface address carried in the HELLO link block.",
@@ -965,22 +963,22 @@ const getOlsrHelloStructureRows = (
       : [
           [
             {
-              label: ui.packet.fieldLinkCode,
-              value: ui.packet.notAvailable,
+              label: "Link Code",
+              value: "N/A",
               bits: 8,
               description: "No neighbour interface addresses are advertised in this HELLO.",
               blocked: true,
             },
             {
-              label: ui.packet.fieldReserved,
-              value: ui.packet.notAvailable,
+              label: "Reserved",
+              value: "N/A",
               bits: 8,
               description: "Reserved field, transmitted as 0 in the RFC layout.",
               blocked: true,
             },
             {
-              label: ui.packet.fieldLinkMessageSize,
-              value: ui.packet.notAvailable,
+              label: "Link Message Size",
+              value: "N/A",
               bits: 16,
               description: "Size of the HELLO link-description block in the RFC layout.",
               blocked: true,
@@ -988,8 +986,8 @@ const getOlsrHelloStructureRows = (
           ],
           [
             {
-              label: ui.packet.fieldNeighbourInterfaceAddress,
-              value: ui.packet.notAvailable,
+              label: "Neighbor Interface Address",
+              value: "N/A",
               bits: 32,
               description: "No neighbour interface addresses are advertised in this HELLO.",
               blocked: true,
@@ -1000,22 +998,22 @@ const getOlsrHelloStructureRows = (
   return [
     [
       {
-        label: ui.packet.fieldReserved,
-        value: ui.packet.notAvailable,
+        label: "Reserved",
+        value: "N/A",
         bits: 16,
         description: "Reserved field for future extensions, transmitted as 0.",
         blocked: true,
       },
       {
-        label: ui.packet.fieldHtime,
+        label: "Htime",
         value: String(message.interval),
         bits: 8,
         description: "Emission interval of the HELLO message.",
         blocked: false,
       },
       {
-        label: ui.packet.fieldWillingness,
-        value: ui.packet.notAvailable,
+        label: "Willingness",
+        value: "N/A",
         bits: 8,
         description:
           "Node willingness to forward traffic for others. This simulation keeps it fixed and does not model the field explicitly.",
@@ -1034,7 +1032,7 @@ const getOlsrTcStructureRows = (
     message.advertisedNeighbours.length > 0
       ? message.advertisedNeighbours.map((peerId) => [
           {
-            label: ui.packet.fieldAdvertisedNeighbourMainAddress,
+            label: "Advertised Neighbor Main Address",
             value: peerNameById.get(peerId) ?? peerId,
             bits: 32,
             description: "Address of a node that selected the sender as an MPR.",
@@ -1044,8 +1042,8 @@ const getOlsrTcStructureRows = (
       : [
           [
             {
-              label: ui.packet.fieldAdvertisedNeighbourMainAddress,
-              value: ui.packet.notAvailable,
+              label: "Advertised Neighbor Main Address",
+              value: "N/A",
               bits: 32,
               description: "No MPR selectors are advertised in this TC message.",
               blocked: true,
@@ -1056,15 +1054,15 @@ const getOlsrTcStructureRows = (
   return [
     [
       {
-        label: ui.packet.fieldAnsn,
+        label: "ANSN",
         value: String(message.ansn),
         bits: 16,
         description: "Advertised Neighbour Sequence Number used for freshness checks.",
         blocked: false,
       },
       {
-        label: ui.packet.fieldReserved,
-        value: ui.packet.notAvailable,
+        label: "Reserved",
+        value: "N/A",
         bits: 16,
         description: "Reserved field, transmitted as 0.",
         blocked: true,
@@ -1088,21 +1086,21 @@ const getDsdvStructureRows = (
 
   const routeRows: PacketStructureField[][] = message.entries.map((entry) => [
     {
-      label: ui.packet.fieldDestination,
+      label: "Destination",
       value: peerNameById.get(entry.destinationPeerId) ?? entry.destinationPeerId,
       bits: 32,
       description: "The IP address of the destination node for this route entry.",
       blocked: false,
     },
     {
-      label: ui.packet.fieldSequenceNumber,
+      label: "Sequence Number",
       value: String(entry.sequenceNumber),
       bits: 32,
       description: "The latest sequence number received for this destination.",
       blocked: false,
     },
     {
-      label: ui.packet.fieldMetric,
+      label: "Metric",
       value: String(entry.metric),
       bits: 32,
       description: "The number of hops to reach the destination.",
@@ -1113,7 +1111,7 @@ const getDsdvStructureRows = (
   return [
     [
       {
-        label: ui.packet.fieldType,
+        label: "Packet Type",
         value: getDsdvUpdateTypeLabel(message.updateType),
         bits: 8,
         description:
@@ -1121,8 +1119,8 @@ const getDsdvStructureRows = (
         blocked: false,
       },
       {
-        label: ui.packet.fieldReserved,
-        value: ui.packet.notAvailable,
+        label: "Reserved",
+        value: "N/A",
         bits: 24,
         description: "Padding to maintain 32-bit alignment.",
         blocked: true,
@@ -1130,7 +1128,7 @@ const getDsdvStructureRows = (
     ],
     [
       {
-        label: ui.packet.fieldEntryCount,
+        label: "Entry Count",
         value: String(message.entries.length),
         bits: 32,
         description: "The number of route entries contained in this packet.",
@@ -1152,28 +1150,28 @@ const getBatmanOgmStructureRows = (
   return [
     [
       {
-        label: ui.packet.fieldType,
+        label: "Packet Type",
         value: "0x06",
         bits: 8,
         description: "Identifies this packet as an OGM message.",
         blocked: false,
       },
       {
-        label: ui.packet.fieldVersion,
+        label: "Version",
         value: String(message.version),
         bits: 8,
         description: "OGM protocol version field.",
         blocked: false,
       },
       {
-        label: ui.packet.fieldFlags,
-        value: ui.packet.notAvailable,
+        label: "Flags",
+        value: "N/A",
         bits: 8,
         description: "Control flags for additional OGM semantics.",
         blocked: true,
       },
       {
-        label: ui.packet.fieldTtl,
+        label: "TTL",
         value: String(message.timeToLive),
         bits: 8,
         description: "Maximum forwarding depth still allowed.",
@@ -1182,7 +1180,7 @@ const getBatmanOgmStructureRows = (
     ],
     [
       {
-        label: ui.packet.fieldSequenceNumber,
+        label: "Sequence Number",
         value: String(message.sequence),
         bits: 32,
         description: "Sequence protection value to identify new OGMs.",
@@ -1191,7 +1189,7 @@ const getBatmanOgmStructureRows = (
     ],
     [
       {
-        label: ui.packet.fieldOriginatorAddress,
+        label: "Originator Address",
         value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
         bits: 48,
         description: "MAC address of the source node that originated the route advertisement.",
@@ -1200,7 +1198,7 @@ const getBatmanOgmStructureRows = (
     ],
     [
       {
-        label: ui.packet.fieldThroughput,
+        label: "Throughput",
         value: String(message.throughput),
         bits: 32,
         description: "Current path throughput estimate carried with the OGM.",
@@ -1209,7 +1207,7 @@ const getBatmanOgmStructureRows = (
     ],
     [
       {
-        label: ui.packet.fieldSenderAddress,
+        label: "Sender Address",
         value: peerNameById.get(message.senderPeerId) ?? message.senderPeerId,
         bits: 48,
         description: "MAC address of the last-hop node that forwarded this OGM.",
@@ -1229,7 +1227,7 @@ const getBatmanElpStructureRows = (
 
   const neighbourRows: PacketStructureField[][] = message.neighbours.map((neighbour) => [
     {
-      label: ui.packet.fieldNeighbourAddress,
+      label: "Neighbour Address",
       value: peerNameById.get(neighbour.address) ?? neighbour.address,
       bits: 48,
       description: "MAC address of a neighbour listed in this ELP message.",
@@ -1240,21 +1238,21 @@ const getBatmanElpStructureRows = (
   return [
     [
       {
-        label: ui.packet.fieldType,
+        label: "Packet Type",
         value: "0x03",
         bits: 8,
         description: "Identifies this packet as an ELP message.",
         blocked: false,
       },
       {
-        label: ui.packet.fieldVersion,
+        label: "Version",
         value: String(message.version),
         bits: 8,
         description: "Protocol version used by the sender.",
         blocked: false,
       },
       {
-        label: ui.packet.fieldTtl,
+        label: "TTL",
         value: String(message.timeToLive),
         bits: 8,
         description: "Remaining relay limit before the packet is discarded. Actually not used.",
@@ -1270,7 +1268,7 @@ const getBatmanElpStructureRows = (
     ],
     [
       {
-        label: ui.packet.fieldSequenceNumber,
+        label: "Sequence Number",
         value: String(message.sequence),
         bits: 32,
         description: "Monotonic packet number used to detect stale or repeated updates.",
@@ -1288,7 +1286,7 @@ const getBatmanElpStructureRows = (
     ],
     [
       {
-        label: ui.packet.fieldOriginatorAddress,
+        label: "Originator Address",
         value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
         bits: 48,
         description: "MAC address of the node that generated this ELP packet.",

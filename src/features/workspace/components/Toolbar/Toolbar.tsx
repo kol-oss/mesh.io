@@ -20,7 +20,6 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 import { storageKeys } from "../../../../shared/constants/storage";
-import { ui } from "../../../../shared/i18n/messages";
 import { useLocalStorage } from "../../../../shared/hooks/storage/useLocalStorage";
 import {
   PlacementMode,
@@ -76,16 +75,16 @@ const MODE_GROUPS: ModeGroup[] = [
     id: ToolbarGroupId.Navigation,
     defaultKey: ToolbarMode.NavigationMove,
     hasMenu: true,
-    items: [{ key: ToolbarMode.NavigationMove, label: ui.toolbar.itemMove, icon: MousePointer2 }],
+    items: [{ key: ToolbarMode.NavigationMove, label: "Move", icon: MousePointer2 }],
   },
   {
     id: ToolbarGroupId.Entities,
     defaultKey: PlacementMode.Peer,
     hasMenu: true,
     items: [
-      { key: PlacementMode.Peer, label: ui.toolbar.itemPeer, icon: Radio },
-      { key: PlacementMode.Link, label: ui.toolbar.itemLink, icon: Link2 },
-      { key: PlacementMode.Obstacle, label: ui.toolbar.itemObstacle, icon: SquareSlash },
+      { key: PlacementMode.Peer, label: "Peer", icon: Radio },
+      { key: PlacementMode.Link, label: "Link", icon: Link2 },
+      { key: PlacementMode.Obstacle, label: "Obstacle", icon: SquareSlash },
     ],
   },
   {
@@ -93,9 +92,9 @@ const MODE_GROUPS: ModeGroup[] = [
     defaultKey: PlacementMode.Message,
     hasMenu: true,
     items: [
-      { key: PlacementMode.Message, label: ui.toolbar.itemMessage, icon: Mail },
-      { key: PlacementMode.Move, label: ui.toolbar.itemMove, icon: ChevronsRight },
-      { key: PlacementMode.Toggle, label: ui.toolbar.itemToggle, icon: Activity },
+      { key: PlacementMode.Message, label: "Message", icon: Mail },
+      { key: PlacementMode.Move, label: "Move", icon: ChevronsRight },
+      { key: PlacementMode.Toggle, label: "Toggle", icon: Activity },
     ],
   },
   {
@@ -105,13 +104,13 @@ const MODE_GROUPS: ModeGroup[] = [
     items: [
       {
         key: ToolbarMode.RoutingTable,
-        label: ui.toolbar.itemTable,
+        label: "Table",
         icon: TableProperties,
         locked: true,
       },
       {
         key: ToolbarMode.PacketStructure,
-        label: ui.toolbar.itemPacket,
+        label: "Packet",
         icon: PackageSearch,
         locked: true,
       },
@@ -121,32 +120,32 @@ const MODE_GROUPS: ModeGroup[] = [
     id: ToolbarGroupId.Text,
     defaultKey: PlacementMode.Text,
     hasMenu: false,
-    items: [{ key: PlacementMode.Text, label: ui.toolbar.itemText, icon: Type }],
+    items: [{ key: PlacementMode.Text, label: "Text", icon: Type }],
   },
 ];
 
 const ACTIONS: ActionButton[] = [
-  { key: ToolbarActionKey.Run, label: ui.toolbar.actionRun, icon: Play },
+  { key: ToolbarActionKey.Run, label: "Run", icon: Play },
   {
     key: ToolbarActionKey.Prev,
-    label: ui.toolbar.actionPrevStep,
+    label: "Previous step",
     icon: ArrowLeftCircle,
     locked: true,
   },
   {
     key: ToolbarActionKey.Next,
-    label: ui.toolbar.actionNextStep,
+    label: "Next step",
     icon: ArrowRightCircle,
     locked: true,
   },
 ];
 
 const TOOLBAR_GROUP_LABELS: Record<ToolbarGroupId, string> = {
-  [ToolbarGroupId.Navigation]: ui.toolbar.groupNavigation,
-  [ToolbarGroupId.Entities]: ui.toolbar.groupEntities,
-  [ToolbarGroupId.Steps]: ui.toolbar.groupSteps,
-  [ToolbarGroupId.Inspection]: ui.toolbar.groupInspection,
-  [ToolbarGroupId.Text]: ui.toolbar.groupText,
+  [ToolbarGroupId.Navigation]: "Navigation",
+  [ToolbarGroupId.Entities]: "Entities",
+  [ToolbarGroupId.Steps]: "Steps",
+  [ToolbarGroupId.Inspection]: "Inspection",
+  [ToolbarGroupId.Text]: "Text",
 };
 
 const DEFAULT_MODE_SELECTIONS: ModeSelectionsByGroup = {
@@ -284,7 +283,7 @@ export default function Toolbar({
   };
 
   return (
-    <div className="toolbar" role="toolbar" aria-label={ui.toolbar.workspaceAria} ref={toolbarRef}>
+    <div className="toolbar" role="toolbar" aria-label={"Workspace toolbar"} ref={toolbarRef}>
       <div className="toolbar__cluster">
         {MODE_GROUPS.map((group) => {
           const activeItem = activeItemsByGroup[group.id];
@@ -366,7 +365,7 @@ export default function Toolbar({
                       event.stopPropagation();
                       setOpenedMenuGroup((prev) => (prev === group.id ? null : group.id));
                     }}
-                    aria-label={ui.toolbar.openGroupMenuAria(group.id)}
+                    aria-label={(`Open ${(group.id)} menu`)}
                     aria-expanded={openedMenuGroup === group.id}
                     disabled={groupIsDisabled || itemIsLocked}
                   >
@@ -450,7 +449,7 @@ export default function Toolbar({
                 : onNextStep;
           const label =
             item.key === ToolbarActionKey.Run && isSimulationActive
-              ? ui.toolbar.stopSimulation
+              ? "Stop simulation"
               : item.label;
 
           return (

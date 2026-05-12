@@ -1,5 +1,4 @@
 import { EntityType } from "../../../../../shared/types/enums";
-import { ui } from "../../../../../shared/i18n/messages";
 import type {
   LinkEntity,
   NetworkEntity,
@@ -21,16 +20,16 @@ type EntityPropertiesProps = {
 
 const entityHeader: Record<NetworkEntity["type"], { title: string; description: string }> = {
   [EntityType.Peer]: {
-    title: ui.properties.peerTitle,
-    description: ui.properties.peerDescription,
+    title: "Peer",
+    description: "A mesh network node with built-in support for specific routing protocols.",
   },
   [EntityType.Link]: {
-    title: ui.properties.linkTitle,
-    description: ui.properties.linkDescription,
+    title: "Link",
+    description: "A persistent bidirectional connection between two nodes in the network.",
   },
   [EntityType.Obstacle]: {
-    title: ui.properties.obstacleTitle,
-    description: ui.properties.obstacleDescription,
+    title: "Obstacle",
+    description: "A physical barrier that blocks signal propagation between nearby nodes.",
   },
 };
 

@@ -1,6 +1,4 @@
 import { Activity, Link2, Radio } from "lucide-react";
-
-import { ui } from "../../../../../shared/i18n/messages";
 import { EntityType } from "../../../../../shared/types/enums";
 import type { LinkEntity, PeerEntity } from "../../../../../shared/types/entities";
 import type { ToggleStatusStep } from "../../../../../shared/types/steps";
@@ -34,7 +32,7 @@ export default function ToggleStepProperties({
           <span
             className={`properties__field-label ${isStepToggleEntityMissing ? "properties__field-label--required" : ""}`}
           >
-            {ui.properties.fieldEntity}
+            {"Entity"}
           </span>
           <Select
             value={toggleTargetValue}
@@ -48,7 +46,7 @@ export default function ToggleStepProperties({
           <span
             className={`properties__field-label ${isStepToggleEntityMissing ? "properties__field-label--required" : ""}`}
           >
-            {ui.properties.fieldNewStatus}
+            {"New status"}
           </span>
           <button
             className={`properties__status ${isStepToggleEntityMissing ? "properties__required-outline" : ""}`}

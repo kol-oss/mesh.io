@@ -1,6 +1,4 @@
-import { RoutingProtocol, StepType } from "../types/enums";
-import { ui } from "../i18n/messages";
-import { RefreshAction, type WorkflowStep } from "../types/steps";
+import { RoutingProtocol, StepType } from "../types/enums";import { RefreshAction, type WorkflowStep } from "../types/steps";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -254,8 +252,7 @@ const processStep = (
   if (!sourceModule || !isPacketCapableModule(sourceModule)) {
     eventRecorder.save(step.sourcePeerId, SimulationEventType.SystemMessageDropped, {
       reason: sourcePeer
-        ? ui.runtime.sourcePeerNoProtocolModule(sourceProtocol ?? ui.common.unknown)
-        : ui.runtime.sourcePeerMissing,
+        ? (`Source peer does not have a ${(sourceProtocol ?? "Unknown")} module`)  : "Source peer does not exist",
       reasonCode: "SOURCE_UNAVAILABLE",
     });
     return;

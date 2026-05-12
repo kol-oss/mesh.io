@@ -1,7 +1,5 @@
 import { Diamond, ExternalLink, Lock, Radio } from "lucide-react";
 import { Link } from "react-router-dom";
-
-import { ui } from "../../../../../shared/i18n/messages";
 import { EntityType } from "../../../../../shared/types/enums";
 import type { LinkEntity, PeerEntity } from "../../../../../shared/types/entities";
 import type { LinkPropertiesPanelProps } from "../../../../../shared/types/properties";
@@ -79,7 +77,7 @@ export default function LinkProperties({
       <div
         className="properties__resizer"
         role="separator"
-        aria-label={ui.properties.resizeAria}
+        aria-label={"Resize properties"}
         aria-orientation="vertical"
         onPointerDown={onResizeStart}
       />
@@ -89,25 +87,25 @@ export default function LinkProperties({
         <p className="properties__subtitle">{description}</p>
         <Link className="properties__read-more" to="/docs" target="_blank" rel="noreferrer">
           <ExternalLink size={12} />
-          {ui.common.readMore}
+          {"Read more"}
         </Link>
       </header>
 
       {isLocked && (
         <div className="properties__locked-notice">
           <Lock size={12} />
-          {ui.properties.entityLockedNotice}
+          {"This entity is unmodifiable."}
         </div>
       )}
 
       <section className="properties__section">
-        <p className="properties__section-title">{ui.properties.sectionConfiguration}</p>
+        <p className="properties__section-title">{"Configuration"}</p>
 
         <label className="properties__field">
           <span
             className={`properties__field-label ${isLinkNameMissing ? "properties__field-label--required" : ""}`}
           >
-            {ui.properties.fieldName}
+            {"Name"}
           </span>
           <input
             className={`properties__input ${isLinkNameMissing ? "properties__required-outline" : ""}`}
@@ -123,7 +121,7 @@ export default function LinkProperties({
               <span
                 className={`properties__field-label ${isLinkSourceMissing ? "properties__field-label--required" : ""}`}
               >
-                {ui.properties.fieldSource}
+                {"Source"}
               </span>
               <Select
                 value={sourceValue}
@@ -148,7 +146,7 @@ export default function LinkProperties({
               <span
                 className={`properties__field-label ${isLinkDestinationMissing ? "properties__field-label--required" : ""}`}
               >
-                {ui.properties.fieldDestination}
+                {"Destination"}
               </span>
               <Select
                 value={destinationValue}
@@ -167,14 +165,14 @@ export default function LinkProperties({
         </div>
 
         <label className="properties__field">
-          <span className="properties__field-label">{ui.properties.fieldStatus}</span>
+          <span className="properties__field-label">{"Status"}</span>
           <button
             className="properties__status"
             type="button"
             onClick={() => updateLink({ enabled: !selectedLink.enabled })}
           >
             <Diamond size={12} />
-            {selectedLink.enabled ? ui.common.enabled : ui.common.disabled}
+            {selectedLink.enabled ? "Enabled" : "Disabled"}
           </button>
         </label>
       </section>

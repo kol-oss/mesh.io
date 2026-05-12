@@ -1,7 +1,6 @@
 import { useCallback, useEffect } from "react";
 
 import { PlacementMode } from "../../../shared/types/enums";
-import { ui } from "../../../shared/i18n/messages";
 import type {
   WorkspaceHintActions,
   WorkspaceHintRefs,
@@ -40,24 +39,24 @@ export function useWorkspaceHints({ refs, state, actions }: UseWorkspaceHintsPar
 
     const text =
       mode === PlacementMode.Peer
-        ? ui.hints.placePeer
+        ? "Click on workspace to place a peer"
         : mode === PlacementMode.Obstacle
-          ? ui.hints.placeObstacle
+          ? "Click on workspace to place an obstacle"
           : mode === PlacementMode.Link
             ? linkSourcePeerIdRef.current
-              ? ui.hints.selectDestinationPeer
-              : ui.hints.selectSourcePeer
+              ? "Select destination peer"
+              : "Select source peer"
             : mode === PlacementMode.Message
               ? stepMessageSourcePeerIdRef.current
-                ? ui.hints.selectDestinationPeer
-                : ui.hints.selectSourcePeer
+                ? "Select destination peer"
+                : "Select source peer"
               : mode === PlacementMode.Move
                 ? state.resolvedCreationSelectedEntityId
-                  ? ui.hints.clickDestinationPoint
-                  : ui.hints.selectPeerToMove
+                  ? "Click destination point on workspace"
+                  : "Select peer to move"
                 : mode === PlacementMode.Text
-                  ? ui.hints.placeText
-                  : ui.hints.selectPeerOrLink;
+                  ? "Click on workspace to place text"
+                  : "Select a peer or link";
 
     hintActiveRef.current = true;
     actions.showToast(text, null);

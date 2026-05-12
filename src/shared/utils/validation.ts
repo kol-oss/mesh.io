@@ -1,6 +1,4 @@
-import { peerRoutingProtocols, workflowStepTypes } from "../constants/protocol";
-import { ui } from "../i18n/messages";
-import { EntityType, StepType } from "../types/enums";
+import { peerRoutingProtocols, workflowStepTypes } from "../constants/protocol";import { EntityType, StepType } from "../types/enums";
 import type { NetworkEntity } from "../types/entities";
 import type { PeerRoutingProtocol } from "../types/navigation";
 import { RefreshAction, type WorkflowStep } from "../types/steps";
@@ -149,19 +147,19 @@ export const parseWorkspaceImportPayload = (raw: string): WorkspaceImportPayload
   try {
     parsed = JSON.parse(raw);
   } catch {
-    throw new Error(ui.validation.invalidJsonFile);
+    throw new Error("Invalid JSON file.");
   }
 
   if (!isRecord(parsed)) {
-    throw new Error(ui.validation.invalidJsonObject);
+    throw new Error("File must contain a JSON object.");
   }
 
   if (!Array.isArray(parsed.entities) || !parsed.entities.every(isValidNetworkEntity)) {
-    throw new Error(ui.validation.invalidEntitiesList);
+    throw new Error("Invalid entities list in file.");
   }
 
   if (!Array.isArray(parsed.steps) || !parsed.steps.every(isValidWorkflowStep)) {
-    throw new Error(ui.validation.invalidStepsList);
+    throw new Error("Invalid steps list in file.");
   }
 
   return {

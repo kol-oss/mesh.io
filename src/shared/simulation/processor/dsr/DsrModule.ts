@@ -3,9 +3,7 @@ import {
   DSR_MAX_REDISCOVERY_ATTEMPTS,
   DSR_MAX_SALVAGE_COUNT,
   DSR_ROUTE_CACHE_TIMEOUT,
-} from "../../constants/dsr";
-import { ui } from "../../i18n/messages";
-import { RoutingProtocol } from "../../types/enums";
+} from "../../constants/dsr";import { RoutingProtocol } from "../../types/enums";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -93,7 +91,7 @@ export class DsrModule implements PacketCapableModule {
     if (!this.routingPeer.isActive()) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneDsrMessage(packet),
-        reason: ui.runtime.sourcePeerDisabled,
+        reason: "Source peer is disabled",
       });
       return false;
     }
@@ -101,7 +99,7 @@ export class DsrModule implements PacketCapableModule {
     if (packet.timeToLive <= 0) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneDsrMessage(packet),
-        reason: ui.runtime.packetTtlReachedZero,
+        reason: "Packet TTL reached zero",
       });
       return false;
     }
@@ -136,7 +134,7 @@ export class DsrModule implements PacketCapableModule {
 
     this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
       message: cloneDsrMessage(sourcePacket),
-      reason: ui.runtime.noRouteForDestinationDsr,
+      reason: "No DSR source route is available for the destination",
       reasonCode: "NO_ROUTE",
     });
 
@@ -322,7 +320,7 @@ export class DsrModule implements PacketCapableModule {
       if (currentPacket.timeToLive <= 0) {
         this.eventRecorder.save(currentPeer.id, SimulationEventType.SystemMessageDropped, {
           message: cloneDsrMessage(currentPacket),
-          reason: ui.runtime.packetTtlReachedZero,
+          reason: "Packet TTL reached zero",
         });
         return false;
       }
@@ -348,7 +346,7 @@ export class DsrModule implements PacketCapableModule {
         const routeError = this.createRouteError(packet, currentPeerId, nextPeerId, salvageCount);
         this.eventRecorder.save(currentPeer.id, SimulationEventType.SystemMessageDropped, {
           message: cloneDsrMessage(routeError),
-          reason: ui.runtime.nextHopNoDsr,
+          reason: "Selected next hop does not support DSR",
         });
 
         this.invalidateRoutesAcrossPath(routePeerIds, currentPeerId, nextPeerId, routeError);

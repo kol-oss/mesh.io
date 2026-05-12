@@ -1,4 +1,3 @@
-import { ui } from "../../i18n/messages.ts";
 import {
   BatmanPacketType,
   SimulationEventType,
@@ -128,7 +127,7 @@ export class BatmanModule implements PacketCapableModule {
     if (!this.routingPeer.isActive()) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(packet),
-        reason: ui.runtime.sourcePeerDisabled,
+        reason: "Source peer is disabled",
       });
       return false;
     }

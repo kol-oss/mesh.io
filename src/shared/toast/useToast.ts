@@ -1,11 +1,10 @@
 import { useContext } from "react";
-import { ui } from "../i18n/messages";
 import { ToastContext } from "../toast/context";
 
 export function useToast() {
   const context = useContext(ToastContext);
   if (!context) {
-    throw new Error(ui.errors.useToastOutsideProvider);
+    throw new Error("useToast must be used within ToastProvider");
   }
   return context;
 }

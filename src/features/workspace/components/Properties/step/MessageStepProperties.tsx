@@ -1,6 +1,4 @@
 import { Radio } from "lucide-react";
-
-import { ui } from "../../../../../shared/i18n/messages";
 import type { PeerEntity } from "../../../../../shared/types/entities";
 import type { MessageStep } from "../../../../../shared/types/steps";
 import Select from "../../../../../shared/ui/components/Select/Select";
@@ -37,7 +35,7 @@ export default function MessageStepProperties({
           <span
             className={`properties__field-label ${isStepMessageSourceMissing ? "properties__field-label--required" : ""}`}
           >
-            {ui.properties.fieldSource}
+            {"Source"}
           </span>
           <Select
             value={messageSourceValue}
@@ -62,7 +60,7 @@ export default function MessageStepProperties({
           <span
             className={`properties__field-label ${isStepMessageDestinationMissing ? "properties__field-label--required" : ""}`}
           >
-            {ui.properties.fieldDestination}
+            {"Destination"}
           </span>
           <Select
             value={messageDestinationValue}

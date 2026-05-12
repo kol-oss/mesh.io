@@ -1,5 +1,4 @@
 import { RoutingProtocol } from "../../types/enums.ts";
-import { ui } from "../../i18n/messages.ts";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -65,7 +64,7 @@ export class BatmanOperations {
     if (message.version !== BATMAN_VERSION) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
-        reason: ui.runtime.ogmUnsupportedVersion(message.version),
+        reason: `B.A.T.M.A.N. V node rejected OGM with unsupported (message.version) ${message.version}`,
       });
       return false;
     }
@@ -74,7 +73,7 @@ export class BatmanOperations {
     if (nextTimeToLive <= 0) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
-        reason: ui.runtime.ogmTtlReachedZero,
+        reason: "B.A.T.M.A.N. V OGMv2 TTL reached zero",
       });
       return false;
     }
@@ -83,7 +82,7 @@ export class BatmanOperations {
     if (!neighbourEntry) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
-        reason: ui.runtime.ogmDroppedNoElpMetric,
+        reason: "OGM dropped because no ELP neighbour metric exists for this sender",
       });
       return false;
     }
@@ -96,13 +95,9 @@ export class BatmanOperations {
     const nextThroughput = isWirelessHop
       ? applyFixedHopPenalty(selectedThroughput)
       : selectedThroughput;
-    const reason = ui.runtime.ogmThroughputSelected(
-      receivedThroughput,
-      neighbourThroughput,
-      selectedThroughput,
-      nextThroughput,
-      isWirelessHop,
-    );
+    const reason = isWirelessHop
+      ? `ELP neighbour metric ${neighbourThroughput} and incoming OGM throughput ${receivedThroughput} were combined by min() = ${selectedThroughput}. Wireless hop penalty 5.8% then produced forwarded throughput ${nextThroughput}.`
+      : `ELP neighbour metric ${neighbourThroughput} and incoming OGM throughput ${receivedThroughput} were combined by min() = ${selectedThroughput}. Static hop keeps throughput ${nextThroughput} without 5.8% wireless penalty.`;
     this.recordThroughputCalculated(message, reason, undefined, {
       receivedThroughput,
       neighbourThroughput,
@@ -122,7 +117,7 @@ export class BatmanOperations {
     if (!processed.accepted) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
-        reason: ui.runtime.duplicateOgmIgnored,
+        reason: "Duplicate B.A.T.M.A.N. V OGMv2 was ignored by the sequence protection window",
       });
       return true;
     }
@@ -135,7 +130,8 @@ export class BatmanOperations {
     if (!rebroadcastAllowedByBestPath) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
-        reason: ui.runtime.ogmSuppressedInferiorPath,
+        reason:
+          "B.A.T.M.A.N. V did not rebroadcast this OGMv2 because it did not arrive from the best or a better-throughput neighbour",
       });
       return true;
     }
@@ -153,7 +149,7 @@ export class BatmanOperations {
     if (packet.timeToLive <= 0) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(packet),
-        reason: ui.runtime.packetTtlReachedZero,
+        reason: "Packet TTL reached zero",
       });
       return false;
     }
@@ -161,7 +157,7 @@ export class BatmanOperations {
     const selectedRoute = this.originatorTable.getBestRouteRecord(packet.destinationPeerId);
     if (!selectedRoute) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
-        reason: ui.runtime.noRouteForDestination,
+        reason: "No B.A.T.M.A.N. V route is available for the destination",
         reasonCode: "NO_ROUTE",
       });
       return false;
@@ -182,7 +178,7 @@ export class BatmanOperations {
     if (!hop) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
-        reason: ui.runtime.nextHopNotNeighbour,
+        reason: "Selected next hop is not a current neighbour",
       });
       return false;
     }
@@ -190,7 +186,7 @@ export class BatmanOperations {
     if (!hop.supports(RoutingProtocol.BATMAN)) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
-        reason: ui.runtime.nextHopNoBatman,
+        reason: "Selected next hop does not support B.A.T.M.A.N. V",
       });
       return false;
     }
@@ -232,7 +228,7 @@ export class BatmanOperations {
     if (message.version !== BATMAN_VERSION) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
-        reason: ui.runtime.elpUnsupportedVersion(message.version),
+        reason: `ELP rejected packet with unsupported (message.version) ${message.version}`,
       });
       return false;
     }
@@ -240,7 +236,7 @@ export class BatmanOperations {
     if (message.timeToLive <= 0) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
-        reason: ui.runtime.elpTtlReachedZero,
+        reason: "ELP TTL reached zero",
       });
       return false;
     }
@@ -249,7 +245,7 @@ export class BatmanOperations {
     if (!senderPeer) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneMessage(message),
-        reason: ui.runtime.nextHopNotNeighbour,
+        reason: "Selected next hop is not a current neighbour",
       });
       return false;
     }
@@ -291,19 +287,17 @@ export class BatmanOperations {
       ewmaThroughput: clampThroughput(nextEwma),
     });
 
-    const reason = ui.runtime.elpThroughputCalculated(
-      baseThroughput,
-      receptionRatio,
-      rawMetric,
-      previous?.ewmaThroughput ?? null,
-      nextEwma,
-    );
+    const previousEwma = previous?.ewmaThroughput ?? null;
+    const reason =
+      previousEwma === null
+        ? `ELP metric calculation: base throughput ${baseThroughput}, reception ratio ${receptionRatio.toFixed(2)}, raw metric ${rawMetric.toFixed(2)}, initial EWMA ${nextEwma.toFixed(2)}.`
+        : `ELP metric calculation: base throughput ${baseThroughput}, reception ratio ${receptionRatio.toFixed(2)}, raw metric ${rawMetric.toFixed(2)}, EWMA old ${previousEwma.toFixed(2)} -> new ${nextEwma.toFixed(2)} (alpha 0.2).`;
     this.recordThroughputCalculated(message, reason, {
       baseThroughput,
       baseReferenceThroughput,
       receptionRatio,
       rawThroughput: rawMetric,
-      previousEwma: previous?.ewmaThroughput ?? null,
+      previousEwma,
       nextEwma,
       distance,
       distancePenaltyDistance: routingPeerEntity.batmanDistancePenaltyDistance,

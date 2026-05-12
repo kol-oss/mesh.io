@@ -32,7 +32,6 @@ import {
 } from "../../../../../shared/constants/dsdv";
 import { OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "../../../../../shared/constants/olsr";
 import Tooltip from "../../../../../shared/ui/components/Tooltip/Tooltip";
-import { ui } from "../../../../../shared/i18n/messages";
 import { EntityType, RoutingProtocol } from "../../../../../shared/types/enums";
 import type { PeerEntity } from "../../../../../shared/types/entities";
 import type { PeerPropertiesPanelProps } from "../../../../../shared/types/properties";
@@ -174,10 +173,10 @@ export default function PeerProperties({
       >
         {label}
       </span>
-      <Tooltip content={ui.properties.globalFieldTooltip}>
+      <Tooltip content={"Global field"}>
         <span
           className="properties__global-indicator"
-          aria-label={ui.properties.globalFieldTooltip}
+          aria-label={"Global field"}
         >
           <Globe size={12} />
         </span>
@@ -192,10 +191,10 @@ export default function PeerProperties({
       >
         {label}
       </span>
-      <Tooltip content={ui.properties.globalFieldTooltip}>
+      <Tooltip content={"Global field"}>
         <span
           className="properties__global-indicator"
-          aria-label={ui.properties.globalFieldTooltip}
+          aria-label={"Global field"}
         >
           <Globe size={12} />
         </span>
@@ -211,7 +210,7 @@ export default function PeerProperties({
       <div
         className="properties__resizer"
         role="separator"
-        aria-label={ui.properties.resizeAria}
+        aria-label={"Resize properties"}
         aria-orientation="vertical"
         onPointerDown={onResizeStart}
       />
@@ -221,25 +220,25 @@ export default function PeerProperties({
         <p className="properties__subtitle">{description}</p>
         <Link className="properties__read-more" to="/docs" target="_blank" rel="noreferrer">
           <ExternalLink size={12} />
-          {ui.common.readMore}
+          {"Read more"}
         </Link>
       </header>
 
       {isLocked && (
         <div className="properties__locked-notice">
           <Lock size={12} />
-          {ui.properties.entityLockedNotice}
+          {"This entity is unmodifiable."}
         </div>
       )}
 
       <section className="properties__section">
-        <p className="properties__section-title">{ui.properties.sectionConfiguration}</p>
+        <p className="properties__section-title">{"Configuration"}</p>
 
         <label className="properties__field">
           <span
             className={`properties__field-label ${isPeerNameMissing ? "properties__field-label--required" : ""}`}
           >
-            {ui.properties.fieldName}
+            {"Name"}
           </span>
           <input
             className={`properties__input ${isPeerNameMissing ? "properties__required-outline" : ""}`}
@@ -250,7 +249,7 @@ export default function PeerProperties({
         </label>
 
         <label className="properties__field">
-          <span className="properties__field-label">{ui.properties.fieldPosition}</span>
+          <span className="properties__field-label">{"Position"}</span>
           <div className="properties__inline-group">
             <div className="properties__input-with-icon">
               <span className="properties__input-icon">X</span>
@@ -283,7 +282,7 @@ export default function PeerProperties({
 
         <div className="properties__field-grid properties__field-grid--two">
           <label className="properties__field">
-            <span className="properties__field-label">{ui.properties.fieldRange}</span>
+            <span className="properties__field-label">{"Range"}</span>
             <div className="properties__input-with-prefix">
               <CircleDot size={12} />
               <input
@@ -301,27 +300,27 @@ export default function PeerProperties({
           </label>
 
           <label className="properties__field">
-            <span className="properties__field-label">{ui.properties.fieldStatus}</span>
+            <span className="properties__field-label">{"Status"}</span>
             <button
               className="properties__status"
               type="button"
               onClick={() => updatePeer({ enabled: !selectedPeer.enabled })}
             >
               <Diamond size={12} />
-              {selectedPeer.enabled ? ui.common.enabled : ui.common.disabled}
+              {selectedPeer.enabled ? "Enabled" : "Disabled"}
             </button>
           </label>
         </div>
       </section>
 
       <section className="properties__section">
-        <p className="properties__section-title">{ui.properties.sectionRouting}</p>
+        <p className="properties__section-title">{"Routing"}</p>
 
         <label className="properties__field">
           <span
             className={`properties__field-label ${isProtocolMissing ? "properties__field-label--required" : ""}`}
           >
-            {ui.properties.fieldProtocol}
+            {"Protocol"}
           </span>
           <div
             className={`properties__protocols ${isProtocolMissing ? "properties__required-outline" : ""}`}
@@ -346,7 +345,7 @@ export default function PeerProperties({
           <>
             <label className="properties__field">
               {renderBatmanLabel(
-                ui.properties.fieldBatmanDistancePenalty,
+                "Distance Penalty",
                 isBatmanPenaltyDistanceMissing || isBatmanPenaltyPercentMissing,
               )}
               <div className="properties__inline-group">
@@ -365,7 +364,7 @@ export default function PeerProperties({
                         ),
                       })
                     }
-                    aria-label={ui.properties.fieldDistance}
+                    aria-label={"Distance"}
                   />
                 </div>
                 <div className="properties__input-with-prefix">
@@ -384,7 +383,7 @@ export default function PeerProperties({
                         ),
                       })
                     }
-                    aria-label={ui.properties.fieldPenaltyPercent}
+                    aria-label={"Percentage of penalty"}
                   />
                 </div>
               </div>
@@ -394,7 +393,7 @@ export default function PeerProperties({
               <span
                 className={`properties__field-label ${isBatmanElpMissing ? "properties__field-label--required" : ""}`}
               >
-                {ui.properties.fieldBatmanElpInterval}
+                {"ELP Interval"}
               </span>
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
@@ -419,7 +418,7 @@ export default function PeerProperties({
               <span
                 className={`properties__field-label ${isBatmanOgmMissing ? "properties__field-label--required" : ""}`}
               >
-                {ui.properties.fieldBatmanOgmInterval}
+                {"OGM Interval"}
               </span>
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
@@ -444,7 +443,7 @@ export default function PeerProperties({
               <span
                 className={`properties__field-label ${isBatmanPurgeMissing ? "properties__field-label--required" : ""}`}
               >
-                {ui.properties.fieldBatmanPurgeTimeout}
+                {"Purge Timeout"}
               </span>
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
@@ -471,7 +470,7 @@ export default function PeerProperties({
           <>
             <label className="properties__field">
               {renderGlobalLabel(
-                ui.properties.fieldDsdvIncrementalInterval,
+                "Incremental Update Interval",
                 isDsdvIncrementalMissing,
               )}
               <div className="properties__input-with-prefix">
@@ -501,7 +500,7 @@ export default function PeerProperties({
             </label>
 
             <label className="properties__field">
-              {renderGlobalLabel(ui.properties.fieldDsdvFullDumpInterval, isDsdvFullDumpMissing)}
+              {renderGlobalLabel("Full Dump Interval", isDsdvFullDumpMissing)}
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
@@ -529,7 +528,7 @@ export default function PeerProperties({
               <span
                 className={`properties__field-label ${isDsdvRouteTimeoutMissing ? "properties__field-label--required" : ""}`}
               >
-                {ui.properties.fieldDsdvRouteTimeout}
+                {"Route Timeout"}
               </span>
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
@@ -559,7 +558,7 @@ export default function PeerProperties({
         {selectedProtocol === RoutingProtocol.OLSR && (
           <>
             <label className="properties__field">
-              {renderGlobalLabel(ui.properties.fieldOlsrHelloInterval, isOlsrHelloMissing)}
+              {renderGlobalLabel("HELLO Interval", isOlsrHelloMissing)}
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
@@ -584,7 +583,7 @@ export default function PeerProperties({
             </label>
 
             <label className="properties__field">
-              {renderGlobalLabel(ui.properties.fieldOlsrTcInterval, isOlsrTcMissing)}
+              {renderGlobalLabel("TC Interval", isOlsrTcMissing)}
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
@@ -613,7 +612,7 @@ export default function PeerProperties({
         {selectedProtocol === RoutingProtocol.AODV && (
           <>
             <label className="properties__field">
-              {renderGlobalLabel(ui.properties.fieldAodvHelloInterval, isAodvHelloMissing)}
+              {renderGlobalLabel("HELLO Interval", isAodvHelloMissing)}
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
@@ -641,7 +640,7 @@ export default function PeerProperties({
               <span
                 className={`properties__field-label ${isAodvRouteTimeoutMissing ? "properties__field-label--required" : ""}`}
               >
-                {ui.properties.fieldAodvRouteTimeout}
+                {"Route Timeout"}
               </span>
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />

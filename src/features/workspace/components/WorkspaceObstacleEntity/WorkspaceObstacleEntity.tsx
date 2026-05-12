@@ -1,4 +1,3 @@
-import { ui } from "../../../../shared/i18n/messages";
 import { ResizeEdge } from "../../../../shared/types/enums";
 import type { ObstacleEntity } from "../../../../shared/types/navigation";
 
@@ -42,7 +41,7 @@ export default function WorkspaceObstacleEntity({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
-      aria-label={ui.workspace.obstacleLabel(obstacle.name)}
+      aria-label={(`Obstacle ${(obstacle.name)}`)}
     >
       <span
         className="workspace__obstacle-handle workspace__obstacle-handle--left"

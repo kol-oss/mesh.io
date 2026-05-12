@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
-import { ui } from "../../../i18n/messages";
-
 type SelectOption = {
   value: string;
   label: string;
@@ -21,7 +19,7 @@ type SelectProps = {
 export default function Select({
   value,
   options,
-  placeholder = ui.properties.selectPlaceholder,
+  placeholder = "Select",
   onChange,
   disabled = false,
   allowEmpty = true,

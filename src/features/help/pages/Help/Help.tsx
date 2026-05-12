@@ -5,16 +5,13 @@ import AodvHelpPage from "../../components/Help/pages/AodvHelpPage";
 import BatmanHelpPage from "../../components/Help/pages/BatmanHelpPage";
 import DsdvHelpPage from "../../components/Help/pages/DsdvHelpPage";
 import DsrHelpPage from "../../components/Help/pages/DsrHelpPage";
-import OlsrHelpPage from "../../components/Help/pages/OlsrHelpPage";
-import { ui } from "../../../../shared/i18n/messages";
-
-const helpLinks = [
-  { to: "/docs/about-us", label: ui.help.headerLinkAbout },
+import OlsrHelpPage from "../../components/Help/pages/OlsrHelpPage";const helpLinks = [
+  { to: "/docs/about-us", label: "Workspace" },
   { to: "/docs/dsdv", label: "DSDV" },
-  { to: "/docs/olsr", label: ui.help.headerLinkOlsr },
-  { to: "/docs/batman", label: ui.help.headerLinkBatman },
-  { to: "/docs/dsr", label: ui.help.headerLinkDsr },
-  { to: "/docs/aodv", label: ui.help.headerLinkAodv },
+  { to: "/docs/olsr", label: "OLSR" },
+  { to: "/docs/batman", label: "B.A.T.M.A.N." },
+  { to: "/docs/dsr", label: "DSR" },
+  { to: "/docs/aodv", label: "AODV" },
 ];
 
 export default function Help() {
@@ -26,15 +23,15 @@ export default function Help() {
             <img
               className="help-page__brand-logo"
               src="/favicon.svg"
-              alt={ui.navigation.appLogoAlt}
+              alt={"Mesh IO logo"}
             />
             <div>
-              <p className="help-page__brand-title">{ui.navigation.appName}</p>
-              <p className="help-page__brand-subtitle">{ui.navigation.appMotto}</p>
+              <p className="help-page__brand-title">{"Mesh IO"}</p>
+              <p className="help-page__brand-subtitle">{"Design and Learn"}</p>
             </div>
           </div>
 
-          <nav className="help-page__links" aria-label={ui.navigation.menuHelp}>
+          <nav className="help-page__links" aria-label={"Help"}>
             {helpLinks.map((link) => (
               <NavLink
                 key={link.to}
@@ -49,7 +46,7 @@ export default function Help() {
           </nav>
 
           <Link className="help-page__simulation-button" to="/" target="_blank" rel="noreferrer">
-            {ui.help.simulationButton}
+            {"Model"}
           </Link>
         </div>
       </header>

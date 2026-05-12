@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { Link } from "react-router-dom";
-
-import { ui } from "../../../../shared/i18n/messages";
 import { NAVIGATION_MENU_ITEMS } from "../../../../shared/utils/navigation/constants";
 
 type NavigationMenuProps = {
@@ -51,7 +49,7 @@ export default function NavigationMenu({
   return (
     <div className={`navigation__menu${isCompact ? " navigation__menu--compact" : ""}`}>
       {NAVIGATION_MENU_ITEMS.map((menuItem) => {
-        if (menuItem.title === ui.navigation.menuHelp) {
+        if (menuItem.title === "Help") {
           return (
             <Link
               className="navigation__menu-button"
@@ -65,7 +63,7 @@ export default function NavigationMenu({
           );
         }
 
-        if (menuItem.title !== ui.navigation.menuFile) {
+        if (menuItem.title !== "File") {
           return (
             <button className="navigation__menu-button" key={menuItem.title} type="button">
               {menuItem.title}
@@ -81,7 +79,7 @@ export default function NavigationMenu({
               onClick={() => setIsFileMenuOpen((prev) => !prev)}
               aria-haspopup="menu"
               aria-expanded={isFileMenuOpen}
-              aria-label={ui.navigation.fileMenuAria}
+              aria-label={"File menu"}
             >
               {menuItem.title}
             </button>
@@ -97,7 +95,7 @@ export default function NavigationMenu({
                     setIsFileMenuOpen(false);
                   }}
                 >
-                  {ui.navigation.fileActionNew}
+                  {"New"}
                 </button>
                 <button
                   className="navigation__file-menu-option"
@@ -108,7 +106,7 @@ export default function NavigationMenu({
                     setIsFileMenuOpen(false);
                   }}
                 >
-                  {ui.navigation.fileActionExport}
+                  {"Export"}
                 </button>
                 <button
                   className="navigation__file-menu-option"
@@ -116,7 +114,7 @@ export default function NavigationMenu({
                   role="menuitem"
                   onClick={handleImportClick}
                 >
-                  {ui.navigation.fileActionImport}
+                  {"Import"}
                 </button>
               </div>
             )}

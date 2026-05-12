@@ -11,7 +11,6 @@ import { ChevronRight, Link, Plus, Radio, SquareSlash } from "lucide-react";
 import { createPortal } from "react-dom";
 
 import { storageKeys } from "../../../../shared/constants/storage";
-import { ui } from "../../../../shared/i18n/messages";
 import { useListReorder } from "../../../../shared/hooks/useListReorder";
 import { useLocalStorage } from "../../../../shared/hooks/storage/useLocalStorage";
 import { useToast } from "../../../../shared/toast/useToast";
@@ -71,13 +70,13 @@ export default function Entities({
     if (!selectedId) return;
     const entity = entities.find((e) => e.id === selectedId);
     if (entity?.locked) {
-      showToast(ui.entities.toastLocked(entity.name));
+      showToast((`Entity "${(entity.name)}" is locked`));
       return;
     }
     const index = entities.findIndex((e) => e.id === selectedId);
     const updatedEntities = entities.filter((e) => e.id !== selectedId);
     setEntities(updatedEntities);
-    showToast(ui.entities.toastDeleted);
+    showToast("Entity deleted");
     const nextEntity = updatedEntities[index] ?? updatedEntities[index - 1];
     if (nextEntity) {
       onSelect(nextEntity.id);
@@ -157,7 +156,7 @@ export default function Entities({
       type === EntityType.Peer
         ? {
             id: generateUUID(),
-            name: ui.entities.typePeer,
+            name: "Peer",
             type: EntityType.Peer,
             ...peerDefaults,
             x: 0,
@@ -166,7 +165,7 @@ export default function Entities({
         : type === EntityType.Link
           ? {
               id: generateUUID(),
-              name: ui.entities.typeLink,
+              name: "Link",
               type: EntityType.Link,
               sourcePeerId: null,
               destinationPeerId: null,
@@ -174,7 +173,7 @@ export default function Entities({
             }
           : {
               id: generateUUID(),
-              name: ui.entities.typeObstacle,
+              name: "Obstacle",
               type: EntityType.Obstacle,
               x: 0,
               y: 0,
@@ -186,7 +185,7 @@ export default function Entities({
     setEntities(updatedEntities);
     onSelect(newEntity.id);
     setIsAddMenuOpen(false);
-    showToast(ui.entities.toastAdded(newEntity.name));
+    showToast((`Entity "${(newEntity.name)}" added`));
   };
 
   return (
@@ -205,15 +204,15 @@ export default function Entities({
             isOpened ? "navigation__entities-chevron--open" : ""
           }`}
         />
-        <span className="navigation__entities-title">{ui.entities.sectionTitle}</span>
+        <span className="navigation__entities-title">{"Entities"}</span>
         <div className="navigation__entities-add-wrap" ref={addMenuRef}>
-          <Tooltip content={ui.entities.addTooltip}>
+          <Tooltip content={"Add new entity"}>
             <button
               ref={addButtonRef}
               className="navigation__entities-add"
               onClick={handleAddEntityClick}
               type="button"
-              aria-label={ui.entities.addAria}
+              aria-label={"Add new entity"}
             >
               <Plus size={14} />
             </button>
@@ -235,7 +234,7 @@ export default function Entities({
                 type="button"
               >
                 <Radio size={12} />
-                {ui.entities.typePeer}
+                {"Peer"}
               </button>
               <button
                 className="navigation__entities-add-option"
@@ -243,7 +242,7 @@ export default function Entities({
                 type="button"
               >
                 <Link size={12} />
-                {ui.entities.typeLink}
+                {"Link"}
               </button>
               <button
                 className="navigation__entities-add-option"
@@ -251,7 +250,7 @@ export default function Entities({
                 type="button"
               >
                 <SquareSlash size={12} />
-                {ui.entities.typeObstacle}
+                {"Obstacle"}
               </button>
             </div>,
             document.body,

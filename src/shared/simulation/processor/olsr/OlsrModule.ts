@@ -1,6 +1,4 @@
-import { OLSR_DEFAULT_TC_TTL, OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "../../constants/olsr";
-import { ui } from "../../i18n/messages";
-import { RoutingProtocol } from "../../types/enums";
+import { OLSR_DEFAULT_TC_TTL, OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "../../constants/olsr";import { RoutingProtocol } from "../../types/enums";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -226,7 +224,7 @@ export class OlsrModule implements PacketCapableModule {
     if (!this.routingPeer.isActive()) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneOlsrMessage(packet),
-        reason: ui.runtime.sourcePeerDisabled,
+        reason: "Source peer is disabled",
       });
       return false;
     }
@@ -297,7 +295,7 @@ export class OlsrModule implements PacketCapableModule {
     if (!sender || !sender.supports(RoutingProtocol.OLSR)) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneOlsrMessage(message),
-        reason: ui.runtime.nextHopNoOlsr,
+        reason: "Selected next hop does not support OLSR",
       });
       return false;
     }
@@ -357,7 +355,7 @@ export class OlsrModule implements PacketCapableModule {
     if (!sender || !sender.supports(RoutingProtocol.OLSR)) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneOlsrMessage(message),
-        reason: ui.runtime.nextHopNoOlsr,
+        reason: "Selected next hop does not support OLSR",
       });
       return false;
     }
@@ -686,7 +684,7 @@ export class OlsrModule implements PacketCapableModule {
     if (packet.timeToLive <= 0) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneOlsrMessage(packet),
-        reason: ui.runtime.packetTtlReachedZero,
+        reason: "Packet TTL reached zero",
       });
       return false;
     }
@@ -694,7 +692,7 @@ export class OlsrModule implements PacketCapableModule {
     const selectedRoute = this.routingTable.get(packet.destinationPeerId) ?? null;
     if (!selectedRoute) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
-        reason: ui.runtime.noRouteForDestinationOlsr,
+        reason: "No OLSR route is available for the destination",
         reasonCode: "NO_ROUTE",
       });
       return false;
@@ -715,7 +713,7 @@ export class OlsrModule implements PacketCapableModule {
     if (!hop) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneOlsrMessage(message),
-        reason: ui.runtime.nextHopNotNeighbour,
+        reason: "Selected next hop is not a current neighbour",
       });
       return false;
     }
@@ -723,7 +721,7 @@ export class OlsrModule implements PacketCapableModule {
     if (!hop.supports(RoutingProtocol.OLSR)) {
       this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
         message: cloneOlsrMessage(message),
-        reason: ui.runtime.nextHopNoOlsr,
+        reason: "Selected next hop does not support OLSR",
       });
       return false;
     }
@@ -779,6 +777,6 @@ export class OlsrModule implements PacketCapableModule {
   }
 
   private getPeerDisplayName(peerId: UUID) {
-    return this.routingPeer.getNeighbour(peerId)?.name ?? ui.common.unknown;
+    return this.routingPeer.getNeighbour(peerId)?.name ?? "Unknown";
   }
 }

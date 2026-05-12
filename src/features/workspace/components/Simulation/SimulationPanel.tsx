@@ -1,8 +1,6 @@
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Link } from "react-router-dom";
-
-import { ui } from "../../../../shared/i18n/messages";
 import {
   QualityWindowBit,
   type SimulationEvent,
@@ -177,7 +175,7 @@ export default function SimulationPanel({
   return (
     <aside
       className={`simulation-panel simulation-panel--tooltip${isDragging ? " simulation-panel--dragging" : ""}`}
-      aria-label={ui.simulation.panelAria}
+      aria-label={"Simulation event"}
       onPointerDown={handlePointerDown}
       onMouseLeave={() => onPeerHoverChange(null)}
       style={{ left: `${anchorX + dragOffset.x}px`, top: `${anchorY + dragOffset.y}px` }}
@@ -195,19 +193,19 @@ export default function SimulationPanel({
               <thead>
                 {isBatmanRouteRecord(routeRows[0]) ? (
                   <tr>
-                    <th>{ui.simulation.tableOriginator}</th>
-                    <th>{ui.simulation.tableNextHop}</th>
-                    <th>{ui.simulation.tableTq}</th>
-                    <th>{ui.simulation.tableLastSeen}</th>
+                    <th>{"Originator"}</th>
+                    <th>{"Next Hop"}</th>
+                    <th>{"Throughput"}</th>
+                    <th>{"Last Seen"}</th>
                   </tr>
                 ) : (
                   <tr>
-                    <th>{ui.simulation.tableDestination}</th>
-                    <th>{ui.simulation.tableNextHop}</th>
-                    <th>{ui.simulation.tableMetric}</th>
-                    <th>{ui.simulation.tableSequence}</th>
-                    {"pathPeerIds" in routeRows[0] ? <th>{ui.simulation.tablePath}</th> : null}
-                    <th>{ui.simulation.tableInstalled}</th>
+                    <th>{"Destination"}</th>
+                    <th>{"Next Hop"}</th>
+                    <th>{"Metric"}</th>
+                    <th>{"Sequence Number"}</th>
+                    {"pathPeerIds" in routeRows[0] ? <th>{"Path"}</th> : null}
+                    <th>{"Last Update"}</th>
                   </tr>
                 )}
               </thead>
@@ -276,7 +274,7 @@ export default function SimulationPanel({
                     className={`simulation-panel__tq-toggle-icon${isSequenceDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
                   />
                   <span className="simulation-panel__tq-toggle-label">
-                    {ui.simulation.sequenceWindowQuestion}
+                    {"What is Sequence Protection Window?"}
                   </span>
                 </button>
                 {isSequenceDisclosureOpen ? (
@@ -295,11 +293,11 @@ export default function SimulationPanel({
                     key={`window-${row.originatorPeerId}-${row.hopPeerId}-${index}`}
                   >
                     <p className="simulation-panel__quality-window-label">
-                      {ui.simulation.qualityWindowTitle}
+                      {"Sequence Protection Window"}
                     </p>
                     <div
                       className="simulation-panel__quality-window-bits"
-                      aria-label={ui.simulation.qualityWindowBitsAria}
+                      aria-label={"Sequence protection window bits"}
                     >
                       {row.qualityWindow.split("").map((bit, bitIndex) => (
                         <span
@@ -341,13 +339,13 @@ export default function SimulationPanel({
                 className={`simulation-panel__tq-toggle-icon${isTqDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
               />
               <span className="simulation-panel__tq-toggle-label">
-                {ui.simulation.throughputHowCalculatedQuestion}
+                {"How is throughput calculated?"}
               </span>
             </button>
             {isTqDisclosureOpen ? (
               <div className="simulation-panel__table-block">
                 <p className="simulation-panel__description simulation-panel__description--secondary">
-                  {ui.simulation.throughputFormulaIntro}
+                  {"Throughput is derived by combining the measured base transmission rate with the link's reception ratio. In formula form:"}
                 </p>
                 <p className="simulation-panel__description simulation-panel__description--secondary simulation-panel__formula">
                   Throughput = Base Throughput x Reception Ratio
@@ -356,11 +354,7 @@ export default function SimulationPanel({
                   {getThroughputBaseExplanation(throughputBreakdown)}
                 </p>
                 <p className="simulation-panel__description simulation-panel__description--secondary simulation-panel__formula">
-                  {ui.simulation.throughputEquation(
-                    formatFixed(throughputBreakdown.baseThroughput),
-                    formatFixed(throughputBreakdown.receptionRatio),
-                    formatFixed(throughputBreakdown.rawThroughput),
-                  )}
+                  {(`${(formatFixed(throughputBreakdown.baseThroughput))} x ${(formatFixed(throughputBreakdown.receptionRatio))} = ${(formatFixed(throughputBreakdown.rawThroughput))}`)}
                 </p>
                 <p className="simulation-panel__description simulation-panel__description--secondary">
                   {getThroughputEwmaExplanation(throughputBreakdown)}
@@ -382,7 +376,7 @@ export default function SimulationPanel({
                 className={`simulation-panel__tq-toggle-icon${isTqDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
               />
               <span className="simulation-panel__tq-toggle-label">
-                {ui.simulation.ogmThroughputSelectedQuestion}
+                {"What throughput value was selected?"}
               </span>
             </button>
             {isTqDisclosureOpen ? (
@@ -405,7 +399,7 @@ export default function SimulationPanel({
                 className={`simulation-panel__tq-toggle-icon${isTqDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
               />
               <span className="simulation-panel__tq-toggle-label">
-                {ui.simulation.ogmThroughputQuestion}
+                {"What is throughput value in OGMv2?"}
               </span>
             </button>
             {isTqDisclosureOpen ? (
@@ -425,7 +419,7 @@ export default function SimulationPanel({
           rel="noreferrer"
         >
           <ExternalLink size={12} />
-          {ui.simulation.packetStructureReadMore}
+          {"Read more"}
         </Link>
         <div className="simulation-panel__pager simulation-panel__pager--footer">
           <button
@@ -433,7 +427,7 @@ export default function SimulationPanel({
             type="button"
             onClick={onPrevEvent}
             disabled={!canGoPrevEvent}
-            aria-label={ui.simulation.previousEventAria}
+            aria-label={"Previous event"}
           >
             <ChevronLeft size={18} />
           </button>
@@ -445,7 +439,7 @@ export default function SimulationPanel({
             type="button"
             onClick={onNextEvent}
             disabled={!canGoNextEvent}
-            aria-label={ui.simulation.nextEventAria}
+            aria-label={"Next event"}
           >
             <ChevronRight size={18} />
           </button>

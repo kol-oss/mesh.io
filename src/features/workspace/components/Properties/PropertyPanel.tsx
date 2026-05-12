@@ -1,8 +1,6 @@
 import { ExternalLink, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { ReactNode } from "react";
-
-import { ui } from "../../../../shared/i18n/messages";
 import type { PropertiesResizeHandler } from "../../../../shared/types/properties";
 
 type PropertyPanelProps = {
@@ -30,7 +28,7 @@ export default function PropertyPanel({
       <div
         className="properties__resizer"
         role="separator"
-        aria-label={ui.properties.resizeAria}
+        aria-label={"Resize properties"}
         aria-orientation="vertical"
         onPointerDown={onResizeStart}
       />
@@ -40,14 +38,14 @@ export default function PropertyPanel({
         <p className="properties__subtitle">{description}</p>
         <Link className="properties__read-more" to="/docs" target="_blank" rel="noreferrer">
           <ExternalLink size={12} />
-          {ui.common.readMore}
+          {"Read more"}
         </Link>
       </header>
 
       {isLocked && (
         <div className="properties__locked-notice">
           <Lock size={12} />
-          {ui.properties.entityLockedNotice}
+          {"This entity is unmodifiable."}
         </div>
       )}
 

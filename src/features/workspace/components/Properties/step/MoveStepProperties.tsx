@@ -1,6 +1,4 @@
 import { Radio } from "lucide-react";
-
-import { ui } from "../../../../../shared/i18n/messages";
 import type { PeerEntity } from "../../../../../shared/types/entities";
 import type { MoveStep } from "../../../../../shared/types/steps";
 import { parseNumberValue } from "../../../../../shared/utils/properties";
@@ -33,7 +31,7 @@ export default function MoveStepProperties({
         <span
           className={`properties__field-label ${isStepMoveEntityMissing ? "properties__field-label--required" : ""}`}
         >
-          {ui.properties.fieldPeer}
+          {"Peer"}
         </span>
         <Select
           value={moveTargetValue}
@@ -59,7 +57,7 @@ export default function MoveStepProperties({
       </label>
 
       <label className="properties__field">
-        <span className="properties__field-label">{ui.properties.fieldPosition}</span>
+        <span className="properties__field-label">{"Position"}</span>
         <div className="properties__inline-group">
           <div className="properties__input-with-icon">
             <span className="properties__input-icon">X</span>

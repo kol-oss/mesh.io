@@ -1,7 +1,4 @@
-import { useEffect } from "react";
-
-import { ui } from "../../../shared/i18n/messages";
-import type { WorkspaceTextItem } from "../../../shared/types/workspace";
+import { useEffect } from "react";import type { WorkspaceTextItem } from "../../../shared/types/workspace";
 import type { UUID } from "../../../shared/types/uuid";
 
 type Params = {
@@ -31,7 +28,7 @@ export function useWorkspaceTextDelete({
 
       setTexts(texts.filter((item) => item.id !== selectedTextId));
       setSelectedTextId(null);
-      showToast(ui.workspace.textDeleted);
+      showToast("Text deleted");
     };
 
     window.addEventListener("keydown", handleKeyDown);

@@ -1,6 +1,5 @@
 import { type PointerEvent as ReactPointerEvent } from "react";
 import { Link, Lock, LockOpen, Radio, SquareSlash } from "lucide-react";
-import { ui } from "../../../../shared/i18n/messages";
 import { EntityType } from "../../../../shared/types/enums";
 import type { NetworkEntity } from "../../../../shared/types/entities";
 import Tooltip from "../../../../shared/ui/components/Tooltip/Tooltip";
@@ -23,9 +22,9 @@ export default function Entity({
   onPointerDown,
 }: EntityProps) {
   const entityTypeTooltip = {
-    [EntityType.Peer]: ui.entities.typePeer,
-    [EntityType.Link]: ui.entities.typeLink,
-    [EntityType.Obstacle]: ui.entities.typeObstacle,
+    [EntityType.Peer]: "Peer",
+    [EntityType.Link]: "Link",
+    [EntityType.Obstacle]: "Obstacle",
   }[entity.type];
 
   const entityTypeIcon = {
@@ -44,7 +43,7 @@ export default function Entity({
         <span className="navigation__entity-type">{entityTypeIcon}</span>
       </Tooltip>
       <span className="navigation__entity-title">{entity.name}</span>
-      <Tooltip content={entity.locked ? ui.entities.actionUnlock : ui.entities.actionLock}>
+      <Tooltip content={entity.locked ? "Unlock" : "Lock"}>
         <button
           className={`navigation__entity-lock ${entity.locked ? "navigation__entity-lock--active" : ""}`}
           onClick={(e) => {
@@ -52,7 +51,7 @@ export default function Entity({
             onToggleLock();
           }}
           type="button"
-          aria-label={entity.locked ? ui.entities.actionUnlock : ui.entities.actionLock}
+          aria-label={entity.locked ? "Unlock" : "Lock"}
         >
           {entity.locked ? <Lock size={11} /> : <LockOpen size={11} />}
         </button>

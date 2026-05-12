@@ -1,4 +1,3 @@
-import { ui } from "../../../../shared/i18n/messages";
 import type { WorkspaceTextItem } from "../../../../shared/types/workspace";
 
 type Props = {
@@ -71,7 +70,7 @@ export default function WorkspaceTextEntity({
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
       onDoubleClick={() => onDoubleClick(item)}
-      aria-label={ui.workspace.textLabel(item.text)}
+      aria-label={(`Text ${(item.text)}`)}
     >
       {item.text}
     </button>

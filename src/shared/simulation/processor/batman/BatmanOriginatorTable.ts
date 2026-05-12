@@ -1,4 +1,3 @@
-import { ui } from "../../i18n/messages";
 import { RoutingProtocol } from "../../types/enums";
 import {
   SimulationEventType,
@@ -76,7 +75,7 @@ export class BatmanOriginatorTable {
             hopPeerId,
             previousRoute,
             nextRoute: null,
-            reason: ui.runtime.routeExpiredAfterTicks(this.purgeTimeout),
+            reason: (`Route expired after ${(this.purgeTimeout)} (this.purgeTimeout) without updates`),
           });
           continue;
         }

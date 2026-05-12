@@ -1,7 +1,4 @@
-import type { ReactNode } from "react";
-
-import { ui } from "../../i18n/messages";
-import { RoutingProtocol } from "../../types/enums";
+import type { ReactNode } from "react";import { RoutingProtocol } from "../../types/enums";
 import { EntityType } from "../../types/enums";
 import {
   type DroppedEventDetails,
@@ -39,17 +36,17 @@ export const getEventTitle = (event: SimulationEvent) => {
     case SimulationEventType.SystemMessageBroadcast:
       return getBroadcastTitle(event, message);
     case SimulationEventType.SystemRouteSelected:
-      return ui.simulation.routeSelected;
+      return "Route Selected";
     case SimulationEventType.SystemThroughputCalculated:
-      return ui.simulation.throughputRecalculated;
+      return "Throughput Estimation";
     case SimulationEventType.SystemMessageDropped:
       return getDroppedTitle(event, message);
     case SimulationEventType.SystemPeerMoved:
-      return ui.simulation.peerMoved;
+      return "Peer Moved";
     case SimulationEventType.SystemEntityStatusChanged:
-      return ui.simulation.entityStatusChanged;
+      return "Entity Status Changed";
     default:
-      return ui.simulation.genericEvent;
+      return "Simulation Event";
   }
 };
 
@@ -90,7 +87,7 @@ export const getSimulationReadMorePath = (
 };
 
 export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UUID, string>) => {
-  const actor = ui.simulation.eventNodeLabel;
+  const actor = "Node";
   const routeChange = getRouteChange(event);
   const message = getEventMessage(event);
 
@@ -112,13 +109,9 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
     case SimulationEventType.SystemRouteSelected: {
       const details = event.details as RouteSelectedEventDetails;
       if (!isBatmanRoute(details.selectedRoute)) {
-        return ui.simulation.eventEmitted(actor);
+        return (`${(actor)} emitted a simulation event.`);
       }
-      return ui.simulation.eventRouteSelected(
-        getPeerDisplayName(details.selectedRoute.originatorPeerId, peerNameById),
-        getPeerDisplayName(details.selectedRoute.hopPeerId, peerNameById),
-        details.selectedRoute.quality,
-      );
+      return (`Selected route to ${(getPeerDisplayName(details.selectedRoute.originatorPeerId, peerNameById))} via ${(getPeerDisplayName(details.selectedRoute.hopPeerId, peerNameById))} with throughput ${(details.selectedRoute.quality)}.`);
     }
     case SimulationEventType.SystemThroughputCalculated:
       return getThroughputCalculatedDescription(actor, event);
@@ -126,16 +119,16 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
       return getDroppedDescription(actor, event, message);
     case SimulationEventType.SystemPeerMoved: {
       const details = event.details as PeerMovedEventDetails;
-      return ui.simulation.eventPeerMoved(details.toX, details.toY);
+      return (`Peer is moved to point (${(details.toX)}, ${(details.toY)}).`);
     }
     case SimulationEventType.SystemEntityStatusChanged: {
       const details = event.details as EntityStatusChangedEventDetails;
       const entityLabel =
-        details.entityType === EntityType.Link ? ui.entities.typeLink : ui.entities.typePeer;
-      return ui.simulation.eventEntityStatusChanged(entityLabel, details.nextEnabled);
+        details.entityType === EntityType.Link ? "Link" : "Peer";
+      return (`${(entityLabel)} is now ${(details.nextEnabled) ? "(details.nextEnabled)" : "disabled"}.`);
     }
     default:
-      return ui.simulation.eventEmitted(actor);
+      return (`${(actor)} emitted a simulation event.`);
   }
 };
 
@@ -186,7 +179,7 @@ export const getMessageSummary = (
     }
     return [
       {
-        label: ui.simulation.summaryDestination,
+        label: "Destination",
         value: renderPeerName(
           details.destinationPeerId,
           getPeerLabel(details.destinationPeerId, peerNameById),
@@ -194,7 +187,7 @@ export const getMessageSummary = (
         ),
       },
       {
-        label: ui.simulation.tableNextHop,
+        label: "Next Hop",
         value: renderPeerName(
           details.selectedRoute.hopPeerId,
           getPeerLabel(details.selectedRoute.hopPeerId, peerNameById),
@@ -202,11 +195,11 @@ export const getMessageSummary = (
         ),
       },
       {
-        label: ui.simulation.tableTq,
+        label: "Throughput",
         value: String(details.selectedRoute.quality),
       },
       {
-        label: ui.simulation.tableLastSeen,
+        label: "Last Seen",
         value: String(details.selectedRoute.lastTick),
       },
     ];
@@ -215,17 +208,17 @@ export const getMessageSummary = (
   if (message.kind === SimulationMessageKind.Packet) {
     return [
       {
-        label: ui.simulation.summarySource,
+        label: "Source",
         value: message.sourcePeerId
           ? renderPeerName(
               message.sourcePeerId,
               getPeerLabel(message.sourcePeerId, peerNameById),
               onPeerHoverChange,
             )
-          : ui.common.unknown,
+          : "Unknown",
       },
       {
-        label: ui.simulation.summaryDestination,
+        label: "Destination",
         value: renderPeerName(
           message.destinationPeerId,
           getPeerLabel(message.destinationPeerId, peerNameById),
@@ -233,11 +226,11 @@ export const getMessageSummary = (
         ),
       },
       {
-        label: ui.simulation.summaryType,
-        value: ui.simulation.summaryPacket,
+        label: "Type",
+        value: "Packet",
       },
       {
-        label: ui.simulation.summaryTtl,
+        label: "TTL",
         value: String(message.timeToLive),
       },
     ];
@@ -247,7 +240,7 @@ export const getMessageSummary = (
     const details = event.details as PeerMovedEventDetails;
     return [
       {
-        label: ui.properties.fieldPeer,
+        label: "Peer",
         value: renderPeerName(
           details.peerId,
           getPeerLabel(details.peerId, peerNameById),
@@ -255,7 +248,7 @@ export const getMessageSummary = (
         ),
       },
       {
-        label: ui.properties.fieldPosition,
+        label: "Position",
         value: `(${details.toX}, ${details.toY})`,
       },
     ];
@@ -265,12 +258,12 @@ export const getMessageSummary = (
     const details = event.details as EntityStatusChangedEventDetails;
     return [
       {
-        label: ui.properties.fieldType,
-        value: details.entityType === EntityType.Link ? ui.entities.typeLink : ui.entities.typePeer,
+        label: "Type",
+        value: details.entityType === EntityType.Link ? "Link" : "Peer",
       },
       {
-        label: ui.properties.fieldStatus,
-        value: details.nextEnabled ? ui.common.enabled : ui.common.disabled,
+        label: "Status",
+        value: details.nextEnabled ? "Enabled" : "Disabled",
       },
     ];
   }
@@ -288,60 +281,60 @@ export const getEventMessage = (event: SimulationEvent): SimulationMessage | nul
 
 const getBroadcastTitle = (event: SimulationEvent, message: SimulationMessage | null) => {
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
-    return ui.simulation.elpBroadcast;
+    return "ELP Broadcast";
   }
 
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
     return "retransmit" in event.details && event.details.retransmit
-      ? ui.simulation.ogmBroadcastRetransmission
-      : ui.simulation.ogmBroadcast;
+      ? "OGMv2 Broadcast Retransmission"
+      : "OGMv2 Broadcast";
   }
 
   if (message?.kind === SimulationMessageKind.Packet) {
-    return ui.simulation.packetBroadcast;
+    return "Packet Broadcast";
   }
 
-  return ui.simulation.broadcastMessage;
+  return "Broadcast Message";
 };
 
 const getDroppedTitle = (event: SimulationEvent, message: SimulationMessage | null) => {
   if (isSourcePacketSendFailure(event, message)) {
-    return ui.simulation.packetSendFailed;
+    return "Packet Send Failed";
   }
 
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
-    return ui.simulation.elpDropped;
+    return "ELP Dropped";
   }
 
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
-    return ui.simulation.ogmDropped;
+    return "OGMv2 Retransmission Cancelled";
   }
 
   if (message?.kind === SimulationMessageKind.Packet) {
-    return ui.simulation.packetDropped;
+    return "Packet Dropped";
   }
 
-  return ui.simulation.dropMessage;
+  return "Drop Message";
 };
 
 const getBroadcastDescription = (event: SimulationEvent, message: SimulationMessage | null) => {
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
-    return <>{ui.simulation.elpBroadcastBody()}</>;
+    return <>{(`Every ELP Interval B.A.T.M.A.N. node broadcast an Echo Location Protocol (ELP) message to neighbours. If this node wants to announce its' neighbors it should append a neighbor entry message for each neighbor to be announced and fill the "Number of Neighbors" field accordingly.`)}</>;
   }
 
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
     if ("retransmit" in event.details && event.details.retransmit) {
-      return <>{ui.simulation.ogmRebroadcastBodyNode}</>;
+      return <>{"The node rebroadcasts an OGMv2 after receiving it from a neighbour. This forwards throughput-aware evidence deeper into the mesh so downstream nodes can compare candidate next hops for the same originator."}</>;
     }
 
-    return <>{ui.simulation.ogmBroadcastBody}</>;
+    return <>{"Every OGM interval, an Originator Message v2 (OGMv2) is broadcast to announce presence and publish throughput information. Neighbours may rebroadcast OGMv2 across the mesh when best-path rules allow it, enabling B.A.T.M.A.N. V nodes to choose the strongest next hop."}</>;
   }
 
   if (message?.kind === SimulationMessageKind.Packet) {
-    return <>{ui.simulation.packetBroadcastBody}</>;
+    return <>{"The node broadcast a packet message to neighbouring nodes."}</>;
   }
 
-  return <>{ui.simulation.broadcastUnknownBody}</>;
+  return <>{"The node broadcast a message to neighbouring nodes."}</>;
 };
 
 const getDroppedDescription = (
@@ -351,35 +344,35 @@ const getDroppedDescription = (
 ) => {
   if (isSourcePacketSendFailure(event, message)) {
     const details = event.details as DroppedEventDetails;
-    return <>{ui.simulation.packetSendFailedReason(details.reason)}</>;
+    return <>{(`The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${(details.reason)}.`)}</>;
   }
 
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
-    return <>{ui.simulation.droppedGeneric(actor)}</>;
+    return <>{(`${(actor)} dropped a message during processing.`)}</>;
   }
 
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
-    return <>{ui.simulation.droppedOgm(actor)}</>;
+    return <>{(`${(actor)} already received OGMv2 with such originator and sequence number with better throughput, so it did not continue processing this OGMv2, and B.A.T.M.A.N. V propagation stopped at this hop.`)}</>;
   }
 
   if (message?.kind === SimulationMessageKind.Packet) {
-    return <>{ui.simulation.droppedPacket(actor)}</>;
+    return <>{(`${(actor)} could not forward this packet, so delivery stopped at this hop.`)}</>;
   }
 
-  return <>{ui.simulation.droppedGeneric(actor)}</>;
+  return <>{(`${(actor)} dropped a message during processing.`)}</>;
 };
 
 const getThroughputCalculatedDescription = (actor: string, event: SimulationEvent) => {
   const details = event.details as ThroughputCalculationEventDetails;
   if (details.message.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
-    return <>{ui.simulation.throughputOverview}</>;
+    return <>{"Throughput is an estimate of how much useful data can be successfully transferred over a link per unit of time. In ELP and B.A.T.M.A.N. V, throughput is used as a link-quality metric to help select better routes by favoring links that deliver more reliable and higher data rates."}</>;
   }
 
   if (details.message.kind === SimulationMessageKind.BatmanOriginatorMessage) {
-    return <>{ui.simulation.ogmThroughputOperationTheory}</>;
+    return <>{"For OGMv2 forwarding, throughput estimation compares the throughput carried by the received OGMv2 message with the throughput recorded in the Neighbours Table from ELP calculations. The minimum of these two values is selected as the forwarding candidate."}</>;
   }
 
-  return <>{ui.simulation.eventThroughputCalculated(actor, details.reason)}</>;
+  return <>{(`${(actor)} calculated throughput: ${(details.reason)}`)}</>;
 };
 
 export const getThroughputBreakdown = (event: SimulationEvent) => {
@@ -411,7 +404,7 @@ export const getOgmBroadcastThroughputExplanation = (
     return null;
   }
 
-  return ui.simulation.ogmThroughputAnswer;
+  return "At the originator node, OGMv2 starts with throughput value 2**32. Each next peer then combines the carried OGM throughput with neighbour throughput derived from ELP using a min() operation, and forwards the selected value.";
 };
 
 export const getOgmThroughputSelectionExplanation = (event: SimulationEvent) => {
@@ -430,21 +423,10 @@ export const getOgmThroughputSelectionExplanation = (event: SimulationEvent) => 
 
   const selection = details.ogmSelection;
   if (selection.isWirelessHop) {
-    return ui.simulation.ogmThroughputSelectedWithPenalty(
-      selection.receivedThroughput,
-      selection.neighbourThroughput,
-      selection.selectedThroughput,
-      selection.hopPenaltyPercent,
-      selection.forwardedThroughput,
-    );
+    return (`The received value of throughput from OGMv2 was ${(selection.receivedThroughput)}, and value from Neighbours Table was ${(selection.neighbourThroughput)}, so minimum selected value was ${(selection.selectedThroughput)}. Because this is a wireless hop, peer penalty ${(selection.hopPenaltyPercent).toFixed(1)}% was applied, producing finalized value ${(selection.forwardedThroughput)}. Final value is ${(selection.forwardedThroughput)}, and this value will be used as route throughput.`);
   }
 
-  return ui.simulation.ogmThroughputSelectedWithoutPenalty(
-    selection.receivedThroughput,
-    selection.neighbourThroughput,
-    selection.selectedThroughput,
-    selection.forwardedThroughput,
-  );
+  return (`The received value of throughput from OGMv2 was ${(selection.receivedThroughput)}, and value from Neighbours Table was ${(selection.neighbourThroughput)}, so minimum selected value was ${(selection.selectedThroughput)}. This is a static hop, so no wireless peer penalty is applied. Final value is ${(selection.forwardedThroughput)}, and this value will be used as route throughput.`);
 };
 
 export const formatFixed = (value: number) => value.toFixed(2);
@@ -455,35 +437,20 @@ export const getThroughputBaseExplanation = (
   const cutAmount = Math.max(0, breakdown.baseReferenceThroughput - breakdown.baseThroughput);
 
   if (cutAmount > 0) {
-    return ui.simulation.throughputBaseWithDistanceCut(
-      Math.round(breakdown.baseThroughput),
-      Math.round(breakdown.baseReferenceThroughput),
-      formatFixed(breakdown.distance),
-      Math.round(breakdown.distancePenaltyDistance),
-      formatFixed(breakdown.distancePenaltyPercent),
-      Math.round(cutAmount),
-      formatFixed(breakdown.receptionRatio),
-    );
+    return (`The (Math.round(breakdown.baseThroughput)) throughput is ${(Math.round(breakdown.baseThroughput))}. Starting from ${(Math.round(breakdown.baseReferenceThroughput))}, (formatFixed(breakdown.distance))-based penalty was applied for link (formatFixed(breakdown.distance)) ${(formatFixed(breakdown.distance))} (configured penalty (formatFixed(breakdown.distance)) ${(Math.round(breakdown.distancePenaltyDistance))}, penalty ${(formatFixed(breakdown.distancePenaltyPercent))}% per unit), reducing throughput by ${(Math.round(cutAmount))}. The reception (formatFixed(breakdown.receptionRatio)) is ${(formatFixed(breakdown.receptionRatio))}, meaning no packet loss is observed at this sample.`);
   }
 
-  return ui.simulation.throughputBaseWithoutDistanceCut(
-    Math.round(breakdown.baseThroughput),
-    formatFixed(breakdown.receptionRatio),
-  );
+  return (`The (Math.round(breakdown.baseThroughput)) throughput is ${(Math.round(breakdown.baseThroughput))}, and no distance cut is applied on this link. The reception (formatFixed(breakdown.receptionRatio)) is ${(formatFixed(breakdown.receptionRatio))}.`);
 };
 
 export const getThroughputEwmaExplanation = (
   breakdown: NonNullable<ThroughputCalculationEventDetails["breakdown"]>,
 ) => {
   if (breakdown.previousEwma == null) {
-    return ui.simulation.throughputEwmaInitial(formatFixed(breakdown.nextEwma));
+    return (`This value is then used as the initial input to the EWMA (Exponentially Weighted Moving Average), resulting in an initial smoothed metric of ${(formatFixed(breakdown.nextEwma))}, which will be refined over time as more measurements are collected.`);
   }
 
-  return ui.simulation.throughputEwmaUpdated(
-    formatFixed(breakdown.previousEwma),
-    formatFixed(breakdown.rawThroughput),
-    formatFixed(breakdown.nextEwma),
-  );
+  return (`This value is then folded into EWMA smoothing (alpha 0.20): (formatFixed(breakdown.previousEwma)) metric ${(formatFixed(breakdown.previousEwma))}, new sample ${(formatFixed(breakdown.rawThroughput))}, resulting smoothed metric ${(formatFixed(breakdown.nextEwma))}.`);
 };
 
 const getRouteInsertTitle = (
@@ -491,10 +458,10 @@ const getRouteInsertTitle = (
   routeChange: RoutingTableChangeDetails | null,
 ) => {
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage || routeChange) {
-    return ui.simulation.updateOriginators;
+    return "Update Originators";
   }
 
-  return ui.simulation.routeAdded;
+  return "Route Added";
 };
 
 const getRouteUpdateTitle = (
@@ -502,10 +469,10 @@ const getRouteUpdateTitle = (
   routeChange: RoutingTableChangeDetails | null,
 ) => {
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage || routeChange) {
-    return ui.simulation.updateOriginators;
+    return "Update Originators";
   }
 
-  return ui.simulation.routeUpdated;
+  return "Route Updated";
 };
 
 const getRouteRemoveTitle = (
@@ -513,16 +480,16 @@ const getRouteRemoveTitle = (
   routeChange: RoutingTableChangeDetails | null,
 ) => {
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage || routeChange) {
-    return ui.simulation.originatorRemoved;
+    return "Originator Removed";
   }
 
-  return ui.simulation.routeRemoved;
+  return "Route Removed";
 };
 
 const getRouteInsertDescription = () => {
   return (
     <>
-      {ui.simulation.routeInsertBodyPrefix} {ui.simulation.routeInsertBodySuffix}
+      {"The node created a new originator-table entry."} {"The record was accepted from a valid OGMv2, and the node stored originator and sender context for this path."}
     </>
   );
 };
@@ -530,7 +497,7 @@ const getRouteInsertDescription = () => {
 const getRouteUpdateDescription = () => {
   return (
     <>
-      {ui.simulation.routeUpdateBodyPrefix} {ui.simulation.routeUpdateBodySuffix}
+      {"The node refreshed an originator-table entry."} {"The update came from processing a valid OGMv2 for that originator, keeping sequence progress and last-seen timing fresh."}
     </>
   );
 };
@@ -554,14 +521,14 @@ export const getRouteSequenceWindowExplanation = (event: SimulationEvent) => {
     return null;
   }
 
-  return ui.simulation.sequenceWindowAnswer(message.sequence);
+  return (`Sequence Protection Window tracks accepted (message.sequence) numbers and blocks duplicates or out-of-range OGMs. The (message.sequence) number of received OGM: ${(message.sequence)}.`);
 };
 
 const getRouteRemoveDescription = (reason: string) => {
   return (
     <>
-      {ui.simulation.routeRemoveBodyPrefix} {ui.simulation.routeRemoveBodyMiddle}.{" "}
-      {ui.simulation.routeRemoveBodySuffix} {ui.simulation.routeRemoveReasonLabel(reason)}
+      {"The node removed an originator-table entry."} {"The route is no longer treated as valid"}.{" "}
+      {"B.A.T.M.A.N. V drops this record when the route becomes stale, so this next hop is no longer trusted as a valid path to that originator."} {(`Reason: ${(reason)}`)}
     </>
   );
 };
@@ -587,7 +554,7 @@ export const getPeerLabel = (peerId: UUID, peerNameById: Map<UUID, string>) => {
 };
 
 const getPeerDisplayName = (peerId: UUID, peerNameById: Map<UUID, string>) => {
-  return peerNameById.get(peerId) ?? ui.common.unknown;
+  return peerNameById.get(peerId) ?? "Unknown";
 };
 
 const isSourcePacketSendFailure = (event: SimulationEvent, message: SimulationMessage | null) => {

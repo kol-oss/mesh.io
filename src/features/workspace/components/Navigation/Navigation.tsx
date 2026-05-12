@@ -1,6 +1,5 @@
 import Entities from "../Entities/Entities";
 import Steps from "../Steps/Steps";
-import { ui } from "../../../../shared/i18n/messages";
 import { useSidebarResize } from "../../../../shared/hooks/navigation/useSidebarResize";
 import { SelectionSource } from "../../../../shared/types/enums";
 import type { NetworkEntity } from "../../../../shared/types/entities";
@@ -78,7 +77,7 @@ export default function Navigation({
           <div
             className="navigation__resizer"
             role="separator"
-            aria-label={ui.navigation.resizeSidebarAria}
+            aria-label={"Resize sidebar"}
             aria-orientation="vertical"
             onPointerDown={onResizeStart}
           />

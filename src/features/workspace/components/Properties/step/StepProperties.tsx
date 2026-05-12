@@ -1,7 +1,5 @@
 import { Activity, ChevronsRight, Clock3, ExternalLink, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
-
-import { ui } from "../../../../../shared/i18n/messages";
 import { EntityType, StepType } from "../../../../../shared/types/enums";
 import type { LinkEntity, PeerEntity } from "../../../../../shared/types/entities";
 import type {
@@ -47,9 +45,9 @@ export default function StepProperties({
   );
 
   const stepTypeOptions = [
-    { value: StepType.Move, label: ui.steps.typeMove, icon: <ChevronsRight size={12} /> },
-    { value: StepType.Message, label: ui.steps.typeMessage, icon: <Mail size={12} /> },
-    { value: StepType.ToggleStatus, label: ui.steps.typeToggle, icon: <Activity size={12} /> },
+    { value: StepType.Move, label: "Move", icon: <ChevronsRight size={12} /> },
+    { value: StepType.Message, label: "Message", icon: <Mail size={12} /> },
+    { value: StepType.ToggleStatus, label: "Toggle", icon: <Activity size={12} /> },
   ] as const;
 
   const messageSourceValue =
@@ -78,10 +76,10 @@ export default function StepProperties({
 
   const toggleTargetEntity = toggleTargets.find((entity) => entity.id === toggleTargetValue);
   const reverseStatusLabel = !toggleTargetEntity
-    ? ui.common.disabled
+    ? "Disabled"
     : toggleTargetEntity.enabled
-      ? ui.common.disabled
-      : ui.common.enabled;
+      ? "Disabled"
+      : "Enabled";
 
   const isStepNameMissing = selectedStep.title.trim() === "";
   const isStepMessageSourceMissing =
@@ -204,21 +202,21 @@ export default function StepProperties({
     <aside className="properties" style={{ width: `${widthPercent}%` }}>
       <div className="properties__resizer" onPointerDown={onResizeStart} />
       <header className="properties__header">
-        <p className="properties__title">{ui.properties.titleStep}</p>
-        <p className="properties__subtitle">{ui.properties.subtitleStep}</p>
+        <p className="properties__title">{"Step"}</p>
+        <p className="properties__subtitle">{"A discrete action in the simulation workflow, executed at a specific tick."}</p>
         <Link className="properties__read-more" to="/docs" target="_blank" rel="noreferrer">
           <ExternalLink size={12} />
-          {ui.common.readMore}
+          {"Read more"}
         </Link>
       </header>
       <section className="properties__section">
-        <p className="properties__section-title">{ui.properties.sectionConfiguration}</p>
+        <p className="properties__section-title">{"Configuration"}</p>
 
         <label className="properties__field">
           <span
             className={`properties__field-label ${isStepNameMissing ? "properties__field-label--required" : ""}`}
           >
-            {ui.properties.fieldName}
+            {"Name"}
           </span>
           <input
             className={`properties__input ${isStepNameMissing ? "properties__required-outline" : ""}`}
@@ -231,7 +229,7 @@ export default function StepProperties({
         <div className="properties__field">
           <div className="properties__inline-group">
             <label className="properties__field">
-              <span className="properties__field-label">{ui.properties.fieldType}</span>
+              <span className="properties__field-label">{"Type"}</span>
               <Select
                 allowEmpty={false}
                 value={selectedStep.type}
@@ -252,7 +250,7 @@ export default function StepProperties({
             </label>
 
             <label className="properties__field">
-              <span className="properties__field-label">{ui.properties.fieldTick}</span>
+              <span className="properties__field-label">{"Tick"}</span>
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input

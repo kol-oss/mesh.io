@@ -6,8 +6,6 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
-
-import { ui } from "../../../../shared/i18n/messages";
 import { RoutingProtocol } from "../../../../shared/types/enums";
 import type { SimulationStepResult } from "../../../../shared/types/simulation";
 import type { UUID } from "../../../../shared/types/uuid";
@@ -150,7 +148,7 @@ export default function TableInspectionWindow({
   return (
     <aside
       className={`simulation-panel simulation-panel--inspector${isDragging ? " simulation-panel--dragging" : ""}`}
-      aria-label={ui.simulation.panelAria}
+      aria-label={"Simulation event"}
       onPointerDown={handlePanelPointerDown}
       style={{ transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)` }}
     >
@@ -160,21 +158,21 @@ export default function TableInspectionWindow({
       >
         <h2 className="simulation-panel__title">
           {selectedProtocol === RoutingProtocol.DSDV
-            ? ui.simulation.tableInspectionTitleDsdv(inspectedPeer.name)
+            ? (`DSDV Structures on ${(inspectedPeer.name)}`)
             : selectedProtocol === RoutingProtocol.AODV
-              ? ui.simulation.tableInspectionTitleAodv(inspectedPeer.name)
+              ? (`AODV Structures on ${(inspectedPeer.name)}`)
               : selectedProtocol === RoutingProtocol.DSR
-                ? ui.simulation.tableInspectionTitleDsr(inspectedPeer.name)
+                ? (`DSR Structures on ${(inspectedPeer.name)}`)
                 : selectedProtocol === RoutingProtocol.OLSR
-                  ? ui.simulation.tableInspectionTitleOlsr(inspectedPeer.name)
-                  : ui.simulation.tableInspectionTitle(inspectedPeer.name)}
+                  ? (`OLSR Structures on ${(inspectedPeer.name)}`)
+                  : (`B.A.T.M.A.N. V Structures on ${(inspectedPeer.name)}`)}
         </h2>
         <button
           className="simulation-panel__close-button"
           type="button"
           onClick={onClose}
           onPointerDown={(event) => event.stopPropagation()}
-          aria-label={ui.packet.closeAria}
+          aria-label={"Close packet structure"}
         >
           <X size={14} />
         </button>
@@ -185,20 +183,20 @@ export default function TableInspectionWindow({
           <>
             {renderCollapsibleBlock(
               "batmanNeighbours",
-              ui.simulation.tableNeighbours,
+              "Neighbours Table",
               <table className="simulation-panel__table-view">
                 <thead>
                   <tr>
-                    <th>{ui.simulation.tableNeighbour}</th>
-                    <th>{ui.simulation.tableTq}</th>
-                    <th>{ui.simulation.tableLastSeen}</th>
-                    <th>{ui.simulation.summaryInterval}</th>
+                    <th>{"Neighbour"}</th>
+                    <th>{"Throughput"}</th>
+                    <th>{"Last Seen"}</th>
+                    <th>{"Interval"}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {inspectedPeer.batmanNeighboursTable.length === 0 ? (
                     <tr>
-                      <td colSpan={4}>{ui.simulation.tableNoRecords}</td>
+                      <td colSpan={4}>{"No records"}</td>
                     </tr>
                   ) : (
                     inspectedPeer.batmanNeighboursTable.map((row, index) => (
@@ -222,20 +220,20 @@ export default function TableInspectionWindow({
 
             {renderCollapsibleBlock(
               "batmanOriginators",
-              ui.simulation.tableOriginators,
+              "Originators Table",
               <table className="simulation-panel__table-view">
                 <thead>
                   <tr>
-                    <th>{ui.simulation.tableOriginator}</th>
-                    <th>{ui.simulation.tableNextHop}</th>
-                    <th>{ui.simulation.tableTq}</th>
-                    <th>{ui.simulation.tableLastSeen}</th>
+                    <th>{"Originator"}</th>
+                    <th>{"Next Hop"}</th>
+                    <th>{"Throughput"}</th>
+                    <th>{"Last Seen"}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {inspectedPeer.batmanRoutingTable.length === 0 ? (
                     <tr>
-                      <td colSpan={4}>{ui.simulation.tableNoRecords}</td>
+                      <td colSpan={4}>{"No records"}</td>
                     </tr>
                   ) : (
                     inspectedPeer.batmanRoutingTable.map((row, index) => (
@@ -266,21 +264,21 @@ export default function TableInspectionWindow({
         ) : selectedProtocol === RoutingProtocol.DSDV ? (
           renderCollapsibleBlock(
             "dsdvRoutes",
-            ui.simulation.tableDsdvRoutes,
+            "DSDV Routing Table",
             <table className="simulation-panel__table-view">
               <thead>
                 <tr>
-                  <th>{ui.simulation.tableDestination}</th>
-                  <th>{ui.simulation.tableNextHop}</th>
-                  <th>{ui.simulation.tableMetric}</th>
-                  <th>{ui.simulation.tableSequence}</th>
-                  <th>{ui.simulation.tableInstalled}</th>
+                  <th>{"Destination"}</th>
+                  <th>{"Next Hop"}</th>
+                  <th>{"Metric"}</th>
+                  <th>{"Sequence Number"}</th>
+                  <th>{"Last Update"}</th>
                 </tr>
               </thead>
               <tbody>
                 {inspectedPeer.dsdvRoutingTable.length === 0 ? (
                   <tr>
-                    <td colSpan={5}>{ui.simulation.tableNoRecords}</td>
+                    <td colSpan={5}>{"No records"}</td>
                   </tr>
                 ) : (
                   inspectedPeer.dsdvRoutingTable.map((row, index) => (
@@ -311,22 +309,22 @@ export default function TableInspectionWindow({
         ) : selectedProtocol === RoutingProtocol.AODV ? (
           renderCollapsibleBlock(
             "aodvRoutes",
-            ui.simulation.tableAodvRoutes,
+            "AODV Routing Table",
             <table className="simulation-panel__table-view">
               <thead>
                 <tr>
-                  <th>{ui.simulation.tableDestination}</th>
-                  <th>{ui.simulation.tableNextHop}</th>
-                  <th>{ui.simulation.tableMetric}</th>
-                  <th>{ui.simulation.tableSequence}</th>
-                  <th>{ui.simulation.tablePrecursors}</th>
-                  <th>{ui.simulation.tableInstalled}</th>
+                  <th>{"Destination"}</th>
+                  <th>{"Next Hop"}</th>
+                  <th>{"Metric"}</th>
+                  <th>{"Sequence Number"}</th>
+                  <th>{"Precursors"}</th>
+                  <th>{"Last Update"}</th>
                 </tr>
               </thead>
               <tbody>
                 {inspectedPeer.aodvRoutingTable.length === 0 ? (
                   <tr>
-                    <td colSpan={6}>{ui.simulation.tableNoRecords}</td>
+                    <td colSpan={6}>{"No records"}</td>
                   </tr>
                 ) : (
                   inspectedPeer.aodvRoutingTable.map((row, index) => (
@@ -349,7 +347,7 @@ export default function TableInspectionWindow({
                       <td>{row.sequenceNumber}</td>
                       <td>
                         {row.precursors.length === 0
-                          ? ui.simulation.tableNoRecords
+                          ? "No records"
                           : row.precursors
                               .map((peerId) => getPeerLabel(peerId, peerNameById))
                               .join(", ")}
@@ -364,22 +362,22 @@ export default function TableInspectionWindow({
         ) : selectedProtocol === RoutingProtocol.DSR ? (
           renderCollapsibleBlock(
             "dsrRoutes",
-            ui.simulation.tableDsrRoutes,
+            "DSR Route Cache",
             <table className="simulation-panel__table-view">
               <thead>
                 <tr>
-                  <th>{ui.simulation.tableDestination}</th>
-                  <th>{ui.simulation.tableNextHop}</th>
-                  <th>{ui.simulation.tableMetric}</th>
-                  <th>{ui.simulation.tableSequence}</th>
-                  <th>{ui.simulation.tablePath}</th>
-                  <th>{ui.simulation.tableInstalled}</th>
+                  <th>{"Destination"}</th>
+                  <th>{"Next Hop"}</th>
+                  <th>{"Metric"}</th>
+                  <th>{"Sequence Number"}</th>
+                  <th>{"Path"}</th>
+                  <th>{"Last Update"}</th>
                 </tr>
               </thead>
               <tbody>
                 {inspectedPeer.dsrRoutingTable.length === 0 ? (
                   <tr>
-                    <td colSpan={6}>{ui.simulation.tableNoRecords}</td>
+                    <td colSpan={6}>{"No records"}</td>
                   </tr>
                 ) : (
                   inspectedPeer.dsrRoutingTable.map((row, index) => (
@@ -416,19 +414,19 @@ export default function TableInspectionWindow({
           <>
             {renderCollapsibleBlock(
               "neighbours",
-              ui.simulation.tableOlsrNeighbours,
+              "Neighbor Set",
               <table className="simulation-panel__table-view">
                 <thead>
                   <tr>
-                    <th>{ui.simulation.tableNeighbour}</th>
-                    <th>{ui.simulation.tableNeighbourStatus}</th>
-                    <th>{ui.simulation.tableLastSeen}</th>
+                    <th>{"Neighbour"}</th>
+                    <th>{"Status"}</th>
+                    <th>{"Last Seen"}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {inspectedPeer.olsrNeighbourTable.length === 0 ? (
                     <tr>
-                      <td colSpan={3}>{ui.simulation.tableNoRecords}</td>
+                      <td colSpan={3}>{"No records"}</td>
                     </tr>
                   ) : (
                     inspectedPeer.olsrNeighbourTable.map((row, index) => (
@@ -451,19 +449,19 @@ export default function TableInspectionWindow({
 
             {renderCollapsibleBlock(
               "twoHop",
-              ui.simulation.tableOlsrTwoHop,
+              "2-Hop Neighbor Set",
               <table className="simulation-panel__table-view">
                 <thead>
                   <tr>
-                    <th>{ui.simulation.tableDestination}</th>
-                    <th>{ui.simulation.tableVia}</th>
-                    <th>{ui.simulation.tableInstalled}</th>
+                    <th>{"Destination"}</th>
+                    <th>{"Via"}</th>
+                    <th>{"Last Update"}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {inspectedPeer.olsrTwoHopTable.length === 0 ? (
                     <tr>
-                      <td colSpan={3}>{ui.simulation.tableNoRecords}</td>
+                      <td colSpan={3}>{"No records"}</td>
                     </tr>
                   ) : (
                     inspectedPeer.olsrTwoHopTable.map((row, index) => (
@@ -492,18 +490,18 @@ export default function TableInspectionWindow({
 
             {renderCollapsibleBlock(
               "selectors",
-              ui.simulation.tableOlsrSelectors,
+              "MPR Selector Set",
               <table className="simulation-panel__table-view">
                 <thead>
                   <tr>
-                    <th>{ui.simulation.tableSelector}</th>
-                    <th>{ui.simulation.tableInstalled}</th>
+                    <th>{"Selector"}</th>
+                    <th>{"Last Update"}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {inspectedPeer.olsrSelectorTable.length === 0 ? (
                     <tr>
-                      <td colSpan={2}>{ui.simulation.tableNoRecords}</td>
+                      <td colSpan={2}>{"No records"}</td>
                     </tr>
                   ) : (
                     inspectedPeer.olsrSelectorTable.map((row, index) => (
@@ -525,20 +523,20 @@ export default function TableInspectionWindow({
 
             {renderCollapsibleBlock(
               "topology",
-              ui.simulation.tableOlsrTopology,
+              "OLSR Topology Table",
               <table className="simulation-panel__table-view">
                 <thead>
                   <tr>
-                    <th>{ui.simulation.tableDestination}</th>
-                    <th>{ui.simulation.tableLastHop}</th>
-                    <th>{ui.simulation.tableAnsn}</th>
-                    <th>{ui.simulation.tableInstalled}</th>
+                    <th>{"Destination"}</th>
+                    <th>{"Last Hop"}</th>
+                    <th>{"ANSN"}</th>
+                    <th>{"Last Update"}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {inspectedPeer.olsrTopologyTable.length === 0 ? (
                     <tr>
-                      <td colSpan={4}>{ui.simulation.tableNoRecords}</td>
+                      <td colSpan={4}>{"No records"}</td>
                     </tr>
                   ) : (
                     inspectedPeer.olsrTopologyTable.map((row, index) => (
@@ -568,21 +566,21 @@ export default function TableInspectionWindow({
 
             {renderCollapsibleBlock(
               "routes",
-              ui.simulation.tableOlsrRoutes,
+              "OLSR Routing Table",
               <table className="simulation-panel__table-view">
                 <thead>
                   <tr>
-                    <th>{ui.simulation.tableDestination}</th>
-                    <th>{ui.simulation.tableNextHop}</th>
-                    <th>{ui.simulation.tableMetric}</th>
-                    <th>{ui.simulation.tableAnsn}</th>
-                    <th>{ui.simulation.tableInstalled}</th>
+                    <th>{"Destination"}</th>
+                    <th>{"Next Hop"}</th>
+                    <th>{"Metric"}</th>
+                    <th>{"ANSN"}</th>
+                    <th>{"Last Update"}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {inspectedPeer.olsrRoutingTable.length === 0 ? (
                     <tr>
-                      <td colSpan={5}>{ui.simulation.tableNoRecords}</td>
+                      <td colSpan={5}>{"No records"}</td>
                     </tr>
                   ) : (
                     inspectedPeer.olsrRoutingTable.map((row, index) => (
@@ -632,7 +630,7 @@ export default function TableInspectionWindow({
           rel="noreferrer"
         >
           <ExternalLink size={12} />
-          {ui.simulation.packetStructureReadMore}
+          {"Read more"}
         </a>
       </footer>
     </aside>

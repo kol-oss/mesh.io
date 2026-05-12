@@ -15,9 +15,7 @@ import type { WorkspaceTextItem } from "../../../shared/types/workspace";
 import type {
   WorkspaceCreationCallbacks,
   WorkspaceCreationSetters,
-} from "../../../shared/types/workspace/creation";
-import { ui } from "../../../shared/i18n/messages";
-import { generateUUID, type UUID } from "../../../shared/types/uuid";
+} from "../../../shared/types/workspace/creation";import { generateUUID, type UUID } from "../../../shared/types/uuid";
 import { isRefreshStep } from "../../../shared/utils/navigation/refreshSteps";
 
 import { BATMAN_DEFAULT_CONFIGURATION } from "../../../shared/constants/batman.ts";
@@ -44,7 +42,7 @@ export function useWorkspaceCreation({
     (x: number, y: number) => {
       const nextPeer: PeerEntity = {
         id: generateUUID(),
-        name: ui.entities.typePeer,
+        name: "Peer",
         type: EntityType.Peer,
         locked: false,
         x,
@@ -60,7 +58,7 @@ export function useWorkspaceCreation({
 
       setters.setEntities([...entities, nextPeer]);
       callbacks.onEntitySelect(nextPeer.id);
-      callbacks.showCreationToast(ui.entities.toastAdded(nextPeer.name));
+      callbacks.showCreationToast((`Entity "${(nextPeer.name)}" added`));
     },
     [callbacks, entities, setters],
   );
@@ -69,7 +67,7 @@ export function useWorkspaceCreation({
     (x: number, y: number) => {
       const nextObstacle: ObstacleEntity = {
         id: generateUUID(),
-        name: ui.entities.typeObstacle,
+        name: "Obstacle",
         type: EntityType.Obstacle,
         locked: false,
         x,
@@ -80,7 +78,7 @@ export function useWorkspaceCreation({
 
       setters.setEntities([...entities, nextObstacle]);
       callbacks.onEntitySelect(nextObstacle.id);
-      callbacks.showCreationToast(ui.entities.toastAdded(nextObstacle.name));
+      callbacks.showCreationToast((`Entity "${(nextObstacle.name)}" added`));
     },
     [callbacks, entities, setters],
   );
@@ -89,7 +87,7 @@ export function useWorkspaceCreation({
     (sourcePeerId: UUID, destinationPeerId: UUID) => {
       const nextLink: LinkEntity = {
         id: generateUUID(),
-        name: ui.entities.typeLink,
+        name: "Link",
         type: EntityType.Link,
         locked: false,
         sourcePeerId,
@@ -99,7 +97,7 @@ export function useWorkspaceCreation({
 
       setters.setEntities([...entities, nextLink]);
       callbacks.onEntitySelect(nextLink.id);
-      callbacks.showCreationToast(ui.entities.toastAdded(nextLink.name));
+      callbacks.showCreationToast((`Entity "${(nextLink.name)}" added`));
     },
     [callbacks, entities, setters],
   );
@@ -108,7 +106,7 @@ export function useWorkspaceCreation({
     (step: ManualWorkflowStep) => {
       setters.setSteps([...steps, step]);
       callbacks.onStepSelect(step.id);
-      callbacks.showCreationToast(ui.steps.toastAdded(step.title));
+      callbacks.showCreationToast((`Step "${(step.title)}" added`));
     },
     [callbacks, setters, steps],
   );
@@ -126,7 +124,7 @@ export function useWorkspaceCreation({
     (sourcePeerId: UUID, destinationPeerId: UUID) => {
       const step: MessageStep = {
         id: generateUUID(),
-        title: ui.steps.typeMessage,
+        title: "Message",
         type: StepType.Message,
         tick: getNextManualStepTick(),
         sourcePeerId,
@@ -142,7 +140,7 @@ export function useWorkspaceCreation({
     (movePeerId: UUID, x: number, y: number) => {
       const step: MoveStep = {
         id: generateUUID(),
-        title: ui.steps.typeMove,
+        title: "Move",
         type: StepType.Move,
         tick: getNextManualStepTick(),
         movePeerId,
@@ -159,7 +157,7 @@ export function useWorkspaceCreation({
     (targetEntityId: UUID) => {
       const step: ToggleStatusStep = {
         id: generateUUID(),
-        title: ui.steps.typeToggle,
+        title: "Toggle",
         type: StepType.ToggleStatus,
         tick: getNextManualStepTick(),
         targetEntityId,
@@ -174,13 +172,13 @@ export function useWorkspaceCreation({
     (x: number, y: number) => {
       const nextText: WorkspaceTextItem = {
         id: generateUUID(),
-        text: ui.workspace.createdText,
+        text: "Text",
         x,
         y,
       };
 
       setters.setTexts([...texts, nextText]);
-      callbacks.showCreationToast(ui.workspace.toastTextAdded);
+      callbacks.showCreationToast("Text added");
     },
     [callbacks, setters, texts],
   );
