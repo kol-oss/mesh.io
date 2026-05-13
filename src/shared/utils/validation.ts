@@ -275,28 +275,7 @@ export const parseWorkspaceImportPayload = (raw: string): WorkspaceImportPayload
     };
   }
 
-  if (!Array.isArray(parsed.entities) || !parsed.entities.every(isValidNetworkEntity)) {
-    throw new Error("Invalid entities list in file.");
-  }
-
-  if (!Array.isArray(parsed.steps) || !parsed.steps.every(isValidWorkflowStep)) {
-    throw new Error("Invalid steps list in file.");
-  }
-
-  return {
-    peers: parsed.entities.filter(
-      (entity): entity is PeerEntity => entity.type === EntityType.Peer,
-    ),
-    links: parsed.entities.filter(
-      (entity): entity is LinkEntity => entity.type === EntityType.Link,
-    ),
-    obstacles: parsed.entities.filter(
-      (entity): entity is ObstacleEntity => entity.type === EntityType.Obstacle,
-    ),
-    steps: parsed.steps,
-    texts: [],
-    display: {},
-  };
+  throw new Error("Invalid workspace format. Expected peers, links, obstacles, and steps arrays.");
 };
 
 export const getWorkspaceExportFileName = (date = new Date()) => {

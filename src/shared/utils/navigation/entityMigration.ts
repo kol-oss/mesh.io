@@ -10,6 +10,7 @@ import type {
 import type { NetworkEntity } from "@/shared/types/model/entities";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { generateUUID } from "@/shared/types/common/uuid";
+import { sanitizePeerEntity } from "@/shared/utils/entities/sanitizers";
 
 export const peerDefaults = {
   x: 300,
@@ -42,15 +43,6 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
 const normalizePeerProtocol = (value: unknown): RoutingProtocol => {
   if (typeof value === "string" && validProtocols.includes(value as RoutingProtocol)) {
     return value as RoutingProtocol;
-  }
-
-  if (Array.isArray(value)) {
-    const firstValidProtocol = value.find((item): item is RoutingProtocol =>
-      validProtocols.includes(item as RoutingProtocol),
-    );
-    if (firstValidProtocol) {
-      return firstValidProtocol;
-    }
   }
 
   return peerDefaults.protocol;
@@ -144,45 +136,24 @@ const normalizeOlsrConfiguration = (value: unknown) => {
   };
 };
 
-const normalizeLegacyConfiguration = (
-  entity: Record<string, unknown>,
+const normalizePeerConfiguration = (
+  value: unknown,
   protocol: RoutingProtocol,
 ): PeerConfiguration => {
-  const sourceConfiguration = isRecord(entity.configuration) ? entity.configuration : entity;
-
   if (protocol === RoutingProtocol.BATMAN) {
-    return normalizeBatmanConfiguration({
-      distancePenaltyDistance:
-        sourceConfiguration.distancePenaltyDistance ?? entity.batmanDistancePenaltyDistance,
-      distancePenaltyPercent:
-        sourceConfiguration.distancePenaltyPercent ?? entity.batmanDistancePenaltyPercent,
-      elpInterval: sourceConfiguration.elpInterval ?? entity.batmanElpInterval,
-      ogmInterval: sourceConfiguration.ogmInterval ?? entity.batmanOgmInterval,
-      purgeTimeout: sourceConfiguration.purgeTimeout ?? entity.batmanPurgeTimeout,
-    });
+    return normalizeBatmanConfiguration(value);
   }
 
   if (protocol === RoutingProtocol.DSDV) {
-    return normalizeDsdvConfiguration({
-      incrementalUpdateInterval:
-        sourceConfiguration.incrementalUpdateInterval ?? entity.dsdvIncrementalUpdateInterval,
-      fullDumpInterval: sourceConfiguration.fullDumpInterval ?? entity.dsdvFullDumpInterval,
-      routeTimeout: sourceConfiguration.routeTimeout ?? entity.dsdvRouteTimeout,
-    });
+    return normalizeDsdvConfiguration(value);
   }
 
   if (protocol === RoutingProtocol.AODV) {
-    return normalizeAodvConfiguration({
-      helloInterval: sourceConfiguration.helloInterval ?? entity.aodvHelloInterval,
-      routeTimeout: sourceConfiguration.routeTimeout ?? entity.aodvRouteTimeout,
-    });
+    return normalizeAodvConfiguration(value);
   }
 
   if (protocol === RoutingProtocol.OLSR) {
-    return normalizeOlsrConfiguration({
-      helloInterval: sourceConfiguration.helloInterval ?? entity.olsrHelloInterval,
-      tcInterval: sourceConfiguration.tcInterval ?? entity.olsrTcInterval,
-    });
+    return normalizeOlsrConfiguration(value);
   }
 
   return {} as Record<string, never>;
@@ -235,14 +206,9 @@ const hasObstacleDefaults = (entity: NetworkEntity) => {
 
 export const migrateEntities = (entities: NetworkEntity[]): NetworkEntity[] | null => {
   const requiresMigration = entities.some((entity) => {
-    const normalizedType = (entity as NetworkEntity | { type: string }).type;
     const hasId = "id" in entity;
     return (
-      normalizedType === "ROUTER" ||
-      !hasPeerDefaults(entity) ||
-      !hasLinkDefaults(entity) ||
-      !hasObstacleDefaults(entity) ||
-      !hasId
+      !hasPeerDefaults(entity) || !hasLinkDefaults(entity) || !hasObstacleDefaults(entity) || !hasId
     );
   });
 
@@ -252,19 +218,10 @@ export const migrateEntities = (entities: NetworkEntity[]): NetworkEntity[] | nu
 
   return entities.map((entity) => {
     const entityRecord = entity as unknown as Record<string, unknown>;
-    const normalizedType = entityRecord.type;
     const baseEntity = {
       ...entity,
       id: "id" in entity ? entity.id : generateUUID(),
     };
-
-    if (normalizedType === "ROUTER") {
-      return {
-        ...baseEntity,
-        type: EntityType.Peer,
-        ...peerDefaults,
-      };
-    }
 
     if (entity.type !== EntityType.Peer) {
       if (entity.type === EntityType.Link) {
@@ -297,14 +254,14 @@ export const migrateEntities = (entities: NetworkEntity[]): NetworkEntity[] | nu
       return baseEntity as NetworkEntity;
     }
 
-    const protocol = normalizePeerProtocol(entityRecord.protocol ?? entityRecord.protocols);
+    const protocol = normalizePeerProtocol(entityRecord.protocol);
 
-    return {
+    return sanitizePeerEntity({
       ...peerDefaults,
       ...baseEntity,
       type: EntityType.Peer,
       protocol,
-      configuration: normalizeLegacyConfiguration(entityRecord, protocol),
-    };
+      configuration: normalizePeerConfiguration(entityRecord.configuration, protocol),
+    });
   });
 };
