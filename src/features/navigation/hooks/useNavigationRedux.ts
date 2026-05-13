@@ -4,10 +4,12 @@ import { clearLinks, replaceLinks } from "@/shared/store/slices/linkSlice";
 import { clearObstacles, replaceObstacles } from "@/shared/store/slices/obstacleSlice";
 import { clearPeers, replacePeers } from "@/shared/store/slices/peerSlice";
 import { clearSteps, replaceSteps } from "@/shared/store/slices/stepSlice";
-import { clearTexts } from "@/shared/store/slices/textSlice";
+import { clearTexts, replaceTexts } from "@/shared/store/slices/textSlice";
 import {
   TABS,
+  clearState,
   setOpenedTab,
+  replaceDisplay,
   setRefreshHidden,
   setSelectedId,
   toggleNavCollapsed,
@@ -54,6 +56,8 @@ export const useNavigationRedux = () => {
   const links = useAppSelector((state) => state.link);
   const obstacles = useAppSelector((state) => state.obstacle);
   const manualSteps = useAppSelector((state) => state.step);
+  const texts = useAppSelector((state) => state.text);
+  const display = useAppSelector((state) => state.display);
   const selectedId = useAppSelector((state) => state.display.selectedId);
   const openedTabs = useAppSelector((state) => state.display.openedTabs);
   const isRefreshHidden = useAppSelector((state) => state.display.refreshHidden);
@@ -182,13 +186,17 @@ export const useNavigationRedux = () => {
 
   const handleExportWorkspace = useCallback(() => {
     const payload: WorkspaceImportPayload = {
-      entities,
-      steps: sanitizeManualSteps(steps),
+      peers,
+      links,
+      obstacles,
+      steps: sanitizeManualSteps(manualSteps),
+      texts,
+      display,
     };
 
     downloadWorkspacePayload(payload);
     showToast("Workspace exported as JSON");
-  }, [entities, showToast, steps]);
+  }, [display, links, manualSteps, obstacles, peers, showToast, texts]);
 
   const handleImportWorkspace = useCallback(
     async (file: File) => {
@@ -203,29 +211,13 @@ export const useNavigationRedux = () => {
           return;
         }
 
-        dispatch(
-          replacePeers(
-            payload.entities.filter(
-              (entity): entity is PeerEntity => entity.type === EntityType.Peer,
-            ),
-          ),
-        );
-        dispatch(
-          replaceLinks(
-            payload.entities.filter(
-              (entity): entity is LinkEntity => entity.type === EntityType.Link,
-            ),
-          ),
-        );
-        dispatch(
-          replaceObstacles(
-            payload.entities.filter(
-              (entity): entity is ObstacleEntity => entity.type === EntityType.Obstacle,
-            ),
-          ),
-        );
+        dispatch(replacePeers(payload.peers));
+        dispatch(replaceLinks(payload.links));
+        dispatch(replaceObstacles(payload.obstacles));
         dispatch(replaceSteps(sanitizeManualSteps(payload.steps)));
-        dispatch(setSelectedId(null));
+        dispatch(replaceTexts(payload.texts));
+        dispatch(clearState());
+        dispatch(replaceDisplay(payload.display));
         showToast("Workspace imported successfully");
       } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to import workspace";

@@ -3,7 +3,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
 import {
   TABS,
+  clearState,
   setOpenedTab,
+  replaceDisplay,
   setRefreshHidden,
   setSelectedId,
   toggleNavCollapsed,
@@ -102,6 +104,7 @@ export function useWorkspaceStore() {
   const dispatch = useAppDispatch();
   const simulationRunLockRef = useRef(false);
   const [placementMode, setPlacementMode] = useState<ToolbarPlacementMode>(null);
+  const display = useAppSelector((state) => state.display);
   const selectedId = useAppSelector((state) => state.display.selectedId);
   const openedTabs = useAppSelector((state) => state.display.openedTabs);
   const isRefreshHidden = useAppSelector((state) => state.display.refreshHidden);
@@ -336,13 +339,17 @@ export function useWorkspaceStore() {
 
   const handleExportWorkspace = useCallback(() => {
     const payload: WorkspaceImportPayload = {
-      entities,
+      peers: rawPeers,
+      links: rawLinks,
+      obstacles: rawObstacles,
       steps: sanitizeManualSteps(manualSteps),
+      texts,
+      display,
     };
 
     downloadWorkspacePayload(payload);
     showToast("Workspace exported as JSON");
-  }, [entities, manualSteps, showToast]);
+  }, [display, manualSteps, rawLinks, rawObstacles, rawPeers, showToast, texts]);
 
   const handleImportWorkspace = useCallback(
     async (file: File) => {
@@ -358,26 +365,20 @@ export function useWorkspaceStore() {
         }
 
         invalidateSimulation();
-        dispatch(
-          replacePeers(payload.entities.filter((e): e is PeerEntity => e.type === EntityType.Peer)),
-        );
-        dispatch(
-          replaceLinks(payload.entities.filter((e): e is LinkEntity => e.type === EntityType.Link)),
-        );
-        dispatch(
-          replaceObstacles(
-            payload.entities.filter((e): e is ObstacleEntity => e.type === EntityType.Obstacle),
-          ),
-        );
+        dispatch(replacePeers(payload.peers));
+        dispatch(replaceLinks(payload.links));
+        dispatch(replaceObstacles(payload.obstacles));
         dispatch(replaceSteps(sanitizeManualSteps(payload.steps)));
-        clearSelection();
+        dispatch(replaceTexts(payload.texts));
+        dispatch(clearState());
+        dispatch(replaceDisplay(payload.display));
         showToast("Workspace imported successfully");
       } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to import workspace";
         showToast(message);
       }
     },
-    [clearSelection, dispatch, invalidateSimulation, showToast],
+    [dispatch, invalidateSimulation, showToast],
   );
 
   const focusSimulationStep = useCallback(

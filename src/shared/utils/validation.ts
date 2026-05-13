@@ -1,12 +1,25 @@
 import { peerRoutingProtocols, workflowStepTypes } from "@/shared/constants/protocol";
+import { ActionGroup, ActionMode, type ActionModesByGroup } from "@/shared/types/action";
 import { EntityType } from "@/shared/types/model/entities";
-import type { NetworkEntity } from "@/shared/types/model/entities";
+import type {
+  LinkEntity,
+  NetworkEntity,
+  ObstacleEntity,
+  PeerEntity,
+} from "@/shared/types/model/entities";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { RefreshAction, StepType, type WorkflowStep } from "@/shared/types/model/steps";
+import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
+import type { DisplayState } from "@/shared/store/slices/displaySlice";
+import { TABS } from "@/shared/store/slices/displaySlice";
 
 export type WorkspaceImportPayload = {
-  entities: NetworkEntity[];
+  peers: PeerEntity[];
+  links: LinkEntity[];
+  obstacles: ObstacleEntity[];
   steps: WorkflowStep[];
+  texts: WorkspaceTextItem[];
+  display: Partial<DisplayState>;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
@@ -19,6 +32,10 @@ const isFiniteNumber = (value: unknown): value is number => {
 
 const isNullableString = (value: unknown): value is string | null => {
   return typeof value === "string" || value === null;
+};
+
+const isBoolean = (value: unknown): value is boolean => {
+  return typeof value === "boolean";
 };
 
 const isValidProtocol = (value: unknown): value is RoutingProtocol => {
@@ -115,6 +132,66 @@ const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
   return false;
 };
 
+const isValidWorkspaceText = (value: unknown): value is WorkspaceTextItem => {
+  return (
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.text === "string" &&
+    isFiniteNumber(value.x) &&
+    isFiniteNumber(value.y)
+  );
+};
+
+const isValidOpenedTabs = (
+  value: unknown,
+): value is DisplayState["openedTabs"] | Partial<DisplayState["openedTabs"]> => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    (!(TABS.ENTITIES in value) || isBoolean(value[TABS.ENTITIES])) &&
+    (!(TABS.STEPS in value) || isBoolean(value[TABS.STEPS]))
+  );
+};
+
+const isValidToolbarModesByGroup = (
+  value: unknown,
+): value is ActionModesByGroup | Partial<ActionModesByGroup> => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const allowedModesByGroup: Record<ActionGroup, ActionMode[]> = {
+    [ActionGroup.Navigation]: [ActionMode.NavigationMove],
+    [ActionGroup.Entities]: [ActionMode.Peer, ActionMode.Link, ActionMode.Obstacle],
+    [ActionGroup.Steps]: [ActionMode.Message, ActionMode.Move, ActionMode.Toggle],
+    [ActionGroup.Inspection]: [ActionMode.RoutingTable, ActionMode.PacketStructure],
+    [ActionGroup.Text]: [ActionMode.Text],
+  };
+
+  return Object.entries(allowedModesByGroup).every(([group, allowedModes]) => {
+    const mode = value[group];
+    return mode === undefined || allowedModes.includes(mode as ActionMode);
+  });
+};
+
+const isValidDisplayState = (value: unknown): value is Partial<DisplayState> => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    (!("selectedId" in value) || isNullableString(value.selectedId)) &&
+    (!("openedTabs" in value) || isValidOpenedTabs(value.openedTabs)) &&
+    (!("refreshHidden" in value) || isBoolean(value.refreshHidden)) &&
+    (!("navCollapsed" in value) || isBoolean(value.navCollapsed)) &&
+    (!("selectedToolbarGroup" in value) ||
+      Object.values(ActionGroup).includes(value.selectedToolbarGroup as ActionGroup)) &&
+    (!("toolbarModesByGroup" in value) || isValidToolbarModesByGroup(value.toolbarModesByGroup))
+  );
+};
+
 const isValidWorkflowStep = (value: unknown): value is WorkflowStep => {
   if (!isRecord(value)) {
     return false;
@@ -170,6 +247,34 @@ export const parseWorkspaceImportPayload = (raw: string): WorkspaceImportPayload
     throw new Error("File must contain a JSON object.");
   }
 
+  if (
+    Array.isArray(parsed.peers) &&
+    parsed.peers.every(isValidNetworkEntity) &&
+    parsed.peers.every((entity): entity is PeerEntity => entity.type === EntityType.Peer) &&
+    Array.isArray(parsed.links) &&
+    parsed.links.every(isValidNetworkEntity) &&
+    parsed.links.every((entity): entity is LinkEntity => entity.type === EntityType.Link) &&
+    Array.isArray(parsed.obstacles) &&
+    parsed.obstacles.every(isValidNetworkEntity) &&
+    parsed.obstacles.every(
+      (entity): entity is ObstacleEntity => entity.type === EntityType.Obstacle,
+    ) &&
+    Array.isArray(parsed.steps) &&
+    parsed.steps.every(isValidWorkflowStep) &&
+    (!("texts" in parsed) ||
+      (Array.isArray(parsed.texts) && parsed.texts.every(isValidWorkspaceText))) &&
+    (!("display" in parsed) || isValidDisplayState(parsed.display))
+  ) {
+    return {
+      peers: parsed.peers,
+      links: parsed.links,
+      obstacles: parsed.obstacles,
+      steps: parsed.steps,
+      texts: Array.isArray(parsed.texts) ? parsed.texts : [],
+      display: isRecord(parsed.display) ? parsed.display : {},
+    };
+  }
+
   if (!Array.isArray(parsed.entities) || !parsed.entities.every(isValidNetworkEntity)) {
     throw new Error("Invalid entities list in file.");
   }
@@ -179,8 +284,18 @@ export const parseWorkspaceImportPayload = (raw: string): WorkspaceImportPayload
   }
 
   return {
-    entities: parsed.entities,
+    peers: parsed.entities.filter(
+      (entity): entity is PeerEntity => entity.type === EntityType.Peer,
+    ),
+    links: parsed.entities.filter(
+      (entity): entity is LinkEntity => entity.type === EntityType.Link,
+    ),
+    obstacles: parsed.entities.filter(
+      (entity): entity is ObstacleEntity => entity.type === EntityType.Obstacle,
+    ),
     steps: parsed.steps,
+    texts: [],
+    display: {},
   };
 };
 

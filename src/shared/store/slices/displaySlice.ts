@@ -120,6 +120,23 @@ const displaySlice = createSlice({
           break;
       }
     },
+    replaceDisplay(state, action: PayloadAction<Partial<DisplayState>>) {
+      const nextState = action.payload;
+
+      state.selectedId = nextState.selectedId ?? EMPTY_DISPLAY.selectedId;
+      state.openedTabs = {
+        ...EMPTY_DISPLAY.openedTabs,
+        ...(nextState.openedTabs ?? {}),
+      };
+      state.refreshHidden = nextState.refreshHidden ?? EMPTY_DISPLAY.refreshHidden;
+      state.navCollapsed = nextState.navCollapsed ?? EMPTY_DISPLAY.navCollapsed;
+      state.selectedToolbarGroup =
+        nextState.selectedToolbarGroup ?? EMPTY_DISPLAY.selectedToolbarGroup;
+      state.toolbarModesByGroup = {
+        ...EMPTY_DISPLAY.toolbarModesByGroup,
+        ...(nextState.toolbarModesByGroup ?? {}),
+      };
+    },
     clearState(state) {
       state.selectedId = EMPTY_DISPLAY.selectedId;
       state.openedTabs = { ...EMPTY_DISPLAY.openedTabs };
@@ -139,6 +156,7 @@ export const {
   toggleNavCollapsed,
   setSelectedToolbarGroup,
   setToolbarModeForGroup,
+  replaceDisplay,
   clearState,
 } = displaySlice.actions;
 export default displaySlice.reducer;
