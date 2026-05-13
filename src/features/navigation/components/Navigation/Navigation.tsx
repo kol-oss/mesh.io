@@ -4,8 +4,13 @@ import Title from "@/features/navigation/components/Title/Title";
 import Menu from "@/features/navigation/components/Menu/Menu";
 import { useSidebarResize } from "@/shared/hooks/useSidebarResize";
 import { useNavigationRedux } from "@/features/navigation/hooks/useNavigationRedux";
+import type { SimulationStepResult } from "@/shared/types/model/simulation";
 
-export default function Navigation() {
+type NavigationProps = {
+  currentSimulationStepResult: SimulationStepResult | null;
+};
+
+export default function Navigation({ currentSimulationStepResult }: NavigationProps) {
   const { isCollapsed } = useNavigationRedux();
   const { widthPercent, onResizeStart } = useSidebarResize();
 
@@ -20,7 +25,7 @@ export default function Navigation() {
           <Menu />
           <div className="navigation__lists">
             <EntityList />
-            <StepList />
+            <StepList currentSimulationStepResult={currentSimulationStepResult} />
           </div>
           <div
             className="navigation__resizer"

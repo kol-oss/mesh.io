@@ -27,7 +27,11 @@ import {
   parseWorkspaceImportPayload,
   type WorkspaceImportPayload,
 } from "@/shared/utils/validation";
-import { normalizeManualSteps, sanitizeManualSteps } from "@/shared/utils/navigation/refreshSteps";
+import {
+  composeStepsWithRefresh,
+  normalizeManualSteps,
+  sanitizeManualSteps,
+} from "@/shared/utils/navigation/refreshSteps";
 import type { UUID } from "@/shared/types/common/uuid";
 
 const downloadWorkspacePayload = (payload: WorkspaceImportPayload) => {
@@ -49,7 +53,7 @@ export const useNavigationRedux = () => {
   const peers = useAppSelector((state) => state.peer);
   const links = useAppSelector((state) => state.link);
   const obstacles = useAppSelector((state) => state.obstacle);
-  const steps = useAppSelector((state) => state.step);
+  const manualSteps = useAppSelector((state) => state.step);
   const selectedId = useAppSelector((state) => state.display.selectedId);
   const openedTabs = useAppSelector((state) => state.display.openedTabs);
   const isRefreshHidden = useAppSelector((state) => state.display.refreshHidden);
@@ -58,6 +62,11 @@ export const useNavigationRedux = () => {
   const entities = useMemo<NetworkEntity[]>(() => {
     return [...peers, ...links, ...obstacles];
   }, [links, obstacles, peers]);
+
+  const steps = useMemo(
+    () => composeStepsWithRefresh(normalizeManualSteps(manualSteps), entities),
+    [entities, manualSteps],
+  );
 
   const selectedSource = useMemo(() => {
     if (!selectedId) {
@@ -153,7 +162,7 @@ export const useNavigationRedux = () => {
   );
 
   const handleNewWorkspace = useCallback(() => {
-    const hasData = entities.length > 0 || steps.length > 0;
+    const hasData = entities.length > 0 || manualSteps.length > 0;
 
     if (
       hasData &&
@@ -169,7 +178,7 @@ export const useNavigationRedux = () => {
     dispatch(clearTexts());
     dispatch(setSelectedId(null));
     showToast("Started a new simulation");
-  }, [dispatch, entities.length, showToast, steps.length]);
+  }, [dispatch, entities.length, manualSteps.length, showToast]);
 
   const handleExportWorkspace = useCallback(() => {
     const payload: WorkspaceImportPayload = {

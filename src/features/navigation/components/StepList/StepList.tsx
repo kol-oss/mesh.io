@@ -11,9 +11,16 @@ import { Activity, ChevronRight, ChevronsRight, Eye, EyeOff, Mail, Plus } from "
 import { createPortal } from "react-dom";
 import { useListReorder } from "@/shared/hooks/useListReorder";
 import { useToast } from "@/shared/toast/useToast";
+import type { SimulationStepResult } from "@/shared/types/model/simulation";
 import { StepType } from "@/shared/types/model/steps";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
-import type { MessageStep, MoveStep, ToggleStep, WorkflowStep } from "@/shared/types/model/steps";
+import type {
+  MessageStep,
+  MoveStep,
+  RefreshStep,
+  ToggleStep,
+  WorkflowStep,
+} from "@/shared/types/model/steps";
 import { generateUUID } from "@/shared/types/common/uuid";
 import { migrateSteps } from "@/shared/utils/navigation/stepMigration";
 import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
@@ -21,7 +28,37 @@ import Tooltip from "@/shared/components/Tooltip/Tooltip";
 import { useNavigationRedux } from "@/features/navigation/hooks/useNavigationRedux";
 import StepRecord from "../StepRecord/StepRecord";
 
-export default function StepList() {
+type StepListProps = {
+  currentSimulationStepResult: SimulationStepResult | null;
+};
+
+const isSameRefreshStep = (left: RefreshStep, right: RefreshStep) => {
+  return (
+    left.tick === right.tick &&
+    left.refreshPeerId === right.refreshPeerId &&
+    left.refreshProtocol === right.refreshProtocol &&
+    left.refreshAction === right.refreshAction &&
+    left.refreshStartTick === right.refreshStartTick &&
+    left.refreshInterval === right.refreshInterval
+  );
+};
+
+const isSelectedStep = (step: WorkflowStep, selectedStep: WorkflowStep | null) => {
+  if (!selectedStep) {
+    return false;
+  }
+
+  const stepIsRefresh = isRefreshStep(step);
+  const selectedIsRefresh = isRefreshStep(selectedStep);
+
+  if (stepIsRefresh || selectedIsRefresh) {
+    return stepIsRefresh && selectedIsRefresh && isSameRefreshStep(step, selectedStep);
+  }
+
+  return step.id === selectedStep.id;
+};
+
+export default function StepList({ currentSimulationStepResult }: StepListProps) {
   const {
     steps,
     setSteps,
@@ -35,6 +72,7 @@ export default function StepList() {
     onClearSelection,
   } = useNavigationRedux();
   const selectedStepId = selectedSource === SelectionSource.Steps ? selectedId : null;
+  const currentSimulationStep = currentSimulationStepResult?.step ?? null;
 
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
   const [addMenuPosition, setAddMenuPosition] = useState<{ top: number; left: number } | null>(
@@ -313,7 +351,11 @@ export default function StepList() {
               )}
               <StepRecord
                 step={step}
-                isSelected={selectedStepId === step.id}
+                isSelected={
+                  currentSimulationStep
+                    ? isSelectedStep(step, currentSimulationStep)
+                    : selectedStepId === step.id
+                }
                 isDragging={dragIndex === index}
                 onSelect={() => {
                   if (suppressNextClickRef.current) {
