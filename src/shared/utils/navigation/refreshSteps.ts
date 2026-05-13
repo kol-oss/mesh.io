@@ -1,5 +1,3 @@
-import { v5 as uuidv5 } from "uuid";
-
 import { EntityType, RoutingProtocol, StepType } from "../../types/enums";
 import type { NetworkEntity, PeerEntity } from "../../types/entities";
 import {
@@ -16,18 +14,7 @@ import {
   type ToggleStatusStep,
   type WorkflowStep,
 } from "../../types/steps";
-import type { UUID } from "../../types/uuid";
-
-const REFRESH_STEP_NAMESPACE = "7d6cc0ce-3ed4-4296-a40d-0a59f04dcf3b";
-
-const createRefreshStepId = (
-  peerId: UUID,
-  tick: number,
-  protocol: RoutingProtocol,
-  action: RefreshAction,
-) => {
-  return uuidv5(`${peerId}:${tick}:${protocol}:${action}`, REFRESH_STEP_NAMESPACE) as UUID;
-};
+import { generateUUID } from "../../types/uuid";
 
 export const isRefreshStep = (step: WorkflowStep): step is RefreshStep => isRefreshStepType(step);
 
@@ -99,7 +86,7 @@ const buildRefreshStepsForPeer = (
     const ogmInterval = Math.max(1, Math.floor(peer.batmanOgmInterval));
     const elpSteps = buildBatmanRefreshTicks(manualSteps, peer, maxTick, elpInterval).map(
       ({ tick, startTick }) => ({
-        id: createRefreshStepId(peer.id, tick, RoutingProtocol.BATMAN, RefreshAction.BatmanElp),
+        id: generateUUID(),
         title: `ELP Refresh on ${peer.name}`,
         tick: Math.max(0, Math.floor(tick)),
         type: StepType.Refresh,
@@ -113,7 +100,7 @@ const buildRefreshStepsForPeer = (
     );
     const ogmSteps = buildBatmanRefreshTicks(manualSteps, peer, maxTick, ogmInterval).map(
       ({ tick, startTick }) => ({
-        id: createRefreshStepId(peer.id, tick, RoutingProtocol.BATMAN, RefreshAction.BatmanOgm),
+        id: generateUUID(),
         title: `OGM Broadcast on ${peer.name}`,
         tick: Math.max(0, Math.floor(tick)),
         type: StepType.Refresh,
@@ -135,7 +122,7 @@ const buildRefreshStepsForPeer = (
 
     const fullDumpSteps = buildBatmanRefreshTicks(manualSteps, peer, maxTick, fullDumpInterval).map(
       ({ tick, startTick }) => ({
-        id: createRefreshStepId(peer.id, tick, RoutingProtocol.DSDV, RefreshAction.DsdvFullDump),
+        id: generateUUID(),
         title: `DSDV Full Dump on ${peer.name}`,
         tick: Math.max(0, Math.floor(tick)),
         type: StepType.Refresh,
@@ -154,7 +141,7 @@ const buildRefreshStepsForPeer = (
       maxTick,
       incrementalInterval,
     ).map(({ tick, startTick }) => ({
-      id: createRefreshStepId(peer.id, tick, RoutingProtocol.DSDV, RefreshAction.DsdvIncremental),
+      id: generateUUID(),
       title: `DSDV Incremental Update on ${peer.name}`,
       tick: Math.max(0, Math.floor(tick)),
       type: StepType.Refresh,
@@ -174,7 +161,7 @@ const buildRefreshStepsForPeer = (
 
     const helloSteps = buildBatmanRefreshTicks(manualSteps, peer, maxTick, helloInterval).map(
       ({ tick, startTick }) => ({
-        id: createRefreshStepId(peer.id, tick, RoutingProtocol.AODV, RefreshAction.AodvHello),
+        id: generateUUID(),
         title: `AODV HELLO on ${peer.name}`,
         tick: Math.max(0, Math.floor(tick)),
         type: StepType.Refresh,
@@ -196,7 +183,7 @@ const buildRefreshStepsForPeer = (
 
     const helloSteps = buildBatmanRefreshTicks(manualSteps, peer, maxTick, helloInterval).map(
       ({ tick, startTick }) => ({
-        id: createRefreshStepId(peer.id, tick, RoutingProtocol.OLSR, RefreshAction.OlsrHello),
+        id: generateUUID(),
         title: `OLSR HELLO on ${peer.name}`,
         tick: Math.max(0, Math.floor(tick)),
         type: StepType.Refresh,
@@ -211,7 +198,7 @@ const buildRefreshStepsForPeer = (
 
     const tcSteps = buildBatmanRefreshTicks(manualSteps, peer, maxTick, tcInterval).map(
       ({ tick, startTick }) => ({
-        id: createRefreshStepId(peer.id, tick, RoutingProtocol.OLSR, RefreshAction.OlsrTc),
+        id: generateUUID(),
         title: `OLSR TC on ${peer.name}`,
         tick: Math.max(0, Math.floor(tick)),
         type: StepType.Refresh,
