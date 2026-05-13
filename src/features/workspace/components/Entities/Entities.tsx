@@ -10,9 +10,7 @@ import {
 import { ChevronRight, Link, Plus, Radio, SquareSlash } from "lucide-react";
 import { createPortal } from "react-dom";
 
-import { storageKeys } from "../../../../shared/constants/storage";
 import { useListReorder } from "../../../../shared/hooks/useListReorder";
-import { useLocalStorage } from "../../../../shared/hooks/storage/useLocalStorage";
 import { useToast } from "../../../../shared/toast/useToast";
 import { EntityType } from "../../../../shared/types/enums";
 import type { NetworkEntity } from "../../../../shared/types/entities";
@@ -29,6 +27,8 @@ type EntitiesProps = {
   entities: NetworkEntity[];
   setEntities: (value: NetworkEntity[]) => void;
   selectedId: UUID | null;
+  isOpened: boolean;
+  onOpenedChange: (opened: boolean) => void;
   onSelect: (id: UUID) => void;
   onClearSelection: () => void;
 };
@@ -37,10 +37,11 @@ export default function Entities({
   entities,
   setEntities,
   selectedId,
+  isOpened,
+  onOpenedChange,
   onSelect,
   onClearSelection,
 }: EntitiesProps) {
-  const [isOpened, setIsOpened] = useLocalStorage<boolean>(storageKeys.entitiesOpened, false);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
   const [addMenuPosition, setAddMenuPosition] = useState<{ top: number; left: number } | null>(
     null,
@@ -70,7 +71,7 @@ export default function Entities({
     if (!selectedId) return;
     const entity = entities.find((e) => e.id === selectedId);
     if (entity?.locked) {
-      showToast((`Entity "${(entity.name)}" is locked`));
+      showToast(`Entity "${entity.name}" is locked`);
       return;
     }
     const index = entities.findIndex((e) => e.id === selectedId);
@@ -124,7 +125,7 @@ export default function Entities({
     return () => window.removeEventListener("mousedown", onWindowMouseDown);
   }, [isAddMenuOpen]);
 
-  const toggleOpen = () => setIsOpened(!isOpened);
+  const toggleOpen = () => onOpenedChange(!isOpened);
 
   const handleHeaderKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Enter" && event.key !== " ") {
@@ -138,7 +139,7 @@ export default function Entities({
   const handleAddEntityClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     if (!isOpened) {
-      setIsOpened(true);
+      onOpenedChange(true);
     }
 
     const triggerRect = addButtonRef.current?.getBoundingClientRect();
@@ -185,7 +186,7 @@ export default function Entities({
     setEntities(updatedEntities);
     onSelect(newEntity.id);
     setIsAddMenuOpen(false);
-    showToast((`Entity "${(newEntity.name)}" added`));
+    showToast(`Entity "${newEntity.name}" added`);
   };
 
   return (

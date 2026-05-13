@@ -89,7 +89,7 @@ export const TooltipPlacement = {
 
 export type TooltipPlacement = (typeof TooltipPlacement)[keyof typeof TooltipPlacement];
 
-export const ToolbarGroupId = {
+export const ToolbarGroup = {
   Navigation: "navigation",
   Entities: SelectionSource.Entities,
   Steps: SelectionSource.Steps,
@@ -97,7 +97,7 @@ export const ToolbarGroupId = {
   Text: PlacementMode.Text,
 } as const;
 
-export type ToolbarGroupId = (typeof ToolbarGroupId)[keyof typeof ToolbarGroupId];
+export type ToolbarGroup = (typeof ToolbarGroup)[keyof typeof ToolbarGroup];
 
 export const ToolbarMode = {
   NavigationMove: "navigationMove",

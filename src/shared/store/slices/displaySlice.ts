@@ -1,6 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { storageKeys } from "../../constants/storage";
-import { PlacementMode, ToolbarGroupId, ToolbarMode } from "../../types/enums";
+import { PlacementMode, ToolbarGroup, ToolbarMode } from "../../types/enums";
 import type { UUID } from "../../types/uuid";
 import { DISPLAY_STORAGE_KEY } from "../constants";
 import { loadState } from "../utils/storeUtils";
@@ -11,34 +10,39 @@ export const TABS = {
 } as const;
 
 export type ToolbarModesByGroup = {
-  [ToolbarGroupId.Navigation]: typeof ToolbarMode.NavigationMove;
-  [ToolbarGroupId.Entities]:
+  [ToolbarGroup.Navigation]: typeof ToolbarMode.NavigationMove;
+  [ToolbarGroup.Entities]:
     | typeof PlacementMode.Peer
     | typeof PlacementMode.Link
     | typeof PlacementMode.Obstacle;
-  [ToolbarGroupId.Steps]:
+  [ToolbarGroup.Steps]:
     | typeof PlacementMode.Message
     | typeof PlacementMode.Move
     | typeof PlacementMode.Toggle;
-  [ToolbarGroupId.Inspection]: typeof ToolbarMode.RoutingTable | typeof ToolbarMode.PacketStructure;
-  [ToolbarGroupId.Text]: typeof PlacementMode.Text;
+  [ToolbarGroup.Inspection]: typeof ToolbarMode.RoutingTable | typeof ToolbarMode.PacketStructure;
+  [ToolbarGroup.Text]: typeof PlacementMode.Text;
 };
 
 export type ToolbarToolMode = ToolbarModesByGroup[keyof ToolbarModesByGroup];
 
 export const DEFAULT_TOOLBAR_MODES_BY_GROUP: ToolbarModesByGroup = {
-  [ToolbarGroupId.Navigation]: ToolbarMode.NavigationMove,
-  [ToolbarGroupId.Entities]: PlacementMode.Peer,
-  [ToolbarGroupId.Steps]: PlacementMode.Message,
-  [ToolbarGroupId.Inspection]: ToolbarMode.RoutingTable,
-  [ToolbarGroupId.Text]: PlacementMode.Text,
+  [ToolbarGroup.Navigation]: ToolbarMode.NavigationMove,
+  [ToolbarGroup.Entities]: PlacementMode.Peer,
+  [ToolbarGroup.Steps]: PlacementMode.Message,
+  [ToolbarGroup.Inspection]: ToolbarMode.RoutingTable,
+  [ToolbarGroup.Text]: PlacementMode.Text,
 };
 
-export const DEFAULT_SELECTED_TOOLBAR_GROUP: ToolbarGroupId = ToolbarGroupId.Navigation;
+export const DEFAULT_SELECTED_TOOLBAR_GROUP: ToolbarGroup = ToolbarGroup.Navigation;
 
-type ToolbarModeUpdatePayload = {
-  groupId: ToolbarGroupId;
+type SetToolbarModePayload = {
+  groupId: ToolbarGroup;
   mode: ToolbarToolMode;
+};
+
+type SetOpenedTabPayload = {
+  tab: keyof DisplayState["openedTabs"];
+  opened: boolean;
 };
 
 export interface DisplayState {
@@ -48,7 +52,7 @@ export interface DisplayState {
     [TABS.STEPS]: boolean;
   };
   refreshHidden: boolean;
-  selectedToolbarGroup: ToolbarGroupId;
+  selectedToolbarGroup: ToolbarGroup;
   toolbarModesByGroup: ToolbarModesByGroup;
 }
 
@@ -67,9 +71,9 @@ const isObject = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null;
 };
 
-const normalizeSelectedToolbarGroup = (value: unknown): ToolbarGroupId => {
-  if (Object.values(ToolbarGroupId).includes(value as ToolbarGroupId)) {
-    return value as ToolbarGroupId;
+const normalizeSelectedToolbarGroup = (value: unknown): ToolbarGroup => {
+  if (Object.values(ToolbarGroup).includes(value as ToolbarGroup)) {
+    return value as ToolbarGroup;
   }
 
   return DEFAULT_SELECTED_TOOLBAR_GROUP;
@@ -78,52 +82,35 @@ const normalizeSelectedToolbarGroup = (value: unknown): ToolbarGroupId => {
 const normalizeToolbarModesByGroup = (value: unknown): ToolbarModesByGroup => {
   const source = isObject(value) ? value : {};
 
-  const entitiesMode = source[ToolbarGroupId.Entities];
-  const stepsMode = source[ToolbarGroupId.Steps];
-  const inspectionMode = source[ToolbarGroupId.Inspection];
+  const entitiesMode = source[ToolbarGroup.Entities];
+  const stepsMode = source[ToolbarGroup.Steps];
+  const inspectionMode = source[ToolbarGroup.Inspection];
 
   return {
-    [ToolbarGroupId.Navigation]: ToolbarMode.NavigationMove,
-    [ToolbarGroupId.Entities]:
+    [ToolbarGroup.Navigation]: ToolbarMode.NavigationMove,
+    [ToolbarGroup.Entities]:
       entitiesMode === PlacementMode.Link || entitiesMode === PlacementMode.Obstacle
         ? entitiesMode
         : PlacementMode.Peer,
-    [ToolbarGroupId.Steps]:
+    [ToolbarGroup.Steps]:
       stepsMode === PlacementMode.Move || stepsMode === PlacementMode.Toggle
         ? stepsMode
         : PlacementMode.Message,
-    [ToolbarGroupId.Inspection]:
+    [ToolbarGroup.Inspection]:
       inspectionMode === ToolbarMode.PacketStructure
         ? ToolbarMode.PacketStructure
         : ToolbarMode.RoutingTable,
-    [ToolbarGroupId.Text]: PlacementMode.Text,
+    [ToolbarGroup.Text]: PlacementMode.Text,
   };
 };
 
 const loadInitialDisplayState = (): DisplayState => {
   const persisted = loadState<Partial<DisplayState>>(DISPLAY_STORAGE_KEY, {});
 
-  const legacySelectedToolbarGroup = loadState<unknown>(
-    storageKeys.toolbarSelectedGroup,
-    DEFAULT_SELECTED_TOOLBAR_GROUP,
-  );
-
-  const legacyToolbarModesByGroup = loadState<unknown>(
-    storageKeys.toolbarModesByGroup,
-    DEFAULT_TOOLBAR_MODES_BY_GROUP,
-  );
-
   const openedTabs = {
     ...EMPTY_DISPLAY.openedTabs,
     ...(isObject(persisted.openedTabs) ? persisted.openedTabs : {}),
   };
-
-  try {
-    localStorage.removeItem(storageKeys.toolbarSelectedGroup);
-    localStorage.removeItem(storageKeys.toolbarModesByGroup);
-  } catch {
-    // Ignore storage write errors (e.g. private mode quota exceeded)
-  }
 
   return {
     ...EMPTY_DISPLAY,
@@ -131,12 +118,8 @@ const loadInitialDisplayState = (): DisplayState => {
     selectedId: persisted.selectedId ?? EMPTY_DISPLAY.selectedId,
     openedTabs,
     refreshHidden: persisted.refreshHidden ?? EMPTY_DISPLAY.refreshHidden,
-    selectedToolbarGroup: normalizeSelectedToolbarGroup(
-      persisted.selectedToolbarGroup ?? legacySelectedToolbarGroup,
-    ),
-    toolbarModesByGroup: normalizeToolbarModesByGroup(
-      persisted.toolbarModesByGroup ?? legacyToolbarModesByGroup,
-    ),
+    selectedToolbarGroup: normalizeSelectedToolbarGroup(persisted.selectedToolbarGroup),
+    toolbarModesByGroup: normalizeToolbarModesByGroup(persisted.toolbarModesByGroup),
   };
 };
 
@@ -146,48 +129,50 @@ const displaySlice = createSlice({
   name: "display",
   initialState,
   reducers: {
-    setState(state, action: PayloadAction<DisplayState>) {
-      state.selectedId = action.payload.selectedId;
-      state.openedTabs = action.payload.openedTabs;
-      state.refreshHidden = action.payload.refreshHidden;
-      state.selectedToolbarGroup = action.payload.selectedToolbarGroup;
-      state.toolbarModesByGroup = action.payload.toolbarModesByGroup;
+    setSelectedId(state, action: PayloadAction<UUID | null>) {
+      state.selectedId = action.payload;
     },
-    setSelectedToolbarGroup(state, action: PayloadAction<ToolbarGroupId>) {
+    setOpenedTab(state, action: PayloadAction<SetOpenedTabPayload>) {
+      state.openedTabs[action.payload.tab] = action.payload.opened;
+    },
+    setRefreshHidden(state, action: PayloadAction<boolean>) {
+      state.refreshHidden = action.payload;
+    },
+    setSelectedToolbarGroup(state, action: PayloadAction<ToolbarGroup>) {
       state.selectedToolbarGroup = action.payload;
     },
-    setToolbarModeForGroup(state, action: PayloadAction<ToolbarModeUpdatePayload>) {
+    setToolbarModeForGroup(state, action: PayloadAction<SetToolbarModePayload>) {
       const { groupId, mode } = action.payload;
 
       switch (groupId) {
-        case ToolbarGroupId.Navigation:
-          state.toolbarModesByGroup[ToolbarGroupId.Navigation] = ToolbarMode.NavigationMove;
+        case ToolbarGroup.Navigation:
+          state.toolbarModesByGroup[ToolbarGroup.Navigation] = ToolbarMode.NavigationMove;
           break;
-        case ToolbarGroupId.Entities:
+        case ToolbarGroup.Entities:
           if (
             mode === PlacementMode.Peer ||
             mode === PlacementMode.Link ||
             mode === PlacementMode.Obstacle
           ) {
-            state.toolbarModesByGroup[ToolbarGroupId.Entities] = mode;
+            state.toolbarModesByGroup[ToolbarGroup.Entities] = mode;
           }
           break;
-        case ToolbarGroupId.Steps:
+        case ToolbarGroup.Steps:
           if (
             mode === PlacementMode.Message ||
             mode === PlacementMode.Move ||
             mode === PlacementMode.Toggle
           ) {
-            state.toolbarModesByGroup[ToolbarGroupId.Steps] = mode;
+            state.toolbarModesByGroup[ToolbarGroup.Steps] = mode;
           }
           break;
-        case ToolbarGroupId.Inspection:
+        case ToolbarGroup.Inspection:
           if (mode === ToolbarMode.RoutingTable || mode === ToolbarMode.PacketStructure) {
-            state.toolbarModesByGroup[ToolbarGroupId.Inspection] = mode;
+            state.toolbarModesByGroup[ToolbarGroup.Inspection] = mode;
           }
           break;
-        case ToolbarGroupId.Text:
-          state.toolbarModesByGroup[ToolbarGroupId.Text] = PlacementMode.Text;
+        case ToolbarGroup.Text:
+          state.toolbarModesByGroup[ToolbarGroup.Text] = PlacementMode.Text;
           break;
       }
     },
@@ -201,6 +186,12 @@ const displaySlice = createSlice({
   },
 });
 
-export const { setState, setSelectedToolbarGroup, setToolbarModeForGroup, clearState } =
-  displaySlice.actions;
+export const {
+  setSelectedId,
+  setOpenedTab,
+  setRefreshHidden,
+  setSelectedToolbarGroup,
+  setToolbarModeForGroup,
+  clearState,
+} = displaySlice.actions;
 export default displaySlice.reducer;

@@ -29,7 +29,7 @@ import {
 import {
   PlacementMode,
   ToolbarActionKey,
-  ToolbarGroupId,
+  ToolbarGroup,
   ToolbarMode,
   TooltipPlacement,
 } from "../../../../shared/types/enums";
@@ -46,7 +46,7 @@ type ModeButton = {
 };
 
 type ModeGroup = {
-  id: ToolbarGroupId;
+  id: ToolbarGroup;
   items: ModeButton[];
   defaultKey: ToolMode;
   hasMenu: boolean;
@@ -75,13 +75,13 @@ const getModeIconClassName = (mode: ToolMode) => {
 
 const MODE_GROUPS: ModeGroup[] = [
   {
-    id: ToolbarGroupId.Navigation,
+    id: ToolbarGroup.Navigation,
     defaultKey: ToolbarMode.NavigationMove,
     hasMenu: true,
     items: [{ key: ToolbarMode.NavigationMove, label: "Move", icon: MousePointer2 }],
   },
   {
-    id: ToolbarGroupId.Entities,
+    id: ToolbarGroup.Entities,
     defaultKey: PlacementMode.Peer,
     hasMenu: true,
     items: [
@@ -91,7 +91,7 @@ const MODE_GROUPS: ModeGroup[] = [
     ],
   },
   {
-    id: ToolbarGroupId.Steps,
+    id: ToolbarGroup.Steps,
     defaultKey: PlacementMode.Message,
     hasMenu: true,
     items: [
@@ -101,7 +101,7 @@ const MODE_GROUPS: ModeGroup[] = [
     ],
   },
   {
-    id: ToolbarGroupId.Inspection,
+    id: ToolbarGroup.Inspection,
     defaultKey: ToolbarMode.RoutingTable,
     hasMenu: true,
     items: [
@@ -120,7 +120,7 @@ const MODE_GROUPS: ModeGroup[] = [
     ],
   },
   {
-    id: ToolbarGroupId.Text,
+    id: ToolbarGroup.Text,
     defaultKey: PlacementMode.Text,
     hasMenu: false,
     items: [{ key: PlacementMode.Text, label: "Text", icon: Type }],
@@ -143,12 +143,12 @@ const ACTIONS: ActionButton[] = [
   },
 ];
 
-const TOOLBAR_GROUP_LABELS: Record<ToolbarGroupId, string> = {
-  [ToolbarGroupId.Navigation]: "Navigation",
-  [ToolbarGroupId.Entities]: "Entities",
-  [ToolbarGroupId.Steps]: "Steps",
-  [ToolbarGroupId.Inspection]: "Inspection",
-  [ToolbarGroupId.Text]: "Text",
+const TOOLBAR_GROUP_LABELS: Record<ToolbarGroup, string> = {
+  [ToolbarGroup.Navigation]: "Navigation",
+  [ToolbarGroup.Entities]: "Entities",
+  [ToolbarGroup.Steps]: "Steps",
+  [ToolbarGroup.Inspection]: "Inspection",
+  [ToolbarGroup.Text]: "Text",
 };
 
 type ToolbarProps = {
@@ -190,14 +190,14 @@ export default function Toolbar({
 
   useEffect(() => {
     if (isSimulationActive && !previousSimulationActiveRef.current) {
-      if (selectedGroupId === ToolbarGroupId.Entities || selectedGroupId === ToolbarGroupId.Steps) {
-        setSelectedGroupId(ToolbarGroupId.Navigation);
+      if (selectedGroupId === ToolbarGroup.Entities || selectedGroupId === ToolbarGroup.Steps) {
+        setSelectedGroupId(ToolbarGroup.Navigation);
       }
     }
 
     if (!isSimulationActive && previousSimulationActiveRef.current) {
-      if (selectedGroupId === ToolbarGroupId.Inspection) {
-        setSelectedGroupId(ToolbarGroupId.Navigation);
+      if (selectedGroupId === ToolbarGroup.Inspection) {
+        setSelectedGroupId(ToolbarGroup.Navigation);
       }
     }
 
@@ -234,9 +234,9 @@ export default function Toolbar({
     : DEFAULT_SELECTED_TOOLBAR_GROUP;
   const effectiveSelectedGroupId =
     isSimulationActive &&
-    (normalizedSelectedGroupId === ToolbarGroupId.Entities ||
-      normalizedSelectedGroupId === ToolbarGroupId.Steps)
-      ? ToolbarGroupId.Navigation
+    (normalizedSelectedGroupId === ToolbarGroup.Entities ||
+      normalizedSelectedGroupId === ToolbarGroup.Steps)
+      ? ToolbarGroup.Navigation
       : normalizedSelectedGroupId;
 
   useEffect(() => {
@@ -244,17 +244,17 @@ export default function Toolbar({
     const stepsMode = activeItemsByGroup.steps.key;
     const textMode = activeItemsByGroup.text.key;
     const nextPlacementMode: ToolbarPlacementMode =
-      effectiveSelectedGroupId === ToolbarGroupId.Entities &&
+      effectiveSelectedGroupId === ToolbarGroup.Entities &&
       (entitiesMode === PlacementMode.Peer ||
         entitiesMode === PlacementMode.Link ||
         entitiesMode === PlacementMode.Obstacle)
         ? entitiesMode
-        : effectiveSelectedGroupId === ToolbarGroupId.Steps &&
+        : effectiveSelectedGroupId === ToolbarGroup.Steps &&
             (stepsMode === PlacementMode.Message ||
               stepsMode === PlacementMode.Move ||
               stepsMode === PlacementMode.Toggle)
           ? stepsMode
-          : effectiveSelectedGroupId === ToolbarGroupId.Text && textMode === PlacementMode.Text
+          : effectiveSelectedGroupId === ToolbarGroup.Text && textMode === PlacementMode.Text
             ? PlacementMode.Text
             : null;
 
@@ -262,7 +262,7 @@ export default function Toolbar({
   }, [activeItemsByGroup, effectiveSelectedGroupId, onPlacementModeChange]);
 
   useEffect(() => {
-    if (effectiveSelectedGroupId !== ToolbarGroupId.Inspection) {
+    if (effectiveSelectedGroupId !== ToolbarGroup.Inspection) {
       onInspectionModeChange(ToolbarMode.NavigationMove);
       return;
     }
@@ -286,11 +286,9 @@ export default function Toolbar({
           const groupIsSelected = effectiveSelectedGroupId === group.id;
           const groupIsDisabled =
             isSimulationActive &&
-            (group.id === ToolbarGroupId.Entities || group.id === ToolbarGroupId.Steps);
+            (group.id === ToolbarGroup.Entities || group.id === ToolbarGroup.Steps);
           const itemIsLocked =
-            group.id === ToolbarGroupId.Inspection
-              ? !isSimulationActive
-              : activeItem.locked === true;
+            group.id === ToolbarGroup.Inspection ? !isSimulationActive : activeItem.locked === true;
           const canSelectActiveItem = !groupIsDisabled && !itemIsLocked;
 
           if (!group.hasMenu) {
@@ -332,7 +330,7 @@ export default function Toolbar({
                       if (canSelectActiveItem) {
                         setGroupMode(group.id, activeItem.key);
                         setSelectedGroupId(group.id);
-                        if (group.id === ToolbarGroupId.Inspection) {
+                        if (group.id === ToolbarGroup.Inspection) {
                           onInspectionModeChange(activeItem.key as ToolbarMode);
                         }
                       }
@@ -374,7 +372,7 @@ export default function Toolbar({
                       const Icon = item.icon;
                       const isActive = activeItemsByGroup[group.id].key === item.key;
                       const optionIsLocked =
-                        group.id === ToolbarGroupId.Inspection
+                        group.id === ToolbarGroup.Inspection
                           ? !isSimulationActive
                           : item.locked === true;
 
@@ -391,7 +389,7 @@ export default function Toolbar({
                             }
                             setGroupMode(group.id, item.key);
                             setSelectedGroupId(group.id);
-                            if (group.id === ToolbarGroupId.Inspection) {
+                            if (group.id === ToolbarGroup.Inspection) {
                               onInspectionModeChange(item.key as ToolbarMode);
                             }
                             setOpenedMenuGroup(null);

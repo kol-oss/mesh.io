@@ -10,12 +10,15 @@ import {
 import { Activity, ChevronRight, ChevronsRight, Eye, EyeOff, Mail, Plus } from "lucide-react";
 import { createPortal } from "react-dom";
 
-import { storageKeys } from "../../../../shared/constants/storage";
 import { useListReorder } from "../../../../shared/hooks/useListReorder";
-import { useLocalStorage } from "../../../../shared/hooks/storage/useLocalStorage";
 import { useToast } from "../../../../shared/toast/useToast";
 import { StepType } from "../../../../shared/types/enums";
-import type { MessageStep, MoveStep, ToggleStatusStep, WorkflowStep } from "../../../../shared/types/steps";
+import type {
+  MessageStep,
+  MoveStep,
+  ToggleStatusStep,
+  WorkflowStep,
+} from "../../../../shared/types/steps";
 import { generateUUID, type UUID } from "../../../../shared/types/uuid";
 import { migrateSteps } from "../../../../shared/utils/navigation/stepMigration";
 import { isRefreshStep } from "../../../../shared/utils/navigation/refreshSteps";
@@ -26,6 +29,10 @@ type StepsProps = {
   steps: WorkflowStep[];
   setSteps: (value: WorkflowStep[]) => void;
   selectedId: UUID | null;
+  isOpened: boolean;
+  onOpenedChange: (opened: boolean) => void;
+  isRefreshHidden: boolean;
+  onRefreshHiddenChange: (hidden: boolean) => void;
   onSelect: (id: UUID) => void;
   onClearSelection: () => void;
 };
@@ -34,15 +41,14 @@ export default function Steps({
   steps,
   setSteps,
   selectedId,
+  isOpened,
+  onOpenedChange,
+  isRefreshHidden,
+  onRefreshHiddenChange,
   onSelect,
   onClearSelection,
 }: StepsProps) {
-  const [isOpened, setIsOpened] = useLocalStorage<boolean>(storageKeys.stepsOpened, false);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
-  const [isRefreshHidden, setIsRefreshHidden] = useLocalStorage<boolean>(
-    storageKeys.stepsRefreshHidden,
-    false,
-  );
   const [addMenuPosition, setAddMenuPosition] = useState<{ top: number; left: number } | null>(
     null,
   );
@@ -102,7 +108,7 @@ export default function Steps({
     const stepToDelete = visibleSteps[index];
     const updatedSteps = visibleSteps.filter((s) => s.id !== selectedId);
     setSteps(updatedSteps);
-    showToast((`Step "${(stepToDelete?.title ?? "")}" deleted`));
+    showToast(`Step "${stepToDelete?.title ?? ""}" deleted`);
     const nextStep = updatedSteps[index] ?? updatedSteps[index - 1];
     if (nextStep) {
       onSelect(nextStep.id);
@@ -153,7 +159,7 @@ export default function Steps({
     return () => window.removeEventListener("mousedown", onWindowMouseDown);
   }, [isAddMenuOpen]);
 
-  const toggleOpen = () => setIsOpened(!isOpened);
+  const toggleOpen = () => onOpenedChange(!isOpened);
 
   const handleHeaderKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Enter" && event.key !== " ") {
@@ -167,7 +173,7 @@ export default function Steps({
   const handleAddStepClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     if (!isOpened) {
-      setIsOpened(true);
+      onOpenedChange(true);
     }
 
     const triggerRect = addButtonRef.current?.getBoundingClientRect();
@@ -217,7 +223,7 @@ export default function Steps({
     setSteps(updatedSteps);
     onSelect(newStep.id);
     setIsAddMenuOpen(false);
-    showToast((`Step "${(newStep.title)}" added`));
+    showToast(`Step "${newStep.title}" added`);
   };
 
   return (
@@ -243,7 +249,7 @@ export default function Steps({
               className="navigation__steps-add"
               onClick={(event) => {
                 event.stopPropagation();
-                setIsRefreshHidden(!isRefreshHidden);
+                onRefreshHiddenChange(!isRefreshHidden);
               }}
               type="button"
               aria-label={isRefreshHidden ? "Show routing steps" : "Hide routing steps"}

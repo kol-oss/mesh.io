@@ -25,6 +25,11 @@ export default function Workspace() {
     simulationInspectionMode,
     selectedId,
     selectedSource,
+    openedTabs,
+    isRefreshHidden,
+    setEntitiesOpened,
+    setStepsOpened,
+    setStepsRefreshHidden,
     setEntities,
     setSteps,
     setTexts,
@@ -59,6 +64,12 @@ export default function Workspace() {
           onEntitySelect={handleEntitySelect}
           onStepSelect={handleStepSelect}
           onClearSelection={clearSelection}
+          entitiesOpened={openedTabs.entities}
+          onEntitiesOpenedChange={setEntitiesOpened}
+          stepsOpened={openedTabs.steps}
+          onStepsOpenedChange={setStepsOpened}
+          stepsRefreshHidden={isRefreshHidden}
+          onStepsRefreshHiddenChange={setStepsRefreshHidden}
           onFileNew={handleNewWorkspace}
           onFileExport={handleExportWorkspace}
           onFileImport={handleImportWorkspace}

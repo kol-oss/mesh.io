@@ -18,6 +18,12 @@ type NavigationProps = {
   onEntitySelect: (id: UUID) => void;
   onStepSelect: (id: UUID) => void;
   onClearSelection: () => void;
+  entitiesOpened: boolean;
+  onEntitiesOpenedChange: (opened: boolean) => void;
+  stepsOpened: boolean;
+  onStepsOpenedChange: (opened: boolean) => void;
+  stepsRefreshHidden: boolean;
+  onStepsRefreshHiddenChange: (hidden: boolean) => void;
   onFileNew: () => void;
   onFileExport: () => void;
   onFileImport: (file: File) => void | Promise<void>;
@@ -35,6 +41,12 @@ export default function Navigation({
   onEntitySelect,
   onStepSelect,
   onClearSelection,
+  entitiesOpened,
+  onEntitiesOpenedChange,
+  stepsOpened,
+  onStepsOpenedChange,
+  stepsRefreshHidden,
+  onStepsRefreshHiddenChange,
   onFileNew,
   onFileExport,
   onFileImport,
@@ -63,6 +75,8 @@ export default function Navigation({
               entities={entities}
               setEntities={setEntities}
               selectedId={selectedSource === SelectionSource.Entities ? selectedId : null}
+              isOpened={entitiesOpened}
+              onOpenedChange={onEntitiesOpenedChange}
               onSelect={onEntitySelect}
               onClearSelection={onClearSelection}
             />
@@ -70,6 +84,10 @@ export default function Navigation({
               steps={steps}
               setSteps={setSteps}
               selectedId={selectedSource === SelectionSource.Steps ? selectedId : null}
+              isOpened={stepsOpened}
+              onOpenedChange={onStepsOpenedChange}
+              isRefreshHidden={stepsRefreshHidden}
+              onRefreshHiddenChange={onStepsRefreshHiddenChange}
               onSelect={onStepSelect}
               onClearSelection={onClearSelection}
             />

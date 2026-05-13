@@ -2,9 +2,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { storageKeys } from "../../../shared/constants/storage";
 import { useLocalStorage } from "../../../shared/hooks/storage/useLocalStorage";
+import { useAppDispatch, useAppSelector } from "../../../shared/store/hooks";
+import {
+  TABS,
+  setOpenedTab,
+  setRefreshHidden,
+  setSelectedId,
+} from "../../../shared/store/slices/displaySlice";
 import { useToast } from "../../../shared/toast/useToast";
 import { runSimulation } from "../../../shared/simulation/processor/simulation";
-import { PlacementMode, RoutingProtocol, SelectionSource, ToolbarMode } from "../../../shared/types/enums";
+import {
+  PlacementMode,
+  RoutingProtocol,
+  SelectionSource,
+  ToolbarMode,
+} from "../../../shared/types/enums";
 import type { NetworkEntity } from "../../../shared/types/entities";
 import {
   SimulationEventType,
@@ -80,13 +92,12 @@ const collapseOriginatorInsertUpdateEvents = (events: SimulationEvent[]) => {
 
 export function useWorkspaceStore() {
   const { showToast } = useToast();
+  const dispatch = useAppDispatch();
   const simulationRunLockRef = useRef(false);
   const [placementMode, setPlacementMode] = useState<ToolbarPlacementMode>(null);
-  const [selectedId, setSelectedId] = useLocalStorage<UUID | null>(storageKeys.selectedId, null);
-  const [selectedSource, setSelectedSource] = useLocalStorage<SelectionSource | null>(
-    storageKeys.selectedSource,
-    null,
-  );
+  const selectedId = useAppSelector((state) => state.display.selectedId);
+  const openedTabs = useAppSelector((state) => state.display.openedTabs);
+  const isRefreshHidden = useAppSelector((state) => state.display.refreshHidden);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
 
   const [rawEntities, setRawEntities] = useLocalStorage<NetworkEntity[]>(storageKeys.entities, []);
@@ -120,6 +131,50 @@ export function useWorkspaceStore() {
     [normalizedManualSteps, entities],
   );
 
+  const selectedSource = useMemo<SelectionSource | null>(() => {
+    if (!selectedId) {
+      return null;
+    }
+
+    if (entities.some((entity) => entity.id === selectedId)) {
+      return SelectionSource.Entities;
+    }
+
+    if (steps.some((step) => step.id === selectedId)) {
+      return SelectionSource.Steps;
+    }
+
+    return null;
+  }, [entities, selectedId, steps]);
+
+  const setDisplaySelectedId = useCallback(
+    (id: UUID | null) => {
+      dispatch(setSelectedId(id));
+    },
+    [dispatch],
+  );
+
+  const setEntitiesOpened = useCallback(
+    (opened: boolean) => {
+      dispatch(setOpenedTab({ tab: TABS.ENTITIES, opened }));
+    },
+    [dispatch],
+  );
+
+  const setStepsOpened = useCallback(
+    (opened: boolean) => {
+      dispatch(setOpenedTab({ tab: TABS.STEPS, opened }));
+    },
+    [dispatch],
+  );
+
+  const setStepsRefreshHidden = useCallback(
+    (hidden: boolean) => {
+      dispatch(setRefreshHidden(hidden));
+    },
+    [dispatch],
+  );
+
   useEffect(() => {
     if (normalizedManualSteps.length !== manualSteps.length) {
       setManualSteps(normalizedManualSteps);
@@ -150,9 +205,8 @@ export function useWorkspaceStore() {
   );
 
   const clearSelection = useCallback(() => {
-    setSelectedId(null);
-    setSelectedSource(null);
-  }, [setSelectedId, setSelectedSource]);
+    setDisplaySelectedId(null);
+  }, [setDisplaySelectedId]);
 
   const toggleNavCollapse = useCallback(() => {
     setIsNavCollapsed((prev) => !prev);
@@ -165,18 +219,16 @@ export function useWorkspaceStore() {
         return;
       }
 
-      setSelectedId(id);
-      setSelectedSource(SelectionSource.Entities);
+      setDisplaySelectedId(id);
     },
-    [clearSelection, selectedId, selectedSource, setSelectedId, setSelectedSource],
+    [clearSelection, selectedId, selectedSource, setDisplaySelectedId],
   );
 
   const handleWorkspaceEntitySelect = useCallback(
     (id: UUID) => {
-      setSelectedId(id);
-      setSelectedSource(SelectionSource.Entities);
+      setDisplaySelectedId(id);
     },
-    [setSelectedId, setSelectedSource],
+    [setDisplaySelectedId],
   );
 
   const handleWorkspaceStepSelect = useCallback(
@@ -200,10 +252,9 @@ export function useWorkspaceStore() {
         };
       });
 
-      setSelectedId(id);
-      setSelectedSource(SelectionSource.Steps);
+      setDisplaySelectedId(id);
     },
-    [setSelectedId, setSelectedSource],
+    [setDisplaySelectedId],
   );
 
   const handleStepSelect = useCallback(
@@ -232,10 +283,9 @@ export function useWorkspaceStore() {
         };
       });
 
-      setSelectedId(id);
-      setSelectedSource(SelectionSource.Steps);
+      setDisplaySelectedId(id);
     },
-    [clearSelection, selectedId, selectedSource, setSelectedId, setSelectedSource],
+    [clearSelection, selectedId, selectedSource, setDisplaySelectedId],
   );
 
   const handlePlacementModeChange = useCallback((mode: ToolbarPlacementMode) => {
@@ -245,7 +295,10 @@ export function useWorkspaceStore() {
   const handleNewWorkspace = useCallback(() => {
     const hasData = entities.length > 0 || manualSteps.length > 0;
 
-    if (hasData && !window.confirm("This action will clear all current entities and steps. Continue?")) {
+    if (
+      hasData &&
+      !window.confirm("This action will clear all current entities and steps. Continue?")
+    ) {
       return;
     }
 
@@ -282,7 +335,9 @@ export function useWorkspaceStore() {
         const raw = await file.text();
         const payload = parseWorkspaceImportPayload(raw);
 
-        const confirmed = window.confirm("Import action will clear the current environment and replace it with data from the file. Continue?");
+        const confirmed = window.confirm(
+          "Import action will clear the current environment and replace it with data from the file. Continue?",
+        );
         if (!confirmed) {
           return;
         }
@@ -307,10 +362,9 @@ export function useWorkspaceStore() {
         return;
       }
 
-      setSelectedId(step.id);
-      setSelectedSource(SelectionSource.Steps);
+      setDisplaySelectedId(step.id);
     },
-    [setSelectedId, setSelectedSource],
+    [setDisplaySelectedId],
   );
 
   const handleRunSimulation = useCallback(() => {
@@ -339,7 +393,7 @@ export function useWorkspaceStore() {
       setSimulationInspectionMode(ToolbarMode.PacketStructure);
       setSimulationPlayback(nextPlayback);
       focusSimulationStep(0, nextPlayback);
-      showToast((`Simulation finished with ${(result.events.length)} events`));
+      showToast(`Simulation finished with ${result.events.length} events`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Simulation failed";
       setSimulationPlayback((prev) => ({ ...prev, isRunning: false }));
@@ -390,15 +444,12 @@ export function useWorkspaceStore() {
   }, [invalidateSimulation, showToast]);
 
   useEffect(() => {
-    if (selectedSource !== SelectionSource.Steps || !selectedId) {
+    if (!selectedId || selectedSource !== null) {
       return;
     }
 
-    const hasSelectedStep = steps.some((step) => step.id === selectedId);
-    if (!hasSelectedStep) {
-      clearSelection();
-    }
-  }, [clearSelection, selectedId, selectedSource, steps]);
+    setDisplaySelectedId(null);
+  }, [selectedId, selectedSource, setDisplaySelectedId]);
 
   const isStepPlacementMode =
     placementMode === PlacementMode.Message ||
@@ -465,6 +516,11 @@ export function useWorkspaceStore() {
     placementMode,
     selectedId,
     selectedSource,
+    openedTabs,
+    isRefreshHidden,
+    setEntitiesOpened,
+    setStepsOpened,
+    setStepsRefreshHidden,
     setEntities,
     setSteps,
     setTexts,
