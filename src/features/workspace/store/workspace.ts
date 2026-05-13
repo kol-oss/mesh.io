@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { storageKeys } from "../../../shared/constants/storage";
-import { useLocalStorage } from "../../../shared/hooks/storage/useLocalStorage";
 import { useAppDispatch, useAppSelector } from "../../../shared/store/hooks";
 import {
   TABS,
@@ -12,6 +10,8 @@ import {
 import { clearPeers, replacePeers } from "../../../shared/store/slices/peerSlice";
 import { clearLinks, replaceLinks } from "../../../shared/store/slices/linkSlice";
 import { clearObstacles, replaceObstacles } from "../../../shared/store/slices/obstacleSlice";
+import { clearSteps, replaceSteps } from "../../../shared/store/slices/stepSlice";
+import { clearTexts, replaceTexts } from "../../../shared/store/slices/textSlice";
 import { useToast } from "../../../shared/toast/useToast";
 import { runSimulation } from "../../../shared/simulation/processor/simulation";
 import {
@@ -112,8 +112,8 @@ export function useWorkspaceStore() {
   const rawPeers = useAppSelector((state) => state.peer);
   const rawLinks = useAppSelector((state) => state.link);
   const rawObstacles = useAppSelector((state) => state.obstacle);
-  const [manualSteps, setManualSteps] = useLocalStorage<WorkflowStep[]>(storageKeys.steps, []);
-  const [rawTexts, setRawTexts] = useLocalStorage<WorkspaceTextItem[]>(storageKeys.textItems, []);
+  const manualSteps = useAppSelector((state) => state.step);
+  const texts = useAppSelector((state) => state.text);
   const [simulationPlayback, setSimulationPlayback] = useState<SimulationPlaybackState>({
     result: null,
     currentStepIndex: 0,
@@ -137,7 +137,6 @@ export function useWorkspaceStore() {
     () => [...rawPeers, ...rawLinks, ...rawObstacles],
     [rawPeers, rawLinks, rawObstacles],
   );
-  const texts = rawTexts;
 
   const normalizedManualSteps = useMemo(() => normalizeManualSteps(manualSteps), [manualSteps]);
   const steps = useMemo(
@@ -191,16 +190,16 @@ export function useWorkspaceStore() {
 
   useEffect(() => {
     if (normalizedManualSteps.length !== manualSteps.length) {
-      setManualSteps(normalizedManualSteps);
+      dispatch(replaceSteps(normalizedManualSteps));
     }
-  }, [manualSteps.length, normalizedManualSteps, setManualSteps]);
+  }, [dispatch, manualSteps.length, normalizedManualSteps]);
 
   const setSteps = useCallback(
     (nextSteps: WorkflowStep[]) => {
       invalidateSimulation();
-      setManualSteps(normalizeManualSteps(nextSteps));
+      dispatch(replaceSteps(normalizeManualSteps(nextSteps)));
     },
-    [invalidateSimulation, setManualSteps],
+    [dispatch, invalidateSimulation],
   );
 
   const setEntities = useCallback(
@@ -217,9 +216,9 @@ export function useWorkspaceStore() {
 
   const setTexts = useCallback(
     (value: WorkspaceTextItem[]) => {
-      setRawTexts(value);
+      dispatch(replaceTexts(value));
     },
-    [setRawTexts],
+    [dispatch],
   );
 
   const clearSelection = useCallback(() => {
@@ -323,8 +322,8 @@ export function useWorkspaceStore() {
     dispatch(clearPeers());
     dispatch(clearLinks());
     dispatch(clearObstacles());
-    setManualSteps([]);
-    setRawTexts([]);
+    dispatch(clearSteps());
+    dispatch(clearTexts());
     invalidateSimulation();
     clearSelection();
     showToast("Started a new simulation");
@@ -334,8 +333,6 @@ export function useWorkspaceStore() {
     entities.length,
     invalidateSimulation,
     manualSteps.length,
-    setManualSteps,
-    setRawTexts,
     showToast,
   ]);
 
@@ -374,7 +371,7 @@ export function useWorkspaceStore() {
             payload.entities.filter((e): e is ObstacleEntity => e.type === EntityType.Obstacle),
           ),
         );
-        setManualSteps(sanitizeManualSteps(payload.steps));
+        dispatch(replaceSteps(sanitizeManualSteps(payload.steps)));
         clearSelection();
         showToast("Workspace imported successfully");
       } catch (error) {
@@ -382,7 +379,7 @@ export function useWorkspaceStore() {
         showToast(message);
       }
     },
-    [clearSelection, dispatch, invalidateSimulation, setManualSteps, showToast],
+    [clearSelection, dispatch, invalidateSimulation, showToast],
   );
 
   const focusSimulationStep = useCallback(

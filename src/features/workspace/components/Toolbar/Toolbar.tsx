@@ -22,7 +22,6 @@ import type { LucideIcon } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../../../shared/store/hooks";
 import {
   DEFAULT_SELECTED_TOOLBAR_GROUP,
-  type ToolbarToolMode,
   setSelectedToolbarGroup,
   setToolbarModeForGroup,
 } from "../../../../shared/store/slices/displaySlice";
@@ -33,7 +32,7 @@ import {
   ToolbarMode,
   TooltipPlacement,
 } from "../../../../shared/types/enums";
-import type { ToolbarPlacementMode } from "../../../../shared/types/toolbar";
+import type { ToolbarPlacementMode, ToolbarToolMode } from "../../../../shared/types/toolbar";
 import Tooltip from "../../../../shared/ui/components/Tooltip/Tooltip";
 
 type ToolMode = ToolbarToolMode;

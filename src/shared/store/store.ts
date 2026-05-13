@@ -6,11 +6,13 @@ import {
   OBSTACLE_STORAGE_KEY,
   PEER_STORAGE_KEY,
   STEP_STORAGE_KEY,
+  TEXT_STORAGE_KEY,
 } from "./constants";
 import peerReducer from "./slices/peerSlice";
 import linkReducer from "./slices/linkSlice";
 import obstacleReducer from "./slices/obstacleSlice";
 import stepReducer from "./slices/stepSlice";
+import textReducer from "./slices/textSlice";
 import displayReducer from "./slices/displaySlice";
 import { setState } from "./utils/storeUtils";
 
@@ -20,18 +22,20 @@ export const store = configureStore({
     link: linkReducer,
     obstacle: obstacleReducer,
     step: stepReducer,
+    text: textReducer,
     display: displayReducer,
   },
 });
 
 // Sync state to localStorage whenever the store changes
 store.subscribe(() => {
-  const { peer, link, obstacle, step, display } = store.getState();
+  const { peer, link, obstacle, step, text, display } = store.getState();
 
   setState(PEER_STORAGE_KEY, peer);
   setState(LINK_STORAGE_KEY, link);
   setState(OBSTACLE_STORAGE_KEY, obstacle);
   setState(STEP_STORAGE_KEY, step);
+  setState(TEXT_STORAGE_KEY, text);
   setState(DISPLAY_STORAGE_KEY, display);
 });
 

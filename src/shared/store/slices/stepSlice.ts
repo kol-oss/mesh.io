@@ -1,10 +1,10 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { BaseStep } from "../../types/steps";
+import type { WorkflowStep } from "../../types/steps";
 import type { UUID } from "../../types/uuid";
 import { STEP_STORAGE_KEY } from "../constants";
 import { loadStates } from "../utils/storeUtils";
 
-export type StepState = BaseStep;
+export type StepState = WorkflowStep;
 
 const initialState: StepState[] = loadStates<StepState>(STEP_STORAGE_KEY);
 
@@ -26,11 +26,14 @@ const stepSlice = createSlice({
         state.splice(index, 1);
       }
     },
+    replaceSteps(_state, action: PayloadAction<StepState[]>) {
+      return action.payload;
+    },
     clearSteps(state) {
       state.length = 0;
     },
   },
 });
 
-export const { setStep, removeStep, clearSteps } = stepSlice.actions;
+export const { setStep, removeStep, replaceSteps, clearSteps } = stepSlice.actions;
 export default stepSlice.reducer;
