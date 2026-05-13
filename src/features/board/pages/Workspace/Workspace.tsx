@@ -26,27 +26,16 @@ export default function Workspace() {
     simulationInspectionMode,
     selectedId,
     selectedSource,
-    openedTabs,
-    isRefreshHidden,
-    setEntitiesOpened,
-    setStepsOpened,
-    setStepsRefreshHidden,
     setEntities,
     setSteps,
     setTexts,
     steps,
     texts,
-    toggleNavCollapse,
-    handleEntitySelect,
-    handleExportWorkspace,
-    handleImportWorkspace,
     handlePrevSimulationEvent,
     handlePrevSimulationStep,
-    handleNewWorkspace,
     handlePlacementModeChange,
     handleRunSimulation,
     handleStopSimulation,
-    handleStepSelect,
     handleWorkspaceEntitySelect,
     handleWorkspaceStepSelect,
     clearSelection,
@@ -55,28 +44,7 @@ export default function Workspace() {
   return (
     <div className="workspace-page">
       <div className="workspace-page__nav">
-        <Navigation
-          selectedId={selectedId}
-          selectedSource={selectedSource}
-          entities={entities}
-          setEntities={setEntities}
-          steps={steps}
-          setSteps={setSteps}
-          onEntitySelect={handleEntitySelect}
-          onStepSelect={handleStepSelect}
-          onClearSelection={clearSelection}
-          entitiesOpened={openedTabs.entities}
-          onEntitiesOpenedChange={setEntitiesOpened}
-          stepsOpened={openedTabs.steps}
-          onStepsOpenedChange={setStepsOpened}
-          stepsRefreshHidden={isRefreshHidden}
-          onStepsRefreshHiddenChange={setStepsRefreshHidden}
-          onFileNew={handleNewWorkspace}
-          onFileExport={handleExportWorkspace}
-          onFileImport={handleImportWorkspace}
-          isCollapsed={isNavCollapsed}
-          onToggleCollapse={toggleNavCollapse}
-        />
+        <Navigation />
       </div>
       <div className="workspace-page__workspace">
         <WorkspaceCanvas

@@ -6,6 +6,7 @@ import {
   setOpenedTab,
   setRefreshHidden,
   setSelectedId,
+  toggleNavCollapsed,
 } from "@/shared/store/slices/displaySlice";
 import { clearPeers, replacePeers } from "@/shared/store/slices/peerSlice";
 import { clearLinks, replaceLinks } from "@/shared/store/slices/linkSlice";
@@ -14,10 +15,7 @@ import { clearSteps, replaceSteps } from "@/shared/store/slices/stepSlice";
 import { clearTexts, replaceTexts } from "@/shared/store/slices/textSlice";
 import { useToast } from "@/shared/toast/useToast";
 import { runSimulation } from "@/shared/processor/simulation";
-import {
-  ActionMode as PlacementMode,
-  ActionMode as ToolbarMode,
-} from "@/shared/types/action";
+import { ActionMode as PlacementMode, ActionMode as ToolbarMode } from "@/shared/types/action";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import type {
@@ -107,7 +105,7 @@ export function useWorkspaceStore() {
   const selectedId = useAppSelector((state) => state.display.selectedId);
   const openedTabs = useAppSelector((state) => state.display.openedTabs);
   const isRefreshHidden = useAppSelector((state) => state.display.refreshHidden);
-  const [isNavCollapsed, setIsNavCollapsed] = useState(false);
+  const isNavCollapsed = useAppSelector((state) => state.display.navCollapsed ?? false);
 
   const rawPeers = useAppSelector((state) => state.peer);
   const rawLinks = useAppSelector((state) => state.link);
@@ -226,8 +224,8 @@ export function useWorkspaceStore() {
   }, [setDisplaySelectedId]);
 
   const toggleNavCollapse = useCallback(() => {
-    setIsNavCollapsed((prev) => !prev);
-  }, []);
+    dispatch(toggleNavCollapsed());
+  }, [dispatch]);
 
   const handleEntitySelect = useCallback(
     (id: UUID) => {

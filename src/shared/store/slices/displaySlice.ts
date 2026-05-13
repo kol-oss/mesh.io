@@ -37,6 +37,7 @@ export interface DisplayState {
     [TABS.STEPS]: boolean;
   };
   refreshHidden: boolean;
+  navCollapsed: boolean;
   selectedToolbarGroup: ToolbarGroup;
   toolbarModesByGroup: ActionModesByGroup;
 }
@@ -48,11 +49,25 @@ const EMPTY_DISPLAY: DisplayState = {
     [TABS.STEPS]: false,
   },
   refreshHidden: false,
+  navCollapsed: false,
   selectedToolbarGroup: DEFAULT_SELECTED_TOOLBAR_GROUP,
   toolbarModesByGroup: { ...DEFAULT_TOOLBAR_MODES_BY_GROUP },
 };
 
-const initialState: DisplayState = loadState<DisplayState>(DISPLAY_STORAGE_KEY, EMPTY_DISPLAY);
+const persistedDisplay = loadState<Partial<DisplayState>>(DISPLAY_STORAGE_KEY, EMPTY_DISPLAY);
+
+const initialState: DisplayState = {
+  ...EMPTY_DISPLAY,
+  ...persistedDisplay,
+  openedTabs: {
+    ...EMPTY_DISPLAY.openedTabs,
+    ...(persistedDisplay.openedTabs ?? {}),
+  },
+  toolbarModesByGroup: {
+    ...EMPTY_DISPLAY.toolbarModesByGroup,
+    ...(persistedDisplay.toolbarModesByGroup ?? {}),
+  },
+};
 
 const displaySlice = createSlice({
   name: "display",
@@ -66,6 +81,12 @@ const displaySlice = createSlice({
     },
     setRefreshHidden(state, action: PayloadAction<boolean>) {
       state.refreshHidden = action.payload;
+    },
+    setNavCollapsed(state, action: PayloadAction<boolean>) {
+      state.navCollapsed = action.payload;
+    },
+    toggleNavCollapsed(state) {
+      state.navCollapsed = !state.navCollapsed;
     },
     setSelectedToolbarGroup(state, action: PayloadAction<ToolbarGroup>) {
       state.selectedToolbarGroup = action.payload;
@@ -103,6 +124,7 @@ const displaySlice = createSlice({
       state.selectedId = EMPTY_DISPLAY.selectedId;
       state.openedTabs = { ...EMPTY_DISPLAY.openedTabs };
       state.refreshHidden = EMPTY_DISPLAY.refreshHidden;
+      state.navCollapsed = EMPTY_DISPLAY.navCollapsed;
       state.selectedToolbarGroup = EMPTY_DISPLAY.selectedToolbarGroup;
       state.toolbarModesByGroup = { ...EMPTY_DISPLAY.toolbarModesByGroup };
     },
@@ -113,6 +135,8 @@ export const {
   setSelectedId,
   setOpenedTab,
   setRefreshHidden,
+  setNavCollapsed,
+  toggleNavCollapsed,
   setSelectedToolbarGroup,
   setToolbarModeForGroup,
   clearState,

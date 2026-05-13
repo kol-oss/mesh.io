@@ -1,19 +1,19 @@
 import {
   Fragment,
+  useCallback,
   useEffect,
   useRef,
   useState,
-  useCallback,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { ChevronRight, Link, Plus, Radio, SquareSlash } from "lucide-react";
 import { createPortal } from "react-dom";
-
 import { useListReorder } from "@/shared/hooks/useListReorder";
 import { useToast } from "@/shared/toast/useToast";
 import { EntityType } from "@/shared/types/model/entities";
 import type { NetworkEntity } from "@/shared/types/model/entities";
+import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import { generateUUID, type UUID } from "@/shared/types/common/uuid";
 import {
   migrateEntities,
@@ -21,27 +21,22 @@ import {
   peerDefaults,
 } from "@/shared/utils/navigation/entityMigration";
 import Tooltip from "@/shared/components/Tooltip/Tooltip";
-import Entity from "../Entity/Entity";
+import { useNavigationRedux } from "@/features/navigation/hooks/useNavigationRedux";
+import EntityRecord from "../EntityRecord/EntityRecord";
 
-type EntitiesProps = {
-  entities: NetworkEntity[];
-  setEntities: (value: NetworkEntity[]) => void;
-  selectedId: UUID | null;
-  isOpened: boolean;
-  onOpenedChange: (opened: boolean) => void;
-  onSelect: (id: UUID) => void;
-  onClearSelection: () => void;
-};
+export default function EntityList() {
+  const {
+    entities,
+    setEntities,
+    selectedId,
+    selectedSource,
+    entitiesOpened,
+    onEntitiesOpenedChange,
+    onEntitySelect,
+    onClearSelection,
+  } = useNavigationRedux();
+  const selectedEntityId = selectedSource === SelectionSource.Entities ? selectedId : null;
 
-export default function Entities({
-  entities,
-  setEntities,
-  selectedId,
-  isOpened,
-  onOpenedChange,
-  onSelect,
-  onClearSelection,
-}: EntitiesProps) {
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
   const [addMenuPosition, setAddMenuPosition] = useState<{ top: number; left: number } | null>(
     null,
@@ -68,27 +63,33 @@ export default function Entities({
   }, [entities, setEntities]);
 
   const handleDeleteEntity = useCallback(() => {
-    if (!selectedId) return;
-    const entity = entities.find((e) => e.id === selectedId);
+    if (!selectedEntityId) {
+      return;
+    }
+
+    const entity = entities.find((item) => item.id === selectedEntityId);
     if (entity?.locked) {
       showToast(`Entity "${entity.name}" is locked`);
       return;
     }
-    const index = entities.findIndex((e) => e.id === selectedId);
-    const updatedEntities = entities.filter((e) => e.id !== selectedId);
+
+    const index = entities.findIndex((item) => item.id === selectedEntityId);
+    const updatedEntities = entities.filter((item) => item.id !== selectedEntityId);
     setEntities(updatedEntities);
     showToast("Entity deleted");
     const nextEntity = updatedEntities[index] ?? updatedEntities[index - 1];
     if (nextEntity) {
-      onSelect(nextEntity.id);
+      onEntitySelect(nextEntity.id);
     } else {
       onClearSelection();
     }
-  }, [selectedId, entities, setEntities, showToast, onSelect, onClearSelection]);
+  }, [entities, onClearSelection, onEntitySelect, selectedEntityId, setEntities, showToast]);
 
   const handleToggleLock = useCallback(
     (id: UUID) => {
-      const updatedEntities = entities.map((e) => (e.id === id ? { ...e, locked: !e.locked } : e));
+      const updatedEntities = entities.map((entity) =>
+        entity.id === id ? { ...entity, locked: !entity.locked } : entity,
+      );
       setEntities(updatedEntities);
     },
     [entities, setEntities],
@@ -96,14 +97,14 @@ export default function Entities({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Delete" && selectedId && isOpened) {
+      if (event.key === "Delete" && selectedEntityId && entitiesOpened) {
         handleDeleteEntity();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedId, isOpened, handleDeleteEntity]);
+  }, [selectedEntityId, entitiesOpened, handleDeleteEntity]);
 
   useEffect(() => {
     if (!isAddMenuOpen) {
@@ -125,7 +126,7 @@ export default function Entities({
     return () => window.removeEventListener("mousedown", onWindowMouseDown);
   }, [isAddMenuOpen]);
 
-  const toggleOpen = () => onOpenedChange(!isOpened);
+  const toggleOpen = () => onEntitiesOpenedChange(!entitiesOpened);
 
   const handleHeaderKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Enter" && event.key !== " ") {
@@ -138,8 +139,8 @@ export default function Entities({
 
   const handleAddEntityClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    if (!isOpened) {
-      onOpenedChange(true);
+    if (!entitiesOpened) {
+      onEntitiesOpenedChange(true);
     }
 
     const triggerRect = addButtonRef.current?.getBoundingClientRect();
@@ -184,7 +185,7 @@ export default function Entities({
 
     const updatedEntities = [...entities, newEntity];
     setEntities(updatedEntities);
-    onSelect(newEntity.id);
+    onEntitySelect(newEntity.id);
     setIsAddMenuOpen(false);
     showToast(`Entity "${newEntity.name}" added`);
   };
@@ -197,12 +198,12 @@ export default function Entities({
         onKeyDown={handleHeaderKeyDown}
         role="button"
         tabIndex={0}
-        aria-expanded={isOpened}
+        aria-expanded={entitiesOpened}
       >
         <ChevronRight
           size={10}
           className={`navigation__entities-chevron ${
-            isOpened ? "navigation__entities-chevron--open" : ""
+            entitiesOpened ? "navigation__entities-chevron--open" : ""
           }`}
         />
         <span className="navigation__entities-title">{"Entities"}</span>
@@ -258,7 +259,7 @@ export default function Entities({
           )}
       </div>
 
-      {isOpened && (
+      {entitiesOpened && (
         <div
           className={`navigation__entities-items${dragIndex !== null ? " navigation__entities-items--reordering" : ""}`}
           ref={itemsContainerRef}
@@ -268,19 +269,19 @@ export default function Entities({
               {dragIndex !== null && dropIndex === index && (
                 <div className="navigation__entity-drop-indicator" />
               )}
-              <Entity
+              <EntityRecord
                 entity={networkEntity}
-                isSelected={selectedId === networkEntity.id}
+                isSelected={selectedEntityId === networkEntity.id}
                 isDragging={dragIndex === index}
                 onSelect={() => {
                   if (suppressNextClickRef.current) {
                     suppressNextClickRef.current = false;
                     return;
                   }
-                  onSelect(networkEntity.id);
+                  onEntitySelect(networkEntity.id);
                 }}
                 onToggleLock={() => handleToggleLock(networkEntity.id)}
-                onPointerDown={(e) => handleItemPointerDown(index, e)}
+                onPointerDown={(event) => handleItemPointerDown(index, event)}
               />
             </Fragment>
           ))}

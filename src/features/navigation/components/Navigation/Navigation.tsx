@@ -1,58 +1,12 @@
-import Entities from "@/features/navigation/components/Entities/Entities";
-import Steps from "@/features/navigation/components/Steps/Steps";
+import EntityList from "@/features/navigation/components/EntityList/EntityList";
+import StepList from "@/features/navigation/components/StepList/StepList";
+import Title from "@/features/navigation/components/Title/Title";
+import Menu from "@/features/navigation/components/Menu/Menu";
 import { useSidebarResize } from "@/shared/hooks/useSidebarResize";
-import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
-import type { NetworkEntity } from "@/shared/types/model/entities";
-import type { WorkflowStep } from "@/shared/types/model/steps";
-import type { UUID } from "@/shared/types/common/uuid";
-import NavigationHeader from "../NavigationHeader/NavigationHeader";
-import NavigationMenu from "../NavigationMenu/NavigationMenu";
+import { useNavigationRedux } from "@/features/navigation/hooks/useNavigationRedux";
 
-type NavigationProps = {
-  selectedId: UUID | null;
-  selectedSource: SelectionSource | null;
-  entities: NetworkEntity[];
-  setEntities: (value: NetworkEntity[]) => void;
-  steps: WorkflowStep[];
-  setSteps: (value: WorkflowStep[]) => void;
-  onEntitySelect: (id: UUID) => void;
-  onStepSelect: (id: UUID) => void;
-  onClearSelection: () => void;
-  entitiesOpened: boolean;
-  onEntitiesOpenedChange: (opened: boolean) => void;
-  stepsOpened: boolean;
-  onStepsOpenedChange: (opened: boolean) => void;
-  stepsRefreshHidden: boolean;
-  onStepsRefreshHiddenChange: (hidden: boolean) => void;
-  onFileNew: () => void;
-  onFileExport: () => void;
-  onFileImport: (file: File) => void | Promise<void>;
-  isCollapsed: boolean;
-  onToggleCollapse: () => void;
-};
-
-export default function Navigation({
-  selectedId,
-  selectedSource,
-  entities,
-  setEntities,
-  steps,
-  setSteps,
-  onEntitySelect,
-  onStepSelect,
-  onClearSelection,
-  entitiesOpened,
-  onEntitiesOpenedChange,
-  stepsOpened,
-  onStepsOpenedChange,
-  stepsRefreshHidden,
-  onStepsRefreshHiddenChange,
-  onFileNew,
-  onFileExport,
-  onFileImport,
-  isCollapsed,
-  onToggleCollapse,
-}: NavigationProps) {
+export default function Navigation() {
+  const { isCollapsed } = useNavigationRedux();
   const { widthPercent, onResizeStart } = useSidebarResize();
 
   return (
@@ -60,37 +14,13 @@ export default function Navigation({
       className={`navigation ${isCollapsed ? "navigation--collapsed" : ""}`}
       style={isCollapsed ? undefined : { width: `${widthPercent}%` }}
     >
-      <NavigationHeader
-        isCollapsed={isCollapsed}
-        onToggleCollapse={onToggleCollapse}
-        onFileNew={onFileNew}
-        onFileExport={onFileExport}
-        onFileImport={onFileImport}
-      />
+      <Title />
       {!isCollapsed && (
         <>
-          <NavigationMenu onNew={onFileNew} onExport={onFileExport} onImport={onFileImport} />
+          <Menu />
           <div className="navigation__lists">
-            <Entities
-              entities={entities}
-              setEntities={setEntities}
-              selectedId={selectedSource === SelectionSource.Entities ? selectedId : null}
-              isOpened={entitiesOpened}
-              onOpenedChange={onEntitiesOpenedChange}
-              onSelect={onEntitySelect}
-              onClearSelection={onClearSelection}
-            />
-            <Steps
-              steps={steps}
-              setSteps={setSteps}
-              selectedId={selectedSource === SelectionSource.Steps ? selectedId : null}
-              isOpened={stepsOpened}
-              onOpenedChange={onStepsOpenedChange}
-              isRefreshHidden={stepsRefreshHidden}
-              onRefreshHiddenChange={onStepsRefreshHiddenChange}
-              onSelect={onStepSelect}
-              onClearSelection={onClearSelection}
-            />
+            <EntityList />
+            <StepList />
           </div>
           <div
             className="navigation__resizer"

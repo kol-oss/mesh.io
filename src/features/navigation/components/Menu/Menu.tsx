@@ -1,21 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
-import { Link } from "react-router-dom";
 import { NAVIGATION_MENU_ITEMS } from "@/shared/utils/navigation/constants";
+import { useNavigationRedux } from "@/features/navigation/hooks/useNavigationRedux";
+import MenuButton from "../MenuButton/MenuButton";
 
-type NavigationMenuProps = {
-  onNew: () => void;
-  onExport: () => void;
-  onImport: (file: File) => void | Promise<void>;
+type MenuProps = {
   isCompact?: boolean;
 };
 
-export default function NavigationMenu({
-  onNew,
-  onExport,
-  onImport,
-  isCompact = false,
-}: NavigationMenuProps) {
+export default function Menu({ isCompact = false }: MenuProps) {
+  const { onFileExport, onFileImport, onFileNew } = useNavigationRedux();
   const [isFileMenuOpen, setIsFileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
@@ -42,7 +36,7 @@ export default function NavigationMenu({
       return;
     }
 
-    onImport(file);
+    onFileImport(file);
     event.target.value = "";
   };
 
@@ -50,72 +44,40 @@ export default function NavigationMenu({
     <div className={`navigation__menu${isCompact ? " navigation__menu--compact" : ""}`}>
       {NAVIGATION_MENU_ITEMS.map((menuItem) => {
         if (menuItem.title === "Help") {
-          return (
-            <Link
-              className="navigation__menu-button"
-              key={menuItem.title}
-              to="/docs"
-              target="_blank"
-              rel="noreferrer"
-            >
-              {menuItem.title}
-            </Link>
-          );
+          return <MenuButton key={menuItem.title} label={menuItem.title} to="/docs" />;
         }
 
         if (menuItem.title !== "File") {
-          return (
-            <button className="navigation__menu-button" key={menuItem.title} type="button">
-              {menuItem.title}
-            </button>
-          );
+          return <MenuButton key={menuItem.title} label={menuItem.title} />;
         }
 
         return (
           <div className="navigation__menu-group" key={menuItem.title} ref={menuRef}>
-            <button
-              className="navigation__menu-button"
-              type="button"
-              onClick={() => setIsFileMenuOpen((prev) => !prev)}
-              aria-haspopup="menu"
-              aria-expanded={isFileMenuOpen}
-              aria-label={"File menu"}
-            >
-              {menuItem.title}
-            </button>
+            <MenuButton label={menuItem.title} onClick={() => setIsFileMenuOpen((prev) => !prev)} />
 
             {isFileMenuOpen && (
               <div className="navigation__file-menu" role="menu">
-                <button
+                <MenuButton
                   className="navigation__file-menu-option"
-                  type="button"
-                  role="menuitem"
+                  label="New"
                   onClick={() => {
-                    onNew();
+                    onFileNew();
                     setIsFileMenuOpen(false);
                   }}
-                >
-                  {"New"}
-                </button>
-                <button
+                />
+                <MenuButton
                   className="navigation__file-menu-option"
-                  type="button"
-                  role="menuitem"
+                  label="Export"
                   onClick={() => {
-                    onExport();
+                    onFileExport();
                     setIsFileMenuOpen(false);
                   }}
-                >
-                  {"Export"}
-                </button>
-                <button
+                />
+                <MenuButton
                   className="navigation__file-menu-option"
-                  type="button"
-                  role="menuitem"
+                  label="Import"
                   onClick={handleImportClick}
-                >
-                  {"Import"}
-                </button>
+                />
               </div>
             )}
 

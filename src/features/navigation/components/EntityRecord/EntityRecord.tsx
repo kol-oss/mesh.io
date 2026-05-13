@@ -4,7 +4,7 @@ import { EntityType } from "@/shared/types/model/entities";
 import type { NetworkEntity } from "@/shared/types/model/entities";
 import Tooltip from "@/shared/components/Tooltip/Tooltip";
 
-type EntityProps = {
+type EntityRecordProps = {
   entity: NetworkEntity;
   isSelected: boolean;
   isDragging?: boolean;
@@ -13,14 +13,14 @@ type EntityProps = {
   onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
 };
 
-export default function Entity({
+export default function EntityRecord({
   entity,
   isSelected,
   isDragging,
   onSelect,
   onToggleLock,
   onPointerDown,
-}: EntityProps) {
+}: EntityRecordProps) {
   const entityTypeTooltip = {
     [EntityType.Peer]: "Peer",
     [EntityType.Link]: "Link",
@@ -46,8 +46,8 @@ export default function Entity({
       <Tooltip content={entity.locked ? "Unlock" : "Lock"}>
         <button
           className={`navigation__entity-lock ${entity.locked ? "navigation__entity-lock--active" : ""}`}
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={(event) => {
+            event.stopPropagation();
             onToggleLock();
           }}
           type="button"
