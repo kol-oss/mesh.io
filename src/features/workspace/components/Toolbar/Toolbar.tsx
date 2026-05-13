@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
   ArrowLeftCircle,
@@ -19,8 +19,13 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { storageKeys } from "../../../../shared/constants/storage";
-import { useLocalStorage } from "../../../../shared/hooks/storage/useLocalStorage";
+import { useAppDispatch, useAppSelector } from "../../../../shared/store/hooks";
+import {
+  DEFAULT_SELECTED_TOOLBAR_GROUP,
+  type ToolbarToolMode,
+  setSelectedToolbarGroup,
+  setToolbarModeForGroup,
+} from "../../../../shared/store/slices/displaySlice";
 import {
   PlacementMode,
   ToolbarActionKey,
@@ -31,7 +36,7 @@ import {
 import type { ToolbarPlacementMode } from "../../../../shared/types/toolbar";
 import Tooltip from "../../../../shared/ui/components/Tooltip/Tooltip";
 
-type ToolMode = ToolbarMode | PlacementMode;
+type ToolMode = ToolbarToolMode;
 
 type ModeButton = {
   key: ToolMode;
@@ -53,8 +58,6 @@ type ActionButton = {
   icon: LucideIcon;
   locked?: boolean;
 };
-
-type ModeSelectionsByGroup = Record<ModeGroup["id"], ToolMode>;
 
 const TOOLBAR_ICON_SIZE = 21;
 const TOOLBAR_MENU_ICON_SIZE = 16;
@@ -148,16 +151,6 @@ const TOOLBAR_GROUP_LABELS: Record<ToolbarGroupId, string> = {
   [ToolbarGroupId.Text]: "Text",
 };
 
-const DEFAULT_MODE_SELECTIONS: ModeSelectionsByGroup = {
-  [ToolbarGroupId.Navigation]: ToolbarMode.NavigationMove,
-  [ToolbarGroupId.Entities]: PlacementMode.Peer,
-  [ToolbarGroupId.Steps]: PlacementMode.Message,
-  [ToolbarGroupId.Inspection]: ToolbarMode.RoutingTable,
-  [ToolbarGroupId.Text]: PlacementMode.Text,
-};
-
-const DEFAULT_SELECTED_GROUP: ModeGroup["id"] = ToolbarGroupId.Navigation;
-
 type ToolbarProps = {
   onPlacementModeChange: (mode: ToolbarPlacementMode) => void;
   onRun: () => void;
@@ -181,17 +174,19 @@ export default function Toolbar({
   canGoNextStep,
   isSimulationActive,
 }: ToolbarProps) {
-  const [selectedModesByGroup, setSelectedModesByGroup] = useLocalStorage<ModeSelectionsByGroup>(
-    storageKeys.toolbarModesByGroup,
-    DEFAULT_MODE_SELECTIONS,
-  );
-  const [selectedGroupId, setSelectedGroupId] = useLocalStorage<ModeGroup["id"]>(
-    storageKeys.toolbarSelectedGroup,
-    DEFAULT_SELECTED_GROUP,
-  );
+  const dispatch = useAppDispatch();
+  const selectedModesByGroup = useAppSelector((state) => state.display.toolbarModesByGroup);
+  const selectedGroupId = useAppSelector((state) => state.display.selectedToolbarGroup);
   const [openedMenuGroup, setOpenedMenuGroup] = useState<ModeGroup["id"] | null>(null);
   const toolbarRef = useRef<HTMLDivElement | null>(null);
   const previousSimulationActiveRef = useRef(isSimulationActive);
+
+  const setSelectedGroupId = useCallback(
+    (groupId: ModeGroup["id"]) => {
+      dispatch(setSelectedToolbarGroup(groupId));
+    },
+    [dispatch],
+  );
 
   useEffect(() => {
     if (isSimulationActive && !previousSimulationActiveRef.current) {
@@ -236,7 +231,7 @@ export default function Toolbar({
 
   const normalizedSelectedGroupId = MODE_GROUPS.some((group) => group.id === selectedGroupId)
     ? selectedGroupId
-    : DEFAULT_SELECTED_GROUP;
+    : DEFAULT_SELECTED_TOOLBAR_GROUP;
   const effectiveSelectedGroupId =
     isSimulationActive &&
     (normalizedSelectedGroupId === ToolbarGroupId.Entities ||
@@ -275,12 +270,12 @@ export default function Toolbar({
     onInspectionModeChange(activeItemsByGroup.inspection.key as ToolbarMode);
   }, [activeItemsByGroup, effectiveSelectedGroupId, onInspectionModeChange]);
 
-  const setGroupMode = (groupId: ModeGroup["id"], mode: ToolMode) => {
-    setSelectedModesByGroup({
-      ...selectedModesByGroup,
-      [groupId]: mode,
-    });
-  };
+  const setGroupMode = useCallback(
+    (groupId: ModeGroup["id"], mode: ToolbarToolMode) => {
+      dispatch(setToolbarModeForGroup({ groupId, mode }));
+    },
+    [dispatch],
+  );
 
   return (
     <div className="toolbar" role="toolbar" aria-label={"Workspace toolbar"} ref={toolbarRef}>
@@ -365,7 +360,7 @@ export default function Toolbar({
                       event.stopPropagation();
                       setOpenedMenuGroup((prev) => (prev === group.id ? null : group.id));
                     }}
-                    aria-label={(`Open ${(group.id)} menu`)}
+                    aria-label={`Open ${group.id} menu`}
                     aria-expanded={openedMenuGroup === group.id}
                     disabled={groupIsDisabled || itemIsLocked}
                   >
