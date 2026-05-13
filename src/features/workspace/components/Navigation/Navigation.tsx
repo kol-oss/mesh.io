@@ -1,6 +1,6 @@
 import Entities from "../Entities/Entities";
 import Steps from "../Steps/Steps";
-import { useSidebarResize } from "../../../../shared/hooks/navigation/useSidebarResize";
+import { useSidebarResize } from "../../../../shared/hooks/useSidebarResize";
 import { SelectionType as SelectionSource } from "../../../../shared/types/view/selection";
 import type { NetworkEntity } from "../../../../shared/types/model/entities";
 import type { WorkflowStep } from "../../../../shared/types/model/steps";

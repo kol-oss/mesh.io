@@ -1,4 +1,4 @@
-import { useSidebarResize } from "../../../../shared/hooks/navigation/useSidebarResize";
+import { useSidebarResize } from "../../../../shared/hooks/useSidebarResize";
 import { SelectionType as SelectionSource } from "../../../../shared/types/view/selection";
 import { SidebarResizeSide } from "../../../../shared/types/view/view";
 import type { NetworkEntity } from "../../../../shared/types/model/entities";
