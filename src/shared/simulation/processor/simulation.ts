@@ -10,7 +10,7 @@ import {
   type SimulationResult,
   type SimulationStepResult,
   type SimulationTickSnapshot,
-} from "../types/simulation";
+} from "../../types/model/simulation";
 import { BatmanModule } from "./batman/BatmanModule";
 import { AodvModule } from "./aodv/AodvModule";
 import { DsdvModule } from "./dsdv/DsdvModule";

@@ -3,8 +3,8 @@ import {
   SimulationEventType,
   type BatmanOriginatorMessage,
   type BatmanRouteRecord,
-} from "../../types/simulation";
-import type { UUID } from "../../types/uuid";
+} from "../../../types/model/simulation";
+import type { UUID } from "../../../types/common/uuid";
 import { SimulationEventRecorder } from "../core/EventRecorder";
 import type { SimulationPeerNode } from "../core/runtimeTypes";
 import { cloneMessage } from "./batmanMessage";

@@ -8,8 +8,8 @@ import {
   type DsdvRouteEntryMessage,
   type DsdvRouteUpdateMessage,
   type SimulationPacket,
-} from "../../types/simulation";
-import type { UUID } from "../../types/uuid";
+} from "../../../types/model/simulation";
+import type { UUID } from "../../../types/common/uuid";
 import { SimulationEventRecorder } from "../core/EventRecorder";
 import type { PacketCapableModule, SimulationPeerNode } from "../core/runtimeTypes";
 import { DsdvRoutingTable } from "./DsdvRoutingTable";

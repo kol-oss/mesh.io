@@ -1,4 +1,4 @@
-import { QualityWindowBit } from "../../types/simulation.ts";
+import { QualityWindowBit } from "../../../types/model/simulation.ts";
 import { BATMAN_PROTECTION_WINDOW_SIZE } from "../../constants/batman.ts";
 
 export class BatmanSequenceWindow {

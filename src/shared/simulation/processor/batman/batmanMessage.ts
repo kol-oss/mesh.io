@@ -1,4 +1,4 @@
-import { SimulationMessageKind, type SimulationMessage } from "../../types/simulation";
+import { SimulationMessageKind, type SimulationMessage } from "../../../types/model/simulation";
 
 export const cloneMessage = <T extends SimulationMessage>(message: T): T => {
   return { ...message };

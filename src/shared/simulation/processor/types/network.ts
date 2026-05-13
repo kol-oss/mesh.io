@@ -1,7 +1,7 @@
-import type { NetworkEntity } from "../../types/entities";
-import { EntityType } from "../../types/entities";
-import type { SimulationTickSnapshot } from "../../types/simulation";
-import type { UUID } from "../../types/uuid";
+import type { NetworkEntity } from "../../../types/model/entities";
+import { EntityType } from "../../../types/model/entities";
+import type { SimulationTickSnapshot } from "../../../types/model/simulation";
+import type { UUID } from "../../../types/common/uuid";
 import { getObstacleBounds, hasLineOfSight } from "../../utils/geometry";
 import type { SimulationEventRecorder } from "../core/EventRecorder";
 import type { SimulationNetworkRuntime } from "../core/runtimeTypes";

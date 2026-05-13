@@ -8,8 +8,8 @@ import {
   type SimulationMessage,
   type SimulationPacket,
   type ThroughputCalculationEventDetails,
-} from "../../types/simulation.ts";
-import type { UUID } from "../../types/uuid.ts";
+} from "../../../types/model/simulation.ts";
+import type { UUID } from "../../../types/common/uuid.ts";
 import { SimulationEventRecorder } from "../core/EventRecorder.ts";
 import type { SimulationPeerNode } from "../core/runtimeTypes.ts";
 import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";

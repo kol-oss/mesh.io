@@ -12,9 +12,9 @@ import type {
   OlsrTwoHopRecord,
   SimulationPacket,
   SimulationTickSnapshot,
-} from "../../types/simulation";
-import type { NetworkEntity, PeerEntity } from "../../types/entities";
-import type { UUID } from "../../types/uuid";
+} from "../../../types/model/simulation";
+import type { NetworkEntity, PeerEntity } from "../../../types/model/entities";
+import type { UUID } from "../../../types/common/uuid";
 
 export interface RoutingProtocolModule {
   read(message: unknown): boolean;
