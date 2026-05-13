@@ -1,6 +1,6 @@
-import Navigation from "../../components/Navigation/Navigation";
-import Properties from "../../components/Properties/Properties";
-import Toolbar from "../../components/Toolbar/Toolbar";
+import Navigation from "../../../navigation/components/Navigation/Navigation";
+import Properties from "../../../properties/components/Properties/Properties";
+import Toolbar from "../../../tools/components/Toolbar/Toolbar";
 import WorkspaceCanvas from "../../components/WorkspaceCanvas/WorkspaceCanvas";
 import { SelectionType as SelectionSource } from "../../../../shared/types/view/selection";
 import { useWorkspaceStore } from "../../store/workspace";
