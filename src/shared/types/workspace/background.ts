@@ -6,7 +6,7 @@ import type {
   SetStateAction,
 } from "react";
 
-import type { ToolbarPlacementMode } from "../actionmode";
+import type { ToolbarPlacementMode } from "../action";
 import type { SetNullableStringState, WorkspacePoint, WorkspaceSize } from "./shared";
 import type { UUID } from "../uuid";
 

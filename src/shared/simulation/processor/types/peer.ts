@@ -21,30 +21,28 @@ export class RuntimePeer implements SnapshotCapablePeerNode {
     this.entity = entity;
     this.network = network;
 
-    for (const protocol of entity.protocols) {
-      if (protocol === RoutingProtocol.BATMAN) {
-        this.modules.set(protocol, new BatmanModule(this, eventRecorder));
-        continue;
-      }
+    if (entity.protocol === RoutingProtocol.BATMAN) {
+      this.modules.set(entity.protocol, new BatmanModule(this, eventRecorder));
+      return;
+    }
 
-      if (protocol === RoutingProtocol.DSDV) {
-        this.modules.set(protocol, new DsdvModule(this, eventRecorder));
-        continue;
-      }
+    if (entity.protocol === RoutingProtocol.DSDV) {
+      this.modules.set(entity.protocol, new DsdvModule(this, eventRecorder));
+      return;
+    }
 
-      if (protocol === RoutingProtocol.AODV) {
-        this.modules.set(protocol, new AodvModule(this, eventRecorder));
-        continue;
-      }
+    if (entity.protocol === RoutingProtocol.AODV) {
+      this.modules.set(entity.protocol, new AodvModule(this, eventRecorder));
+      return;
+    }
 
-      if (protocol === RoutingProtocol.DSR) {
-        this.modules.set(protocol, new DsrModule(this, eventRecorder));
-        continue;
-      }
+    if (entity.protocol === RoutingProtocol.DSR) {
+      this.modules.set(entity.protocol, new DsrModule(this, eventRecorder));
+      return;
+    }
 
-      if (protocol === RoutingProtocol.OLSR) {
-        this.modules.set(protocol, new OlsrModule(this, eventRecorder));
-      }
+    if (entity.protocol === RoutingProtocol.OLSR) {
+      this.modules.set(entity.protocol, new OlsrModule(this, eventRecorder));
     }
   }
 
@@ -179,8 +177,7 @@ export class RuntimePeer implements SnapshotCapablePeerNode {
   }
 
   getPrimaryProtocol() {
-    const [protocol] = this.entity.protocols;
-    return protocol ?? null;
+    return this.entity.protocol;
   }
 
   getOlsrNeighbourTable() {

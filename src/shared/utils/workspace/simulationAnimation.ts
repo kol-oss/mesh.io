@@ -16,7 +16,7 @@ import type {
   MoveStepAnimation,
   ToggleStepAnimation,
 } from "../../types/workspace/scene";
-import type { NetworkEntity } from "../../types/entities";
+import type { PeerEntity } from "../../types/entities";
 
 export const buildSimulationMessageAnimations = (
   currentEvent: SimulationEvent | null,
@@ -24,13 +24,13 @@ export const buildSimulationMessageAnimations = (
     snapshot: { peers: SimulationPeerSnapshot[] };
     events: SimulationEvent[];
   } | null,
-  fallbackPeers: Array<NetworkEntity & { type: "PEER" }>,
+  fallbackPeers: PeerEntity[],
 ): MessageAnimation[] => {
   if (!currentEvent || !currentStepResult) {
     return [];
   }
 
-  const peerById = new Map<UUID, SimulationPeerSnapshot | (NetworkEntity & { type: "PEER" })>();
+  const peerById = new Map<UUID, SimulationPeerSnapshot | PeerEntity>();
 
   for (const peer of currentStepResult.snapshot.peers) {
     peerById.set(peer.id, peer);

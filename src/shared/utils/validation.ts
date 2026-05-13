@@ -1,7 +1,8 @@
-import { peerRoutingProtocols, workflowStepTypes } from "../constants/protocol";import { EntityType, StepType } from "../types/enums";
+import { peerRoutingProtocols, workflowStepTypes } from "../constants/protocol";
+import { EntityType } from "../types/entities";
 import type { NetworkEntity } from "../types/entities";
-import type { PeerRoutingProtocol } from "../types/navigation";
-import { RefreshAction, type WorkflowStep } from "../types/steps";
+import { RoutingProtocol } from "../types/protocols";
+import { RefreshAction, StepType, type WorkflowStep } from "../types/steps";
 
 export type WorkspaceImportPayload = {
   entities: NetworkEntity[];
@@ -20,12 +21,55 @@ const isNullableString = (value: unknown): value is string | null => {
   return typeof value === "string" || value === null;
 };
 
-const isValidProtocolList = (value: unknown): value is PeerRoutingProtocol[] => {
-  return (
-    Array.isArray(value) &&
-    value.length === 1 &&
-    value.every((item) => peerRoutingProtocols.includes(item as PeerRoutingProtocol))
-  );
+const isValidProtocol = (value: unknown): value is RoutingProtocol => {
+  return typeof value === "string" && peerRoutingProtocols.includes(value as RoutingProtocol);
+};
+
+const isValidConfiguration = (protocol: RoutingProtocol, value: unknown) => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  switch (protocol) {
+    case RoutingProtocol.BATMAN:
+      return (
+        isFiniteNumber(value.distancePenaltyDistance) &&
+        value.distancePenaltyDistance > 0 &&
+        isFiniteNumber(value.distancePenaltyPercent) &&
+        value.distancePenaltyPercent >= 0 &&
+        isFiniteNumber(value.elpInterval) &&
+        value.elpInterval > 0 &&
+        isFiniteNumber(value.ogmInterval) &&
+        value.ogmInterval > 0 &&
+        isFiniteNumber(value.purgeTimeout) &&
+        value.purgeTimeout > 0
+      );
+    case RoutingProtocol.DSDV:
+      return (
+        isFiniteNumber(value.incrementalUpdateInterval) &&
+        value.incrementalUpdateInterval > 0 &&
+        isFiniteNumber(value.fullDumpInterval) &&
+        value.fullDumpInterval > 0 &&
+        isFiniteNumber(value.routeTimeout) &&
+        value.routeTimeout > 0
+      );
+    case RoutingProtocol.AODV:
+      return (
+        isFiniteNumber(value.helloInterval) &&
+        value.helloInterval > 0 &&
+        isFiniteNumber(value.routeTimeout) &&
+        value.routeTimeout > 0
+      );
+    case RoutingProtocol.OLSR:
+      return (
+        isFiniteNumber(value.helloInterval) &&
+        value.helloInterval > 0 &&
+        isFiniteNumber(value.tcInterval) &&
+        value.tcInterval > 0
+      );
+    case RoutingProtocol.DSR:
+      return true;
+  }
 };
 
 const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
@@ -44,30 +88,8 @@ const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
       isFiniteNumber(value.range) &&
       value.range > 0 &&
       typeof value.enabled === "boolean" &&
-      isValidProtocolList(value.protocols) &&
-      isFiniteNumber(value.batmanDistancePenaltyDistance) &&
-      value.batmanDistancePenaltyDistance > 0 &&
-      isFiniteNumber(value.batmanDistancePenaltyPercent) &&
-      value.batmanDistancePenaltyPercent >= 0 &&
-      isFiniteNumber(value.batmanElpInterval) &&
-      value.batmanElpInterval > 0 &&
-      isFiniteNumber(value.batmanOgmInterval) &&
-      isFiniteNumber(value.batmanPurgeTimeout) &&
-      (value.dsdvIncrementalUpdateInterval == null ||
-        (isFiniteNumber(value.dsdvIncrementalUpdateInterval) &&
-          value.dsdvIncrementalUpdateInterval > 0)) &&
-      (value.dsdvFullDumpInterval == null ||
-        (isFiniteNumber(value.dsdvFullDumpInterval) && value.dsdvFullDumpInterval > 0)) &&
-      (value.dsdvRouteTimeout == null ||
-        (isFiniteNumber(value.dsdvRouteTimeout) && value.dsdvRouteTimeout > 0)) &&
-      (value.aodvHelloInterval == null ||
-        (isFiniteNumber(value.aodvHelloInterval) && value.aodvHelloInterval > 0)) &&
-      (value.aodvRouteTimeout == null ||
-        (isFiniteNumber(value.aodvRouteTimeout) && value.aodvRouteTimeout > 0)) &&
-      (value.olsrHelloInterval == null ||
-        (isFiniteNumber(value.olsrHelloInterval) && value.olsrHelloInterval > 0)) &&
-      (value.olsrTcInterval == null ||
-        (isFiniteNumber(value.olsrTcInterval) && value.olsrTcInterval > 0))
+      isValidProtocol(value.protocol) &&
+      isValidConfiguration(value.protocol, value.configuration)
     );
   }
 
@@ -123,15 +145,9 @@ const isValidWorkflowStep = (value: unknown): value is WorkflowStep => {
     return (
       isNullableString(value.refreshPeerId) &&
       (value.refreshProtocol == null ||
-        peerRoutingProtocols.includes(value.refreshProtocol as PeerRoutingProtocol)) &&
+        peerRoutingProtocols.includes(value.refreshProtocol as RoutingProtocol)) &&
       (value.refreshAction == null ||
-        value.refreshAction === RefreshAction.BatmanElp ||
-        value.refreshAction === RefreshAction.BatmanOgm ||
-        value.refreshAction === RefreshAction.DsdvFullDump ||
-        value.refreshAction === RefreshAction.DsdvIncremental ||
-        value.refreshAction === RefreshAction.AodvHello ||
-        value.refreshAction === RefreshAction.OlsrHello ||
-        value.refreshAction === RefreshAction.OlsrTc) &&
+        Object.values(RefreshAction).includes(value.refreshAction as RefreshAction)) &&
       (value.refreshStartTick == null || isFiniteNumber(value.refreshStartTick)) &&
       (value.refreshInterval == null || isFiniteNumber(value.refreshInterval)) &&
       (value.autoGenerated == null || typeof value.autoGenerated === "boolean")

@@ -1,4 +1,7 @@
-import { RoutingProtocol } from "../../types/enums";import {
+import { RoutingProtocol } from "../../types/enums";
+import type { DsdvConfiguration } from "../../../types/configurations";
+import { getDsdvConfiguration } from "../../../types/peers";
+import {
   DsdvUpdateType,
   SimulationEventType,
   SimulationMessageKind,
@@ -48,19 +51,29 @@ export class DsdvModule implements PacketCapableModule {
     { lastTick: number; interval: number }
   >();
 
+  private getConfiguration(): DsdvConfiguration {
+    const peer = this.routingPeer.getPeerEntity();
+    const configuration = getDsdvConfiguration(peer);
+    if (!configuration) {
+      throw new Error("DSDV module requires a DSDV peer entity.");
+    }
+
+    return configuration;
+  }
+
   constructor(routingPeer: SimulationPeerNode, eventRecorder: SimulationEventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
     this.routingTable = new DsdvRoutingTable({
       routingPeer,
       eventRecorder,
-      getRouteTimeout: () => clampTimeout(this.routingPeer.getPeerEntity().dsdvRouteTimeout),
+      getRouteTimeout: () => clampTimeout(this.getConfiguration().routeTimeout),
       getRouteExpiryTick: (nextHopPeerId, fallbackTick) => {
         const fullDumpTiming = this.fullDumpTimingByNeighbour.get(nextHopPeerId);
+        const configuration = this.getConfiguration();
         const fullDumpInterval =
-          fullDumpTiming?.interval ??
-          clampInterval(this.routingPeer.getPeerEntity().dsdvFullDumpInterval);
-        const routeTimeout = clampTimeout(this.routingPeer.getPeerEntity().dsdvRouteTimeout);
+          fullDumpTiming?.interval ?? clampInterval(configuration.fullDumpInterval);
+        const routeTimeout = clampTimeout(configuration.routeTimeout);
         const lastFullDumpTick = fullDumpTiming?.lastTick ?? fallbackTick;
         return lastFullDumpTick + fullDumpInterval + routeTimeout;
       },
@@ -175,9 +188,15 @@ export class DsdvModule implements PacketCapableModule {
     }
 
     if (message.updateType === DsdvUpdateType.FullDump) {
+      const senderPeer = sender.getPeerEntity();
+      const senderConfiguration = getDsdvConfiguration(senderPeer);
+      if (!senderConfiguration) {
+        return false;
+      }
+
       this.fullDumpTimingByNeighbour.set(message.senderPeerId, {
         lastTick: this.eventRecorder.getCurrentTick(),
-        interval: clampInterval(sender.getPeerEntity().dsdvFullDumpInterval),
+        interval: clampInterval(senderConfiguration.fullDumpInterval),
       });
     }
 

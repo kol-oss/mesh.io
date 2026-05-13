@@ -5,20 +5,24 @@ import {
   OBSTACLE_DEFAULT_HEIGHT,
 } from "../../../shared/constants/obstacle.ts";
 import { NEW_PEER_RANGE } from "../../../shared/constants/workspace";
-import { EntityType, RoutingProtocol, StepType } from "../../../shared/types/enums";
+import { getDefaultPeerConfiguration } from "../../../shared/constants/protocol";
+import type { BatmanConfiguration } from "../../../shared/types/configurations";
+import { EntityType } from "../../../shared/types/entities";
 import type {
   LinkEntity,
   NetworkEntity,
   ObstacleEntity,
   PeerEntity,
 } from "../../../shared/types/entities";
+import { RoutingProtocol } from "../../../shared/types/protocols";
 import type {
   ManualWorkflowStep,
   MessageStep,
   MoveStep,
-  ToggleStatusStep,
+  ToggleStep,
   WorkflowStep,
 } from "../../../shared/types/steps";
+import { StepType } from "../../../shared/types/steps";
 import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
 import type {
   WorkspaceCreationCallbacks,
@@ -26,11 +30,6 @@ import type {
 } from "../../../shared/types/workspace/creation";
 import { generateUUID, type UUID } from "../../../shared/types/uuid";
 import { isRefreshStep } from "../../../shared/utils/navigation/refreshSteps";
-
-import { BATMAN_DEFAULT_CONFIGURATION } from "../../../shared/constants/batman.ts";
-import { AODV_DEFAULT_CONFIGURATION } from "../../../shared/constants/aodv";
-import { DSDV_DEFAULT_CONFIGURATION } from "../../../shared/constants/dsdv.ts";
-import { OLSR_DEFAULT_CONFIGURATION } from "../../../shared/constants/olsr";
 
 type UseWorkspaceCreationParams = {
   entities: NetworkEntity[];
@@ -58,11 +57,8 @@ export function useWorkspaceCreation({
         y,
         range: NEW_PEER_RANGE,
         enabled: true,
-        protocols: [RoutingProtocol.BATMAN],
-        ...BATMAN_DEFAULT_CONFIGURATION,
-        ...AODV_DEFAULT_CONFIGURATION,
-        ...DSDV_DEFAULT_CONFIGURATION,
-        ...OLSR_DEFAULT_CONFIGURATION,
+        protocol: RoutingProtocol.BATMAN,
+        configuration: getDefaultPeerConfiguration(RoutingProtocol.BATMAN) as BatmanConfiguration,
       };
 
       setters.setEntities([...entities, nextPeer]);
@@ -164,7 +160,7 @@ export function useWorkspaceCreation({
 
   const createToggleStep = useCallback(
     (targetEntityId: UUID) => {
-      const step: ToggleStatusStep = {
+      const step: ToggleStep = {
         id: generateUUID(),
         title: "Toggle",
         type: StepType.Toggle,

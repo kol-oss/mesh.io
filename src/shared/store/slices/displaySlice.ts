@@ -1,9 +1,9 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { PlacementMode, ToolbarGroup, ToolbarMode } from "../../types/enums";
+import { ActionMode, PlacementMode, ToolbarGroup, ToolbarMode } from "../../types/enums";
 import type { UUID } from "../../types/uuid";
 import { DISPLAY_STORAGE_KEY } from "../constants";
 import { loadState } from "../utils/storeUtils";
-import type { ToolbarModesByGroup, ToolbarToolMode } from "../../types/toolbar";
+import type { ToolbarModesByGroup, ToolbarToolMode } from "../../types/action";
 
 export const TABS = {
   ENTITIES: "entities",
@@ -78,15 +78,21 @@ const displaySlice = createSlice({
           state.toolbarModesByGroup[ToolbarGroup.Navigation] = ToolbarMode.NavigationMove;
           break;
         case ToolbarGroup.Entities:
-          state.toolbarModesByGroup[ToolbarGroup.Entities] = mode as "peer" | "obstacle" | "link";
+          state.toolbarModesByGroup[ToolbarGroup.Entities] = mode as
+            | ActionMode.Peer
+            | ActionMode.Obstacle
+            | ActionMode.Link;
           break;
         case ToolbarGroup.Steps:
-          state.toolbarModesByGroup[ToolbarGroup.Steps] = mode as "message" | "move" | "toggle";
+          state.toolbarModesByGroup[ToolbarGroup.Steps] = mode as
+            | ActionMode.Message
+            | ActionMode.Move
+            | ActionMode.Toggle;
           break;
         case ToolbarGroup.Inspection:
           state.toolbarModesByGroup[ToolbarGroup.Inspection] = mode as
-            | "routingTable"
-            | "packetStructure";
+            | ActionMode.RoutingTable
+            | ActionMode.PacketStructure;
           break;
         case ToolbarGroup.Text:
           state.toolbarModesByGroup[ToolbarGroup.Text] = PlacementMode.Text;

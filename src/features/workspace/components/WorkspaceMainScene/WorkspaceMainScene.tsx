@@ -1,6 +1,6 @@
 import { PlacementMode } from "../../../../shared/types/enums";
 import type { SimulationEvent, SimulationStepResult } from "../../../../shared/types/simulation";
-import type { ToolbarPlacementMode } from "../../../../shared/types/toolbar";
+import type { ToolbarPlacementMode } from "../../../../shared/types/action";
 import type { WorkspaceSceneProps } from "../../../../shared/types/workspace/scene";
 import SimulationPanel from "../Simulation/SimulationPanel";
 import WorkspaceScene from "../WorkspaceScene/WorkspaceScene";

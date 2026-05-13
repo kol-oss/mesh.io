@@ -1,11 +1,11 @@
 import type { MutableRefObject } from "react";
 
 import type { PeerEntity } from "../entities";
-import type { ToolbarPlacementMode } from "../actionmode";
+import type { ActionPlacementMode } from "../action";
 import type { UUID } from "../uuid";
 
 export type WorkspaceHintRefs = {
-  placementModeRef: MutableRefObject<ToolbarPlacementMode>;
+  placementModeRef: MutableRefObject<ActionPlacementMode | null>;
   hintActiveRef: MutableRefObject<boolean>;
   restoreHintTimerRef: MutableRefObject<number | null>;
   linkSourcePeerIdRef: MutableRefObject<UUID | null>;
@@ -14,7 +14,7 @@ export type WorkspaceHintRefs = {
 };
 
 export type WorkspaceHintState = {
-  placementMode: ToolbarPlacementMode;
+  placementMode: ActionPlacementMode | null;
   resolvedCreationSelectedEntityId: UUID | null;
   peers: PeerEntity[];
 };

@@ -6,7 +6,7 @@ import type {
   WorkspaceHintRefs,
   WorkspaceHintState,
 } from "../../../shared/types/workspace/hints";
-import type { ToolbarPlacementMode } from "../../../shared/types/toolbar";
+import type { ToolbarPlacementMode } from "../../../shared/types/action";
 
 type UseWorkspaceHintsParams = {
   refs: WorkspaceHintRefs;

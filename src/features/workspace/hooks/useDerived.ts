@@ -10,9 +10,14 @@ import {
 } from "../../../shared/types/enums";
 import type { MoveIndicator } from "../../../shared/types/workspace/scene";
 import type { RangePolygon } from "../../../shared/types/workspace/interaction";
-import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../../shared/types/entities";
+import type {
+  LinkEntity,
+  NetworkEntity,
+  ObstacleEntity,
+  PeerEntity,
+} from "../../../shared/types/entities";
 import type { WorkflowStep } from "../../../shared/types/steps";
-import type { ToolbarPlacementMode } from "../../../shared/types/toolbar";
+import type { ToolbarPlacementMode } from "../../../shared/types/action";
 import type { UUID } from "../../../shared/types/uuid";
 import {
   getObstacleBounds,
@@ -105,9 +110,7 @@ export function useWorkspaceDerived({
       for (let j = i + 1; j < enabledPeers.length; j += 1) {
         const peerA = enabledPeers[i];
         const peerB = enabledPeers[j];
-        const hasSharedProtocol = peerA.protocols.some((protocol) =>
-          peerB.protocols.includes(protocol),
-        );
+        const hasSharedProtocol = peerA.protocol === peerB.protocol;
         if (!hasSharedProtocol) {
           continue;
         }

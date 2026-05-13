@@ -23,7 +23,7 @@ import type {
 } from "../../../shared/types/workspace/drag";
 import type { ObstacleResizeEdge } from "../../../shared/types/workspace/interaction";
 import type { ObstacleEntity, PeerEntity } from "../../../shared/types/entities";
-import type { ToolbarPlacementMode } from "../../../shared/types/toolbar";
+import type { ToolbarPlacementMode } from "../../../shared/types/action";
 import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
 import type { UUID } from "../../../shared/types/uuid";
 

@@ -7,7 +7,9 @@ import {
   AODV_MIN_ROUTE_TIMEOUT,
   AODV_PATH_DISCOVERY_TTL,
   AODV_SEQUENCE_INITIAL,
-} from "../../constants/aodv";import { RoutingProtocol } from "../../types/enums";
+} from "../../constants/aodv";
+import { getAodvConfiguration } from "../../../types/peers";
+import { RoutingProtocol } from "../../types/enums";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -895,11 +897,21 @@ export class AodvModule implements PacketCapableModule {
   }
 
   private getHelloInterval() {
-    return clampHelloInterval(this.routingPeer.getPeerEntity().aodvHelloInterval);
+    const configuration = getAodvConfiguration(this.routingPeer.getPeerEntity());
+    if (!configuration) {
+      return AODV_MIN_HELLO_INTERVAL;
+    }
+
+    return clampHelloInterval(configuration.helloInterval);
   }
 
   private getRouteTimeout() {
-    return clampRouteTimeout(this.routingPeer.getPeerEntity().aodvRouteTimeout);
+    const configuration = getAodvConfiguration(this.routingPeer.getPeerEntity());
+    if (!configuration) {
+      return AODV_MIN_ROUTE_TIMEOUT;
+    }
+
+    return clampRouteTimeout(configuration.routeTimeout);
   }
 
   private getHelloLifetime() {

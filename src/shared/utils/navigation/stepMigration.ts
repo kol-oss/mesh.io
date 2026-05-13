@@ -1,9 +1,9 @@
-import { StepType } from "../../types/enums";
+import { StepType } from "../../types/steps";
 import {
   createStepBase,
   type MessageStep,
   type MoveStep,
-  type ToggleStatusStep,
+  type ToggleStep,
   type WorkflowStep,
 } from "../../types/steps";
 import { generateUUID } from "../../types/uuid";
@@ -79,7 +79,7 @@ const normalizeMoveStep = (rawStep: LegacyStep, index: number): MoveStep => {
   };
 };
 
-const normalizeToggleStep = (rawStep: LegacyStep, index: number): ToggleStatusStep => {
+const normalizeToggleStep = (rawStep: LegacyStep, index: number): ToggleStep => {
   return {
     ...createStepBase({
       id: hasNonEmptyString(rawStep.id) ? rawStep.id : generateUUID(),

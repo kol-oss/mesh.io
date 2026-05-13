@@ -32,7 +32,7 @@ import {
   ToolbarMode,
   TooltipPlacement,
 } from "../../../../shared/types/enums";
-import type { ToolbarPlacementMode, ToolbarToolMode } from "../../../../shared/types/toolbar";
+import type { ToolbarPlacementMode, ToolbarToolMode } from "../../../../shared/types/action";
 import Tooltip from "../../../../shared/ui/components/Tooltip/Tooltip";
 
 type ToolMode = ToolbarToolMode;
@@ -239,9 +239,9 @@ export default function Toolbar({
       : normalizedSelectedGroupId;
 
   useEffect(() => {
-    const entitiesMode = activeItemsByGroup.entities.key;
-    const stepsMode = activeItemsByGroup.steps.key;
-    const textMode = activeItemsByGroup.text.key;
+    const entitiesMode = activeItemsByGroup[ToolbarGroup.Entities].key;
+    const stepsMode = activeItemsByGroup[ToolbarGroup.Steps].key;
+    const textMode = activeItemsByGroup[ToolbarGroup.Text].key;
     const nextPlacementMode: ToolbarPlacementMode =
       effectiveSelectedGroupId === ToolbarGroup.Entities &&
       (entitiesMode === PlacementMode.Peer ||
@@ -266,7 +266,7 @@ export default function Toolbar({
       return;
     }
 
-    onInspectionModeChange(activeItemsByGroup.inspection.key as ToolbarMode);
+    onInspectionModeChange(activeItemsByGroup[ToolbarGroup.Inspection].key as ToolbarMode);
   }, [activeItemsByGroup, effectiveSelectedGroupId, onInspectionModeChange]);
 
   const setGroupMode = useCallback(

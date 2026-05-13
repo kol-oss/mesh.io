@@ -19,6 +19,7 @@ import {
   BATMAN_TIME_TO_LIVE,
   BATMAN_VERSION,
 } from "../../constants/batman.ts";
+import { getBatmanConfiguration } from "../../../types/peers";
 type BatmanNeighbourEntry = {
   neighbourId: UUID;
   lastSeen: number;
@@ -46,10 +47,14 @@ export class BatmanModule implements PacketCapableModule {
   constructor(routingPeer: SimulationPeerNode, eventRecorder: SimulationEventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
+    const configuration = getBatmanConfiguration(routingPeer.getPeerEntity());
+    if (!configuration) {
+      throw new Error("BATMAN module requires a BATMAN peer entity.");
+    }
     this.originatorTable = new BatmanOriginatorTable(
       routingPeer,
       eventRecorder,
-      Math.max(1, routingPeer.getPeerEntity().batmanPurgeTimeout),
+      Math.max(1, configuration.purgeTimeout),
     );
     this.operations = new BatmanOperations({
       routingPeer,
@@ -158,7 +163,11 @@ export class BatmanModule implements PacketCapableModule {
 
     this.lastElpTickSent = currentTick;
     this.elpSequence += 1;
-    const elpInterval = Math.max(1, Math.floor(this.routingPeer.getPeerEntity().batmanElpInterval));
+    const configuration = getBatmanConfiguration(this.routingPeer.getPeerEntity());
+    if (!configuration) {
+      return;
+    }
+    const elpInterval = Math.max(1, Math.floor(configuration.elpInterval));
 
     const neighbours: BatmanEchoLocationNeighbour[] = [...this.neighbourTable.values()]
       .map((entry) => ({

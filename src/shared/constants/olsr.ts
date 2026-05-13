@@ -3,6 +3,6 @@ export const OLSR_MAX_INTERVAL = 20;
 export const OLSR_DEFAULT_TC_TTL = 16;
 
 export const OLSR_DEFAULT_CONFIGURATION = {
-  olsrHelloInterval: 2,
-  olsrTcInterval: 5,
+  helloInterval: 2,
+  tcInterval: 5,
 };

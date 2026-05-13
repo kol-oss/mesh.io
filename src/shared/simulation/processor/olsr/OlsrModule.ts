@@ -1,4 +1,7 @@
-import { OLSR_DEFAULT_TC_TTL, OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "../../constants/olsr";import { RoutingProtocol } from "../../types/enums";
+import { OLSR_DEFAULT_TC_TTL, OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "../../constants/olsr";
+import { RoutingProtocol } from "../../types/enums";
+import type { OlsrConfiguration } from "../../../types/configurations";
+import { getOlsrConfiguration } from "../../../types/peers";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -63,6 +66,16 @@ export class OlsrModule implements PacketCapableModule {
 
   private ansn = 0;
 
+  private getConfiguration(): OlsrConfiguration {
+    const peer = this.routingPeer.getPeerEntity();
+    const configuration = getOlsrConfiguration(peer);
+    if (!configuration) {
+      throw new Error("OLSR module requires an OLSR peer entity.");
+    }
+
+    return configuration;
+  }
+
   constructor(routingPeer: SimulationPeerNode, eventRecorder: SimulationEventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
@@ -112,7 +125,7 @@ export class OlsrModule implements PacketCapableModule {
       kind: SimulationMessageKind.OlsrHelloMessage,
       sourcePeerId: this.routingPeer.id,
       senderPeerId: this.routingPeer.id,
-      interval: clampInterval(this.routingPeer.getPeerEntity().olsrHelloInterval),
+      interval: clampInterval(this.getConfiguration().helloInterval),
       neighbours: this.getLocalBroadcastNeighbours().map((peer) => peer.id),
       mprPeerIds: [...this.mprPeerIds],
     };
@@ -175,8 +188,9 @@ export class OlsrModule implements PacketCapableModule {
     }
 
     const tick = this.eventRecorder.getCurrentTick();
-    const helloExpiry = clampInterval(this.routingPeer.getPeerEntity().olsrHelloInterval) * 3;
-    const tcExpiry = clampInterval(this.routingPeer.getPeerEntity().olsrTcInterval) * 3;
+    const configuration = this.getConfiguration();
+    const helloExpiry = clampInterval(configuration.helloInterval) * 3;
+    const tcExpiry = clampInterval(configuration.tcInterval) * 3;
 
     let changed = false;
 

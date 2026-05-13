@@ -6,7 +6,7 @@ import type {
   ManualWorkflowStep,
   MessageStep,
   MoveStep,
-  ToggleStatusStep,
+  ToggleStep,
   WorkflowStep,
 } from "../../../../../shared/types/steps";
 import type { StepPropertiesPanelProps } from "../../../../../shared/types/properties";
@@ -113,8 +113,8 @@ export default function StepProperties({
       if (step.type === StepType.Toggle) {
         return {
           ...step,
-          ...(changes as Partial<ToggleStatusStep>),
-        } satisfies ToggleStatusStep;
+          ...(changes as Partial<ToggleStep>),
+        } satisfies ToggleStep;
       }
 
       return step;
@@ -148,7 +148,7 @@ export default function StepProperties({
         ...base,
         type: StepType.Toggle,
         targetEntityId: null,
-      } satisfies ToggleStatusStep;
+      } satisfies ToggleStep;
     }
 
     return {
@@ -203,7 +203,9 @@ export default function StepProperties({
       <div className="properties__resizer" onPointerDown={onResizeStart} />
       <header className="properties__header">
         <p className="properties__title">{"Step"}</p>
-        <p className="properties__subtitle">{"A discrete action in the simulation workflow, executed at a specific tick."}</p>
+        <p className="properties__subtitle">
+          {"A discrete action in the simulation workflow, executed at a specific tick."}
+        </p>
         <Link className="properties__read-more" to="/docs" target="_blank" rel="noreferrer">
           <ExternalLink size={12} />
           {"Read more"}

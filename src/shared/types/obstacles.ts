@@ -1,8 +1,8 @@
 import type { BaseEntity, Coordinate } from "./base";
-import { EntityType } from "./entitytype";
+import { EntityType } from "./entities";
 
 export interface ObstacleEntity extends BaseEntity, Coordinate {
-  type: typeof EntityType.Obstacle;
+  type: EntityType.Obstacle;
   width: number;
   height: number;
 }

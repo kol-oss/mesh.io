@@ -1,7 +1,7 @@
 import { Activity, Link2, Radio } from "lucide-react";
 import { EntityType } from "../../../../../shared/types/enums";
 import type { LinkEntity, PeerEntity } from "../../../../../shared/types/entities";
-import type { ToggleStatusStep } from "../../../../../shared/types/steps";
+import type { ToggleStep } from "../../../../../shared/types/steps";
 import Select from "../../../../../shared/ui/components/Select/Select";
 
 type ToggleStepPropertiesProps = {
@@ -9,7 +9,7 @@ type ToggleStepPropertiesProps = {
   toggleTargetValue: string;
   isStepToggleEntityMissing: boolean;
   reverseStatusLabel: string;
-  updateStep: (changes: Partial<ToggleStatusStep>) => void;
+  updateStep: (changes: Partial<ToggleStep>) => void;
 };
 
 export default function ToggleStepProperties({

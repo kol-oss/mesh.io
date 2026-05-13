@@ -27,6 +27,7 @@ import {
   BATMAN_VERSION,
   BATMAN_WIRELESS_BASE_THROUGHPUT,
 } from "../../constants/batman.ts";
+import { getBatmanConfiguration } from "../../../types/peers";
 
 type BatmanNeighbourEntry = {
   neighbourId: UUID;
@@ -251,6 +252,10 @@ export class BatmanOperations {
     }
 
     const routingPeerEntity = this.routingPeer.getPeerEntity();
+    const routingConfiguration = getBatmanConfiguration(routingPeerEntity);
+    if (!routingConfiguration) {
+      return false;
+    }
     const senderPeerEntity = senderPeer.getPeerEntity();
     const isStaticLink = this.routingPeer.isLinkedNeighbour(message.senderPeerId);
     const isWirelessLink =
@@ -263,8 +268,8 @@ export class BatmanOperations {
       ? applyDistancePenalty(
           baseReferenceThroughput,
           distance,
-          routingPeerEntity.batmanDistancePenaltyDistance,
-          routingPeerEntity.batmanDistancePenaltyPercent,
+          routingConfiguration.distancePenaltyDistance,
+          routingConfiguration.distancePenaltyPercent,
         )
       : baseReferenceThroughput;
 
@@ -300,8 +305,8 @@ export class BatmanOperations {
       previousEwma,
       nextEwma,
       distance,
-      distancePenaltyDistance: routingPeerEntity.batmanDistancePenaltyDistance,
-      distancePenaltyPercent: routingPeerEntity.batmanDistancePenaltyPercent,
+      distancePenaltyDistance: routingConfiguration.distancePenaltyDistance,
+      distancePenaltyPercent: routingConfiguration.distancePenaltyPercent,
     });
 
     return true;

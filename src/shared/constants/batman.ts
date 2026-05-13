@@ -17,9 +17,9 @@ export const BATMAN_EWMA_ALPHA = 0.2;
 
 // default configuration
 export const BATMAN_DEFAULT_CONFIGURATION = {
-  batmanDistancePenaltyDistance: 75,
-  batmanDistancePenaltyPercent: 5,
-  batmanElpInterval: BATMAN_MIN_ELP_INTERVAL,
-  batmanOgmInterval: BATMAN_MIN_OGM_INTERVAL,
-  batmanPurgeTimeout: 10,
+  distancePenaltyDistance: 75,
+  distancePenaltyPercent: 5,
+  elpInterval: BATMAN_MIN_ELP_INTERVAL,
+  ogmInterval: BATMAN_MIN_OGM_INTERVAL,
+  purgeTimeout: 10,
 };

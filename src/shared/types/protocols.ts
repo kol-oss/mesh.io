@@ -1,11 +1,15 @@
-export const RoutingProtocol = {
-  DSDV: "DSDV",
-  BATMAN: "BATMAN",
-  OLSR: "OLSR",
-  AODV: "AODV",
-  DSR: "DSR",
-} as const;
+export enum RoutingProtocol {
+  DSDV = "DSDV",
+  BATMAN = "BATMAN",
+  OLSR = "OLSR",
+  AODV = "AODV",
+  DSR = "DSR",
+}
 
-export type RoutingProtocol = (typeof RoutingProtocol)[keyof typeof RoutingProtocol];
-
-export type PeerRoutingProtocol = RoutingProtocol;
+export const ROUTING_PROTOCOLS: RoutingProtocol[] = [
+  RoutingProtocol.DSDV,
+  RoutingProtocol.BATMAN,
+  RoutingProtocol.OLSR,
+  RoutingProtocol.AODV,
+  RoutingProtocol.DSR,
+];

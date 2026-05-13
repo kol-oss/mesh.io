@@ -1,6 +1,4 @@
-export const SelectionType = {
-  Entities: "entities",
-  Steps: "steps",
-} as const;
-
-export type SelectionType = (typeof SelectionType)[keyof typeof SelectionType];
+export enum SelectionType {
+  Entities = "ENTITIES",
+  Steps = "STEPS",
+}

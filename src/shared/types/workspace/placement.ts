@@ -6,7 +6,7 @@ import type {
 } from "react";
 
 import type { PeerEntity } from "../entities";
-import type { ToolbarPlacementMode } from "../actionmode";
+import type { ToolbarPlacementMode } from "../action";
 import type { UUID } from "../uuid";
 
 export type WorkspacePlacementRefs = {

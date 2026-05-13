@@ -1,4 +1,6 @@
 import type { LinkEntity, NetworkEntity, PeerEntity } from "../../types/entities";
+import { getBatmanConfiguration, getDsdvConfiguration } from "../../types/peers";
+import { RoutingProtocol } from "../../types/protocols";
 
 export class EntityValidator {
   static isNameValid(name: string): boolean {
@@ -31,27 +33,36 @@ export function validatePeer(
   peer: PeerEntity,
   minimums: Record<string, number>,
 ): PeerValidationState {
-  const selectedProtocol = peer.protocols[0];
+  const selectedProtocol = peer.protocol;
+  const batmanConfiguration = getBatmanConfiguration(peer);
+  const dsdvConfiguration = getDsdvConfiguration(peer);
   return {
     isNameMissing: !EntityValidator.isNameValid(peer.name),
-    isProtocolMissing: peer.protocols.length !== 1,
+    isProtocolMissing: false,
     isBatmanOgmMissing:
-      selectedProtocol === "BATMAN" && peer.batmanOgmInterval < minimums.ogmInterval,
+      selectedProtocol === RoutingProtocol.BATMAN &&
+      (batmanConfiguration?.ogmInterval ?? 0) < minimums.ogmInterval,
     isBatmanElpMissing:
-      selectedProtocol === "BATMAN" && peer.batmanElpInterval < minimums.elpInterval,
+      selectedProtocol === RoutingProtocol.BATMAN &&
+      (batmanConfiguration?.elpInterval ?? 0) < minimums.elpInterval,
     isBatmanPurgeMissing:
-      selectedProtocol === "BATMAN" && peer.batmanPurgeTimeout < minimums.purgeTimeout,
+      selectedProtocol === RoutingProtocol.BATMAN &&
+      (batmanConfiguration?.purgeTimeout ?? 0) < minimums.purgeTimeout,
     isBatmanPenaltyDistanceMissing:
-      selectedProtocol === "BATMAN" &&
-      peer.batmanDistancePenaltyDistance < minimums.distancePenalty,
+      selectedProtocol === RoutingProtocol.BATMAN &&
+      (batmanConfiguration?.distancePenaltyDistance ?? 0) < minimums.distancePenalty,
     isBatmanPenaltyPercentMissing:
-      selectedProtocol === "BATMAN" && peer.batmanDistancePenaltyPercent < minimums.penaltyPercent,
+      selectedProtocol === RoutingProtocol.BATMAN &&
+      (batmanConfiguration?.distancePenaltyPercent ?? 0) < minimums.penaltyPercent,
     isDsdvIncrementalMissing:
-      selectedProtocol === "DSDV" && peer.dsdvIncrementalUpdateInterval < minimums.dsdvIncremental,
+      selectedProtocol === RoutingProtocol.DSDV &&
+      (dsdvConfiguration?.incrementalUpdateInterval ?? 0) < minimums.dsdvIncremental,
     isDsdvFullDumpMissing:
-      selectedProtocol === "DSDV" && peer.dsdvFullDumpInterval < minimums.dsdvFullDump,
+      selectedProtocol === RoutingProtocol.DSDV &&
+      (dsdvConfiguration?.fullDumpInterval ?? 0) < minimums.dsdvFullDump,
     isDsdvRouteTimeoutMissing:
-      selectedProtocol === "DSDV" && peer.dsdvRouteTimeout < minimums.dsdvRouteTimeout,
+      selectedProtocol === RoutingProtocol.DSDV &&
+      (dsdvConfiguration?.routeTimeout ?? 0) < minimums.dsdvRouteTimeout,
   };
 }
 

@@ -6,7 +6,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
-import { RoutingProtocol } from "../../../../shared/types/enums";
+import { RoutingProtocol } from "../../../../shared/types/protocols";
 import type { SimulationStepResult } from "../../../../shared/types/simulation";
 import type { UUID } from "../../../../shared/types/uuid";
 
@@ -108,7 +108,7 @@ export default function TableInspectionWindow({
     return null;
   }
 
-  const selectedProtocol = inspectedPeer.protocols[0] ?? null;
+  const selectedProtocol = inspectedPeer.protocol;
 
   const toggleSection = (section: keyof typeof collapsedSections) => {
     setCollapsedSections((current) => ({
@@ -158,14 +158,14 @@ export default function TableInspectionWindow({
       >
         <h2 className="simulation-panel__title">
           {selectedProtocol === RoutingProtocol.DSDV
-            ? (`DSDV Structures on ${(inspectedPeer.name)}`)
+            ? `DSDV Structures on ${inspectedPeer.name}`
             : selectedProtocol === RoutingProtocol.AODV
-              ? (`AODV Structures on ${(inspectedPeer.name)}`)
+              ? `AODV Structures on ${inspectedPeer.name}`
               : selectedProtocol === RoutingProtocol.DSR
-                ? (`DSR Structures on ${(inspectedPeer.name)}`)
+                ? `DSR Structures on ${inspectedPeer.name}`
                 : selectedProtocol === RoutingProtocol.OLSR
-                  ? (`OLSR Structures on ${(inspectedPeer.name)}`)
-                  : (`B.A.T.M.A.N. V Structures on ${(inspectedPeer.name)}`)}
+                  ? `OLSR Structures on ${inspectedPeer.name}`
+                  : `B.A.T.M.A.N. V Structures on ${inspectedPeer.name}`}
         </h2>
         <button
           className="simulation-panel__close-button"

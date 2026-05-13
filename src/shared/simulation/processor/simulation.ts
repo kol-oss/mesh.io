@@ -1,11 +1,5 @@
-import { RoutingProtocol, StepType } from "../types/enums";
-import {
-  AodvRefreshAction,
-  BatmanRefreshAction,
-  DsdvRefreshAction,
-  OlsrRefreshAction,
-  type WorkflowStep,
-} from "../types/steps";
+import { RoutingProtocol } from "../../types/protocols";
+import { RefreshAction, StepType, type WorkflowStep } from "../../types/steps";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -157,7 +151,7 @@ const processStep = (
 
     if (
       step.refreshProtocol === RoutingProtocol.BATMAN &&
-      step.refreshAction === BatmanRefreshAction.Elp
+      step.refreshAction === RefreshAction.BatmanElp
     ) {
       if (!(module instanceof BatmanModule)) {
         return;
@@ -168,7 +162,7 @@ const processStep = (
 
     if (
       step.refreshProtocol === RoutingProtocol.BATMAN &&
-      step.refreshAction === BatmanRefreshAction.Ogm
+      step.refreshAction === RefreshAction.BatmanOgm
     ) {
       if (!(module instanceof BatmanModule)) {
         return;
@@ -181,7 +175,7 @@ const processStep = (
 
     if (
       step.refreshProtocol === RoutingProtocol.DSDV &&
-      step.refreshAction === DsdvRefreshAction.FullDump
+      step.refreshAction === RefreshAction.DsdvFullDump
     ) {
       if (!(module instanceof DsdvModule)) {
         return;
@@ -194,7 +188,7 @@ const processStep = (
 
     if (
       step.refreshProtocol === RoutingProtocol.DSDV &&
-      step.refreshAction === DsdvRefreshAction.Incremental
+      step.refreshAction === RefreshAction.DsdvIncremental
     ) {
       if (!(module instanceof DsdvModule)) {
         return;
@@ -207,7 +201,7 @@ const processStep = (
 
     if (
       step.refreshProtocol === RoutingProtocol.AODV &&
-      step.refreshAction === AodvRefreshAction.Hello
+      step.refreshAction === RefreshAction.AodvHello
     ) {
       if (!(module instanceof AodvModule)) {
         return;
@@ -220,7 +214,7 @@ const processStep = (
 
     if (
       step.refreshProtocol === RoutingProtocol.OLSR &&
-      step.refreshAction === OlsrRefreshAction.Hello
+      step.refreshAction === RefreshAction.OlsrHello
     ) {
       if (!(module instanceof OlsrModule)) {
         return;
@@ -233,7 +227,7 @@ const processStep = (
 
     if (
       step.refreshProtocol === RoutingProtocol.OLSR &&
-      step.refreshAction === OlsrRefreshAction.Tc
+      step.refreshAction === RefreshAction.OlsrTc
     ) {
       if (!(module instanceof OlsrModule)) {
         return;

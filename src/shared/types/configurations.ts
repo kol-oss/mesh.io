@@ -1,31 +1,32 @@
 export interface BatmanConfiguration {
-  batmanDistancePenaltyDistance: number;
-  batmanDistancePenaltyPercent: number;
-  batmanElpInterval: number;
-  batmanOgmInterval: number;
-  batmanPurgeTimeout: number;
+  distancePenaltyDistance: number;
+  distancePenaltyPercent: number;
+  elpInterval: number;
+  ogmInterval: number;
+  purgeTimeout: number;
 }
 
 export interface DsdvConfiguration {
-  dsdvIncrementalUpdateInterval: number;
-  dsdvFullDumpInterval: number;
-  dsdvRouteTimeout: number;
+  incrementalUpdateInterval: number;
+  fullDumpInterval: number;
+  routeTimeout: number;
 }
 
 export interface AodvConfiguration {
-  aodvHelloInterval: number;
-  aodvRouteTimeout: number;
+  helloInterval: number;
+  routeTimeout: number;
 }
 
 export interface OlsrConfiguration {
-  olsrHelloInterval: number;
-  olsrTcInterval: number;
+  helloInterval: number;
+  tcInterval: number;
 }
 
-export type DsrConfiguration = Record<never, never>;
+export type DsrConfiguration = Record<string, never>;
 
-export type DaemonConfiguration = BatmanConfiguration &
-  DsdvConfiguration &
-  AodvConfiguration &
-  OlsrConfiguration &
-  DsrConfiguration;
+export type PeerConfiguration =
+  | BatmanConfiguration
+  | DsdvConfiguration
+  | AodvConfiguration
+  | OlsrConfiguration
+  | DsrConfiguration;

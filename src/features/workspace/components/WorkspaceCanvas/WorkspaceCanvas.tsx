@@ -22,7 +22,7 @@ import {
   type SimulationStepResult,
 } from "../../../../shared/types/simulation";
 import type { WorkflowStep } from "../../../../shared/types/steps";
-import type { ToolbarPlacementMode } from "../../../../shared/types/toolbar";
+import type { ToolbarPlacementMode } from "../../../../shared/types/action";
 import type { UUID } from "../../../../shared/types/uuid";
 import type { WorkspaceTextItem } from "../../../../shared/types/workspace/text";
 import type { WorkspacePanState } from "../../../../shared/types/workspace/background";

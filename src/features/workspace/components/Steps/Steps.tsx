@@ -16,7 +16,7 @@ import { StepType } from "../../../../shared/types/enums";
 import type {
   MessageStep,
   MoveStep,
-  ToggleStatusStep,
+  ToggleStep,
   WorkflowStep,
 } from "../../../../shared/types/steps";
 import { generateUUID, type UUID } from "../../../../shared/types/uuid";
@@ -209,7 +209,7 @@ export default function Steps({
               type: StepType.Toggle,
               tick: nextTick,
               targetEntityId: null,
-            } satisfies ToggleStatusStep)
+            } satisfies ToggleStep)
           : ({
               id: generateUUID(),
               title: "Move",

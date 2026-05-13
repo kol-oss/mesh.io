@@ -2,6 +2,7 @@ import Navigation from "../../components/Navigation/Navigation";
 import Properties from "../../components/Properties/Properties";
 import Toolbar from "../../components/Toolbar/Toolbar";
 import WorkspaceCanvas from "../../components/WorkspaceCanvas/WorkspaceCanvas";
+import { SelectionSource } from "../../../../shared/types/enums";
 import { useWorkspaceStore } from "../../store/workspace";
 
 export default function Workspace() {
@@ -120,13 +121,13 @@ export default function Workspace() {
         <Properties
           selectedId={
             isStepPlacementMode ||
-            (currentSimulationStepResult !== null && selectedSource === "steps")
+            (currentSimulationStepResult !== null && selectedSource === SelectionSource.Steps)
               ? null
               : selectedId
           }
           selectedSource={
             isStepPlacementMode ||
-            (currentSimulationStepResult !== null && selectedSource === "steps")
+            (currentSimulationStepResult !== null && selectedSource === SelectionSource.Steps)
               ? null
               : selectedSource
           }

@@ -10,7 +10,10 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { peerRoutingProtocols } from "../../../../../shared/constants/protocol";
+import {
+  getDefaultPeerConfiguration,
+  peerRoutingProtocols,
+} from "../../../../../shared/constants/protocol";
 import {
   BATMAN_MIN_OGM_INTERVAL,
   BATMAN_MIN_ELP_INTERVAL,
@@ -33,7 +36,19 @@ import {
 import { OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "../../../../../shared/constants/olsr";
 import Tooltip from "../../../../../shared/ui/components/Tooltip/Tooltip";
 import { EntityType, RoutingProtocol } from "../../../../../shared/types/enums";
+import type {
+  AodvConfiguration,
+  BatmanConfiguration,
+  DsdvConfiguration,
+  OlsrConfiguration,
+} from "../../../../../shared/types/configurations";
 import type { PeerEntity } from "../../../../../shared/types/entities";
+import {
+  getAodvConfiguration,
+  getBatmanConfiguration,
+  getDsdvConfiguration,
+  getOlsrConfiguration,
+} from "../../../../../shared/types/peers";
 import type { PeerPropertiesPanelProps } from "../../../../../shared/types/properties";
 import { parseNumberValue, parsePositiveNumberValue } from "../../../../../shared/utils/properties";
 
@@ -49,42 +64,49 @@ export default function PeerProperties({
   description,
 }: PeerPropertiesPanelProps) {
   const isLocked = selectedPeer.locked === true;
-  const selectedProtocol = selectedPeer.protocols[0] ?? null;
+  const selectedProtocol = selectedPeer.protocol;
+  const batmanConfiguration = getBatmanConfiguration(selectedPeer);
+  const dsdvConfiguration = getDsdvConfiguration(selectedPeer);
+  const aodvConfiguration = getAodvConfiguration(selectedPeer);
+  const olsrConfiguration = getOlsrConfiguration(selectedPeer);
   const isPeerNameMissing = selectedPeer.name.trim() === "";
-  const isProtocolMissing = selectedPeer.protocols.length !== 1;
+  const isProtocolMissing = false;
   const isBatmanOgmMissing =
     selectedProtocol === RoutingProtocol.BATMAN &&
-    selectedPeer.batmanOgmInterval < BATMAN_MIN_OGM_INTERVAL;
+    (batmanConfiguration?.ogmInterval ?? 0) < BATMAN_MIN_OGM_INTERVAL;
   const isBatmanElpMissing =
     selectedProtocol === RoutingProtocol.BATMAN &&
-    selectedPeer.batmanElpInterval < BATMAN_MIN_ELP_INTERVAL;
+    (batmanConfiguration?.elpInterval ?? 0) < BATMAN_MIN_ELP_INTERVAL;
   const isBatmanPurgeMissing =
     selectedProtocol === RoutingProtocol.BATMAN &&
-    selectedPeer.batmanPurgeTimeout < BATMAN_MIN_PURGE_TIMEOUT;
+    (batmanConfiguration?.purgeTimeout ?? 0) < BATMAN_MIN_PURGE_TIMEOUT;
   const isBatmanPenaltyDistanceMissing =
     selectedProtocol === RoutingProtocol.BATMAN &&
-    selectedPeer.batmanDistancePenaltyDistance < BATMAN_MIN_DISTANCE_PENALTY;
+    (batmanConfiguration?.distancePenaltyDistance ?? 0) < BATMAN_MIN_DISTANCE_PENALTY;
   const isBatmanPenaltyPercentMissing =
     selectedProtocol === RoutingProtocol.BATMAN &&
-    selectedPeer.batmanDistancePenaltyPercent < BATMAN_MIN_PENALTY_PERCENT;
+    (batmanConfiguration?.distancePenaltyPercent ?? 0) < BATMAN_MIN_PENALTY_PERCENT;
   const isDsdvIncrementalMissing =
     selectedProtocol === RoutingProtocol.DSDV &&
-    selectedPeer.dsdvIncrementalUpdateInterval < DSDV_MIN_INTERVAL;
+    (dsdvConfiguration?.incrementalUpdateInterval ?? 0) < DSDV_MIN_INTERVAL;
   const isDsdvFullDumpMissing =
     selectedProtocol === RoutingProtocol.DSDV &&
-    selectedPeer.dsdvFullDumpInterval < DSDV_MIN_INTERVAL;
+    (dsdvConfiguration?.fullDumpInterval ?? 0) < DSDV_MIN_INTERVAL;
   const isDsdvRouteTimeoutMissing =
-    selectedProtocol === RoutingProtocol.DSDV && selectedPeer.dsdvRouteTimeout < DSDV_MIN_TIMEOUT;
+    selectedProtocol === RoutingProtocol.DSDV &&
+    (dsdvConfiguration?.routeTimeout ?? 0) < DSDV_MIN_TIMEOUT;
   const isAodvHelloMissing =
     selectedProtocol === RoutingProtocol.AODV &&
-    selectedPeer.aodvHelloInterval < AODV_MIN_HELLO_INTERVAL;
+    (aodvConfiguration?.helloInterval ?? 0) < AODV_MIN_HELLO_INTERVAL;
   const isAodvRouteTimeoutMissing =
     selectedProtocol === RoutingProtocol.AODV &&
-    selectedPeer.aodvRouteTimeout < AODV_MIN_ROUTE_TIMEOUT;
+    (aodvConfiguration?.routeTimeout ?? 0) < AODV_MIN_ROUTE_TIMEOUT;
   const isOlsrHelloMissing =
-    selectedProtocol === RoutingProtocol.OLSR && selectedPeer.olsrHelloInterval < OLSR_MIN_INTERVAL;
+    selectedProtocol === RoutingProtocol.OLSR &&
+    (olsrConfiguration?.helloInterval ?? 0) < OLSR_MIN_INTERVAL;
   const isOlsrTcMissing =
-    selectedProtocol === RoutingProtocol.OLSR && selectedPeer.olsrTcInterval < OLSR_MIN_INTERVAL;
+    selectedProtocol === RoutingProtocol.OLSR &&
+    (olsrConfiguration?.tcInterval ?? 0) < OLSR_MIN_INTERVAL;
 
   const updatePeer = (changes: Partial<PeerEntity>) => {
     if (isLocked) return;
@@ -102,68 +124,139 @@ export default function PeerProperties({
     setEntities(updatedEntities);
   };
 
-  const updateBatmanPeers = (changes: Partial<PeerEntity>) => {
+  const updateBatmanPeers = (changes: Partial<BatmanConfiguration>) => {
     if (isLocked) return;
     const updatedEntities = entities.map((entity) => {
-      if (entity.type !== EntityType.Peer) {
+      if (entity.type !== EntityType.Peer || entity.protocol !== RoutingProtocol.BATMAN) {
+        return entity;
+      }
+
+      const configuration = getBatmanConfiguration(entity);
+      if (!configuration) {
         return entity;
       }
 
       return {
         ...entity,
-        ...changes,
+        configuration: {
+          ...configuration,
+          ...changes,
+        },
       };
     });
 
     setEntities(updatedEntities);
   };
 
-  const updateDsdvPeers = (changes: Partial<PeerEntity>) => {
+  const updateDsdvPeers = (changes: Partial<DsdvConfiguration>) => {
     if (isLocked) return;
     const updatedEntities = entities.map((entity) => {
-      if (entity.type !== EntityType.Peer) {
+      if (entity.type !== EntityType.Peer || entity.protocol !== RoutingProtocol.DSDV) {
+        return entity;
+      }
+
+      const configuration = getDsdvConfiguration(entity);
+      if (!configuration) {
         return entity;
       }
 
       return {
         ...entity,
-        ...changes,
+        configuration: {
+          ...configuration,
+          ...changes,
+        },
       };
     });
 
     setEntities(updatedEntities);
   };
 
-  const updateOlsrPeers = (changes: Partial<PeerEntity>) => {
+  const updateOlsrPeers = (changes: Partial<OlsrConfiguration>) => {
     if (isLocked) return;
     const updatedEntities = entities.map((entity) => {
-      if (entity.type !== EntityType.Peer) {
+      if (entity.type !== EntityType.Peer || entity.protocol !== RoutingProtocol.OLSR) {
+        return entity;
+      }
+
+      const configuration = getOlsrConfiguration(entity);
+      if (!configuration) {
         return entity;
       }
 
       return {
         ...entity,
-        ...changes,
+        configuration: {
+          ...configuration,
+          ...changes,
+        },
       };
     });
 
     setEntities(updatedEntities);
   };
 
-  const updateAodvPeers = (changes: Partial<PeerEntity>) => {
+  const updateAodvPeers = (changes: Partial<AodvConfiguration>) => {
     if (isLocked) return;
     const updatedEntities = entities.map((entity) => {
-      if (entity.type !== EntityType.Peer) {
+      if (entity.type !== EntityType.Peer || entity.protocol !== RoutingProtocol.AODV) {
+        return entity;
+      }
+
+      const configuration = getAodvConfiguration(entity);
+      if (!configuration) {
         return entity;
       }
 
       return {
         ...entity,
-        ...changes,
+        configuration: {
+          ...configuration,
+          ...changes,
+        },
       };
     });
 
     setEntities(updatedEntities);
+  };
+
+  const updateBatmanPeer = (changes: Partial<BatmanConfiguration>) => {
+    if (!batmanConfiguration) {
+      return;
+    }
+
+    updatePeer({
+      configuration: {
+        ...batmanConfiguration,
+        ...changes,
+      },
+    });
+  };
+
+  const updateDsdvPeer = (changes: Partial<DsdvConfiguration>) => {
+    if (!dsdvConfiguration) {
+      return;
+    }
+
+    updatePeer({
+      configuration: {
+        ...dsdvConfiguration,
+        ...changes,
+      },
+    });
+  };
+
+  const updateAodvPeer = (changes: Partial<AodvConfiguration>) => {
+    if (!aodvConfiguration) {
+      return;
+    }
+
+    updatePeer({
+      configuration: {
+        ...aodvConfiguration,
+        ...changes,
+      },
+    });
   };
 
   const renderBatmanLabel = (label: string, isRequired: boolean) => (
@@ -174,10 +267,7 @@ export default function PeerProperties({
         {label}
       </span>
       <Tooltip content={"Global field"}>
-        <span
-          className="properties__global-indicator"
-          aria-label={"Global field"}
-        >
+        <span className="properties__global-indicator" aria-label={"Global field"}>
           <Globe size={12} />
         </span>
       </Tooltip>
@@ -192,10 +282,7 @@ export default function PeerProperties({
         {label}
       </span>
       <Tooltip content={"Global field"}>
-        <span
-          className="properties__global-indicator"
-          aria-label={"Global field"}
-        >
+        <span className="properties__global-indicator" aria-label={"Global field"}>
           <Globe size={12} />
         </span>
       </Tooltip>
@@ -332,7 +419,12 @@ export default function PeerProperties({
                   className={`properties__protocol ${isActive ? "properties__protocol--active" : ""}`}
                   key={protocol}
                   type="button"
-                  onClick={() => updatePeer({ protocols: [protocol] })}
+                  onClick={() =>
+                    updatePeer({
+                      protocol,
+                      configuration: getDefaultPeerConfiguration(protocol),
+                    })
+                  }
                 >
                   {protocol}
                 </button>
@@ -355,12 +447,15 @@ export default function PeerProperties({
                     className={`properties__input ${isBatmanPenaltyDistanceMissing ? "properties__required-outline" : ""}`}
                     type="number"
                     min="1"
-                    value={selectedPeer.batmanDistancePenaltyDistance}
+                    value={
+                      batmanConfiguration?.distancePenaltyDistance ?? BATMAN_MIN_DISTANCE_PENALTY
+                    }
                     onChange={(event) =>
                       updateBatmanPeers({
-                        batmanDistancePenaltyDistance: parsePositiveNumberValue(
+                        distancePenaltyDistance: parsePositiveNumberValue(
                           event.target.value,
-                          selectedPeer.batmanDistancePenaltyDistance,
+                          batmanConfiguration?.distancePenaltyDistance ??
+                            BATMAN_MIN_DISTANCE_PENALTY,
                         ),
                       })
                     }
@@ -373,12 +468,14 @@ export default function PeerProperties({
                     className={`properties__input ${isBatmanPenaltyPercentMissing ? "properties__required-outline" : ""}`}
                     type="number"
                     min="0"
-                    value={selectedPeer.batmanDistancePenaltyPercent}
+                    value={
+                      batmanConfiguration?.distancePenaltyPercent ?? BATMAN_MIN_PENALTY_PERCENT
+                    }
                     onChange={(event) =>
                       updateBatmanPeers({
-                        batmanDistancePenaltyPercent: parsePositiveNumberValue(
+                        distancePenaltyPercent: parsePositiveNumberValue(
                           event.target.value,
-                          selectedPeer.batmanDistancePenaltyPercent,
+                          batmanConfiguration?.distancePenaltyPercent ?? BATMAN_MIN_PENALTY_PERCENT,
                           0,
                         ),
                       })
@@ -401,12 +498,12 @@ export default function PeerProperties({
                   className={`properties__input ${isBatmanElpMissing ? "properties__required-outline" : ""}`}
                   type="number"
                   min="1"
-                  value={selectedPeer.batmanElpInterval}
+                  value={batmanConfiguration?.elpInterval ?? BATMAN_MIN_ELP_INTERVAL}
                   onChange={(event) =>
-                    updatePeer({
-                      batmanElpInterval: parseNumberValue(
+                    updateBatmanPeer({
+                      elpInterval: parseNumberValue(
                         event.target.value,
-                        selectedPeer.batmanElpInterval,
+                        batmanConfiguration?.elpInterval ?? BATMAN_MIN_ELP_INTERVAL,
                       ),
                     })
                   }
@@ -426,12 +523,12 @@ export default function PeerProperties({
                   className={`properties__input ${isBatmanOgmMissing ? "properties__required-outline" : ""}`}
                   type="number"
                   min="1"
-                  value={selectedPeer.batmanOgmInterval}
+                  value={batmanConfiguration?.ogmInterval ?? BATMAN_MIN_OGM_INTERVAL}
                   onChange={(event) =>
-                    updatePeer({
-                      batmanOgmInterval: parseNumberValue(
+                    updateBatmanPeer({
+                      ogmInterval: parseNumberValue(
                         event.target.value,
-                        selectedPeer.batmanOgmInterval,
+                        batmanConfiguration?.ogmInterval ?? BATMAN_MIN_OGM_INTERVAL,
                       ),
                     })
                   }
@@ -451,12 +548,12 @@ export default function PeerProperties({
                   className={`properties__input ${isBatmanPurgeMissing ? "properties__required-outline" : ""}`}
                   type="number"
                   min="1"
-                  value={selectedPeer.batmanPurgeTimeout}
+                  value={batmanConfiguration?.purgeTimeout ?? BATMAN_MIN_PURGE_TIMEOUT}
                   onChange={(event) =>
-                    updatePeer({
-                      batmanPurgeTimeout: parseNumberValue(
+                    updateBatmanPeer({
+                      purgeTimeout: parseNumberValue(
                         event.target.value,
-                        selectedPeer.batmanPurgeTimeout,
+                        batmanConfiguration?.purgeTimeout ?? BATMAN_MIN_PURGE_TIMEOUT,
                       ),
                     })
                   }
@@ -469,10 +566,7 @@ export default function PeerProperties({
         {selectedProtocol === RoutingProtocol.DSDV && (
           <>
             <label className="properties__field">
-              {renderGlobalLabel(
-                "Incremental Update Interval",
-                isDsdvIncrementalMissing,
-              )}
+              {renderGlobalLabel("Incremental Update Interval", isDsdvIncrementalMissing)}
               <div className="properties__input-with-prefix">
                 <Clock3 size={12} />
                 <input
@@ -480,16 +574,16 @@ export default function PeerProperties({
                   type="number"
                   min={DSDV_MIN_INTERVAL}
                   max={DSDV_MAX_INTERVAL}
-                  value={selectedPeer.dsdvIncrementalUpdateInterval}
+                  value={dsdvConfiguration?.incrementalUpdateInterval ?? DSDV_MIN_INTERVAL}
                   onChange={(event) =>
                     updateDsdvPeers({
-                      dsdvIncrementalUpdateInterval: Math.max(
+                      incrementalUpdateInterval: Math.max(
                         DSDV_MIN_INTERVAL,
                         Math.min(
                           DSDV_MAX_INTERVAL,
                           parseNumberValue(
                             event.target.value,
-                            selectedPeer.dsdvIncrementalUpdateInterval,
+                            dsdvConfiguration?.incrementalUpdateInterval ?? DSDV_MIN_INTERVAL,
                           ),
                         ),
                       ),
@@ -508,14 +602,17 @@ export default function PeerProperties({
                   type="number"
                   min={DSDV_MIN_INTERVAL}
                   max={DSDV_MAX_INTERVAL}
-                  value={selectedPeer.dsdvFullDumpInterval}
+                  value={dsdvConfiguration?.fullDumpInterval ?? DSDV_MIN_INTERVAL}
                   onChange={(event) =>
                     updateDsdvPeers({
-                      dsdvFullDumpInterval: Math.max(
+                      fullDumpInterval: Math.max(
                         DSDV_MIN_INTERVAL,
                         Math.min(
                           DSDV_MAX_INTERVAL,
-                          parseNumberValue(event.target.value, selectedPeer.dsdvFullDumpInterval),
+                          parseNumberValue(
+                            event.target.value,
+                            dsdvConfiguration?.fullDumpInterval ?? DSDV_MIN_INTERVAL,
+                          ),
                         ),
                       ),
                     })
@@ -537,14 +634,17 @@ export default function PeerProperties({
                   type="number"
                   min={DSDV_MIN_TIMEOUT}
                   max={DSDV_MAX_TIMEOUT}
-                  value={selectedPeer.dsdvRouteTimeout}
+                  value={dsdvConfiguration?.routeTimeout ?? DSDV_MIN_TIMEOUT}
                   onChange={(event) =>
-                    updatePeer({
-                      dsdvRouteTimeout: Math.max(
+                    updateDsdvPeer({
+                      routeTimeout: Math.max(
                         DSDV_MIN_TIMEOUT,
                         Math.min(
                           DSDV_MAX_TIMEOUT,
-                          parseNumberValue(event.target.value, selectedPeer.dsdvRouteTimeout),
+                          parseNumberValue(
+                            event.target.value,
+                            dsdvConfiguration?.routeTimeout ?? DSDV_MIN_TIMEOUT,
+                          ),
                         ),
                       ),
                     })
@@ -566,14 +666,17 @@ export default function PeerProperties({
                   type="number"
                   min={OLSR_MIN_INTERVAL}
                   max={OLSR_MAX_INTERVAL}
-                  value={selectedPeer.olsrHelloInterval}
+                  value={olsrConfiguration?.helloInterval ?? OLSR_MIN_INTERVAL}
                   onChange={(event) =>
                     updateOlsrPeers({
-                      olsrHelloInterval: Math.max(
+                      helloInterval: Math.max(
                         OLSR_MIN_INTERVAL,
                         Math.min(
                           OLSR_MAX_INTERVAL,
-                          parseNumberValue(event.target.value, selectedPeer.olsrHelloInterval),
+                          parseNumberValue(
+                            event.target.value,
+                            olsrConfiguration?.helloInterval ?? OLSR_MIN_INTERVAL,
+                          ),
                         ),
                       ),
                     })
@@ -591,14 +694,17 @@ export default function PeerProperties({
                   type="number"
                   min={OLSR_MIN_INTERVAL}
                   max={OLSR_MAX_INTERVAL}
-                  value={selectedPeer.olsrTcInterval}
+                  value={olsrConfiguration?.tcInterval ?? OLSR_MIN_INTERVAL}
                   onChange={(event) =>
                     updateOlsrPeers({
-                      olsrTcInterval: Math.max(
+                      tcInterval: Math.max(
                         OLSR_MIN_INTERVAL,
                         Math.min(
                           OLSR_MAX_INTERVAL,
-                          parseNumberValue(event.target.value, selectedPeer.olsrTcInterval),
+                          parseNumberValue(
+                            event.target.value,
+                            olsrConfiguration?.tcInterval ?? OLSR_MIN_INTERVAL,
+                          ),
                         ),
                       ),
                     })
@@ -620,14 +726,17 @@ export default function PeerProperties({
                   type="number"
                   min={AODV_MIN_HELLO_INTERVAL}
                   max={AODV_MAX_HELLO_INTERVAL}
-                  value={selectedPeer.aodvHelloInterval}
+                  value={aodvConfiguration?.helloInterval ?? AODV_MIN_HELLO_INTERVAL}
                   onChange={(event) =>
                     updateAodvPeers({
-                      aodvHelloInterval: Math.max(
+                      helloInterval: Math.max(
                         AODV_MIN_HELLO_INTERVAL,
                         Math.min(
                           AODV_MAX_HELLO_INTERVAL,
-                          parseNumberValue(event.target.value, selectedPeer.aodvHelloInterval),
+                          parseNumberValue(
+                            event.target.value,
+                            aodvConfiguration?.helloInterval ?? AODV_MIN_HELLO_INTERVAL,
+                          ),
                         ),
                       ),
                     })
@@ -649,14 +758,17 @@ export default function PeerProperties({
                   type="number"
                   min={AODV_MIN_ROUTE_TIMEOUT}
                   max={AODV_MAX_ROUTE_TIMEOUT}
-                  value={selectedPeer.aodvRouteTimeout}
+                  value={aodvConfiguration?.routeTimeout ?? AODV_MIN_ROUTE_TIMEOUT}
                   onChange={(event) =>
-                    updatePeer({
-                      aodvRouteTimeout: Math.max(
+                    updateAodvPeer({
+                      routeTimeout: Math.max(
                         AODV_MIN_ROUTE_TIMEOUT,
                         Math.min(
                           AODV_MAX_ROUTE_TIMEOUT,
-                          parseNumberValue(event.target.value, selectedPeer.aodvRouteTimeout),
+                          parseNumberValue(
+                            event.target.value,
+                            aodvConfiguration?.routeTimeout ?? AODV_MIN_ROUTE_TIMEOUT,
+                          ),
                         ),
                       ),
                     })

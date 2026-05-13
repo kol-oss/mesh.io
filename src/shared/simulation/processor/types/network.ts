@@ -1,5 +1,5 @@
 import type { NetworkEntity } from "../../types/entities";
-import { EntityType } from "../../types/enums";
+import { EntityType } from "../../types/entities";
 import type { SimulationTickSnapshot } from "../../types/simulation";
 import type { UUID } from "../../types/uuid";
 import { getObstacleBounds, hasLineOfSight } from "../../utils/geometry";
@@ -75,9 +75,7 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
 
         const sourceEntity = source.getPeerEntity();
         const destinationEntity = destination.getPeerEntity();
-        const hasSharedProtocol = sourceEntity.protocols.some((protocol) =>
-          destinationEntity.protocols.includes(protocol),
-        );
+        const hasSharedProtocol = sourceEntity.protocol === destinationEntity.protocol;
         if (!hasSharedProtocol) {
           continue;
         }
@@ -120,10 +118,8 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
 
   tickModules() {
     for (const peer of this.getPeers()) {
-      const protocols = peer.getPeerEntity().protocols;
-      for (const protocol of protocols) {
-        peer.getModule(protocol)?.tick();
-      }
+      const protocol = peer.getPeerEntity().protocol;
+      peer.getModule(protocol)?.tick();
     }
   }
 

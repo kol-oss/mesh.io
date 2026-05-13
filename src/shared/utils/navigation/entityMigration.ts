@@ -1,5 +1,14 @@
-import { EntityType, RoutingProtocol } from "../../types/enums";
+import { getDefaultPeerConfiguration } from "../../constants/protocol";
+import { EntityType } from "../../types/entities";
+import type {
+  AodvConfiguration,
+  BatmanConfiguration,
+  DsdvConfiguration,
+  OlsrConfiguration,
+  PeerConfiguration,
+} from "../../types/configurations";
 import type { NetworkEntity } from "../../types/entities";
+import { RoutingProtocol } from "../../types/protocols";
 import { generateUUID } from "../../types/uuid";
 
 export const peerDefaults = {
@@ -7,19 +16,8 @@ export const peerDefaults = {
   y: 100,
   range: 150,
   enabled: true,
-  protocols: [RoutingProtocol.BATMAN],
-  batmanDistancePenaltyDistance: 75,
-  batmanDistancePenaltyPercent: 5,
-  batmanElpInterval: 1,
-  batmanOgmInterval: 1,
-  batmanPurgeTimeout: 10,
-  dsdvIncrementalUpdateInterval: 1,
-  dsdvFullDumpInterval: 5,
-  dsdvRouteTimeout: 10,
-  aodvHelloInterval: 2,
-  aodvRouteTimeout: 6,
-  olsrHelloInterval: 2,
-  olsrTcInterval: 5,
+  protocol: RoutingProtocol.BATMAN,
+  configuration: getDefaultPeerConfiguration(RoutingProtocol.BATMAN),
 };
 
 export const linkDefaults = {
@@ -37,16 +35,157 @@ export const obstacleDefaults = {
 
 const validProtocols = Object.values(RoutingProtocol);
 
-const normalizePeerProtocols = (value: unknown) => {
-  if (!Array.isArray(value)) {
-    return [...peerDefaults.protocols];
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null;
+};
+
+const normalizePeerProtocol = (value: unknown): RoutingProtocol => {
+  if (typeof value === "string" && validProtocols.includes(value as RoutingProtocol)) {
+    return value as RoutingProtocol;
   }
 
-  const firstValidProtocol = value.find((item): item is RoutingProtocol =>
-    validProtocols.includes(item as RoutingProtocol),
-  );
+  if (Array.isArray(value)) {
+    const firstValidProtocol = value.find((item): item is RoutingProtocol =>
+      validProtocols.includes(item as RoutingProtocol),
+    );
+    if (firstValidProtocol) {
+      return firstValidProtocol;
+    }
+  }
 
-  return firstValidProtocol ? [firstValidProtocol] : [...peerDefaults.protocols];
+  return peerDefaults.protocol;
+};
+
+const normalizeBatmanConfiguration = (value: unknown) => {
+  const defaults = getDefaultPeerConfiguration(RoutingProtocol.BATMAN) as BatmanConfiguration;
+  if (!isRecord(value)) {
+    return defaults;
+  }
+
+  return {
+    distancePenaltyDistance:
+      typeof value.distancePenaltyDistance === "number" && value.distancePenaltyDistance > 0
+        ? value.distancePenaltyDistance
+        : defaults.distancePenaltyDistance,
+    distancePenaltyPercent:
+      typeof value.distancePenaltyPercent === "number" && value.distancePenaltyPercent >= 0
+        ? value.distancePenaltyPercent
+        : defaults.distancePenaltyPercent,
+    elpInterval:
+      typeof value.elpInterval === "number" && value.elpInterval > 0
+        ? value.elpInterval
+        : defaults.elpInterval,
+    ogmInterval:
+      typeof value.ogmInterval === "number" && value.ogmInterval > 0
+        ? value.ogmInterval
+        : defaults.ogmInterval,
+    purgeTimeout:
+      typeof value.purgeTimeout === "number" && value.purgeTimeout > 0
+        ? value.purgeTimeout
+        : defaults.purgeTimeout,
+  };
+};
+
+const normalizeDsdvConfiguration = (value: unknown) => {
+  const defaults = getDefaultPeerConfiguration(RoutingProtocol.DSDV) as DsdvConfiguration;
+  if (!isRecord(value)) {
+    return defaults;
+  }
+
+  return {
+    incrementalUpdateInterval:
+      typeof value.incrementalUpdateInterval === "number" && value.incrementalUpdateInterval > 0
+        ? value.incrementalUpdateInterval
+        : defaults.incrementalUpdateInterval,
+    fullDumpInterval:
+      typeof value.fullDumpInterval === "number" && value.fullDumpInterval > 0
+        ? value.fullDumpInterval
+        : defaults.fullDumpInterval,
+    routeTimeout:
+      typeof value.routeTimeout === "number" && value.routeTimeout > 0
+        ? value.routeTimeout
+        : defaults.routeTimeout,
+  };
+};
+
+const normalizeAodvConfiguration = (value: unknown) => {
+  const defaults = getDefaultPeerConfiguration(RoutingProtocol.AODV) as AodvConfiguration;
+  if (!isRecord(value)) {
+    return defaults;
+  }
+
+  return {
+    helloInterval:
+      typeof value.helloInterval === "number" && value.helloInterval > 0
+        ? value.helloInterval
+        : defaults.helloInterval,
+    routeTimeout:
+      typeof value.routeTimeout === "number" && value.routeTimeout > 0
+        ? value.routeTimeout
+        : defaults.routeTimeout,
+  };
+};
+
+const normalizeOlsrConfiguration = (value: unknown) => {
+  const defaults = getDefaultPeerConfiguration(RoutingProtocol.OLSR) as OlsrConfiguration;
+  if (!isRecord(value)) {
+    return defaults;
+  }
+
+  return {
+    helloInterval:
+      typeof value.helloInterval === "number" && value.helloInterval > 0
+        ? value.helloInterval
+        : defaults.helloInterval,
+    tcInterval:
+      typeof value.tcInterval === "number" && value.tcInterval > 0
+        ? value.tcInterval
+        : defaults.tcInterval,
+  };
+};
+
+const normalizeLegacyConfiguration = (
+  entity: Record<string, unknown>,
+  protocol: RoutingProtocol,
+): PeerConfiguration => {
+  const sourceConfiguration = isRecord(entity.configuration) ? entity.configuration : entity;
+
+  if (protocol === RoutingProtocol.BATMAN) {
+    return normalizeBatmanConfiguration({
+      distancePenaltyDistance:
+        sourceConfiguration.distancePenaltyDistance ?? entity.batmanDistancePenaltyDistance,
+      distancePenaltyPercent:
+        sourceConfiguration.distancePenaltyPercent ?? entity.batmanDistancePenaltyPercent,
+      elpInterval: sourceConfiguration.elpInterval ?? entity.batmanElpInterval,
+      ogmInterval: sourceConfiguration.ogmInterval ?? entity.batmanOgmInterval,
+      purgeTimeout: sourceConfiguration.purgeTimeout ?? entity.batmanPurgeTimeout,
+    });
+  }
+
+  if (protocol === RoutingProtocol.DSDV) {
+    return normalizeDsdvConfiguration({
+      incrementalUpdateInterval:
+        sourceConfiguration.incrementalUpdateInterval ?? entity.dsdvIncrementalUpdateInterval,
+      fullDumpInterval: sourceConfiguration.fullDumpInterval ?? entity.dsdvFullDumpInterval,
+      routeTimeout: sourceConfiguration.routeTimeout ?? entity.dsdvRouteTimeout,
+    });
+  }
+
+  if (protocol === RoutingProtocol.AODV) {
+    return normalizeAodvConfiguration({
+      helloInterval: sourceConfiguration.helloInterval ?? entity.aodvHelloInterval,
+      routeTimeout: sourceConfiguration.routeTimeout ?? entity.aodvRouteTimeout,
+    });
+  }
+
+  if (protocol === RoutingProtocol.OLSR) {
+    return normalizeOlsrConfiguration({
+      helloInterval: sourceConfiguration.helloInterval ?? entity.olsrHelloInterval,
+      tcInterval: sourceConfiguration.tcInterval ?? entity.olsrTcInterval,
+    });
+  }
+
+  return {} as Record<string, never>;
 };
 
 const hasPeerDefaults = (entity: NetworkEntity) => {
@@ -60,23 +199,8 @@ const hasPeerDefaults = (entity: NetworkEntity) => {
     typeof entity.range === "number" &&
     entity.range > 0 &&
     typeof entity.enabled === "boolean" &&
-    Array.isArray(entity.protocols) &&
-    entity.protocols.length === 1 &&
-    validProtocols.includes(entity.protocols[0]) &&
-    typeof entity.batmanDistancePenaltyDistance === "number" &&
-    entity.batmanDistancePenaltyDistance > 0 &&
-    typeof entity.batmanDistancePenaltyPercent === "number" &&
-    entity.batmanDistancePenaltyPercent >= 0 &&
-    typeof entity.batmanElpInterval === "number" &&
-    typeof entity.batmanOgmInterval === "number" &&
-    typeof entity.batmanPurgeTimeout === "number" &&
-    typeof entity.dsdvIncrementalUpdateInterval === "number" &&
-    typeof entity.dsdvFullDumpInterval === "number" &&
-    typeof entity.dsdvRouteTimeout === "number" &&
-    typeof entity.aodvHelloInterval === "number" &&
-    typeof entity.aodvRouteTimeout === "number" &&
-    typeof entity.olsrHelloInterval === "number" &&
-    typeof entity.olsrTcInterval === "number"
+    validProtocols.includes(entity.protocol) &&
+    isRecord(entity.configuration)
   );
 };
 
@@ -127,7 +251,8 @@ export const migrateEntities = (entities: NetworkEntity[]): NetworkEntity[] | nu
   }
 
   return entities.map((entity) => {
-    const normalizedType = (entity as NetworkEntity | { type: string }).type;
+    const entityRecord = entity as unknown as Record<string, unknown>;
+    const normalizedType = entityRecord.type;
     const baseEntity = {
       ...entity,
       id: "id" in entity ? entity.id : generateUUID(),
@@ -172,11 +297,14 @@ export const migrateEntities = (entities: NetworkEntity[]): NetworkEntity[] | nu
       return baseEntity as NetworkEntity;
     }
 
+    const protocol = normalizePeerProtocol(entityRecord.protocol ?? entityRecord.protocols);
+
     return {
       ...peerDefaults,
       ...baseEntity,
       type: EntityType.Peer,
-      protocols: normalizePeerProtocols(entity.protocols),
+      protocol,
+      configuration: normalizeLegacyConfiguration(entityRecord, protocol),
     };
   });
 };

@@ -8,6 +8,6 @@ export const AODV_ACTIVE_ROUTE_TIMEOUT = 3;
 export const AODV_HELLO_LIFETIME_FACTOR = 2;
 
 export const AODV_DEFAULT_CONFIGURATION = {
-  aodvHelloInterval: 2,
-  aodvRouteTimeout: 6,
+  helloInterval: 2,
+  routeTimeout: 6,
 };
