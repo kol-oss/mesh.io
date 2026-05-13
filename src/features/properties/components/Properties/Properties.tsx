@@ -1,41 +1,39 @@
 import { useSidebarResize } from "@/shared/hooks/useSidebarResize";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import { SidebarResizeSide } from "@/shared/types/view/view";
-import type { NetworkEntity } from "@/shared/types/model/entities";
-import type { WorkflowStep } from "@/shared/types/model/steps";
-import type { UUID } from "@/shared/types/common/uuid";
+import type { SimulationStepResult } from "@/shared/types/model/simulation";
+import { usePropertiesRedux } from "@/features/properties/hooks/usePropertiesRedux";
 import EntityProperties from "../EntityProperties/EntityProperties";
 import StepProperties from "../StepProperties/StepProperties";
 
 type PropertiesProps = {
-  selectedId: UUID | null;
-  selectedSource: SelectionSource | null;
-  entities: NetworkEntity[];
-  setEntities: (value: NetworkEntity[]) => void;
-  steps: WorkflowStep[];
-  setSteps: (value: WorkflowStep[]) => void;
-  isNavCollapsed: boolean;
+  isStepPlacementMode: boolean;
+  currentSimulationStepResult: SimulationStepResult | null;
   isEntityReadOnly?: boolean;
 };
 
 export default function Properties({
-  selectedId,
-  selectedSource,
-  entities,
-  setEntities,
-  steps,
-  setSteps,
-  isNavCollapsed,
+  isStepPlacementMode,
+  currentSimulationStepResult,
   isEntityReadOnly = false,
 }: PropertiesProps) {
+  const { selectedId, selectedSource, entities, setEntities, steps, setSteps, isNavCollapsed } =
+    usePropertiesRedux();
   const { widthPercent, onResizeStart } = useSidebarResize({ side: SidebarResizeSide.Right });
 
-  if (isNavCollapsed || !selectedId || !selectedSource) {
+  const shouldHideSelection =
+    isStepPlacementMode ||
+    (currentSimulationStepResult !== null && selectedSource === SelectionSource.Steps);
+
+  const effectiveSelectedId = shouldHideSelection ? null : selectedId;
+  const effectiveSelectedSource = shouldHideSelection ? null : selectedSource;
+
+  if (isNavCollapsed || !effectiveSelectedId || !effectiveSelectedSource) {
     return null;
   }
 
-  if (selectedSource === SelectionSource.Steps) {
-    const selectedStep = steps.find((step) => step.id === selectedId);
+  if (effectiveSelectedSource === SelectionSource.Steps) {
+    const selectedStep = steps.find((step) => step.id === effectiveSelectedId);
     if (!selectedStep) {
       return null;
     }
@@ -52,7 +50,7 @@ export default function Properties({
     );
   }
 
-  const selectedEntity = entities.find((entity) => entity.id === selectedId);
+  const selectedEntity = entities.find((entity) => entity.id === effectiveSelectedId);
   if (!selectedEntity) {
     return null;
   }
