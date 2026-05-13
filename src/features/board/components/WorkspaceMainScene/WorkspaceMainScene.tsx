@@ -1,12 +1,12 @@
-import { ActionMode as PlacementMode } from "../../../../shared/types/action";
+import { ActionMode as PlacementMode } from "@/shared/types/action";
 import type {
   SimulationEvent,
   SimulationStepResult,
-} from "../../../../shared/types/model/simulation";
-import type { ToolbarPlacementMode } from "../../../../shared/types/action";
-import type { WorkspaceSceneProps } from "../../../../shared/types/workspace/scene";
-import SimulationPanel from "../Simulation/SimulationPanel";
-import WorkspaceScene from "../WorkspaceScene/WorkspaceScene";
+} from "@/shared/types/model/simulation";
+import type { ToolbarPlacementMode } from "@/shared/types/action";
+import type { WorkspaceSceneProps } from "@/shared/types/workspace/scene";
+import SimulationPanel from "@/features/board/components/Simulation/SimulationPanel";
+import WorkspaceScene from "@/features/board/components/WorkspaceScene/WorkspaceScene";
 
 type Props = {
   placementMode: ToolbarPlacementMode;

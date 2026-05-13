@@ -1,5 +1,5 @@
 import { ActionMode } from "./action";
-import { EntityType } from "./model/entities";
+import { EntityType } from "@/shared/types/model/entities";
 
 export enum DragEntityType {
   Peer = EntityType.Peer,

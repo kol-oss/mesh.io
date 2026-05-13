@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { RoutingProtocol } from "../../types/common/protocols";
-import { EntityType } from "../../types/model/entities";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import { EntityType } from "@/shared/types/model/entities";
 import {
   type DroppedEventDetails,
   type EntityStatusChangedEventDetails,
@@ -14,8 +14,8 @@ import {
   type SimulationEvent,
   type SimulationMessage,
   type ThroughputCalculationEventDetails,
-} from "../../types/model/simulation";
-import type { UUID } from "../../types/common/uuid";
+} from "@/shared/types/model/simulation";
+import type { UUID } from "@/shared/types/common/uuid";
 
 const isBatmanRoute = (
   route: RouteSelectedEventDetails["selectedRoute"],

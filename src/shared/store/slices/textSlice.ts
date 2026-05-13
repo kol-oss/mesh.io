@@ -1,9 +1,9 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-import type { UUID } from "../../types/common/uuid";
-import type { WorkspaceTextItem } from "../../types/workspace/text";
-import { TEXT_STORAGE_KEY } from "../constants";
-import { loadStates } from "../utils/storeUtils";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
+import { TEXT_STORAGE_KEY } from "@/shared/store/constants";
+import { loadStates } from "@/shared/store/utils/storeUtils";
 
 const initialState: WorkspaceTextItem[] = loadStates<WorkspaceTextItem>(TEXT_STORAGE_KEY);
 

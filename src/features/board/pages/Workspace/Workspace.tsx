@@ -1,9 +1,9 @@
-import Navigation from "../../../navigation/components/Navigation/Navigation";
-import Properties from "../../../properties/components/Properties/Properties";
-import Toolbar from "../../../tools/components/Toolbar/Toolbar";
-import WorkspaceCanvas from "../../components/WorkspaceCanvas/WorkspaceCanvas";
-import { SelectionType as SelectionSource } from "../../../../shared/types/view/selection";
-import { useWorkspaceStore } from "../../store/workspace";
+import Navigation from "@/features/navigation/components/Navigation/Navigation";
+import Properties from "@/features/properties/components/Properties/Properties";
+import Toolbar from "@/features/tools/components/Toolbar/Toolbar";
+import WorkspaceCanvas from "@/features/board/components/WorkspaceCanvas/WorkspaceCanvas";
+import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
+import { useWorkspaceStore } from "@/features/board/store/workspace";
 
 export default function Workspace() {
   const {

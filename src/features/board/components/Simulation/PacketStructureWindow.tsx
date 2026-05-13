@@ -8,7 +8,7 @@ import {
   type SimulationEvent,
   type SimulationMessage,
   type SimulationStepResult,
-} from "../../../../shared/types/model/simulation";
+} from "@/shared/types/model/simulation";
 
 type PacketStructureWindowProps = {
   isOpen: boolean;

@@ -1,8 +1,8 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { WorkflowStep } from "../../types/model/steps";
-import type { UUID } from "../../types/common/uuid";
-import { STEP_STORAGE_KEY } from "../constants";
-import { loadStates } from "../utils/storeUtils";
+import type { WorkflowStep } from "@/shared/types/model/steps";
+import type { UUID } from "@/shared/types/common/uuid";
+import { STEP_STORAGE_KEY } from "@/shared/store/constants";
+import { loadStates } from "@/shared/store/utils/storeUtils";
 
 export type StepState = WorkflowStep;
 

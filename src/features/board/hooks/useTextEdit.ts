@@ -3,9 +3,9 @@ import { useCallback } from "react";
 import type {
   WorkspaceTextEditHandlers,
   WorkspaceTextEditSetters,
-} from "../../../shared/types/workspace/textEdit";
-import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
-import type { UUID } from "../../../shared/types/common/uuid";
+} from "@/shared/types/workspace/textEdit";
+import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
+import type { UUID } from "@/shared/types/common/uuid";
 
 type UseWorkspaceTextEditParams = {
   texts: WorkspaceTextItem[];

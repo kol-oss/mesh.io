@@ -1,11 +1,11 @@
-import { useSidebarResize } from "../../../../shared/hooks/useSidebarResize";
-import { SelectionType as SelectionSource } from "../../../../shared/types/view/selection";
-import { SidebarResizeSide } from "../../../../shared/types/view/view";
-import type { NetworkEntity } from "../../../../shared/types/model/entities";
-import type { WorkflowStep } from "../../../../shared/types/model/steps";
-import type { UUID } from "../../../../shared/types/common/uuid";
-import EntityProperties from "./entity/EntityProperties";
-import StepProperties from "./step/StepProperties";
+import { useSidebarResize } from "@/shared/hooks/useSidebarResize";
+import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
+import { SidebarResizeSide } from "@/shared/types/view/view";
+import type { NetworkEntity } from "@/shared/types/model/entities";
+import type { WorkflowStep } from "@/shared/types/model/steps";
+import type { UUID } from "@/shared/types/common/uuid";
+import EntityProperties from "@/features/properties/components/Properties/entity/EntityProperties";
+import StepProperties from "@/features/properties/components/Properties/step/StepProperties";
 
 type PropertiesProps = {
   selectedId: UUID | null;

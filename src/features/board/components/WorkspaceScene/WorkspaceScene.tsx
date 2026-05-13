@@ -1,13 +1,13 @@
 import { Radio } from "lucide-react";
 
-import type { WorkspaceSceneProps } from "../../../../shared/types/workspace/scene";
-import { shortenLine } from "../../../../shared/utils/geometry";
-import WorkspaceConnections from "../WorkspaceConnections/WorkspaceConnections";
-import WorkspaceObstacles from "../WorkspaceObstacles/WorkspaceObstacles";
-import WorkspacePeers from "../WorkspacePeers/WorkspacePeers";
-import WorkspaceRanges from "../WorkspaceRanges/WorkspaceRanges";
-import WorkspaceStaticLinks from "../WorkspaceStaticLinks/WorkspaceStaticLinks";
-import WorkspaceTexts from "../WorkspaceTexts/WorkspaceTexts";
+import type { WorkspaceSceneProps } from "@/shared/types/workspace/scene";
+import { shortenLine } from "@/shared/utils/geometry";
+import WorkspaceConnections from "@/features/board/components/WorkspaceConnections/WorkspaceConnections";
+import WorkspaceObstacles from "@/features/board/components/WorkspaceObstacles/WorkspaceObstacles";
+import WorkspacePeers from "@/features/board/components/WorkspacePeers/WorkspacePeers";
+import WorkspaceRanges from "@/features/board/components/WorkspaceRanges/WorkspaceRanges";
+import WorkspaceStaticLinks from "@/features/board/components/WorkspaceStaticLinks/WorkspaceStaticLinks";
+import WorkspaceTexts from "@/features/board/components/WorkspaceTexts/WorkspaceTexts";
 
 export default function WorkspaceScene({
   centerX,

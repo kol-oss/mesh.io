@@ -13,45 +13,45 @@ import { Link } from "react-router-dom";
 import {
   getDefaultPeerConfiguration,
   peerRoutingProtocols,
-} from "../../../../../shared/constants/protocol";
+} from "@/shared/constants/protocol";
 import {
   BATMAN_MIN_OGM_INTERVAL,
   BATMAN_MIN_ELP_INTERVAL,
   BATMAN_MIN_PURGE_TIMEOUT,
   BATMAN_MIN_DISTANCE_PENALTY,
   BATMAN_MIN_PENALTY_PERCENT,
-} from "../../../../../shared/constants/batman";
+} from "@/shared/constants/batman";
 import {
   AODV_MAX_HELLO_INTERVAL,
   AODV_MAX_ROUTE_TIMEOUT,
   AODV_MIN_HELLO_INTERVAL,
   AODV_MIN_ROUTE_TIMEOUT,
-} from "../../../../../shared/constants/aodv";
+} from "@/shared/constants/aodv";
 import {
   DSDV_MAX_INTERVAL,
   DSDV_MAX_TIMEOUT,
   DSDV_MIN_INTERVAL,
   DSDV_MIN_TIMEOUT,
-} from "../../../../../shared/constants/dsdv";
-import { OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "../../../../../shared/constants/olsr";
-import Tooltip from "../../../../../shared/components/Tooltip/Tooltip";
-import { EntityType } from "../../../../../shared/types/model/entities";
-import { RoutingProtocol } from "../../../../../shared/types/common/protocols";
+} from "@/shared/constants/dsdv";
+import { OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "@/shared/constants/olsr";
+import Tooltip from "@/shared/components/Tooltip/Tooltip";
+import { EntityType } from "@/shared/types/model/entities";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type {
   AodvConfiguration,
   BatmanConfiguration,
   DsdvConfiguration,
   OlsrConfiguration,
-} from "../../../../../shared/types/model/configurations";
-import type { PeerEntity } from "../../../../../shared/types/model/entities";
+} from "@/shared/types/model/configurations";
+import type { PeerEntity } from "@/shared/types/model/entities";
 import {
   getAodvConfiguration,
   getBatmanConfiguration,
   getDsdvConfiguration,
   getOlsrConfiguration,
-} from "../../../../../shared/types/model/peers";
-import type { PeerPropertiesPanelProps } from "../../../../../shared/types/view/properties";
-import { parseNumberValue, parsePositiveNumberValue } from "../../../../../shared/utils/properties";
+} from "@/shared/types/model/peers";
+import type { PeerPropertiesPanelProps } from "@/shared/types/view/properties";
+import { parseNumberValue, parsePositiveNumberValue } from "@/shared/utils/properties";
 
 const protocols = peerRoutingProtocols;
 

@@ -1,6 +1,6 @@
-import { OBSTACLE_MIN_WIDTH, OBSTACLE_MIN_HEIGHT } from "../constants/obstacle";
-import type { ObstacleEntity } from "../types/model/entities";
-import type { ObstacleBounds } from "../types/workspace/interaction";
+import { OBSTACLE_MIN_WIDTH, OBSTACLE_MIN_HEIGHT } from "@/shared/constants/obstacle";
+import type { ObstacleEntity } from "@/shared/types/model/entities";
+import type { ObstacleBounds } from "@/shared/types/workspace/interaction";
 
 export const toInt = (value: number) => Math.round(value);
 

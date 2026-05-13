@@ -1,4 +1,4 @@
-import { RoutingProtocol } from "../../types/common/protocols";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
 import {
   DsdvUpdateType,
   SimulationEventType,
@@ -21,8 +21,8 @@ import {
   type SimulationEvent,
   type SimulationMessage,
   type ThroughputCalculationEventDetails,
-} from "../../types/model/simulation";
-import type { UUID } from "../../types/common/uuid";
+} from "@/shared/types/model/simulation";
+import type { UUID } from "@/shared/types/common/uuid";
 import {
   formatFixed,
   getEventDescription as getBatmanEventDescription,

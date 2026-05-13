@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 
-import TableBlock from "../TableBlock";
-import PacketStructure from "../PacketStructure";
-import SourceBlock from "../SourceBlock";
-import TextBlock from "../TextBlock";
-import ModellingTrap from "../ModellingTrap";
+import TableBlock from "@/features/help/components/Help/TableBlock";
+import PacketStructure from "@/features/help/components/Help/PacketStructure";
+import SourceBlock from "@/features/help/components/Help/SourceBlock";
+import TextBlock from "@/features/help/components/Help/TextBlock";
+import ModellingTrap from "@/features/help/components/Help/ModellingTrap";
 
 const SECTION_IDS = [
   "dsdv",

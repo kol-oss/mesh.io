@@ -6,12 +6,12 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
-import { SidebarResizeSide } from "../types/view/view";
-import { clamp } from "../utils/math/clamp";
+import { SidebarResizeSide } from "@/shared/types/view/view";
+import { clamp } from "@/shared/utils/math/clamp";
 import {
   SIDEBAR_MAX_WIDTH_PERCENT,
   SIDEBAR_MIN_WIDTH_PERCENT,
-} from "../utils/navigation/constants";
+} from "@/shared/utils/navigation/constants";
 
 type UseSidebarResizeOptions = {
   side?: SidebarResizeSide;

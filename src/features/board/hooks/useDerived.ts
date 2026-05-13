@@ -1,28 +1,28 @@
 import { useMemo } from "react";
 
-import { RANGE_SAMPLES } from "../../../shared/constants/workspace";
-import { ConnectionType } from "../../../shared/types/interaction";
-import { EntityType } from "../../../shared/types/model/entities";
-import { ActionMode as PlacementMode } from "../../../shared/types/action";
-import { SelectionType as SelectionSource } from "../../../shared/types/view/selection";
-import { StepType } from "../../../shared/types/model/steps";
-import type { MoveIndicator } from "../../../shared/types/workspace/scene";
-import type { RangePolygon } from "../../../shared/types/workspace/interaction";
+import { RANGE_SAMPLES } from "@/shared/constants/workspace";
+import { ConnectionType } from "@/shared/types/interaction";
+import { EntityType } from "@/shared/types/model/entities";
+import { ActionMode as PlacementMode } from "@/shared/types/action";
+import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
+import { StepType } from "@/shared/types/model/steps";
+import type { MoveIndicator } from "@/shared/types/workspace/scene";
+import type { RangePolygon } from "@/shared/types/workspace/interaction";
 import type {
   LinkEntity,
   NetworkEntity,
   ObstacleEntity,
   PeerEntity,
-} from "../../../shared/types/model/entities";
-import type { WorkflowStep } from "../../../shared/types/model/steps";
-import type { ToolbarPlacementMode } from "../../../shared/types/action";
-import type { UUID } from "../../../shared/types/common/uuid";
+} from "@/shared/types/model/entities";
+import type { WorkflowStep } from "@/shared/types/model/steps";
+import type { ToolbarPlacementMode } from "@/shared/types/action";
+import type { UUID } from "@/shared/types/common/uuid";
 import {
   getObstacleBounds,
   getRayDistanceWithObstacleBlocking,
   hasLineOfSight,
-} from "../../../shared/utils/geometry";
-import { isRefreshStep } from "../../../shared/utils/navigation/refreshSteps";
+} from "@/shared/utils/geometry";
+import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 
 type UseWorkspaceDerivedParams = {
   entities: NetworkEntity[];

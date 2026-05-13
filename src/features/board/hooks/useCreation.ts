@@ -3,33 +3,33 @@ import { useCallback } from "react";
 import {
   OBSTACLE_DEFAULT_WIDTH,
   OBSTACLE_DEFAULT_HEIGHT,
-} from "../../../shared/constants/obstacle.ts";
-import { NEW_PEER_RANGE } from "../../../shared/constants/workspace";
-import { getDefaultPeerConfiguration } from "../../../shared/constants/protocol";
-import type { BatmanConfiguration } from "../../../shared/types/model/configurations.ts";
-import { EntityType } from "../../../shared/types/model/entities.ts";
+} from "@/shared/constants/obstacle.ts";
+import { NEW_PEER_RANGE } from "@/shared/constants/workspace";
+import { getDefaultPeerConfiguration } from "@/shared/constants/protocol";
+import type { BatmanConfiguration } from "@/shared/types/model/configurations.ts";
+import { EntityType } from "@/shared/types/model/entities.ts";
 import type {
   LinkEntity,
   NetworkEntity,
   ObstacleEntity,
   PeerEntity,
-} from "../../../shared/types/model/entities.ts";
-import { RoutingProtocol } from "../../../shared/types/common/protocols.ts";
+} from "@/shared/types/model/entities.ts";
+import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type {
   ManualWorkflowStep,
   MessageStep,
   MoveStep,
   ToggleStep,
   WorkflowStep,
-} from "../../../shared/types/model/steps.ts";
-import { StepType } from "../../../shared/types/model/steps.ts";
-import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
+} from "@/shared/types/model/steps.ts";
+import { StepType } from "@/shared/types/model/steps.ts";
+import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
 import type {
   WorkspaceCreationCallbacks,
   WorkspaceCreationSetters,
-} from "../../../shared/types/workspace/creation";
-import { generateUUID, type UUID } from "../../../shared/types/common/uuid.ts";
-import { isRefreshStep } from "../../../shared/utils/navigation/refreshSteps";
+} from "@/shared/types/workspace/creation";
+import { generateUUID, type UUID } from "@/shared/types/common/uuid.ts";
+import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 
 type UseWorkspaceCreationParams = {
   entities: NetworkEntity[];

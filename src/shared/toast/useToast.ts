@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { ToastContext } from "../toast/context";
+import { ToastContext } from "./context";
 
 export function useToast() {
   const context = useContext(ToastContext);

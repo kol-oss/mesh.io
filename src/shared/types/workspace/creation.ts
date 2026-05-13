@@ -1,5 +1,5 @@
 import type { SetEntities, SetSteps, SetTexts } from "./shared";
-import type { UUID } from "../common/uuid";
+import type { UUID } from "@/shared/types/common/uuid";
 
 export type WorkspaceCreationSetters = {
   setEntities: SetEntities;

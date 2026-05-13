@@ -1,6 +1,6 @@
 import { Clock3, ExternalLink, Lock, Radio, RotateCw } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { RefreshStepPropertiesPanelProps } from "../../../../../shared/types/view/properties";
+import type { RefreshStepPropertiesPanelProps } from "@/shared/types/view/properties";
 
 export default function RefreshStepProperties({
   widthPercent,

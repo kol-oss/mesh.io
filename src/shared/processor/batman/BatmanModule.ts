@@ -7,10 +7,10 @@ import {
   type BatmanNeighbourRecord,
   type BatmanOriginatorMessage,
   type SimulationPacket,
-} from "../../types/model/simulation.ts";
-import type { UUID } from "../../types/common/uuid.ts";
-import { SimulationEventRecorder } from "../core/EventRecorder.ts";
-import type { PacketCapableModule, SimulationPeerNode } from "../core/runtimeTypes.ts";
+} from "@/shared/types/model/simulation.ts";
+import type { UUID } from "@/shared/types/common/uuid.ts";
+import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder.ts";
+import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes.ts";
 import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";
 import { cloneMessage, isSimulationMessage } from "./batmanMessage.ts";
 import { BatmanOperations } from "./BatmanOperations.ts";
@@ -18,8 +18,8 @@ import {
   BATMAN_MAX_THROUGHPUT,
   BATMAN_TIME_TO_LIVE,
   BATMAN_VERSION,
-} from "../../constants/batman.ts";
-import { getBatmanConfiguration } from "../../types/model/peers.ts";
+} from "@/shared/constants/batman.ts";
+import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
 type BatmanNeighbourEntry = {
   neighbourId: UUID;
   lastSeen: number;

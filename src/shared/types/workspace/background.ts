@@ -6,9 +6,9 @@ import type {
   SetStateAction,
 } from "react";
 
-import type { ToolbarPlacementMode } from "../action";
+import type { ToolbarPlacementMode } from "@/shared/types/action";
 import type { SetNullableStringState, WorkspacePoint, WorkspaceSize } from "./shared";
-import type { UUID } from "../common/uuid";
+import type { UUID } from "@/shared/types/common/uuid";
 
 export type WorkspacePanState = {
   pointerId: number;

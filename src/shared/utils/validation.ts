@@ -1,8 +1,8 @@
-import { peerRoutingProtocols, workflowStepTypes } from "../constants/protocol";
-import { EntityType } from "../types/model/entities";
-import type { NetworkEntity } from "../types/model/entities";
-import { RoutingProtocol } from "../types/common/protocols";
-import { RefreshAction, StepType, type WorkflowStep } from "../types/model/steps";
+import { peerRoutingProtocols, workflowStepTypes } from "@/shared/constants/protocol";
+import { EntityType } from "@/shared/types/model/entities";
+import type { NetworkEntity } from "@/shared/types/model/entities";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import { RefreshAction, StepType, type WorkflowStep } from "@/shared/types/model/steps";
 
 export type WorkspaceImportPayload = {
   entities: NetworkEntity[];

@@ -6,9 +6,9 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
-import { RoutingProtocol } from "../../../../shared/types/common/protocols";
-import type { SimulationStepResult } from "../../../../shared/types/model/simulation";
-import type { UUID } from "../../../../shared/types/common/uuid";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { SimulationStepResult } from "@/shared/types/model/simulation";
+import type { UUID } from "@/shared/types/common/uuid";
 
 type TableInspectionWindowProps = {
   isOpen: boolean;

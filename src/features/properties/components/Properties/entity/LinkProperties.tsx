@@ -1,10 +1,10 @@
 import { Diamond, ExternalLink, Lock, Radio } from "lucide-react";
 import { Link } from "react-router-dom";
-import { EntityType } from "../../../../../shared/types/model/entities";
-import type { LinkEntity, PeerEntity } from "../../../../../shared/types/model/entities";
-import type { LinkPropertiesPanelProps } from "../../../../../shared/types/view/properties";
-import Select from "../../../../../shared/components/Select/Select";
-import type { UUID } from "../../../../../shared/types/common/uuid";
+import { EntityType } from "@/shared/types/model/entities";
+import type { LinkEntity, PeerEntity } from "@/shared/types/model/entities";
+import type { LinkPropertiesPanelProps } from "@/shared/types/view/properties";
+import Select from "@/shared/components/Select/Select";
+import type { UUID } from "@/shared/types/common/uuid";
 
 export default function LinkProperties({
   widthPercent,

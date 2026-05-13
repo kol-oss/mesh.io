@@ -1,7 +1,7 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../model/entities";
-import type { RefreshStep, WorkflowStep } from "../model/steps";
+import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "@/shared/types/model/entities";
+import type { RefreshStep, WorkflowStep } from "@/shared/types/model/steps";
 
 export type PropertiesResizeHandler = (event: ReactPointerEvent<HTMLDivElement>) => void;
 

@@ -1,5 +1,5 @@
-import type { NetworkEntity } from "../../types/model/entities";
-import type { UUID } from "../../types/common/uuid";
+import type { NetworkEntity } from "@/shared/types/model/entities";
+import type { UUID } from "@/shared/types/common/uuid";
 
 export function createEntityUpdater<T extends NetworkEntity>(
   entities: NetworkEntity[],

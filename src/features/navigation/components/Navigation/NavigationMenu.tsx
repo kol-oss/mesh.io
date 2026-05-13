@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { Link } from "react-router-dom";
-import { NAVIGATION_MENU_ITEMS } from "../../../../shared/utils/navigation/constants";
+import { NAVIGATION_MENU_ITEMS } from "@/shared/utils/navigation/constants";
 
 type NavigationMenuProps = {
   onNew: () => void;

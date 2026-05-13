@@ -1,7 +1,7 @@
 import { ExternalLink, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { ReactNode } from "react";
-import type { PropertiesResizeHandler } from "../../../../shared/types/view/properties";
+import type { PropertiesResizeHandler } from "@/shared/types/view/properties";
 
 type PropertyPanelProps = {
   widthPercent: number;

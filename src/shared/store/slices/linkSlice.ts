@@ -1,8 +1,8 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { LinkEntity } from "../../types/model/entities";
-import type { UUID } from "../../types/common/uuid";
-import { LINK_STORAGE_KEY } from "../constants";
-import { loadStates } from "../utils/storeUtils";
+import type { LinkEntity } from "@/shared/types/model/entities";
+import type { UUID } from "@/shared/types/common/uuid";
+import { LINK_STORAGE_KEY } from "@/shared/store/constants";
+import { loadStates } from "@/shared/store/utils/storeUtils";
 
 const initialState: LinkEntity[] = loadStates<LinkEntity>(LINK_STORAGE_KEY);
 

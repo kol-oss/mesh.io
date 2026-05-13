@@ -1,5 +1,5 @@
-import { ConnectionType, DragEntityType, DragMode, ResizeEdge } from "../interaction";
-import type { UUID } from "../common/uuid";
+import { ConnectionType, DragEntityType, DragMode, ResizeEdge } from "@/shared/types/interaction";
+import type { UUID } from "@/shared/types/common/uuid";
 
 export type DragState = {
   entityId: UUID;

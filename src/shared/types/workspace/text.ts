@@ -1,4 +1,4 @@
-import type { UUID } from "../common/uuid";
+import type { UUID } from "@/shared/types/common/uuid";
 
 export type WorkspaceTextItem = {
   id: UUID;

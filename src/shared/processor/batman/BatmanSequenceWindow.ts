@@ -1,5 +1,5 @@
-import { QualityWindowBit } from "../../types/model/simulation.ts";
-import { BATMAN_PROTECTION_WINDOW_SIZE } from "../../constants/batman.ts";
+import { QualityWindowBit } from "@/shared/types/model/simulation.ts";
+import { BATMAN_PROTECTION_WINDOW_SIZE } from "@/shared/constants/batman.ts";
 
 export class BatmanSequenceWindow {
   private readonly bits = Array<boolean>(BATMAN_PROTECTION_WINDOW_SIZE).fill(false);

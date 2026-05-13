@@ -1,6 +1,6 @@
-import { RoutingProtocol } from "../../types/common/protocols";
-import type { DsdvConfiguration } from "../../types/model/configurations";
-import { getDsdvConfiguration } from "../../types/model/peers";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { DsdvConfiguration } from "@/shared/types/model/configurations";
+import { getDsdvConfiguration } from "@/shared/types/model/peers";
 import {
   DsdvUpdateType,
   SimulationEventType,
@@ -8,10 +8,10 @@ import {
   type DsdvRouteEntryMessage,
   type DsdvRouteUpdateMessage,
   type SimulationPacket,
-} from "../../types/model/simulation";
-import type { UUID } from "../../types/common/uuid";
-import { SimulationEventRecorder } from "../core/EventRecorder";
-import type { PacketCapableModule, SimulationPeerNode } from "../core/runtimeTypes";
+} from "@/shared/types/model/simulation";
+import type { UUID } from "@/shared/types/common/uuid";
+import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
+import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
 import { DsdvRoutingTable } from "./DsdvRoutingTable";
 import { cloneDsdvMessage, isDsdvSimulationMessage } from "./dsdvMessage";
 import {
@@ -21,7 +21,7 @@ import {
   DSDV_MIN_INTERVAL,
   DSDV_MIN_TIMEOUT,
   DSDV_SEQUENCE_INITIAL,
-} from "../../constants/dsdv";
+} from "@/shared/constants/dsdv";
 
 const clampInterval = (value: number) => {
   const normalized = Math.floor(value);

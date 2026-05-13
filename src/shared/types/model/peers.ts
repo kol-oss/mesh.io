@@ -8,7 +8,7 @@ import type {
   PeerConfiguration,
 } from "./configurations";
 import { EntityType } from "./entities";
-import { RoutingProtocol } from "../common/protocols";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
 
 export interface PeerEntity extends BaseEntity, Coordinate {
   type: EntityType.Peer;

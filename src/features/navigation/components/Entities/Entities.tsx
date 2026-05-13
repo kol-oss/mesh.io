@@ -10,17 +10,17 @@ import {
 import { ChevronRight, Link, Plus, Radio, SquareSlash } from "lucide-react";
 import { createPortal } from "react-dom";
 
-import { useListReorder } from "../../../../shared/hooks/useListReorder";
-import { useToast } from "../../../../shared/toast/useToast";
-import { EntityType } from "../../../../shared/types/model/entities";
-import type { NetworkEntity } from "../../../../shared/types/model/entities";
-import { generateUUID, type UUID } from "../../../../shared/types/common/uuid";
+import { useListReorder } from "@/shared/hooks/useListReorder";
+import { useToast } from "@/shared/toast/useToast";
+import { EntityType } from "@/shared/types/model/entities";
+import type { NetworkEntity } from "@/shared/types/model/entities";
+import { generateUUID, type UUID } from "@/shared/types/common/uuid";
 import {
   migrateEntities,
   obstacleDefaults,
   peerDefaults,
-} from "../../../../shared/utils/navigation/entityMigration";
-import Tooltip from "../../../../shared/components/Tooltip/Tooltip";
+} from "@/shared/utils/navigation/entityMigration";
+import Tooltip from "@/shared/components/Tooltip/Tooltip";
 import Entity from "./Entity";
 
 type EntitiesProps = {

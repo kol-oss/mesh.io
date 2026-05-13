@@ -1,35 +1,35 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import { useWorkspaceBackground } from "../../hooks/useBackground";
-import { useWorkspaceCreation } from "../../hooks/useCreation";
-import { useWorkspaceDerived } from "../../hooks/useDerived";
-import { useWorkspaceDrag } from "../../hooks/useDrag";
-import { useWorkspaceHints } from "../../hooks/useHints";
-import { useMoveIndicatorHandlers } from "../../hooks/useMoveIndicators";
-import { useWorkspacePlacement } from "../../hooks/usePlacement";
-import { useWorkspaceSimulationFocus } from "../../hooks/useWorkspaceSimulationFocus";
-import { useWorkspaceSize } from "../../hooks/useWorkspaceSize";
-import { useWorkspaceTextDelete } from "../../hooks/useWorkspaceTextDelete";
-import { useWorkspaceTextEdit } from "../../hooks/useTextEdit";
-import { useSimulationEventHandlers } from "../../hooks/useSimulationEventHandlers";
-import { useWorkspaceAnimations } from "../../hooks/useAnimations";
-import { useWorkspaceWindowStates } from "../../hooks/useWindowStates";
-import { useToast } from "../../../../shared/toast/useToast";
-import { SelectionType as SelectionSource } from "../../../../shared/types/view/selection";
-import { ActionMode as ToolbarMode } from "../../../../shared/types/action";
-import type { NetworkEntity } from "../../../../shared/types/model/entities";
+import { useWorkspaceBackground } from "@/features/board/hooks/useBackground";
+import { useWorkspaceCreation } from "@/features/board/hooks/useCreation";
+import { useWorkspaceDerived } from "@/features/board/hooks/useDerived";
+import { useWorkspaceDrag } from "@/features/board/hooks/useDrag";
+import { useWorkspaceHints } from "@/features/board/hooks/useHints";
+import { useMoveIndicatorHandlers } from "@/features/board/hooks/useMoveIndicators";
+import { useWorkspacePlacement } from "@/features/board/hooks/usePlacement";
+import { useWorkspaceSimulationFocus } from "@/features/board/hooks/useWorkspaceSimulationFocus";
+import { useWorkspaceSize } from "@/features/board/hooks/useWorkspaceSize";
+import { useWorkspaceTextDelete } from "@/features/board/hooks/useWorkspaceTextDelete";
+import { useWorkspaceTextEdit } from "@/features/board/hooks/useTextEdit";
+import { useSimulationEventHandlers } from "@/features/board/hooks/useSimulationEventHandlers";
+import { useWorkspaceAnimations } from "@/features/board/hooks/useAnimations";
+import { useWorkspaceWindowStates } from "@/features/board/hooks/useWindowStates";
+import { useToast } from "@/shared/toast/useToast";
+import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
+import { ActionMode as ToolbarMode } from "@/shared/types/action";
+import type { NetworkEntity } from "@/shared/types/model/entities";
 import {
   type SimulationEvent,
   type SimulationStepResult,
-} from "../../../../shared/types/model/simulation";
-import type { WorkflowStep } from "../../../../shared/types/model/steps";
-import type { ToolbarPlacementMode } from "../../../../shared/types/action";
-import type { UUID } from "../../../../shared/types/common/uuid";
-import type { WorkspaceTextItem } from "../../../../shared/types/workspace/text";
-import type { WorkspacePanState } from "../../../../shared/types/workspace/background";
-import type { DragState } from "../../../../shared/types/workspace/interaction";
-import WorkspaceInspectionWindows from "../WorkspaceInspectionWindows/WorkspaceInspectionWindows";
-import WorkspaceMainScene from "../WorkspaceMainScene/WorkspaceMainScene";
+} from "@/shared/types/model/simulation";
+import type { WorkflowStep } from "@/shared/types/model/steps";
+import type { ToolbarPlacementMode } from "@/shared/types/action";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
+import type { WorkspacePanState } from "@/shared/types/workspace/background";
+import type { DragState } from "@/shared/types/workspace/interaction";
+import WorkspaceInspectionWindows from "@/features/board/components/WorkspaceInspectionWindows/WorkspaceInspectionWindows";
+import WorkspaceMainScene from "@/features/board/components/WorkspaceMainScene/WorkspaceMainScene";
 
 type WorkspaceProps = {
   entities: NetworkEntity[];

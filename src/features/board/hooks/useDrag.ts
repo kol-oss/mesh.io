@@ -1,11 +1,11 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback } from "react";
 
-import { OBSTACLE_MIN_WIDTH, OBSTACLE_MIN_HEIGHT } from "../../../shared/constants/obstacle";
-import { DragEntityType, DragMode, ResizeEdge } from "../../../shared/types/interaction";
-import { EntityType } from "../../../shared/types/model/entities";
-import { ActionMode as PlacementMode } from "../../../shared/types/action";
-import { toInt } from "../../../shared/utils/geometry";
+import { OBSTACLE_MIN_WIDTH, OBSTACLE_MIN_HEIGHT } from "@/shared/constants/obstacle";
+import { DragEntityType, DragMode, ResizeEdge } from "@/shared/types/interaction";
+import { EntityType } from "@/shared/types/model/entities";
+import { ActionMode as PlacementMode } from "@/shared/types/action";
+import { toInt } from "@/shared/utils/geometry";
 import type {
   WorkspaceDragActions,
   WorkspaceDragEntities,
@@ -14,12 +14,12 @@ import type {
   WorkspaceDragSetters,
   WorkspaceDragState,
   WorkspaceDragTexts,
-} from "../../../shared/types/workspace/drag";
-import type { SetEntities, SetTexts } from "../../../shared/types/workspace/shared";
-import type { ObstacleEntity, PeerEntity } from "../../../shared/types/model/entities";
-import type { ToolbarPlacementMode } from "../../../shared/types/action";
-import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
-import type { UUID } from "../../../shared/types/common/uuid";
+} from "@/shared/types/workspace/drag";
+import type { SetEntities, SetTexts } from "@/shared/types/workspace/shared";
+import type { ObstacleEntity, PeerEntity } from "@/shared/types/model/entities";
+import type { ToolbarPlacementMode } from "@/shared/types/action";
+import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
+import type { UUID } from "@/shared/types/common/uuid";
 
 type UseWorkspaceDragParams = {
   entities: WorkspaceDragEntities;

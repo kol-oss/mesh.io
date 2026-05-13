@@ -8,15 +8,15 @@ import type {
   SimulationMessage,
   SimulationPeerSnapshot,
   ThroughputCalculationEventDetails,
-} from "../../types/model/simulation";
-import type { UUID } from "../../types/common/uuid";
-import { SimulationEventType, SimulationMessageKind } from "../../types/model/simulation";
+} from "@/shared/types/model/simulation";
+import type { UUID } from "@/shared/types/common/uuid";
+import { SimulationEventType, SimulationMessageKind } from "@/shared/types/model/simulation";
 import type {
   MessageAnimation,
   MoveStepAnimation,
   ToggleStepAnimation,
-} from "../../types/workspace/scene";
-import type { PeerEntity } from "../../types/model/entities";
+} from "@/shared/types/workspace/scene";
+import type { PeerEntity } from "@/shared/types/model/entities";
 
 export const buildSimulationMessageAnimations = (
   currentEvent: SimulationEvent | null,

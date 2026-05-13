@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { WorkspaceSceneProps } from "../../../../shared/types/workspace/scene";
-import WorkspaceConnection from "../WorkspaceConnection/WorkspaceConnection";
+import type { WorkspaceSceneProps } from "@/shared/types/workspace/scene";
+import WorkspaceConnection from "@/features/board/components/WorkspaceConnection/WorkspaceConnection";
 
 type Props = Pick<WorkspaceSceneProps, "centerX" | "centerY" | "connections">;
 

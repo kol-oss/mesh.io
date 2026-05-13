@@ -8,13 +8,13 @@ import {
   STEP_STORAGE_KEY,
   TEXT_STORAGE_KEY,
 } from "./constants";
-import peerReducer from "./slices/peerSlice";
-import linkReducer from "./slices/linkSlice";
-import obstacleReducer from "./slices/obstacleSlice";
-import stepReducer from "./slices/stepSlice";
-import textReducer from "./slices/textSlice";
-import displayReducer from "./slices/displaySlice";
-import { setState } from "./utils/storeUtils";
+import peerReducer from "@/shared/store/slices/peerSlice";
+import linkReducer from "@/shared/store/slices/linkSlice";
+import obstacleReducer from "@/shared/store/slices/obstacleSlice";
+import stepReducer from "@/shared/store/slices/stepSlice";
+import textReducer from "@/shared/store/slices/textSlice";
+import displayReducer from "@/shared/store/slices/displaySlice";
+import { setState } from "@/shared/store/utils/storeUtils";
 
 export const store = configureStore({
   reducer: {

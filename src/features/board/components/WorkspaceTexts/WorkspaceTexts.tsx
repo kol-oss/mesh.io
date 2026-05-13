@@ -1,5 +1,5 @@
-import type { WorkspaceSceneProps } from "../../../../shared/types/workspace/scene";
-import WorkspaceTextEntity from "../WorkspaceTextEntity/WorkspaceTextEntity";
+import type { WorkspaceSceneProps } from "@/shared/types/workspace/scene";
+import WorkspaceTextEntity from "@/features/board/components/WorkspaceTextEntity/WorkspaceTextEntity";
 
 type Props = Pick<
   WorkspaceSceneProps,

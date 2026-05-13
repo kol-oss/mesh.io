@@ -1,4 +1,4 @@
-import { SimulationMessageKind, type SimulationMessage } from "../../types/model/simulation";
+import { SimulationMessageKind, type SimulationMessage } from "@/shared/types/model/simulation";
 
 export const cloneDsrMessage = <T extends SimulationMessage>(message: T): T => {
   return {

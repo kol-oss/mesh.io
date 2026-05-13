@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 
-import PacketStructure from "../PacketStructure";
-import SourceBlock from "../SourceBlock";
-import TableBlock from "../TableBlock";
-import TextBlock from "../TextBlock";
+import PacketStructure from "@/features/help/components/Help/PacketStructure";
+import SourceBlock from "@/features/help/components/Help/SourceBlock";
+import TableBlock from "@/features/help/components/Help/TableBlock";
+import TextBlock from "@/features/help/components/Help/TextBlock";
 
 const SECTION_IDS = [
   "olsr",

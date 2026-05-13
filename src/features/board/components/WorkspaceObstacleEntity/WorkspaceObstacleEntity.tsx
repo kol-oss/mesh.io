@@ -1,5 +1,5 @@
-import { ResizeEdge } from "../../../../shared/types/interaction";
-import type { ObstacleEntity } from "../../../../shared/types/model/entities";
+import { ResizeEdge } from "@/shared/types/interaction";
+import type { ObstacleEntity } from "@/shared/types/model/entities";
 
 type Props = {
   obstacle: ObstacleEntity;

@@ -5,8 +5,8 @@ import {
   QualityWindowBit,
   type SimulationEvent,
   type SimulationStepResult,
-} from "../../../../shared/types/model/simulation";
-import type { UUID } from "../../../../shared/types/common/uuid";
+} from "@/shared/types/model/simulation";
+import type { UUID } from "@/shared/types/common/uuid";
 import {
   formatFixed,
   getEventDescription,
@@ -26,7 +26,7 @@ import {
   getThroughputBreakdown,
   getThroughputEwmaExplanation,
   renderPeerName,
-} from "../../../../shared/utils/simulation/eventPresentation";
+} from "@/shared/utils/simulation/eventPresentation";
 
 type SimulationPanelProps = {
   anchorX: number;

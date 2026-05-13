@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 
 import type { WorkspaceTextItem } from "./text";
-import type { UUID } from "../common/uuid";
+import type { UUID } from "@/shared/types/common/uuid";
 
 export type WorkspaceTextEditSetters = {
   setTexts: (value: WorkspaceTextItem[]) => void;

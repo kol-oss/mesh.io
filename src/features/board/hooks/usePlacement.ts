@@ -1,16 +1,16 @@
 import { useCallback } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-import { ActionMode as PlacementMode } from "../../../shared/types/action";
-import type { PeerEntity } from "../../../shared/types/model/entities";
-import type { UUID } from "../../../shared/types/common/uuid";
+import { ActionMode as PlacementMode } from "@/shared/types/action";
+import type { PeerEntity } from "@/shared/types/model/entities";
+import type { UUID } from "@/shared/types/common/uuid";
 import type {
   WorkspacePlacementActions,
   WorkspacePlacementHandlers,
   WorkspacePlacementRefs,
   WorkspacePlacementSetters,
   WorkspacePlacementState,
-} from "../../../shared/types/workspace/placement";
+} from "@/shared/types/workspace/placement";
 
 type UseWorkspacePlacementParams = {
   refs: WorkspacePlacementRefs;

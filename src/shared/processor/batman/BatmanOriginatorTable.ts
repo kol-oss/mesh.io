@@ -1,12 +1,12 @@
-import { RoutingProtocol } from "../../types/common/protocols";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
 import {
   SimulationEventType,
   type BatmanOriginatorMessage,
   type BatmanRouteRecord,
-} from "../../types/model/simulation";
-import type { UUID } from "../../types/common/uuid";
-import { SimulationEventRecorder } from "../core/EventRecorder";
-import type { SimulationPeerNode } from "../core/runtimeTypes";
+} from "@/shared/types/model/simulation";
+import type { UUID } from "@/shared/types/common/uuid";
+import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
+import type { SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
 import { cloneMessage } from "./batmanMessage";
 import { BatmanSequenceWindow } from "./BatmanSequenceWindow";
 

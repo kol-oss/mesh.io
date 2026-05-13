@@ -1,6 +1,6 @@
-import { SelectionType as SelectionSource } from "../../../../shared/types/view/selection";
-import type { WorkspaceSceneProps } from "../../../../shared/types/workspace/scene";
-import WorkspacePeerEntity from "../WorkspacePeerEntity/WorkspacePeerEntity";
+import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
+import type { WorkspaceSceneProps } from "@/shared/types/workspace/scene";
+import WorkspacePeerEntity from "@/features/board/components/WorkspacePeerEntity/WorkspacePeerEntity";
 
 type Props = Pick<
   WorkspaceSceneProps,

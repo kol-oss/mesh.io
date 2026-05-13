@@ -1,10 +1,10 @@
 import { useCallback } from "react";
-import { EntityType } from "../../../shared/types/model/entities";
-import { ActionMode as ToolbarMode } from "../../../shared/types/action";
-import type { ResizeEdge } from "../../../shared/types/interaction";
-import type { NetworkEntity } from "../../../shared/types/model/entities";
-import type { UUID } from "../../../shared/types/common/uuid";
-import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
+import { EntityType } from "@/shared/types/model/entities";
+import { ActionMode as ToolbarMode } from "@/shared/types/action";
+import type { ResizeEdge } from "@/shared/types/interaction";
+import type { NetworkEntity } from "@/shared/types/model/entities";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 type ObstacleSelectionEntity = Extract<NetworkEntity, { type: typeof EntityType.Obstacle }>;

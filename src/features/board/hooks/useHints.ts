@@ -1,12 +1,12 @@
 import { useCallback, useEffect } from "react";
 
-import { ActionMode as PlacementMode } from "../../../shared/types/action";
+import { ActionMode as PlacementMode } from "@/shared/types/action";
 import type {
   WorkspaceHintActions,
   WorkspaceHintRefs,
   WorkspaceHintState,
-} from "../../../shared/types/workspace/hints";
-import type { ToolbarPlacementMode } from "../../../shared/types/action";
+} from "@/shared/types/workspace/hints";
+import type { ToolbarPlacementMode } from "@/shared/types/action";
 
 type UseWorkspaceHintsParams = {
   refs: WorkspaceHintRefs;

@@ -1,10 +1,10 @@
-import type { NetworkEntity } from "../../types/model/entities";
-import { EntityType } from "../../types/model/entities";
-import type { SimulationTickSnapshot } from "../../types/model/simulation";
-import type { UUID } from "../../types/common/uuid";
-import { getObstacleBounds, hasLineOfSight } from "../../utils/geometry";
-import type { SimulationEventRecorder } from "../core/EventRecorder";
-import type { SimulationNetworkRuntime } from "../core/runtimeTypes";
+import type { NetworkEntity } from "@/shared/types/model/entities";
+import { EntityType } from "@/shared/types/model/entities";
+import type { SimulationTickSnapshot } from "@/shared/types/model/simulation";
+import type { UUID } from "@/shared/types/common/uuid";
+import { getObstacleBounds, hasLineOfSight } from "@/shared/utils/geometry";
+import type { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
+import type { SimulationNetworkRuntime } from "@/shared/processor/core/runtimeTypes";
 import type { RuntimeLink } from "./link";
 import { RuntimePeer } from "./peer";
 

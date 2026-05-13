@@ -1,4 +1,4 @@
-import type { WorkspaceSceneProps } from "../../../../shared/types/workspace/scene";
+import type { WorkspaceSceneProps } from "@/shared/types/workspace/scene";
 
 type Props = Pick<WorkspaceSceneProps, "rangePolygons" | "hoveredSimulationPeerId">;
 

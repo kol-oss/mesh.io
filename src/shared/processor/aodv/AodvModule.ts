@@ -7,9 +7,9 @@ import {
   AODV_MIN_ROUTE_TIMEOUT,
   AODV_PATH_DISCOVERY_TTL,
   AODV_SEQUENCE_INITIAL,
-} from "../../constants/aodv";
-import { getAodvConfiguration } from "../../types/model/peers";
-import { RoutingProtocol } from "../../types/common/protocols";
+} from "@/shared/constants/aodv";
+import { getAodvConfiguration } from "@/shared/types/model/peers";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -20,10 +20,10 @@ import {
   type AodvRouteRequestMessage,
   type AodvUnreachableDestination,
   type SimulationPacket,
-} from "../../types/model/simulation";
-import type { UUID } from "../../types/common/uuid";
-import { SimulationEventRecorder } from "../core/EventRecorder";
-import type { PacketCapableModule, SimulationPeerNode } from "../core/runtimeTypes";
+} from "@/shared/types/model/simulation";
+import type { UUID } from "@/shared/types/common/uuid";
+import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
+import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
 import { cloneAodvMessage, isAodvSimulationMessage } from "./aodvMessage";
 
 type AodvRouteEntry = AodvRouteRecord & {

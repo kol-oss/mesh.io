@@ -19,21 +19,21 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { useAppDispatch, useAppSelector } from "../../../../shared/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
 import {
   DEFAULT_SELECTED_TOOLBAR_GROUP,
   setSelectedToolbarGroup,
   setToolbarModeForGroup,
-} from "../../../../shared/store/slices/displaySlice";
+} from "@/shared/store/slices/displaySlice";
 import {
   ActionMode as PlacementMode,
   ActionMode as ToolbarMode,
   ActionGroup as ToolbarGroup,
   ActionCommand as ToolbarActionKey,
-} from "../../../../shared/types/action";
-import { TooltipPlacement } from "../../../../shared/types/view/view";
-import type { ActionToolMode, ToolbarPlacementMode } from "../../../../shared/types/action";
-import Tooltip from "../../../../shared/components/Tooltip/Tooltip";
+} from "@/shared/types/action";
+import { TooltipPlacement } from "@/shared/types/view/view";
+import type { ActionToolMode, ToolbarPlacementMode } from "@/shared/types/action";
+import Tooltip from "@/shared/components/Tooltip/Tooltip";
 
 type ToolMode = ActionToolMode;
 

@@ -1,5 +1,5 @@
-import { shortenLine } from "../../../../shared/utils/geometry";
-import type { UUID } from "../../../../shared/types/common/uuid";
+import { shortenLine } from "@/shared/utils/geometry";
+import type { UUID } from "@/shared/types/common/uuid";
 
 type Link = {
   id: UUID;

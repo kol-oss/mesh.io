@@ -5,9 +5,9 @@ import type {
   SetStateAction,
 } from "react";
 
-import type { PeerEntity } from "../model/entities";
-import type { ToolbarPlacementMode } from "../action";
-import type { UUID } from "../common/uuid";
+import type { PeerEntity } from "@/shared/types/model/entities";
+import type { ToolbarPlacementMode } from "@/shared/types/action";
+import type { UUID } from "@/shared/types/common/uuid";
 
 export type WorkspacePlacementRefs = {
   linkSourcePeerIdRef: MutableRefObject<UUID | null>;

@@ -1,9 +1,9 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { ActionMode, ActionGroup as ToolbarGroup } from "../../types/action";
-import type { UUID } from "../../types/common/uuid";
-import { DISPLAY_STORAGE_KEY } from "../constants";
-import { loadState } from "../utils/storeUtils";
-import type { ActionModesByGroup, ActionToolMode } from "../../types/action";
+import { ActionMode, ActionGroup as ToolbarGroup } from "@/shared/types/action";
+import type { UUID } from "@/shared/types/common/uuid";
+import { DISPLAY_STORAGE_KEY } from "@/shared/store/constants";
+import { loadState } from "@/shared/store/utils/storeUtils";
+import type { ActionModesByGroup, ActionToolMode } from "@/shared/types/action";
 
 export const TABS = {
   ENTITIES: "entities",

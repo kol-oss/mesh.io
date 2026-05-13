@@ -1,4 +1,4 @@
-import { BATMAN_MAX_THROUGHPUT, BATMAN_OGM_HOP_PENALTY_PERCENT } from "../../constants/batman.ts";
+import { BATMAN_MAX_THROUGHPUT, BATMAN_OGM_HOP_PENALTY_PERCENT } from "@/shared/constants/batman.ts";
 
 export const clampThroughput = (throughput: number) => {
   if (!Number.isFinite(throughput)) {

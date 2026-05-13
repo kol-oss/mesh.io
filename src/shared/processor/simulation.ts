@@ -1,5 +1,5 @@
-import { RoutingProtocol } from "../types/common/protocols";
-import { RefreshAction, StepType, type WorkflowStep } from "../types/model/steps";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import { RefreshAction, StepType, type WorkflowStep } from "@/shared/types/model/steps";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -10,14 +10,14 @@ import {
   type SimulationResult,
   type SimulationStepResult,
   type SimulationTickSnapshot,
-} from "../types/model/simulation";
-import { BatmanModule } from "./batman/BatmanModule";
-import { AodvModule } from "./aodv/AodvModule";
-import { DsdvModule } from "./dsdv/DsdvModule";
-import { OlsrModule } from "./olsr/OlsrModule";
-import { SimulationEventRecorder } from "./core/EventRecorder";
-import type { PacketCapableModule, RoutingProtocolModule } from "./core/runtimeTypes";
-import { RuntimeNetwork } from "./types/network";
+} from "@/shared/types/model/simulation";
+import { BatmanModule } from "@/shared/processor/batman/BatmanModule";
+import { AodvModule } from "@/shared/processor/aodv/AodvModule";
+import { DsdvModule } from "@/shared/processor/dsdv/DsdvModule";
+import { OlsrModule } from "@/shared/processor/olsr/OlsrModule";
+import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
+import type { PacketCapableModule, RoutingProtocolModule } from "@/shared/processor/core/runtimeTypes";
+import { RuntimeNetwork } from "@/shared/processor/types/network";
 
 const sortSteps = (steps: WorkflowStep[]) => {
   return [...steps]

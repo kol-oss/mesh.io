@@ -1,11 +1,11 @@
 import { Link, NavLink, Navigate, Route, Routes } from "react-router-dom";
 
-import AboutUsHelpPage from "../../components/Help/pages/AboutUsHelpPage";
-import AodvHelpPage from "../../components/Help/pages/AodvHelpPage";
-import BatmanHelpPage from "../../components/Help/pages/BatmanHelpPage";
-import DsdvHelpPage from "../../components/Help/pages/DsdvHelpPage";
-import DsrHelpPage from "../../components/Help/pages/DsrHelpPage";
-import OlsrHelpPage from "../../components/Help/pages/OlsrHelpPage";const helpLinks = [
+import AboutUsHelpPage from "@/features/help/components/Help/pages/AboutUsHelpPage";
+import AodvHelpPage from "@/features/help/components/Help/pages/AodvHelpPage";
+import BatmanHelpPage from "@/features/help/components/Help/pages/BatmanHelpPage";
+import DsdvHelpPage from "@/features/help/components/Help/pages/DsdvHelpPage";
+import DsrHelpPage from "@/features/help/components/Help/pages/DsrHelpPage";
+import OlsrHelpPage from "@/features/help/components/Help/pages/OlsrHelpPage";const helpLinks = [
   { to: "/docs/about-us", label: "Workspace" },
   { to: "/docs/dsdv", label: "DSDV" },
   { to: "/docs/olsr", label: "OLSR" },

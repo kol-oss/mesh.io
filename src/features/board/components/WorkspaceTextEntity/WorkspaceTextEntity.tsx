@@ -1,4 +1,4 @@
-import type { WorkspaceTextItem } from "../../../../shared/types/workspace/text";
+import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
 
 type Props = {
   item: WorkspaceTextItem;

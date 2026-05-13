@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
-import { StepType } from "../../../shared/types/model/steps";
-import type { WorkflowStep } from "../../../shared/types/model/steps";
-import type { UUID } from "../../../shared/types/common/uuid";
+import { StepType } from "@/shared/types/model/steps";
+import type { WorkflowStep } from "@/shared/types/model/steps";
+import type { UUID } from "@/shared/types/common/uuid";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 type Props = {

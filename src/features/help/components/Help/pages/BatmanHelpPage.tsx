@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 
-import FormulaBlock from "../FormulaBlock";
-import ModellingTrap from "../ModellingTrap";
-import PacketStructure from "../PacketStructure";
-import SourceBlock from "../SourceBlock";
-import TableBlock from "../TableBlock";
-import TextBlock from "../TextBlock";
+import FormulaBlock from "@/features/help/components/Help/FormulaBlock";
+import ModellingTrap from "@/features/help/components/Help/ModellingTrap";
+import PacketStructure from "@/features/help/components/Help/PacketStructure";
+import SourceBlock from "@/features/help/components/Help/SourceBlock";
+import TableBlock from "@/features/help/components/Help/TableBlock";
+import TextBlock from "@/features/help/components/Help/TextBlock";
 
 const SECTION_IDS = [
   "batman",

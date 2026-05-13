@@ -1,52 +1,52 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useAppDispatch, useAppSelector } from "../../../shared/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
 import {
   TABS,
   setOpenedTab,
   setRefreshHidden,
   setSelectedId,
-} from "../../../shared/store/slices/displaySlice";
-import { clearPeers, replacePeers } from "../../../shared/store/slices/peerSlice";
-import { clearLinks, replaceLinks } from "../../../shared/store/slices/linkSlice";
-import { clearObstacles, replaceObstacles } from "../../../shared/store/slices/obstacleSlice";
-import { clearSteps, replaceSteps } from "../../../shared/store/slices/stepSlice";
-import { clearTexts, replaceTexts } from "../../../shared/store/slices/textSlice";
-import { useToast } from "../../../shared/toast/useToast";
-import { runSimulation } from "../../../shared/processor/simulation";
+} from "@/shared/store/slices/displaySlice";
+import { clearPeers, replacePeers } from "@/shared/store/slices/peerSlice";
+import { clearLinks, replaceLinks } from "@/shared/store/slices/linkSlice";
+import { clearObstacles, replaceObstacles } from "@/shared/store/slices/obstacleSlice";
+import { clearSteps, replaceSteps } from "@/shared/store/slices/stepSlice";
+import { clearTexts, replaceTexts } from "@/shared/store/slices/textSlice";
+import { useToast } from "@/shared/toast/useToast";
+import { runSimulation } from "@/shared/processor/simulation";
 import {
   ActionMode as PlacementMode,
   ActionMode as ToolbarMode,
-} from "../../../shared/types/action";
-import { RoutingProtocol } from "../../../shared/types/common/protocols";
-import { SelectionType as SelectionSource } from "../../../shared/types/view/selection";
+} from "@/shared/types/action";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import type {
   LinkEntity,
   NetworkEntity,
   ObstacleEntity,
   PeerEntity,
-} from "../../../shared/types/model/entities";
-import { EntityType } from "../../../shared/types/model/entities";
+} from "@/shared/types/model/entities";
+import { EntityType } from "@/shared/types/model/entities";
 import {
   SimulationEventType,
   type RoutingTableChangeDetails,
   type SimulationEvent,
   type SimulationPlaybackState,
-} from "../../../shared/types/model/simulation";
-import type { WorkflowStep } from "../../../shared/types/model/steps";
-import type { ToolbarPlacementMode } from "../../../shared/types/action";
-import type { UUID } from "../../../shared/types/common/uuid";
-import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
+} from "@/shared/types/model/simulation";
+import type { WorkflowStep } from "@/shared/types/model/steps";
+import type { ToolbarPlacementMode } from "@/shared/types/action";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
 import {
   composeStepsWithRefresh,
   normalizeManualSteps,
   sanitizeManualSteps,
-} from "../../../shared/utils/navigation/refreshSteps";
+} from "@/shared/utils/navigation/refreshSteps";
 import {
   getWorkspaceExportFileName,
   parseWorkspaceImportPayload,
   type WorkspaceImportPayload,
-} from "../../../shared/utils/validation";
+} from "@/shared/utils/validation";
 
 const downloadWorkspacePayload = (payload: WorkspaceImportPayload) => {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
