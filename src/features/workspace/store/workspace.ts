@@ -9,6 +9,9 @@ import {
   setRefreshHidden,
   setSelectedId,
 } from "../../../shared/store/slices/displaySlice";
+import { clearPeers, replacePeers } from "../../../shared/store/slices/peerSlice";
+import { clearLinks, replaceLinks } from "../../../shared/store/slices/linkSlice";
+import { clearObstacles, replaceObstacles } from "../../../shared/store/slices/obstacleSlice";
 import { useToast } from "../../../shared/toast/useToast";
 import { runSimulation } from "../../../shared/simulation/processor/simulation";
 import {
@@ -17,7 +20,13 @@ import {
   SelectionSource,
   ToolbarMode,
 } from "../../../shared/types/enums";
-import type { NetworkEntity } from "../../../shared/types/entities";
+import type {
+  LinkEntity,
+  NetworkEntity,
+  ObstacleEntity,
+  PeerEntity,
+} from "../../../shared/types/entities";
+import { EntityType } from "../../../shared/types/enums";
 import {
   SimulationEventType,
   type RoutingTableChangeDetails,
@@ -100,7 +109,9 @@ export function useWorkspaceStore() {
   const isRefreshHidden = useAppSelector((state) => state.display.refreshHidden);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
 
-  const [rawEntities, setRawEntities] = useLocalStorage<NetworkEntity[]>(storageKeys.entities, []);
+  const rawPeers = useAppSelector((state) => state.peer);
+  const rawLinks = useAppSelector((state) => state.link);
+  const rawObstacles = useAppSelector((state) => state.obstacle);
   const [manualSteps, setManualSteps] = useLocalStorage<WorkflowStep[]>(storageKeys.steps, []);
   const [rawTexts, setRawTexts] = useLocalStorage<WorkspaceTextItem[]>(storageKeys.textItems, []);
   const [simulationPlayback, setSimulationPlayback] = useState<SimulationPlaybackState>({
@@ -122,7 +133,10 @@ export function useWorkspaceStore() {
     });
   }, []);
 
-  const entities = rawEntities;
+  const entities = useMemo<NetworkEntity[]>(
+    () => [...rawPeers, ...rawLinks, ...rawObstacles],
+    [rawPeers, rawLinks, rawObstacles],
+  );
   const texts = rawTexts;
 
   const normalizedManualSteps = useMemo(() => normalizeManualSteps(manualSteps), [manualSteps]);
@@ -192,9 +206,13 @@ export function useWorkspaceStore() {
   const setEntities = useCallback(
     (value: NetworkEntity[]) => {
       invalidateSimulation();
-      setRawEntities(value);
+      dispatch(replacePeers(value.filter((e): e is PeerEntity => e.type === EntityType.Peer)));
+      dispatch(replaceLinks(value.filter((e): e is LinkEntity => e.type === EntityType.Link)));
+      dispatch(
+        replaceObstacles(value.filter((e): e is ObstacleEntity => e.type === EntityType.Obstacle)),
+      );
     },
-    [invalidateSimulation, setRawEntities],
+    [dispatch, invalidateSimulation],
   );
 
   const setTexts = useCallback(
@@ -302,7 +320,9 @@ export function useWorkspaceStore() {
       return;
     }
 
-    setRawEntities([]);
+    dispatch(clearPeers());
+    dispatch(clearLinks());
+    dispatch(clearObstacles());
     setManualSteps([]);
     setRawTexts([]);
     invalidateSimulation();
@@ -310,10 +330,10 @@ export function useWorkspaceStore() {
     showToast("Started a new simulation");
   }, [
     clearSelection,
+    dispatch,
     entities.length,
     invalidateSimulation,
     manualSteps.length,
-    setRawEntities,
     setManualSteps,
     setRawTexts,
     showToast,
@@ -343,7 +363,17 @@ export function useWorkspaceStore() {
         }
 
         invalidateSimulation();
-        setRawEntities(payload.entities);
+        dispatch(
+          replacePeers(payload.entities.filter((e): e is PeerEntity => e.type === EntityType.Peer)),
+        );
+        dispatch(
+          replaceLinks(payload.entities.filter((e): e is LinkEntity => e.type === EntityType.Link)),
+        );
+        dispatch(
+          replaceObstacles(
+            payload.entities.filter((e): e is ObstacleEntity => e.type === EntityType.Obstacle),
+          ),
+        );
         setManualSteps(sanitizeManualSteps(payload.steps));
         clearSelection();
         showToast("Workspace imported successfully");
@@ -352,7 +382,7 @@ export function useWorkspaceStore() {
         showToast(message);
       }
     },
-    [clearSelection, invalidateSimulation, setRawEntities, setManualSteps, showToast],
+    [clearSelection, dispatch, invalidateSimulation, setManualSteps, showToast],
   );
 
   const focusSimulationStep = useCallback(

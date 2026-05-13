@@ -17,3 +17,16 @@ export function loadStates<T>(key: string): T[] {
     return [];
   }
 }
+
+export function setState<T>(key: string, state: T) {
+  if (state == null || (Array.isArray(state) && state.length === 0)) {
+    localStorage.removeItem(key);
+    return;
+  }
+
+  try {
+    localStorage.setItem(key, JSON.stringify(state));
+  } catch {
+    // Ignore storage write errors (e.g. private mode quota exceeded)
+  }
+}
