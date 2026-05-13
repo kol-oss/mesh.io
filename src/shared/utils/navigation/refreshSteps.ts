@@ -1,4 +1,7 @@
-import { EntityType, RoutingProtocol, StepType } from "../../types/enums";import type { NetworkEntity, PeerEntity } from "../../types/entities";
+import { v5 as uuidv5 } from "uuid";
+
+import { EntityType, RoutingProtocol, StepType } from "../../types/enums";
+import type { NetworkEntity, PeerEntity } from "../../types/entities";
 import {
   RefreshAction,
   createStepBase,
@@ -13,6 +16,18 @@ import {
   type ToggleStatusStep,
   type WorkflowStep,
 } from "../../types/steps";
+import type { UUID } from "../../types/uuid";
+
+const REFRESH_STEP_NAMESPACE = "7d6cc0ce-3ed4-4296-a40d-0a59f04dcf3b";
+
+const createRefreshStepId = (
+  peerId: UUID,
+  tick: number,
+  protocol: RoutingProtocol,
+  action: RefreshAction,
+) => {
+  return uuidv5(`${peerId}:${tick}:${protocol}:${action}`, REFRESH_STEP_NAMESPACE) as UUID;
+};
 
 export const isRefreshStep = (step: WorkflowStep): step is RefreshStep => isRefreshStepType(step);
 
@@ -84,8 +99,8 @@ const buildRefreshStepsForPeer = (
     const ogmInterval = Math.max(1, Math.floor(peer.batmanOgmInterval));
     const elpSteps = buildBatmanRefreshTicks(manualSteps, peer, maxTick, elpInterval).map(
       ({ tick, startTick }) => ({
-        id: `refresh-batman-elp-${peer.id}-${tick}`,
-        title: (`ELP Refresh on ${(peer.name)}`),
+        id: createRefreshStepId(peer.id, tick, RoutingProtocol.BATMAN, RefreshAction.BatmanElp),
+        title: `ELP Refresh on ${peer.name}`,
         tick: Math.max(0, Math.floor(tick)),
         type: StepType.Refresh,
         refreshPeerId: peer.id,
@@ -98,8 +113,8 @@ const buildRefreshStepsForPeer = (
     );
     const ogmSteps = buildBatmanRefreshTicks(manualSteps, peer, maxTick, ogmInterval).map(
       ({ tick, startTick }) => ({
-        id: `refresh-batman-ogm-${peer.id}-${tick}`,
-        title: (`OGM Broadcast on ${(peer.name)}`),
+        id: createRefreshStepId(peer.id, tick, RoutingProtocol.BATMAN, RefreshAction.BatmanOgm),
+        title: `OGM Broadcast on ${peer.name}`,
         tick: Math.max(0, Math.floor(tick)),
         type: StepType.Refresh,
         refreshPeerId: peer.id,
@@ -120,8 +135,8 @@ const buildRefreshStepsForPeer = (
 
     const fullDumpSteps = buildBatmanRefreshTicks(manualSteps, peer, maxTick, fullDumpInterval).map(
       ({ tick, startTick }) => ({
-        id: `refresh-dsdv-full-dump-${peer.id}-${tick}`,
-        title: (`DSDV Full Dump on ${(peer.name)}`),
+        id: createRefreshStepId(peer.id, tick, RoutingProtocol.DSDV, RefreshAction.DsdvFullDump),
+        title: `DSDV Full Dump on ${peer.name}`,
         tick: Math.max(0, Math.floor(tick)),
         type: StepType.Refresh,
         refreshPeerId: peer.id,
@@ -139,8 +154,8 @@ const buildRefreshStepsForPeer = (
       maxTick,
       incrementalInterval,
     ).map(({ tick, startTick }) => ({
-      id: `refresh-dsdv-incremental-${peer.id}-${tick}`,
-      title: (`DSDV Incremental Update on ${(peer.name)}`),
+      id: createRefreshStepId(peer.id, tick, RoutingProtocol.DSDV, RefreshAction.DsdvIncremental),
+      title: `DSDV Incremental Update on ${peer.name}`,
       tick: Math.max(0, Math.floor(tick)),
       type: StepType.Refresh,
       refreshPeerId: peer.id,
@@ -159,8 +174,8 @@ const buildRefreshStepsForPeer = (
 
     const helloSteps = buildBatmanRefreshTicks(manualSteps, peer, maxTick, helloInterval).map(
       ({ tick, startTick }) => ({
-        id: `refresh-aodv-hello-${peer.id}-${tick}`,
-        title: (`AODV HELLO on ${(peer.name)}`),
+        id: createRefreshStepId(peer.id, tick, RoutingProtocol.AODV, RefreshAction.AodvHello),
+        title: `AODV HELLO on ${peer.name}`,
         tick: Math.max(0, Math.floor(tick)),
         type: StepType.Refresh,
         refreshPeerId: peer.id,
@@ -181,8 +196,8 @@ const buildRefreshStepsForPeer = (
 
     const helloSteps = buildBatmanRefreshTicks(manualSteps, peer, maxTick, helloInterval).map(
       ({ tick, startTick }) => ({
-        id: `refresh-olsr-hello-${peer.id}-${tick}`,
-        title: (`OLSR HELLO on ${(peer.name)}`),
+        id: createRefreshStepId(peer.id, tick, RoutingProtocol.OLSR, RefreshAction.OlsrHello),
+        title: `OLSR HELLO on ${peer.name}`,
         tick: Math.max(0, Math.floor(tick)),
         type: StepType.Refresh,
         refreshPeerId: peer.id,
@@ -196,8 +211,8 @@ const buildRefreshStepsForPeer = (
 
     const tcSteps = buildBatmanRefreshTicks(manualSteps, peer, maxTick, tcInterval).map(
       ({ tick, startTick }) => ({
-        id: `refresh-olsr-tc-${peer.id}-${tick}`,
-        title: (`OLSR TC on ${(peer.name)}`),
+        id: createRefreshStepId(peer.id, tick, RoutingProtocol.OLSR, RefreshAction.OlsrTc),
+        title: `OLSR TC on ${peer.name}`,
         tick: Math.max(0, Math.floor(tick)),
         type: StepType.Refresh,
         refreshPeerId: peer.id,
