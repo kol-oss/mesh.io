@@ -34,7 +34,7 @@ import {
   DSDV_MIN_TIMEOUT,
 } from "../../../../../shared/constants/dsdv";
 import { OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "../../../../../shared/constants/olsr";
-import Tooltip from "../../../../../shared/ui/components/Tooltip/Tooltip";
+import Tooltip from "../../../../../shared/components/Tooltip/Tooltip";
 import { EntityType } from "../../../../../shared/types/model/entities";
 import { RoutingProtocol } from "../../../../../shared/types/common/protocols";
 import type {

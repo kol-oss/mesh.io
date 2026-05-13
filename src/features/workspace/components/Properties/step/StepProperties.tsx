@@ -13,7 +13,7 @@ import type {
 import type { StepPropertiesPanelProps } from "../../../../../shared/types/view/properties";
 import { isRefreshStep } from "../../../../../shared/utils/navigation/refreshSteps";
 import { parseNumberValue } from "../../../../../shared/utils/properties";
-import Select from "../../../../../shared/ui/components/Select/Select";
+import Select from "../../../../../shared/components/Select/Select";
 import MessageStepProperties from "./MessageStepProperties";
 import MoveStepProperties from "./MoveStepProperties";
 import RefreshStepProperties from "./RefreshStepProperties";

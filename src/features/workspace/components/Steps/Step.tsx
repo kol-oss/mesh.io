@@ -3,7 +3,7 @@ import { Activity, ChevronsRight, Mail, RotateCw } from "lucide-react";
 import { StepType } from "../../../../shared/types/model/steps";
 import type { WorkflowStep } from "../../../../shared/types/model/steps";
 import { isRefreshStep } from "../../../../shared/utils/navigation/refreshSteps";
-import Tooltip from "../../../../shared/ui/components/Tooltip/Tooltip";
+import Tooltip from "../../../../shared/components/Tooltip/Tooltip";
 
 type StepProps = {
   step: WorkflowStep;

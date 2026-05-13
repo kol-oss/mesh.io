@@ -21,7 +21,7 @@ import {
   DSDV_MIN_INTERVAL,
   DSDV_MIN_TIMEOUT,
   DSDV_SEQUENCE_INITIAL,
-} from "../../constants/dsdv";
+} from "../../../constants/dsdv";
 
 const clampInterval = (value: number) => {
   const normalized = Math.floor(value);

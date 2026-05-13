@@ -18,7 +18,7 @@ import {
   BATMAN_MAX_THROUGHPUT,
   BATMAN_TIME_TO_LIVE,
   BATMAN_VERSION,
-} from "../../constants/batman.ts";
+} from "../../../constants/batman.ts";
 import { getBatmanConfiguration } from "../../../types/model/peers.ts";
 type BatmanNeighbourEntry = {
   neighbourId: UUID;

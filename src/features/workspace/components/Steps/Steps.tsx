@@ -22,7 +22,7 @@ import type {
 import { generateUUID, type UUID } from "../../../../shared/types/common/uuid";
 import { migrateSteps } from "../../../../shared/utils/navigation/stepMigration";
 import { isRefreshStep } from "../../../../shared/utils/navigation/refreshSteps";
-import Tooltip from "../../../../shared/ui/components/Tooltip/Tooltip";
+import Tooltip from "../../../../shared/components/Tooltip/Tooltip";
 import Step from "./Step";
 
 type StepsProps = {

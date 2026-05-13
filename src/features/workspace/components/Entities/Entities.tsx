@@ -20,7 +20,7 @@ import {
   obstacleDefaults,
   peerDefaults,
 } from "../../../../shared/utils/navigation/entityMigration";
-import Tooltip from "../../../../shared/ui/components/Tooltip/Tooltip";
+import Tooltip from "../../../../shared/components/Tooltip/Tooltip";
 import Entity from "./Entity";
 
 type EntitiesProps = {

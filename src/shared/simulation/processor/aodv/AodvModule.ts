@@ -7,7 +7,7 @@ import {
   AODV_MIN_ROUTE_TIMEOUT,
   AODV_PATH_DISCOVERY_TTL,
   AODV_SEQUENCE_INITIAL,
-} from "../../constants/aodv";
+} from "../../../constants/aodv";
 import { getAodvConfiguration } from "../../../types/model/peers";
 import { RoutingProtocol } from "../../../types/common/protocols";
 import {

@@ -33,7 +33,7 @@ import {
 } from "../../../../shared/types/action";
 import { TooltipPlacement } from "../../../../shared/types/view/view";
 import type { ActionToolMode, ToolbarPlacementMode } from "../../../../shared/types/action";
-import Tooltip from "../../../../shared/ui/components/Tooltip/Tooltip";
+import Tooltip from "../../../../shared/components/Tooltip/Tooltip";
 
 type ToolMode = ActionToolMode;
 
