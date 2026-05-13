@@ -1,7 +1,7 @@
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { TooltipPlacement } from "@/shared/types/view/view";
 import Tooltip from "@/shared/components/Tooltip/Tooltip";
-import NavigationMenu from "./NavigationMenu";
+import NavigationMenu from "../NavigationMenu/NavigationMenu";
 
 type NavigationHeaderProps = {
   isCollapsed: boolean;

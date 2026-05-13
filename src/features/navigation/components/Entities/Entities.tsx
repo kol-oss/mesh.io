@@ -21,7 +21,7 @@ import {
   peerDefaults,
 } from "@/shared/utils/navigation/entityMigration";
 import Tooltip from "@/shared/components/Tooltip/Tooltip";
-import Entity from "./Entity";
+import Entity from "../Entity/Entity";
 
 type EntitiesProps = {
   entities: NetworkEntity[];

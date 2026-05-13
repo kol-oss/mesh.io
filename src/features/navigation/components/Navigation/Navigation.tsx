@@ -5,8 +5,8 @@ import { SelectionType as SelectionSource } from "@/shared/types/view/selection"
 import type { NetworkEntity } from "@/shared/types/model/entities";
 import type { WorkflowStep } from "@/shared/types/model/steps";
 import type { UUID } from "@/shared/types/common/uuid";
-import NavigationHeader from "./NavigationHeader";
-import NavigationMenu from "./NavigationMenu";
+import NavigationHeader from "../NavigationHeader/NavigationHeader";
+import NavigationMenu from "../NavigationMenu/NavigationMenu";
 
 type NavigationProps = {
   selectedId: UUID | null;

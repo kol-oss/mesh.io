@@ -4,8 +4,8 @@ import { SidebarResizeSide } from "@/shared/types/view/view";
 import type { NetworkEntity } from "@/shared/types/model/entities";
 import type { WorkflowStep } from "@/shared/types/model/steps";
 import type { UUID } from "@/shared/types/common/uuid";
-import EntityProperties from "@/features/properties/components/Properties/entity/EntityProperties";
-import StepProperties from "@/features/properties/components/Properties/step/StepProperties";
+import EntityProperties from "../EntityProperties/EntityProperties";
+import StepProperties from "../StepProperties/StepProperties";
 
 type PropertiesProps = {
   selectedId: UUID | null;

@@ -14,10 +14,10 @@ import type { StepPropertiesPanelProps } from "@/shared/types/view/properties";
 import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 import { parseNumberValue } from "@/shared/utils/properties";
 import Select from "@/shared/components/Select/Select";
-import MessageStepProperties from "./MessageStepProperties";
-import MoveStepProperties from "./MoveStepProperties";
-import RefreshStepProperties from "./RefreshStepProperties";
-import ToggleStepProperties from "./ToggleStepProperties";
+import MessageStepProperties from "../MessageStepProperties/MessageStepProperties";
+import MoveStepProperties from "../MoveStepProperties/MoveStepProperties";
+import RefreshStepProperties from "../RefreshStepProperties/RefreshStepProperties";
+import ToggleStepProperties from "../ToggleStepProperties/ToggleStepProperties";
 
 export default function StepProperties({
   widthPercent,

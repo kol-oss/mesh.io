@@ -13,17 +13,12 @@ import { createPortal } from "react-dom";
 import { useListReorder } from "@/shared/hooks/useListReorder";
 import { useToast } from "@/shared/toast/useToast";
 import { StepType } from "@/shared/types/model/steps";
-import type {
-  MessageStep,
-  MoveStep,
-  ToggleStep,
-  WorkflowStep,
-} from "@/shared/types/model/steps";
+import type { MessageStep, MoveStep, ToggleStep, WorkflowStep } from "@/shared/types/model/steps";
 import { generateUUID, type UUID } from "@/shared/types/common/uuid";
 import { migrateSteps } from "@/shared/utils/navigation/stepMigration";
 import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 import Tooltip from "@/shared/components/Tooltip/Tooltip";
-import Step from "./Step";
+import Step from "../Step/Step";
 
 type StepsProps = {
   steps: WorkflowStep[];

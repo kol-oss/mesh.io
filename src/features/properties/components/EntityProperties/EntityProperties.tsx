@@ -6,9 +6,9 @@ import type {
   PeerEntity,
 } from "@/shared/types/model/entities";
 import type { PropertiesResizeHandler } from "@/shared/types/view/properties";
-import LinkProperties from "./LinkProperties";
-import ObstacleProperties from "./ObstacleProperties";
-import PeerProperties from "./PeerProperties";
+import LinkProperties from "../LinkProperties/LinkProperties";
+import ObstacleProperties from "../ObstacleProperties/ObstacleProperties";
+import PeerProperties from "../PeerProperties/PeerProperties";
 
 type EntityPropertiesProps = {
   widthPercent: number;
