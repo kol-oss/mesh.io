@@ -272,7 +272,7 @@ export default function Toolbar({
 
   const setGroupMode = useCallback(
     (groupId: ModeGroup["id"], mode: ToolbarToolMode) => {
-      dispatch(setToolbarModeForGroup({ groupId, mode }));
+      dispatch(setToolbarModeForGroup({ group: groupId, mode }));
     },
     [dispatch],
   );
