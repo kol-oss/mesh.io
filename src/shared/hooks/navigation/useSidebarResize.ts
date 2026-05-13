@@ -6,7 +6,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
-import { SidebarResizeSide } from "../../types/enums";
+import { SidebarResizeSide } from "../../types/view/view";
 import { clamp } from "../../utils/math/clamp";
 import {
   SIDEBAR_MAX_WIDTH_PERCENT,

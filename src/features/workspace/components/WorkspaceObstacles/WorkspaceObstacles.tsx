@@ -1,4 +1,4 @@
-import { SelectionSource } from "../../../../shared/types/enums";
+import { SelectionType as SelectionSource } from "../../../../shared/types/view/selection";
 import type { WorkspaceSceneProps } from "../../../../shared/types/workspace/scene";
 import WorkspaceObstacleEntity from "../WorkspaceObstacleEntity/WorkspaceObstacleEntity";
 

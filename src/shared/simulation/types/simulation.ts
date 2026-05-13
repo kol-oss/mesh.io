@@ -1,1 +1,1 @@
-export * from "../../types/simulation";
+export * from "../../types/model/simulation";

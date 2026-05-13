@@ -15,15 +15,16 @@ import { useSimulationEventHandlers } from "../../hooks/useSimulationEventHandle
 import { useWorkspaceAnimations } from "../../hooks/useAnimations";
 import { useWorkspaceWindowStates } from "../../hooks/useWindowStates";
 import { useToast } from "../../../../shared/toast/useToast";
-import { SelectionSource, ToolbarMode } from "../../../../shared/types/enums";
-import type { NetworkEntity } from "../../../../shared/types/entities";
+import { SelectionType as SelectionSource } from "../../../../shared/types/view/selection";
+import { ActionMode as ToolbarMode } from "../../../../shared/types/action";
+import type { NetworkEntity } from "../../../../shared/types/model/entities";
 import {
   type SimulationEvent,
   type SimulationStepResult,
-} from "../../../../shared/types/simulation";
-import type { WorkflowStep } from "../../../../shared/types/steps";
+} from "../../../../shared/types/model/simulation";
+import type { WorkflowStep } from "../../../../shared/types/model/steps";
 import type { ToolbarPlacementMode } from "../../../../shared/types/action";
-import type { UUID } from "../../../../shared/types/uuid";
+import type { UUID } from "../../../../shared/types/common/uuid";
 import type { WorkspaceTextItem } from "../../../../shared/types/workspace/text";
 import type { WorkspacePanState } from "../../../../shared/types/workspace/background";
 import type { DragState } from "../../../../shared/types/workspace/interaction";

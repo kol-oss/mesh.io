@@ -1,13 +1,13 @@
-import { StepType } from "../../types/steps";
+import { StepType } from "../../types/model/steps";
 import {
   createStepBase,
   type MessageStep,
   type MoveStep,
   type ToggleStep,
   type WorkflowStep,
-} from "../../types/steps";
-import { generateUUID } from "../../types/uuid";
-import type { UUID } from "../../types/uuid";
+} from "../../types/model/steps";
+import { generateUUID } from "../../types/common/uuid";
+import type { UUID } from "../../types/common/uuid";
 
 export const stepTypes = [
   StepType.Move,

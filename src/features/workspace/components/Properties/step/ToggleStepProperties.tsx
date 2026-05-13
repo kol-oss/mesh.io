@@ -1,7 +1,7 @@
 import { Activity, Link2, Radio } from "lucide-react";
-import { EntityType } from "../../../../../shared/types/enums";
-import type { LinkEntity, PeerEntity } from "../../../../../shared/types/entities";
-import type { ToggleStep } from "../../../../../shared/types/steps";
+import { EntityType } from "../../../../../shared/types/model/entities";
+import type { LinkEntity, PeerEntity } from "../../../../../shared/types/model/entities";
+import type { ToggleStep } from "../../../../../shared/types/model/steps";
 import Select from "../../../../../shared/ui/components/Select/Select";
 
 type ToggleStepPropertiesProps = {

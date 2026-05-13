@@ -3,7 +3,8 @@ import {
   DSR_MAX_REDISCOVERY_ATTEMPTS,
   DSR_MAX_SALVAGE_COUNT,
   DSR_ROUTE_CACHE_TIMEOUT,
-} from "../../constants/dsr";import { RoutingProtocol } from "../../types/enums";
+} from "../../constants/dsr";
+import { RoutingProtocol } from "../../../types/common/protocols";
 import {
   SimulationEventType,
   SimulationMessageKind,

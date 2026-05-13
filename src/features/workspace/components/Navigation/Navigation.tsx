@@ -1,10 +1,10 @@
 import Entities from "../Entities/Entities";
 import Steps from "../Steps/Steps";
 import { useSidebarResize } from "../../../../shared/hooks/navigation/useSidebarResize";
-import { SelectionSource } from "../../../../shared/types/enums";
-import type { NetworkEntity } from "../../../../shared/types/entities";
-import type { WorkflowStep } from "../../../../shared/types/steps";
-import type { UUID } from "../../../../shared/types/uuid";
+import { SelectionType as SelectionSource } from "../../../../shared/types/view/selection";
+import type { NetworkEntity } from "../../../../shared/types/model/entities";
+import type { WorkflowStep } from "../../../../shared/types/model/steps";
+import type { UUID } from "../../../../shared/types/common/uuid";
 import NavigationHeader from "./NavigationHeader";
 import NavigationMenu from "./NavigationMenu";
 

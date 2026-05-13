@@ -1,15 +1,16 @@
 import { Activity, ChevronsRight, Clock3, ExternalLink, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
-import { EntityType, StepType } from "../../../../../shared/types/enums";
-import type { LinkEntity, PeerEntity } from "../../../../../shared/types/entities";
+import { EntityType } from "../../../../../shared/types/model/entities";
+import { StepType } from "../../../../../shared/types/model/steps";
+import type { LinkEntity, PeerEntity } from "../../../../../shared/types/model/entities";
 import type {
   ManualWorkflowStep,
   MessageStep,
   MoveStep,
   ToggleStep,
   WorkflowStep,
-} from "../../../../../shared/types/steps";
-import type { StepPropertiesPanelProps } from "../../../../../shared/types/properties";
+} from "../../../../../shared/types/model/steps";
+import type { StepPropertiesPanelProps } from "../../../../../shared/types/view/properties";
 import { isRefreshStep } from "../../../../../shared/utils/navigation/refreshSteps";
 import { parseNumberValue } from "../../../../../shared/utils/properties";
 import Select from "../../../../../shared/ui/components/Select/Select";

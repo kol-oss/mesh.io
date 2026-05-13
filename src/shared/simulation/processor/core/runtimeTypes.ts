@@ -1,4 +1,4 @@
-import type { RoutingProtocol } from "../../types/enums";
+import type { RoutingProtocol } from "../../../types/common/protocols";
 import type {
   AodvRouteRecord,
   BatmanNeighbourRecord,

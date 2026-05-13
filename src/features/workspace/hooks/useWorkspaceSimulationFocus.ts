@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 
-import { ToolbarMode } from "../../../shared/types/enums";
-import type { PeerEntity } from "../../../shared/types/entities";
-import type { SimulationEvent, SimulationStepResult } from "../../../shared/types/simulation";
-import type { UUID } from "../../../shared/types/uuid";
+import { ActionMode as ToolbarMode } from "../../../shared/types/action";
+import type { PeerEntity } from "../../../shared/types/model/entities";
+import type { SimulationEvent, SimulationStepResult } from "../../../shared/types/model/simulation";
+import type { UUID } from "../../../shared/types/common/uuid";
 import { clamp } from "../../../shared/utils/math/clamp";
 
 type TableInspectionWindow = {

@@ -8,8 +8,8 @@ import {
   AODV_PATH_DISCOVERY_TTL,
   AODV_SEQUENCE_INITIAL,
 } from "../../constants/aodv";
-import { getAodvConfiguration } from "../../../types/peers";
-import { RoutingProtocol } from "../../types/enums";
+import { getAodvConfiguration } from "../../../types/model/peers";
+import { RoutingProtocol } from "../../../types/common/protocols";
 import {
   SimulationEventType,
   SimulationMessageKind,

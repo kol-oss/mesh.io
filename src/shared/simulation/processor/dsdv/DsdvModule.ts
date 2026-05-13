@@ -1,6 +1,6 @@
-import { RoutingProtocol } from "../../types/enums";
-import type { DsdvConfiguration } from "../../../types/configurations";
-import { getDsdvConfiguration } from "../../../types/peers";
+import { RoutingProtocol } from "../../../types/common/protocols";
+import type { DsdvConfiguration } from "../../../types/model/configurations";
+import { getDsdvConfiguration } from "../../../types/model/peers";
 import {
   DsdvUpdateType,
   SimulationEventType,

@@ -1,1 +1,1 @@
-export * from "../../types/steps";
+export * from "../../types/model/steps";

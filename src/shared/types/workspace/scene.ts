@@ -1,10 +1,11 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-import { SelectionType } from "../selection";
-import type { Connection, ObstacleResizeEdge, RangePolygon } from "./interaction";
-import type { ObstacleEntity, PeerEntity } from "../entities";
+import { SelectionType } from "../view/selection";
+import type { Connection, RangePolygon } from "./interaction";
+import type { ResizeEdge } from "../interaction";
+import type { ObstacleEntity, PeerEntity } from "../model/entities";
 import type { WorkspaceTextItem } from "./text";
-import type { UUID } from "../uuid";
+import type { UUID } from "../common/uuid";
 
 export type MoveIndicator = {
   stepId: UUID | null;
@@ -83,7 +84,7 @@ export type WorkspaceSceneProps = {
   ) => void;
   handleObstacleResizeStart: (
     obstacle: ObstacleEntity,
-    edge: ObstacleResizeEdge,
+    edge: ResizeEdge,
     event: ReactPointerEvent<HTMLSpanElement>,
   ) => void;
   handlePeerPointerDown: (peer: PeerEntity, event: ReactPointerEvent<HTMLButtonElement>) => void;

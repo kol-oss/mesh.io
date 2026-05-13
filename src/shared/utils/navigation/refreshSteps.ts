@@ -1,11 +1,11 @@
-import { EntityType } from "../../types/entities";
-import type { NetworkEntity, PeerEntity } from "../../types/entities";
+import { EntityType } from "../../types/model/entities";
+import type { NetworkEntity, PeerEntity } from "../../types/model/entities";
 import {
   getAodvConfiguration,
   getBatmanConfiguration,
   getDsdvConfiguration,
   getOlsrConfiguration,
-} from "../../types/peers";
+} from "../../types/model/peers";
 import {
   RefreshAction,
   StepType,
@@ -19,9 +19,9 @@ import {
   type RefreshStep,
   type ToggleStep,
   type WorkflowStep,
-} from "../../types/steps";
-import { RoutingProtocol } from "../../types/protocols";
-import { generateUUID } from "../../types/uuid";
+} from "../../types/model/steps";
+import { RoutingProtocol } from "../../types/common/protocols";
+import { generateUUID } from "../../types/common/uuid";
 
 export const isRefreshStep = (step: WorkflowStep): step is RefreshStep => isRefreshStepType(step);
 

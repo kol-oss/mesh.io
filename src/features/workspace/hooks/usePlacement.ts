@@ -1,9 +1,9 @@
 import { useCallback } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-import { PlacementMode } from "../../../shared/types/enums";
-import type { PeerEntity } from "../../../shared/types/entities";
-import type { UUID } from "../../../shared/types/uuid";
+import { ActionMode as PlacementMode } from "../../../shared/types/action";
+import type { PeerEntity } from "../../../shared/types/model/entities";
+import type { UUID } from "../../../shared/types/common/uuid";
 import type {
   WorkspacePlacementActions,
   WorkspacePlacementHandlers,

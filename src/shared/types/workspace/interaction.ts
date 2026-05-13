@@ -1,5 +1,5 @@
 import { ConnectionType, DragEntityType, DragMode, ResizeEdge } from "../interaction";
-import type { UUID } from "../uuid";
+import type { UUID } from "../common/uuid";
 
 export type DragState = {
   entityId: UUID;
@@ -14,8 +14,6 @@ export type DragState = {
   startWidth?: number;
   startHeight?: number;
 };
-
-export type ObstacleResizeEdge = ResizeEdge;
 
 export type Connection =
   | {

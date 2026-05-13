@@ -1,4 +1,4 @@
-import { RoutingProtocol } from "../../types/enums.ts";
+import { RoutingProtocol } from "../../../types/common/protocols";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -27,7 +27,7 @@ import {
   BATMAN_VERSION,
   BATMAN_WIRELESS_BASE_THROUGHPUT,
 } from "../../constants/batman.ts";
-import { getBatmanConfiguration } from "../../../types/peers";
+import { getBatmanConfiguration } from "../../../types/model/peers.ts";
 
 type BatmanNeighbourEntry = {
   neighbourId: UUID;

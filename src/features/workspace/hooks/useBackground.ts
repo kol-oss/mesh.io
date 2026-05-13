@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 import { PAN_LIMIT } from "../../../shared/constants/workspace";
-import { PlacementMode } from "../../../shared/types/enums";
+import { ActionMode as PlacementMode } from "../../../shared/types/action";
 import type {
   WorkspaceBackgroundActions,
   WorkspaceBackgroundHandlers,

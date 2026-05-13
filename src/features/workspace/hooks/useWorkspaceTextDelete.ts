@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
-import type { UUID } from "../../../shared/types/uuid";
+import type { UUID } from "../../../shared/types/common/uuid";
 
 type Params = {
   isSimulationActive: boolean;

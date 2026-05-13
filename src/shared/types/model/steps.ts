@@ -1,5 +1,5 @@
-import { RoutingProtocol } from "./protocols";
-import type { UUID } from "./uuid";
+import { RoutingProtocol } from "../common/protocols";
+import type { UUID } from "../common/uuid";
 
 export enum StepType {
   Move = "MOVE",

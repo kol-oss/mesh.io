@@ -1,4 +1,4 @@
-import { RoutingProtocol } from "../../types/enums";
+import { RoutingProtocol } from "../../../types/common/protocols";
 import {
   SimulationEventType,
   type BatmanOriginatorMessage,
@@ -75,7 +75,7 @@ export class BatmanOriginatorTable {
             hopPeerId,
             previousRoute,
             nextRoute: null,
-            reason: (`Route expired after ${(this.purgeTimeout)} (this.purgeTimeout) without updates`),
+            reason: `Route expired after ${this.purgeTimeout} (this.purgeTimeout) without updates`,
           });
           continue;
         }

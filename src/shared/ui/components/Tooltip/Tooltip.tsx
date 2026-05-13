@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { TooltipPlacement } from "../../../types/enums";
+import { TooltipPlacement } from "../../../types/view/view";
 
 type TooltipProps = {
   content: string;

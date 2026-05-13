@@ -1,11 +1,11 @@
-import { EntityType } from "../../../../../shared/types/enums";
+import { EntityType } from "../../../../../shared/types/model/entities";
 import type {
   LinkEntity,
   NetworkEntity,
   ObstacleEntity,
   PeerEntity,
-} from "../../../../../shared/types/entities";
-import type { PropertiesResizeHandler } from "../../../../../shared/types/properties";
+} from "../../../../../shared/types/model/entities";
+import type { PropertiesResizeHandler } from "../../../../../shared/types/view/properties";
 import LinkProperties from "./LinkProperties";
 import ObstacleProperties from "./ObstacleProperties";
 import PeerProperties from "./PeerProperties";

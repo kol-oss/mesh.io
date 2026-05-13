@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { MOVE_STEP_ANIMATION_DURATION } from "../../../shared/constants/animation";
-import type { SimulationEvent, SimulationStepResult } from "../../../shared/types/simulation";
+import type { SimulationEvent, SimulationStepResult } from "../../../shared/types/model/simulation";
 import type {
   MessageAnimation,
   MoveStepAnimation,
   ToggleStepAnimation,
 } from "../../../shared/types/workspace/scene";
-import type { NetworkEntity } from "../../../shared/types/entities";
+import type { NetworkEntity } from "../../../shared/types/model/entities";
 import {
   buildSimulationMessageAnimations,
   buildMoveStepAnimation,

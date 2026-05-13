@@ -26,16 +26,16 @@ import {
   setToolbarModeForGroup,
 } from "../../../../shared/store/slices/displaySlice";
 import {
-  PlacementMode,
-  ToolbarActionKey,
-  ToolbarGroup,
-  ToolbarMode,
-  TooltipPlacement,
-} from "../../../../shared/types/enums";
-import type { ToolbarPlacementMode, ToolbarToolMode } from "../../../../shared/types/action";
+  ActionMode as PlacementMode,
+  ActionMode as ToolbarMode,
+  ActionGroup as ToolbarGroup,
+  ActionCommand as ToolbarActionKey,
+} from "../../../../shared/types/action";
+import { TooltipPlacement } from "../../../../shared/types/view/view";
+import type { ActionToolMode, ToolbarPlacementMode } from "../../../../shared/types/action";
 import Tooltip from "../../../../shared/ui/components/Tooltip/Tooltip";
 
-type ToolMode = ToolbarToolMode;
+type ToolMode = ActionToolMode;
 
 type ModeButton = {
   key: ToolMode;
@@ -270,7 +270,7 @@ export default function Toolbar({
   }, [activeItemsByGroup, effectiveSelectedGroupId, onInspectionModeChange]);
 
   const setGroupMode = useCallback(
-    (groupId: ModeGroup["id"], mode: ToolbarToolMode) => {
+    (groupId: ModeGroup["id"], mode: ActionToolMode) => {
       dispatch(setToolbarModeForGroup({ group: groupId, mode }));
     },
     [dispatch],

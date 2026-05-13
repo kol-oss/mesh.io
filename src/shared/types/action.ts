@@ -50,5 +50,3 @@ export type ActionInspectionMode =
   | ActionMode.PacketStructure;
 
 export type ToolbarPlacementMode = ActionPlacementMode | null;
-export type ToolbarModesByGroup = ActionModesByGroup;
-export type ToolbarToolMode = ActionToolMode;

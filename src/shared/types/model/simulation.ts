@@ -1,7 +1,7 @@
 import type { NetworkEntity, PeerEntity } from "./entities";
-import { RoutingProtocol } from "./enums";
+import { RoutingProtocol } from "../common/protocols";
 import type { WorkflowStep } from "./steps";
-import type { UUID } from "./uuid";
+import type { UUID } from "../common/uuid";
 
 export const SimulationEventType = {
   SystemMessageBroadcast: "SYSTEM_MESSAGE_BROADCAST",

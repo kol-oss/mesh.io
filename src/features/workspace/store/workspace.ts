@@ -15,27 +15,27 @@ import { clearTexts, replaceTexts } from "../../../shared/store/slices/textSlice
 import { useToast } from "../../../shared/toast/useToast";
 import { runSimulation } from "../../../shared/simulation/processor/simulation";
 import {
-  PlacementMode,
-  RoutingProtocol,
-  SelectionSource,
-  ToolbarMode,
-} from "../../../shared/types/enums";
+  ActionMode as PlacementMode,
+  ActionMode as ToolbarMode,
+} from "../../../shared/types/action";
+import { RoutingProtocol } from "../../../shared/types/common/protocols";
+import { SelectionType as SelectionSource } from "../../../shared/types/view/selection";
 import type {
   LinkEntity,
   NetworkEntity,
   ObstacleEntity,
   PeerEntity,
-} from "../../../shared/types/entities";
-import { EntityType } from "../../../shared/types/enums";
+} from "../../../shared/types/model/entities";
+import { EntityType } from "../../../shared/types/model/entities";
 import {
   SimulationEventType,
   type RoutingTableChangeDetails,
   type SimulationEvent,
   type SimulationPlaybackState,
-} from "../../../shared/types/simulation";
-import type { WorkflowStep } from "../../../shared/types/steps";
+} from "../../../shared/types/model/simulation";
+import type { WorkflowStep } from "../../../shared/types/model/steps";
 import type { ToolbarPlacementMode } from "../../../shared/types/action";
-import type { UUID } from "../../../shared/types/uuid";
+import type { UUID } from "../../../shared/types/common/uuid";
 import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
 import {
   composeStepsWithRefresh,

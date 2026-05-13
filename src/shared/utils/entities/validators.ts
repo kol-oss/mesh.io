@@ -1,6 +1,6 @@
-import type { LinkEntity, NetworkEntity, PeerEntity } from "../../types/entities";
-import { getBatmanConfiguration, getDsdvConfiguration } from "../../types/peers";
-import { RoutingProtocol } from "../../types/protocols";
+import type { LinkEntity, NetworkEntity, PeerEntity } from "../../types/model/entities";
+import { getBatmanConfiguration, getDsdvConfiguration } from "../../types/model/peers";
+import { RoutingProtocol } from "../../types/common/protocols";
 
 export class EntityValidator {
   static isNameValid(name: string): boolean {

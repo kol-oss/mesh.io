@@ -12,9 +12,9 @@ import { createPortal } from "react-dom";
 
 import { useListReorder } from "../../../../shared/hooks/useListReorder";
 import { useToast } from "../../../../shared/toast/useToast";
-import { EntityType } from "../../../../shared/types/enums";
-import type { NetworkEntity } from "../../../../shared/types/entities";
-import { generateUUID, type UUID } from "../../../../shared/types/uuid";
+import { EntityType } from "../../../../shared/types/model/entities";
+import type { NetworkEntity } from "../../../../shared/types/model/entities";
+import { generateUUID, type UUID } from "../../../../shared/types/common/uuid";
 import {
   migrateEntities,
   obstacleDefaults,

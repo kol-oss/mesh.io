@@ -35,21 +35,22 @@ import {
 } from "../../../../../shared/constants/dsdv";
 import { OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "../../../../../shared/constants/olsr";
 import Tooltip from "../../../../../shared/ui/components/Tooltip/Tooltip";
-import { EntityType, RoutingProtocol } from "../../../../../shared/types/enums";
+import { EntityType } from "../../../../../shared/types/model/entities";
+import { RoutingProtocol } from "../../../../../shared/types/common/protocols";
 import type {
   AodvConfiguration,
   BatmanConfiguration,
   DsdvConfiguration,
   OlsrConfiguration,
-} from "../../../../../shared/types/configurations";
-import type { PeerEntity } from "../../../../../shared/types/entities";
+} from "../../../../../shared/types/model/configurations";
+import type { PeerEntity } from "../../../../../shared/types/model/entities";
 import {
   getAodvConfiguration,
   getBatmanConfiguration,
   getDsdvConfiguration,
   getOlsrConfiguration,
-} from "../../../../../shared/types/peers";
-import type { PeerPropertiesPanelProps } from "../../../../../shared/types/properties";
+} from "../../../../../shared/types/model/peers";
+import type { PeerPropertiesPanelProps } from "../../../../../shared/types/view/properties";
 import { parseNumberValue, parsePositiveNumberValue } from "../../../../../shared/utils/properties";
 
 const protocols = peerRoutingProtocols;

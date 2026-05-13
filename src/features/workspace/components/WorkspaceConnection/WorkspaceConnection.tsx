@@ -1,4 +1,4 @@
-import { ConnectionType } from "../../../../shared/types/enums";
+import { ConnectionType } from "../../../../shared/types/interaction";
 import { shortenLine } from "../../../../shared/utils/geometry";
 import type { Connection } from "../../../../shared/types/workspace/interaction";
 

@@ -1,6 +1,6 @@
 import { Clock3, ExternalLink, Lock, Radio, RotateCw } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { RefreshStepPropertiesPanelProps } from "../../../../../shared/types/properties";
+import type { RefreshStepPropertiesPanelProps } from "../../../../../shared/types/view/properties";
 
 export default function RefreshStepProperties({
   widthPercent,
@@ -15,7 +15,11 @@ export default function RefreshStepProperties({
       <div className="properties__resizer" onPointerDown={onResizeStart} />
       <header className="properties__header">
         <p className="properties__title">{"Routing Step"}</p>
-        <p className="properties__subtitle">{"Auto-generated intervaled routing refresh step for peer protocol state synchronization."}</p>
+        <p className="properties__subtitle">
+          {
+            "Auto-generated intervaled routing refresh step for peer protocol state synchronization."
+          }
+        </p>
         <Link className="properties__read-more" to="/docs" target="_blank" rel="noreferrer">
           <ExternalLink size={12} />
           {"Read more"}

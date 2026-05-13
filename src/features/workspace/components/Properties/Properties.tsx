@@ -1,8 +1,9 @@
 import { useSidebarResize } from "../../../../shared/hooks/navigation/useSidebarResize";
-import { SelectionSource, SidebarResizeSide } from "../../../../shared/types/enums";
-import type { NetworkEntity } from "../../../../shared/types/entities";
-import type { WorkflowStep } from "../../../../shared/types/steps";
-import type { UUID } from "../../../../shared/types/uuid";
+import { SelectionType as SelectionSource } from "../../../../shared/types/view/selection";
+import { SidebarResizeSide } from "../../../../shared/types/view/view";
+import type { NetworkEntity } from "../../../../shared/types/model/entities";
+import type { WorkflowStep } from "../../../../shared/types/model/steps";
+import type { UUID } from "../../../../shared/types/common/uuid";
 import EntityProperties from "./entity/EntityProperties";
 import StepProperties from "./step/StepProperties";
 

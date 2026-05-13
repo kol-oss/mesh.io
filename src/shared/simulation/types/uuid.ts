@@ -1,1 +1,1 @@
-export * from "../../types/uuid";
+export * from "../../types/common/uuid";

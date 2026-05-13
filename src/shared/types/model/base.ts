@@ -1,4 +1,4 @@
-import type { UUID } from "./uuid";
+import type { UUID } from "../common/uuid";
 
 export interface BaseEntity {
   id: UUID;

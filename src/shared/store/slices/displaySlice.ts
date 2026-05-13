@@ -1,28 +1,28 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { ActionMode, PlacementMode, ToolbarGroup, ToolbarMode } from "../../types/enums";
-import type { UUID } from "../../types/uuid";
+import { ActionMode, ActionGroup as ToolbarGroup } from "../../types/action";
+import type { UUID } from "../../types/common/uuid";
 import { DISPLAY_STORAGE_KEY } from "../constants";
 import { loadState } from "../utils/storeUtils";
-import type { ToolbarModesByGroup, ToolbarToolMode } from "../../types/action";
+import type { ActionModesByGroup, ActionToolMode } from "../../types/action";
 
 export const TABS = {
   ENTITIES: "entities",
   STEPS: "steps",
 } as const;
 
-export const DEFAULT_TOOLBAR_MODES_BY_GROUP: ToolbarModesByGroup = {
-  [ToolbarGroup.Navigation]: ToolbarMode.NavigationMove,
-  [ToolbarGroup.Entities]: PlacementMode.Peer,
-  [ToolbarGroup.Steps]: PlacementMode.Message,
-  [ToolbarGroup.Inspection]: ToolbarMode.RoutingTable,
-  [ToolbarGroup.Text]: PlacementMode.Text,
+export const DEFAULT_TOOLBAR_MODES_BY_GROUP: ActionModesByGroup = {
+  [ToolbarGroup.Navigation]: ActionMode.NavigationMove,
+  [ToolbarGroup.Entities]: ActionMode.Peer,
+  [ToolbarGroup.Steps]: ActionMode.Message,
+  [ToolbarGroup.Inspection]: ActionMode.RoutingTable,
+  [ToolbarGroup.Text]: ActionMode.Text,
 };
 
 export const DEFAULT_SELECTED_TOOLBAR_GROUP: ToolbarGroup = ToolbarGroup.Navigation;
 
 type SetToolbarModePayload = {
   group: ToolbarGroup;
-  mode: ToolbarToolMode;
+  mode: ActionToolMode;
 };
 
 type SetOpenedTabPayload = {
@@ -38,7 +38,7 @@ export interface DisplayState {
   };
   refreshHidden: boolean;
   selectedToolbarGroup: ToolbarGroup;
-  toolbarModesByGroup: ToolbarModesByGroup;
+  toolbarModesByGroup: ActionModesByGroup;
 }
 
 const EMPTY_DISPLAY: DisplayState = {
@@ -75,7 +75,7 @@ const displaySlice = createSlice({
 
       switch (group) {
         case ToolbarGroup.Navigation:
-          state.toolbarModesByGroup[ToolbarGroup.Navigation] = ToolbarMode.NavigationMove;
+          state.toolbarModesByGroup[ToolbarGroup.Navigation] = ActionMode.NavigationMove;
           break;
         case ToolbarGroup.Entities:
           state.toolbarModesByGroup[ToolbarGroup.Entities] = mode as
@@ -95,7 +95,7 @@ const displaySlice = createSlice({
             | ActionMode.PacketStructure;
           break;
         case ToolbarGroup.Text:
-          state.toolbarModesByGroup[ToolbarGroup.Text] = PlacementMode.Text;
+          state.toolbarModesByGroup[ToolbarGroup.Text] = ActionMode.Text;
           break;
       }
     },

@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from "react";
 
-import { PlacementMode } from "../../../shared/types/enums";
+import { ActionMode as PlacementMode } from "../../../shared/types/action";
 import type {
   WorkspaceHintActions,
   WorkspaceHintRefs,

@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { LinkEntity } from "../../types/entities";
-import type { UUID } from "../../types/uuid";
+import type { LinkEntity } from "../../types/model/entities";
+import type { UUID } from "../../types/common/uuid";
 import { LINK_STORAGE_KEY } from "../constants";
 import { loadStates } from "../utils/storeUtils";
 

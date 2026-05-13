@@ -1,5 +1,5 @@
 import { Radio } from "lucide-react";
-import type { PeerEntity } from "../../../../shared/types/entities";
+import type { PeerEntity } from "../../../../shared/types/model/entities";
 
 type Props = {
   peer: PeerEntity;

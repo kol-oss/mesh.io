@@ -2,36 +2,30 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback } from "react";
 
 import { OBSTACLE_MIN_WIDTH, OBSTACLE_MIN_HEIGHT } from "../../../shared/constants/obstacle";
-import {
-  DragEntityType,
-  DragMode,
-  EntityType,
-  PlacementMode,
-  ResizeEdge,
-} from "../../../shared/types/enums";
+import { DragEntityType, DragMode, ResizeEdge } from "../../../shared/types/interaction";
+import { EntityType } from "../../../shared/types/model/entities";
+import { ActionMode as PlacementMode } from "../../../shared/types/action";
 import { toInt } from "../../../shared/utils/geometry";
 import type {
   WorkspaceDragActions,
   WorkspaceDragEntities,
-  WorkspaceDragEntitySetter,
   WorkspaceDragHandlers,
   WorkspaceDragRefs,
   WorkspaceDragSetters,
   WorkspaceDragState,
   WorkspaceDragTexts,
-  WorkspaceDragTextSetter,
 } from "../../../shared/types/workspace/drag";
-import type { ObstacleResizeEdge } from "../../../shared/types/workspace/interaction";
-import type { ObstacleEntity, PeerEntity } from "../../../shared/types/entities";
+import type { SetEntities, SetTexts } from "../../../shared/types/workspace/shared";
+import type { ObstacleEntity, PeerEntity } from "../../../shared/types/model/entities";
 import type { ToolbarPlacementMode } from "../../../shared/types/action";
 import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
-import type { UUID } from "../../../shared/types/uuid";
+import type { UUID } from "../../../shared/types/common/uuid";
 
 type UseWorkspaceDragParams = {
   entities: WorkspaceDragEntities;
   texts: WorkspaceDragTexts;
-  setEntities: WorkspaceDragEntitySetter;
-  setTexts: WorkspaceDragTextSetter;
+  setEntities: SetEntities;
+  setTexts: SetTexts;
   placementMode: ToolbarPlacementMode;
   refs: WorkspaceDragRefs;
   setters: WorkspaceDragSetters;
@@ -194,11 +188,7 @@ export function useWorkspaceDrag({
   );
 
   const handleObstacleResizeStart = useCallback(
-    (
-      obstacle: ObstacleEntity,
-      edge: ObstacleResizeEdge,
-      event: ReactPointerEvent<HTMLSpanElement>,
-    ) => {
+    (obstacle: ObstacleEntity, edge: ResizeEdge, event: ReactPointerEvent<HTMLSpanElement>) => {
       if (event.button !== 0) {
         return;
       }

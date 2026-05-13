@@ -19,7 +19,7 @@ import {
   BATMAN_TIME_TO_LIVE,
   BATMAN_VERSION,
 } from "../../constants/batman.ts";
-import { getBatmanConfiguration } from "../../../types/peers";
+import { getBatmanConfiguration } from "../../../types/model/peers.ts";
 type BatmanNeighbourEntry = {
   neighbourId: UUID;
   lastSeen: number;

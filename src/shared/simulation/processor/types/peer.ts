@@ -1,5 +1,5 @@
 import type { PeerEntity } from "../../types/entities";
-import { RoutingProtocol } from "../../types/enums";
+import { RoutingProtocol } from "../../../types/common/protocols";
 import type { UUID } from "../../types/uuid";
 import { AodvModule } from "../aodv/AodvModule";
 import { BatmanModule } from "../batman/BatmanModule";

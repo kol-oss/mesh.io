@@ -1,7 +1,7 @@
 import { OLSR_DEFAULT_TC_TTL, OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "../../constants/olsr";
-import { RoutingProtocol } from "../../types/enums";
-import type { OlsrConfiguration } from "../../../types/configurations";
-import { getOlsrConfiguration } from "../../../types/peers";
+import { RoutingProtocol } from "../../../types/common/protocols";
+import type { OlsrConfiguration } from "../../../types/model/configurations";
+import { getOlsrConfiguration } from "../../../types/model/peers";
 import {
   SimulationEventType,
   SimulationMessageKind,

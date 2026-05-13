@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { PeerEntity } from "../../types/entities";
-import type { UUID } from "../../types/uuid";
+import type { PeerEntity } from "../../types/model/entities";
+import type { UUID } from "../../types/common/uuid";
 import { PEER_STORAGE_KEY } from "../constants";
 import { loadStates } from "../utils/storeUtils";
 

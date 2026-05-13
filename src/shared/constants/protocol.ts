@@ -2,10 +2,10 @@ import { AODV_DEFAULT_CONFIGURATION } from "./aodv";
 import { BATMAN_DEFAULT_CONFIGURATION } from "./batman";
 import { DSDV_DEFAULT_CONFIGURATION } from "./dsdv";
 import { OLSR_DEFAULT_CONFIGURATION } from "./olsr";
-import type { PeerConfiguration } from "../types/configurations";
-import { RoutingProtocol, ROUTING_PROTOCOLS } from "../types/protocols";
-import { StepType } from "../types/steps";
-import type { WorkflowStep } from "../types/steps";
+import type { PeerConfiguration } from "../types/model/configurations";
+import { RoutingProtocol, ROUTING_PROTOCOLS } from "../types/common/protocols";
+import { StepType } from "../types/model/steps";
+import type { WorkflowStep } from "../types/model/steps";
 
 export const peerRoutingProtocols: RoutingProtocol[] = [...ROUTING_PROTOCOLS];
 

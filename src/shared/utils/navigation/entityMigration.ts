@@ -1,15 +1,15 @@
 import { getDefaultPeerConfiguration } from "../../constants/protocol";
-import { EntityType } from "../../types/entities";
+import { EntityType } from "../../types/model/entities";
 import type {
   AodvConfiguration,
   BatmanConfiguration,
   DsdvConfiguration,
   OlsrConfiguration,
   PeerConfiguration,
-} from "../../types/configurations";
-import type { NetworkEntity } from "../../types/entities";
-import { RoutingProtocol } from "../../types/protocols";
-import { generateUUID } from "../../types/uuid";
+} from "../../types/model/configurations";
+import type { NetworkEntity } from "../../types/model/entities";
+import { RoutingProtocol } from "../../types/common/protocols";
+import { generateUUID } from "../../types/common/uuid";
 
 export const peerDefaults = {
   x: 300,

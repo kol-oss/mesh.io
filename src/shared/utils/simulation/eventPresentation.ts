@@ -1,4 +1,5 @@
-import { RoutingProtocol } from "../../types/enums";import {
+import { RoutingProtocol } from "../../types/common/protocols";
+import {
   DsdvUpdateType,
   SimulationEventType,
   SimulationMessageKind,
@@ -20,8 +21,8 @@ import { RoutingProtocol } from "../../types/enums";import {
   type SimulationEvent,
   type SimulationMessage,
   type ThroughputCalculationEventDetails,
-} from "../../types/simulation";
-import type { UUID } from "../../types/uuid";
+} from "../../types/model/simulation";
+import type { UUID } from "../../types/common/uuid";
 import {
   formatFixed,
   getEventDescription as getBatmanEventDescription,

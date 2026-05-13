@@ -1,8 +1,8 @@
 import { ExternalLink, Lock, MoveHorizontal, MoveVertical } from "lucide-react";
 import { Link } from "react-router-dom";
-import { EntityType } from "../../../../../shared/types/enums";
-import type { ObstacleEntity } from "../../../../../shared/types/entities";
-import type { ObstaclePropertiesPanelProps } from "../../../../../shared/types/properties";
+import { EntityType } from "../../../../../shared/types/model/entities";
+import type { ObstacleEntity } from "../../../../../shared/types/model/entities";
+import type { ObstaclePropertiesPanelProps } from "../../../../../shared/types/view/properties";
 import { parseNumberValue, parsePositiveNumberValue } from "../../../../../shared/utils/properties";
 
 export default function ObstacleProperties({

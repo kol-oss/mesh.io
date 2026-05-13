@@ -1,7 +1,10 @@
 import PacketStructureWindow from "../Simulation/PacketStructureWindow";
 import TableInspectionWindow from "../Simulation/TableInspectionWindow";
-import type { SimulationEvent, SimulationStepResult } from "../../../../shared/types/simulation";
-import type { UUID } from "../../../../shared/types/uuid";
+import type {
+  SimulationEvent,
+  SimulationStepResult,
+} from "../../../../shared/types/model/simulation";
+import type { UUID } from "../../../../shared/types/common/uuid";
 
 type PacketInspectorWindowState = {
   eventId: UUID;

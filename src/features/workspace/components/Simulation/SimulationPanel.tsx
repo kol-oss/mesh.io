@@ -5,8 +5,8 @@ import {
   QualityWindowBit,
   type SimulationEvent,
   type SimulationStepResult,
-} from "../../../../shared/types/simulation";
-import type { UUID } from "../../../../shared/types/uuid";
+} from "../../../../shared/types/model/simulation";
+import type { UUID } from "../../../../shared/types/common/uuid";
 import {
   formatFixed,
   getEventDescription,
@@ -345,7 +345,9 @@ export default function SimulationPanel({
             {isTqDisclosureOpen ? (
               <div className="simulation-panel__table-block">
                 <p className="simulation-panel__description simulation-panel__description--secondary">
-                  {"Throughput is derived by combining the measured base transmission rate with the link's reception ratio. In formula form:"}
+                  {
+                    "Throughput is derived by combining the measured base transmission rate with the link's reception ratio. In formula form:"
+                  }
                 </p>
                 <p className="simulation-panel__description simulation-panel__description--secondary simulation-panel__formula">
                   Throughput = Base Throughput x Reception Ratio
@@ -354,7 +356,7 @@ export default function SimulationPanel({
                   {getThroughputBaseExplanation(throughputBreakdown)}
                 </p>
                 <p className="simulation-panel__description simulation-panel__description--secondary simulation-panel__formula">
-                  {(`${(formatFixed(throughputBreakdown.baseThroughput))} x ${(formatFixed(throughputBreakdown.receptionRatio))} = ${(formatFixed(throughputBreakdown.rawThroughput))}`)}
+                  {`${formatFixed(throughputBreakdown.baseThroughput)} x ${formatFixed(throughputBreakdown.receptionRatio)} = ${formatFixed(throughputBreakdown.rawThroughput)}`}
                 </p>
                 <p className="simulation-panel__description simulation-panel__description--secondary">
                   {getThroughputEwmaExplanation(throughputBreakdown)}

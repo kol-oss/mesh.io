@@ -1,5 +1,5 @@
 import type { WorkspaceSceneProps } from "../../../../shared/types/workspace/scene";
-import { SelectionSource } from "../../../../shared/types/enums";
+import { SelectionType as SelectionSource } from "../../../../shared/types/view/selection";
 import WorkspaceLink from "../WorkspaceLink/WorkspaceLink";
 
 type Props = Pick<

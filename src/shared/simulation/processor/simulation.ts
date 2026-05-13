@@ -1,5 +1,5 @@
-import { RoutingProtocol } from "../../types/protocols";
-import { RefreshAction, StepType, type WorkflowStep } from "../../types/steps";
+import { RoutingProtocol } from "../../types/common/protocols";
+import { RefreshAction, StepType, type WorkflowStep } from "../../types/model/steps";
 import {
   SimulationEventType,
   SimulationMessageKind,

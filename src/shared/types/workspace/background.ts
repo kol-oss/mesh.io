@@ -8,7 +8,7 @@ import type {
 
 import type { ToolbarPlacementMode } from "../action";
 import type { SetNullableStringState, WorkspacePoint, WorkspaceSize } from "./shared";
-import type { UUID } from "../uuid";
+import type { UUID } from "../common/uuid";
 
 export type WorkspacePanState = {
   pointerId: number;

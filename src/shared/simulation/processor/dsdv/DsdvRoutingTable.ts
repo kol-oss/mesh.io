@@ -1,4 +1,4 @@
-import { RoutingProtocol } from "../../types/enums";
+import { RoutingProtocol } from "../../../types/common/protocols";
 import {
   SimulationEventType,
   type DsdvRouteRecord,

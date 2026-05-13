@@ -1,8 +1,8 @@
 import type { MutableRefObject } from "react";
 
-import type { PeerEntity } from "../entities";
+import type { PeerEntity } from "../model/entities";
 import type { ActionPlacementMode } from "../action";
-import type { UUID } from "../uuid";
+import type { UUID } from "../common/uuid";
 
 export type WorkspaceHintRefs = {
   placementModeRef: MutableRefObject<ActionPlacementMode | null>;
