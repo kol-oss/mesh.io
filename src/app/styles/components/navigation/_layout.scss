@@ -89,8 +89,6 @@
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.32));
 
   &--top {
-    transform: translate(-50%, -100%);
-
     .tooltip__arrow {
       bottom: -5px;
       border-left: 5px solid transparent;
@@ -101,8 +99,6 @@
   }
 
   &--bottom {
-    transform: translate(-50%, 0);
-
     .tooltip__arrow {
       top: -5px;
       border-left: 5px solid transparent;

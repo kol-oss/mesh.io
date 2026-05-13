@@ -22,6 +22,7 @@ export default function Tooltip({
   placement = TooltipPlacement.Top,
 }: TooltipProps) {
   const anchorRef = useRef<HTMLSpanElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState<TooltipPosition | null>(null);
@@ -52,20 +53,23 @@ export default function Tooltip({
 
   const updatePosition = useCallback(() => {
     const anchorNode = getAnchorElement();
+    const tooltipNode = tooltipRef.current;
 
-    if (!anchorNode) {
+    if (!anchorNode || !tooltipNode) {
       return;
     }
 
-    const rect = anchorNode.getBoundingClientRect();
+    const anchorRect = anchorNode.getBoundingClientRect();
+    const tooltipRect = tooltipNode.getBoundingClientRect();
+    const left = anchorRect.left + anchorRect.width / 2 - tooltipRect.width / 2;
     const top =
       placement === TooltipPlacement.Bottom
-        ? rect.bottom + TOOLTIP_OFFSET_PX
-        : rect.top - TOOLTIP_OFFSET_PX;
+        ? anchorRect.bottom + TOOLTIP_OFFSET_PX
+        : anchorRect.top - tooltipRect.height - TOOLTIP_OFFSET_PX;
 
     setPosition({
       top,
-      left: rect.left + rect.width / 2,
+      left,
     });
   }, [getAnchorElement, placement]);
 
@@ -73,10 +77,10 @@ export default function Tooltip({
     clearTooltipTimeout();
 
     timeoutRef.current = window.setTimeout(() => {
-      updatePosition();
+      setPosition(null);
       setIsVisible(true);
     }, TOOLTIP_DELAY_MS);
-  }, [clearTooltipTimeout, updatePosition]);
+  }, [clearTooltipTimeout]);
 
   const hideTooltip = useCallback(() => {
     clearTooltipTimeout();
@@ -87,6 +91,8 @@ export default function Tooltip({
     if (!isVisible) {
       return;
     }
+
+    updatePosition();
 
     const handleViewportChange = () => {
       updatePosition();
@@ -122,11 +128,15 @@ export default function Tooltip({
         {children}
       </span>
       {isVisible &&
-        position &&
         createPortal(
           <div
+            ref={tooltipRef}
             className={`tooltip tooltip--${placement}`}
-            style={{ left: `${position.left}px`, top: `${position.top}px` }}
+            style={{
+              left: `${position?.left ?? 0}px`,
+              top: `${position?.top ?? 0}px`,
+              visibility: position ? "visible" : "hidden",
+            }}
             role="tooltip"
           >
             <span className="tooltip__content">{content}</span>
