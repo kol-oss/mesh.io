@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 
-import type { WorkspaceTextItem } from "./index";
+import type { WorkspaceTextItem } from "./text";
 import type { UUID } from "../uuid";
 
 export type WorkspaceTextEditSetters = {

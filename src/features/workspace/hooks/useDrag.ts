@@ -2,7 +2,13 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback } from "react";
 
 import { OBSTACLE_MIN_WIDTH, OBSTACLE_MIN_HEIGHT } from "../../../shared/constants/obstacle";
-import { DragEntityType, DragMode, EntityType, PlacementMode, ResizeEdge } from "../../../shared/types/enums";
+import {
+  DragEntityType,
+  DragMode,
+  EntityType,
+  PlacementMode,
+  ResizeEdge,
+} from "../../../shared/types/enums";
 import { toInt } from "../../../shared/utils/geometry";
 import type {
   WorkspaceDragActions,
@@ -18,7 +24,7 @@ import type {
 import type { ObstacleResizeEdge } from "../../../shared/types/workspace/interaction";
 import type { ObstacleEntity, PeerEntity } from "../../../shared/types/entities";
 import type { ToolbarPlacementMode } from "../../../shared/types/toolbar";
-import type { WorkspaceTextItem } from "../../../shared/types/workspace";
+import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
 import type { UUID } from "../../../shared/types/uuid";
 
 type UseWorkspaceDragParams = {

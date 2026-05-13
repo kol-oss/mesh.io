@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import type { UUID } from "../../types/uuid";
-import type { WorkspaceTextItem } from "../../types/workspace";
+import type { WorkspaceTextItem } from "../../types/workspace/text";
 import { TEXT_STORAGE_KEY } from "../constants";
 import { loadStates } from "../utils/storeUtils";
 

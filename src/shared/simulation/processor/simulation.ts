@@ -1,4 +1,11 @@
-import { RoutingProtocol, StepType } from "../types/enums";import { RefreshAction, type WorkflowStep } from "../types/steps";
+import { RoutingProtocol, StepType } from "../types/enums";
+import {
+  AodvRefreshAction,
+  BatmanRefreshAction,
+  DsdvRefreshAction,
+  OlsrRefreshAction,
+  type WorkflowStep,
+} from "../types/steps";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -114,7 +121,7 @@ const processStep = (
     return;
   }
 
-  if (step.type === StepType.ToggleStatus) {
+  if (step.type === StepType.Toggle) {
     if (!step.targetEntityId) {
       return;
     }
@@ -150,7 +157,7 @@ const processStep = (
 
     if (
       step.refreshProtocol === RoutingProtocol.BATMAN &&
-      step.refreshAction === RefreshAction.BatmanElp
+      step.refreshAction === BatmanRefreshAction.Elp
     ) {
       if (!(module instanceof BatmanModule)) {
         return;
@@ -161,7 +168,7 @@ const processStep = (
 
     if (
       step.refreshProtocol === RoutingProtocol.BATMAN &&
-      step.refreshAction === RefreshAction.BatmanOgm
+      step.refreshAction === BatmanRefreshAction.Ogm
     ) {
       if (!(module instanceof BatmanModule)) {
         return;
@@ -174,7 +181,7 @@ const processStep = (
 
     if (
       step.refreshProtocol === RoutingProtocol.DSDV &&
-      step.refreshAction === RefreshAction.DsdvFullDump
+      step.refreshAction === DsdvRefreshAction.FullDump
     ) {
       if (!(module instanceof DsdvModule)) {
         return;
@@ -187,7 +194,7 @@ const processStep = (
 
     if (
       step.refreshProtocol === RoutingProtocol.DSDV &&
-      step.refreshAction === RefreshAction.DsdvIncremental
+      step.refreshAction === DsdvRefreshAction.Incremental
     ) {
       if (!(module instanceof DsdvModule)) {
         return;
@@ -200,7 +207,7 @@ const processStep = (
 
     if (
       step.refreshProtocol === RoutingProtocol.AODV &&
-      step.refreshAction === RefreshAction.AodvHello
+      step.refreshAction === AodvRefreshAction.Hello
     ) {
       if (!(module instanceof AodvModule)) {
         return;
@@ -213,7 +220,7 @@ const processStep = (
 
     if (
       step.refreshProtocol === RoutingProtocol.OLSR &&
-      step.refreshAction === RefreshAction.OlsrHello
+      step.refreshAction === OlsrRefreshAction.Hello
     ) {
       if (!(module instanceof OlsrModule)) {
         return;
@@ -226,7 +233,7 @@ const processStep = (
 
     if (
       step.refreshProtocol === RoutingProtocol.OLSR &&
-      step.refreshAction === RefreshAction.OlsrTc
+      step.refreshAction === OlsrRefreshAction.Tc
     ) {
       if (!(module instanceof OlsrModule)) {
         return;
@@ -252,7 +259,8 @@ const processStep = (
   if (!sourceModule || !isPacketCapableModule(sourceModule)) {
     eventRecorder.save(step.sourcePeerId, SimulationEventType.SystemMessageDropped, {
       reason: sourcePeer
-        ? (`Source peer does not have a ${(sourceProtocol ?? "Unknown")} module`)  : "Source peer does not exist",
+        ? `Source peer does not have a ${sourceProtocol ?? "Unknown"} module`
+        : "Source peer does not exist",
       reasonCode: "SOURCE_UNAVAILABLE",
     });
     return;

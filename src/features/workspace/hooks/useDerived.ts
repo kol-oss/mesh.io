@@ -278,7 +278,7 @@ export function useWorkspaceDerived({
       if (step.movePeerId !== null) ids.add(step.movePeerId);
     }
 
-    if (step.type === StepType.ToggleStatus) {
+    if (step.type === StepType.Toggle) {
       if (step.targetEntityId !== null) ids.add(step.targetEntityId);
     }
 

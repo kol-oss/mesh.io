@@ -47,7 +47,7 @@ export default function StepProperties({
   const stepTypeOptions = [
     { value: StepType.Move, label: "Move", icon: <ChevronsRight size={12} /> },
     { value: StepType.Message, label: "Message", icon: <Mail size={12} /> },
-    { value: StepType.ToggleStatus, label: "Toggle", icon: <Activity size={12} /> },
+    { value: StepType.Toggle, label: "Toggle", icon: <Activity size={12} /> },
   ] as const;
 
   const messageSourceValue =
@@ -64,7 +64,7 @@ export default function StepProperties({
       : "";
 
   const toggleTargetValue =
-    selectedStep.type === StepType.ToggleStatus &&
+    selectedStep.type === StepType.Toggle &&
     toggleTargets.some((entity) => entity.id === selectedStep.targetEntityId)
       ? (selectedStep.targetEntityId ?? "")
       : "";
@@ -87,7 +87,7 @@ export default function StepProperties({
   const isStepMessageDestinationMissing =
     selectedStep.type === StepType.Message && messageDestinationValue === "";
   const isStepToggleEntityMissing =
-    selectedStep.type === StepType.ToggleStatus && toggleTargetValue === "";
+    selectedStep.type === StepType.Toggle && toggleTargetValue === "";
   const isStepMoveEntityMissing = selectedStep.type === StepType.Move && moveTargetValue === "";
 
   const updateSelectedManualStep = (changes: Partial<ManualWorkflowStep>) => {
@@ -110,7 +110,7 @@ export default function StepProperties({
         } satisfies MoveStep;
       }
 
-      if (step.type === StepType.ToggleStatus) {
+      if (step.type === StepType.Toggle) {
         return {
           ...step,
           ...(changes as Partial<ToggleStatusStep>),
@@ -143,10 +143,10 @@ export default function StepProperties({
       } satisfies MessageStep;
     }
 
-    if (nextType === StepType.ToggleStatus) {
+    if (nextType === StepType.Toggle) {
       return {
         ...base,
-        type: StepType.ToggleStatus,
+        type: StepType.Toggle,
         targetEntityId: null,
       } satisfies ToggleStatusStep;
     }
@@ -279,7 +279,7 @@ export default function StepProperties({
           />
         )}
 
-        {selectedStep.type === StepType.ToggleStatus && (
+        {selectedStep.type === StepType.Toggle && (
           <ToggleStepProperties
             toggleTargets={toggleTargets}
             toggleTargetValue={toggleTargetValue}

@@ -17,14 +17,14 @@ export default function Step({ step, isSelected, isDragging, onSelect, onPointer
   const stepTypeTooltip = {
     [StepType.Move]: "Move",
     [StepType.Message]: "Message",
-    [StepType.ToggleStatus]: "Toggle Status",
+    [StepType.Toggle]: "Toggle Status",
     [StepType.Refresh]: "Routing Refresh",
   }[step.type];
 
   const stepTypeIcon = {
     [StepType.Move]: <ChevronsRight size={13} />,
     [StepType.Message]: <Mail size={13} />,
-    [StepType.ToggleStatus]: <Activity size={13} />,
+    [StepType.Toggle]: <Activity size={13} />,
     [StepType.Refresh]: <RotateCw size={13} />,
   }[step.type];
 

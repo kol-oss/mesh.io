@@ -4,7 +4,7 @@ import type {
   WorkspaceTextEditHandlers,
   WorkspaceTextEditSetters,
 } from "../../../shared/types/workspace/textEdit";
-import type { WorkspaceTextItem } from "../../../shared/types/workspace";
+import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
 import type { UUID } from "../../../shared/types/uuid";
 
 type UseWorkspaceTextEditParams = {

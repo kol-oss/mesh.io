@@ -1,8 +1,8 @@
 import type { MutableRefObject, PointerEvent as ReactPointerEvent } from "react";
 
 import type { DragState, ObstacleResizeEdge } from "./interaction";
-import type { NetworkEntity, ObstacleEntity, PeerEntity } from "../navigation";
-import type { WorkspaceTextItem } from "./index";
+import type { NetworkEntity, ObstacleEntity, PeerEntity } from "../entities";
+import type { WorkspaceTextItem } from "./text";
 import type { SetEntities, SetNullableStringState, SetTexts } from "./shared";
 import type { UUID } from "../uuid";
 

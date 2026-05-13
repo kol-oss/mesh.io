@@ -1,4 +1,4 @@
-import type { WorkspaceTextItem } from "../../../../shared/types/workspace";
+import type { WorkspaceTextItem } from "../../../../shared/types/workspace/text";
 
 type Props = {
   item: WorkspaceTextItem;
@@ -70,7 +70,7 @@ export default function WorkspaceTextEntity({
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
       onDoubleClick={() => onDoubleClick(item)}
-      aria-label={(`Text ${(item.text)}`)}
+      aria-label={`Text ${item.text}`}
     >
       {item.text}
     </button>

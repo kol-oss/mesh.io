@@ -1,4 +1,4 @@
-import { ConnectionType, DragEntityType, DragMode, ResizeEdge } from "../enums";
+import { ConnectionType, DragEntityType, DragMode, ResizeEdge } from "../interactionenum";
 import type { UUID } from "../uuid";
 
 export type DragState = {

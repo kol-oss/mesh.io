@@ -5,8 +5,8 @@ import type {
   SetStateAction,
 } from "react";
 
-import type { PeerEntity } from "../navigation";
-import type { ToolbarPlacementMode } from "../toolbar";
+import type { PeerEntity } from "../entities";
+import type { ToolbarPlacementMode } from "../actionmode";
 import type { UUID } from "../uuid";
 
 export type WorkspacePlacementRefs = {

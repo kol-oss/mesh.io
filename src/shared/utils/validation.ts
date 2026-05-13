@@ -115,7 +115,7 @@ const isValidWorkflowStep = (value: unknown): value is WorkflowStep => {
     return isNullableString(value.movePeerId) && isFiniteNumber(value.x) && isFiniteNumber(value.y);
   }
 
-  if (value.type === StepType.ToggleStatus) {
+  if (value.type === StepType.Toggle) {
     return isNullableString(value.targetEntityId);
   }
 

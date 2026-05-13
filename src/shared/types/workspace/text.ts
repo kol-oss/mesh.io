@@ -6,5 +6,3 @@ export type WorkspaceTextItem = {
   x: number;
   y: number;
 };
-
-export type { WorkspacePoint, WorkspaceSize } from "./shared";

@@ -1,9 +1,9 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-import { SelectionSource } from "../enums";
+import { SelectionType } from "../selection";
 import type { Connection, ObstacleResizeEdge, RangePolygon } from "./interaction";
-import type { ObstacleEntity, PeerEntity } from "../navigation";
-import type { WorkspaceTextItem } from "./index";
+import type { ObstacleEntity, PeerEntity } from "../entities";
+import type { WorkspaceTextItem } from "./text";
 import type { UUID } from "../uuid";
 
 export type MoveIndicator = {
@@ -60,7 +60,7 @@ export type WorkspaceSceneProps = {
   texts: WorkspaceTextItem[];
   obstacles: ObstacleEntity[];
   peers: PeerEntity[];
-  selectedSource: SelectionSource | null;
+  selectedSource: SelectionType | null;
   selectedId: UUID | null;
   hoveredSimulationPeerId: UUID | null;
   resolvedCreationSelectedEntityId: UUID | null;

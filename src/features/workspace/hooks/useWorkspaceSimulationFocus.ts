@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import { ToolbarMode } from "../../../shared/types/enums";
-import type { PeerEntity } from "../../../shared/types/navigation";
+import type { PeerEntity } from "../../../shared/types/entities";
 import type { SimulationEvent, SimulationStepResult } from "../../../shared/types/simulation";
 import type { UUID } from "../../../shared/types/uuid";
 import { clamp } from "../../../shared/utils/math/clamp";

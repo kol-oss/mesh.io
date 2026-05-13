@@ -13,6 +13,6 @@ export const peerRoutingProtocols: PeerRoutingProtocol[] = [
 export const workflowStepTypes: WorkflowStep["type"][] = [
   StepType.Move,
   StepType.Message,
-  StepType.ToggleStatus,
+  StepType.Toggle,
   StepType.Refresh,
 ];

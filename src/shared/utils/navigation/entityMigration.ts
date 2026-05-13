@@ -109,7 +109,7 @@ const hasObstacleDefaults = (entity: NetworkEntity) => {
   );
 };
 
-export const migrateEntities = (entities: NetworkEntity[]) => {
+export const migrateEntities = (entities: NetworkEntity[]): NetworkEntity[] | null => {
   const requiresMigration = entities.some((entity) => {
     const normalizedType = (entity as NetworkEntity | { type: string }).type;
     const hasId = "id" in entity;
@@ -169,7 +169,7 @@ export const migrateEntities = (entities: NetworkEntity[]) => {
         };
       }
 
-      return baseEntity;
+      return baseEntity as NetworkEntity;
     }
 
     return {

@@ -12,7 +12,7 @@ import type { UUID } from "../../types/uuid";
 export const stepTypes = [
   StepType.Move,
   StepType.Message,
-  StepType.ToggleStatus,
+  StepType.Toggle,
   StepType.Refresh,
 ] as const;
 
@@ -20,7 +20,7 @@ const LEGACY_TOGGLE_STEP_TYPE = "TOGGLE";
 
 const normalizeRawStepType = (rawType: unknown): WorkflowStep["type"] | null => {
   if (rawType === LEGACY_TOGGLE_STEP_TYPE) {
-    return StepType.ToggleStatus;
+    return StepType.Toggle;
   }
 
   if (stepTypes.includes(rawType as (typeof stepTypes)[number])) {
@@ -86,7 +86,7 @@ const normalizeToggleStep = (rawStep: LegacyStep, index: number): ToggleStatusSt
       title: hasNonEmptyString(rawStep.title) ? rawStep.title : "Toggle",
       tick: typeof rawStep.tick === "number" ? rawStep.tick : index + 1,
     }),
-    type: StepType.ToggleStatus,
+    type: StepType.Toggle,
     targetEntityId: hasNonEmptyString(rawStep.targetEntityId) ? rawStep.targetEntityId : null,
   };
 };
@@ -107,7 +107,7 @@ export const migrateSteps = (steps: WorkflowStep[]) => {
         (!hasOwn(rawStep, "movePeerId") ||
           typeof rawStep.x !== "number" ||
           typeof rawStep.y !== "number")) ||
-      (normalizedType === StepType.ToggleStatus && !hasOwn(rawStep, "targetEntityId"))
+      (normalizedType === StepType.Toggle && !hasOwn(rawStep, "targetEntityId"))
     );
   });
 
@@ -127,7 +127,7 @@ export const migrateSteps = (steps: WorkflowStep[]) => {
       return normalizeMessageStep(rawStep, index);
     }
 
-    if (normalizedType === StepType.ToggleStatus) {
+    if (normalizedType === StepType.Toggle) {
       return normalizeToggleStep(rawStep, index);
     }
 

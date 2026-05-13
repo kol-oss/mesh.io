@@ -1,4 +1,5 @@
 import type { NetworkEntity } from "../../types/entities";
+import { EntityType } from "../../types/enums";
 import type { SimulationTickSnapshot } from "../../types/simulation";
 import type { UUID } from "../../types/uuid";
 import { getObstacleBounds, hasLineOfSight } from "../../utils/geometry";
@@ -22,13 +23,13 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
     for (const entity of entities) {
       this.entityOrder.push({ type: entity.type, id: entity.id });
 
-      if (entity.type === "PEER") {
+      if (entity.type === EntityType.Peer) {
         const peerEntity = cloneEntity(entity);
         this.peers.set(peerEntity.id, new RuntimePeer(peerEntity, this, eventRecorder));
         continue;
       }
 
-      if (entity.type === "LINK") {
+      if (entity.type === EntityType.Link) {
         this.links.set(entity.id, cloneEntity(entity));
         continue;
       }
@@ -51,8 +52,8 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
     const peerList = this.getPeers();
     const obstacleBounds = this.obstacles
       .filter(
-        (entity): entity is Extract<NetworkEntity, { type: "OBSTACLE" }> =>
-          entity.type === "OBSTACLE",
+        (entity): entity is Extract<NetworkEntity, { type: typeof EntityType.Obstacle }> =>
+          entity.type === EntityType.Obstacle,
       )
       .map(getObstacleBounds);
 
@@ -141,7 +142,7 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
       const nextEnabled = !previousEnabled;
       peer.setEnabled(nextEnabled);
       return {
-        entityType: "PEER",
+        entityType: EntityType.Peer,
         previousEnabled,
         nextEnabled,
       };
@@ -153,7 +154,7 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
       const nextEnabled = !previousEnabled;
       link.enabled = nextEnabled;
       return {
-        entityType: "LINK",
+        entityType: EntityType.Link,
         previousEnabled,
         nextEnabled,
       };
@@ -180,11 +181,11 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
 
     return this.entityOrder
       .map(({ type, id }) => {
-        if (type === "PEER") {
+        if (type === EntityType.Peer) {
           return peerEntities.get(id) ?? null;
         }
 
-        if (type === "LINK") {
+        if (type === EntityType.Link) {
           return linkEntities.get(id) ?? null;
         }
 

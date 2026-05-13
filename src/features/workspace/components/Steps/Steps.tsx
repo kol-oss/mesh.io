@@ -187,7 +187,7 @@ export default function Steps({
   };
 
   const handleCreateStep = (
-    type: typeof StepType.Move | typeof StepType.Message | typeof StepType.ToggleStatus,
+    type: typeof StepType.Move | typeof StepType.Message | typeof StepType.Toggle,
   ) => {
     const manualSteps = steps.filter((step) => !isRefreshStep(step));
     const nextTick =
@@ -202,11 +202,11 @@ export default function Steps({
             sourcePeerId: null,
             destinationPeerId: null,
           } satisfies MessageStep)
-        : type === StepType.ToggleStatus
+        : type === StepType.Toggle
           ? ({
               id: generateUUID(),
               title: "Toggle",
-              type: StepType.ToggleStatus,
+              type: StepType.Toggle,
               tick: nextTick,
               targetEntityId: null,
             } satisfies ToggleStatusStep)
@@ -299,7 +299,7 @@ export default function Steps({
               </button>
               <button
                 className="navigation__steps-add-option"
-                onClick={() => handleCreateStep(StepType.ToggleStatus)}
+                onClick={() => handleCreateStep(StepType.Toggle)}
                 type="button"
               >
                 <Activity size={12} />

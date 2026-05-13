@@ -1,5 +1,5 @@
 import { ResizeEdge } from "../../../../shared/types/enums";
-import type { ObstacleEntity } from "../../../../shared/types/navigation";
+import type { ObstacleEntity } from "../../../../shared/types/entities";
 
 type Props = {
   obstacle: ObstacleEntity;
@@ -41,7 +41,7 @@ export default function WorkspaceObstacleEntity({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
-      aria-label={(`Obstacle ${(obstacle.name)}`)}
+      aria-label={`Obstacle ${obstacle.name}`}
     >
       <span
         className="workspace__obstacle-handle workspace__obstacle-handle--left"

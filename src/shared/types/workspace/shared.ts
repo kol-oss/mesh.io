@@ -1,8 +1,8 @@
 import type { Dispatch, SetStateAction } from "react";
 
-import type { NetworkEntity } from "../navigation";
-import type { WorkflowStep } from "./steps";
-import type { WorkspaceTextItem } from "./index";
+import type { NetworkEntity } from "../entities";
+import type { WorkflowStep } from "../steps";
+import type { WorkspaceTextItem } from "./text";
 import type { UUID } from "../uuid";
 
 export type WorkspacePoint = {

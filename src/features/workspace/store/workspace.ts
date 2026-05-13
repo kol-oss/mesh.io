@@ -36,7 +36,7 @@ import {
 import type { WorkflowStep } from "../../../shared/types/steps";
 import type { ToolbarPlacementMode } from "../../../shared/types/toolbar";
 import type { UUID } from "../../../shared/types/uuid";
-import type { WorkspaceTextItem } from "../../../shared/types/workspace";
+import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
 import {
   composeStepsWithRefresh,
   normalizeManualSteps,

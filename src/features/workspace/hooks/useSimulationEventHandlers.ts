@@ -1,10 +1,13 @@
 import { useCallback } from "react";
-import { ToolbarMode } from "../../../shared/types/enums";
+import { EntityType, ToolbarMode } from "../../../shared/types/enums";
 import type { ResizeEdge } from "../../../shared/types/enums";
 import type { NetworkEntity } from "../../../shared/types/entities";
 import type { UUID } from "../../../shared/types/uuid";
-import type { WorkspaceTextItem } from "../../../shared/types/workspace";
+import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
 import type { PointerEvent as ReactPointerEvent } from "react";
+
+type ObstacleSelectionEntity = Extract<NetworkEntity, { type: typeof EntityType.Obstacle }>;
+type PeerSelectionEntity = Extract<NetworkEntity, { type: typeof EntityType.Peer }>;
 
 type Props = {
   isSimulationActive: boolean;
@@ -15,16 +18,16 @@ type Props = {
   handleTextPointerDown: (item: WorkspaceTextItem, event: ReactPointerEvent<HTMLElement>) => void;
   handleTextDoubleClick: (item: WorkspaceTextItem) => void;
   handleObstaclePointerDown: (
-    obstacle: NetworkEntity & { type: "OBSTACLE" },
+    obstacle: ObstacleSelectionEntity,
     event: ReactPointerEvent<HTMLButtonElement>,
   ) => void;
   handleObstacleResizeStart: (
-    obstacle: NetworkEntity & { type: "OBSTACLE" },
+    obstacle: ObstacleSelectionEntity,
     edge: ResizeEdge,
     event: ReactPointerEvent<HTMLSpanElement>,
   ) => void;
   handlePeerPointerDown: (
-    peer: NetworkEntity & { type: "PEER" },
+    peer: PeerSelectionEntity,
     event: ReactPointerEvent<HTMLButtonElement>,
   ) => void;
   setTableInspectionWindows: (
@@ -46,16 +49,16 @@ type Return = {
   ) => void;
   handleSimulationTextDoubleClick: (item: WorkspaceTextItem) => void;
   handleSimulationObstaclePointerDown: (
-    obstacle: NetworkEntity & { type: "OBSTACLE" },
+    obstacle: ObstacleSelectionEntity,
     event: ReactPointerEvent<HTMLButtonElement>,
   ) => void;
   handleSimulationObstacleResizeStart: (
-    obstacle: NetworkEntity & { type: "OBSTACLE" },
+    obstacle: ObstacleSelectionEntity,
     edge: ResizeEdge,
     event: ReactPointerEvent<HTMLSpanElement>,
   ) => void;
   handleSimulationPeerPointerDown: (
-    peer: NetworkEntity & { type: "PEER" },
+    peer: PeerSelectionEntity,
     event: ReactPointerEvent<HTMLButtonElement>,
   ) => void;
 };
@@ -102,10 +105,7 @@ export const useSimulationEventHandlers = ({
   );
 
   const handleSimulationObstaclePointerDown = useCallback(
-    (
-      obstacle: NetworkEntity & { type: "OBSTACLE" },
-      event: ReactPointerEvent<HTMLButtonElement>,
-    ) => {
+    (obstacle: ObstacleSelectionEntity, event: ReactPointerEvent<HTMLButtonElement>) => {
       if (!isSimulationActive) {
         handleObstaclePointerDown(obstacle, event);
         return;
@@ -119,7 +119,7 @@ export const useSimulationEventHandlers = ({
 
   const handleSimulationObstacleResizeStart = useCallback(
     (
-      obstacle: NetworkEntity & { type: "OBSTACLE" },
+      obstacle: ObstacleSelectionEntity,
       edge: ResizeEdge,
       event: ReactPointerEvent<HTMLSpanElement>,
     ) => {
@@ -135,7 +135,7 @@ export const useSimulationEventHandlers = ({
   );
 
   const handleSimulationPeerPointerDown = useCallback(
-    (peer: NetworkEntity & { type: "PEER" }, event: ReactPointerEvent<HTMLButtonElement>) => {
+    (peer: PeerSelectionEntity, event: ReactPointerEvent<HTMLButtonElement>) => {
       if (!isSimulationActive) {
         handlePeerPointerDown(peer, event);
         return;

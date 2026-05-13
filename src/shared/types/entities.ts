@@ -1,46 +1,11 @@
-import { EntityType, RoutingProtocol } from "./enums";
-import { type UUID } from "./uuid";
+import type { BaseEntity } from "./base";
+import type { LinkEntity } from "./links";
+import type { ObstacleEntity } from "./obstacles";
+import type { PeerEntity } from "./peers";
 
-export type BaseEntity = {
-  id: UUID;
-  name: string;
-  locked?: boolean;
-};
-
-export type PeerEntity = BaseEntity & {
-  type: typeof EntityType.Peer;
-  x: number;
-  y: number;
-  range: number;
-  enabled: boolean;
-  protocols: RoutingProtocol[];
-  batmanDistancePenaltyDistance: number;
-  batmanDistancePenaltyPercent: number;
-  batmanElpInterval: number;
-  batmanOgmInterval: number;
-  batmanPurgeTimeout: number;
-  dsdvIncrementalUpdateInterval: number;
-  dsdvFullDumpInterval: number;
-  dsdvRouteTimeout: number;
-  aodvHelloInterval: number;
-  aodvRouteTimeout: number;
-  olsrHelloInterval: number;
-  olsrTcInterval: number;
-};
-
-export type LinkEntity = BaseEntity & {
-  type: typeof EntityType.Link;
-  sourcePeerId: UUID | null;
-  destinationPeerId: UUID | null;
-  enabled: boolean;
-};
-
-export type ObstacleEntity = BaseEntity & {
-  type: typeof EntityType.Obstacle;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
+export type { BaseEntity };
+export type { PeerEntity } from "./peers";
+export type { LinkEntity } from "./links";
+export type { ObstacleEntity } from "./obstacles";
 
 export type NetworkEntity = PeerEntity | LinkEntity | ObstacleEntity;

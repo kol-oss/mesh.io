@@ -1,4 +1,5 @@
-import { useEffect } from "react";import type { WorkspaceTextItem } from "../../../shared/types/workspace";
+import { useEffect } from "react";
+import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
 import type { UUID } from "../../../shared/types/uuid";
 
 type Params = {

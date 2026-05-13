@@ -17,11 +17,14 @@ import { useWorkspaceWindowStates } from "../../hooks/useWindowStates";
 import { useToast } from "../../../../shared/toast/useToast";
 import { SelectionSource, ToolbarMode } from "../../../../shared/types/enums";
 import type { NetworkEntity } from "../../../../shared/types/entities";
-import { type SimulationEvent, type SimulationStepResult } from "../../../../shared/types/simulation";
+import {
+  type SimulationEvent,
+  type SimulationStepResult,
+} from "../../../../shared/types/simulation";
 import type { WorkflowStep } from "../../../../shared/types/steps";
 import type { ToolbarPlacementMode } from "../../../../shared/types/toolbar";
 import type { UUID } from "../../../../shared/types/uuid";
-import type { WorkspaceTextItem } from "../../../../shared/types/workspace";
+import type { WorkspaceTextItem } from "../../../../shared/types/workspace/text";
 import type { WorkspacePanState } from "../../../../shared/types/workspace/background";
 import type { DragState } from "../../../../shared/types/workspace/interaction";
 import WorkspaceInspectionWindows from "../WorkspaceInspectionWindows/WorkspaceInspectionWindows";

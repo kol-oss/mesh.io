@@ -1,9 +1,17 @@
 import { useCallback } from "react";
 
-import { OBSTACLE_DEFAULT_WIDTH, OBSTACLE_DEFAULT_HEIGHT } from "../../../shared/constants/obstacle.ts";
+import {
+  OBSTACLE_DEFAULT_WIDTH,
+  OBSTACLE_DEFAULT_HEIGHT,
+} from "../../../shared/constants/obstacle.ts";
 import { NEW_PEER_RANGE } from "../../../shared/constants/workspace";
 import { EntityType, RoutingProtocol, StepType } from "../../../shared/types/enums";
-import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "../../../shared/types/entities";
+import type {
+  LinkEntity,
+  NetworkEntity,
+  ObstacleEntity,
+  PeerEntity,
+} from "../../../shared/types/entities";
 import type {
   ManualWorkflowStep,
   MessageStep,
@@ -11,11 +19,12 @@ import type {
   ToggleStatusStep,
   WorkflowStep,
 } from "../../../shared/types/steps";
-import type { WorkspaceTextItem } from "../../../shared/types/workspace";
+import type { WorkspaceTextItem } from "../../../shared/types/workspace/text";
 import type {
   WorkspaceCreationCallbacks,
   WorkspaceCreationSetters,
-} from "../../../shared/types/workspace/creation";import { generateUUID, type UUID } from "../../../shared/types/uuid";
+} from "../../../shared/types/workspace/creation";
+import { generateUUID, type UUID } from "../../../shared/types/uuid";
 import { isRefreshStep } from "../../../shared/utils/navigation/refreshSteps";
 
 import { BATMAN_DEFAULT_CONFIGURATION } from "../../../shared/constants/batman.ts";
@@ -58,7 +67,7 @@ export function useWorkspaceCreation({
 
       setters.setEntities([...entities, nextPeer]);
       callbacks.onEntitySelect(nextPeer.id);
-      callbacks.showCreationToast((`Entity "${(nextPeer.name)}" added`));
+      callbacks.showCreationToast(`Entity "${nextPeer.name}" added`);
     },
     [callbacks, entities, setters],
   );
@@ -78,7 +87,7 @@ export function useWorkspaceCreation({
 
       setters.setEntities([...entities, nextObstacle]);
       callbacks.onEntitySelect(nextObstacle.id);
-      callbacks.showCreationToast((`Entity "${(nextObstacle.name)}" added`));
+      callbacks.showCreationToast(`Entity "${nextObstacle.name}" added`);
     },
     [callbacks, entities, setters],
   );
@@ -97,7 +106,7 @@ export function useWorkspaceCreation({
 
       setters.setEntities([...entities, nextLink]);
       callbacks.onEntitySelect(nextLink.id);
-      callbacks.showCreationToast((`Entity "${(nextLink.name)}" added`));
+      callbacks.showCreationToast(`Entity "${nextLink.name}" added`);
     },
     [callbacks, entities, setters],
   );
@@ -106,7 +115,7 @@ export function useWorkspaceCreation({
     (step: ManualWorkflowStep) => {
       setters.setSteps([...steps, step]);
       callbacks.onStepSelect(step.id);
-      callbacks.showCreationToast((`Step "${(step.title)}" added`));
+      callbacks.showCreationToast(`Step "${step.title}" added`);
     },
     [callbacks, setters, steps],
   );
@@ -158,7 +167,7 @@ export function useWorkspaceCreation({
       const step: ToggleStatusStep = {
         id: generateUUID(),
         title: "Toggle",
-        type: StepType.ToggleStatus,
+        type: StepType.Toggle,
         tick: getNextManualStepTick(),
         targetEntityId,
       };
