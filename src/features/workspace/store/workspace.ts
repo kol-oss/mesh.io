@@ -13,7 +13,7 @@ import { clearObstacles, replaceObstacles } from "../../../shared/store/slices/o
 import { clearSteps, replaceSteps } from "../../../shared/store/slices/stepSlice";
 import { clearTexts, replaceTexts } from "../../../shared/store/slices/textSlice";
 import { useToast } from "../../../shared/toast/useToast";
-import { runSimulation } from "../../../shared/simulation/processor/simulation";
+import { runSimulation } from "../../../shared/processor/simulation";
 import {
   ActionMode as PlacementMode,
   ActionMode as ToolbarMode,

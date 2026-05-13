@@ -2,8 +2,8 @@ import type {
   SimulationEvent,
   SimulationEventDetails,
   SimulationEventType,
-} from "../../../types/model/simulation";
-import { generateUUID, type UUID } from "../../../types/common/uuid";
+} from "../../types/model/simulation";
+import { generateUUID, type UUID } from "../../types/common/uuid";
 
 export class SimulationEventRecorder {
   private readonly events: SimulationEvent[] = [];

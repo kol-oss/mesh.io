@@ -1,7 +1,7 @@
-import { OLSR_DEFAULT_TC_TTL, OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "../../../constants/olsr";
-import { RoutingProtocol } from "../../../types/common/protocols";
-import type { OlsrConfiguration } from "../../../types/model/configurations";
-import { getOlsrConfiguration } from "../../../types/model/peers";
+import { OLSR_DEFAULT_TC_TTL, OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "../../constants/olsr";
+import { RoutingProtocol } from "../../types/common/protocols";
+import type { OlsrConfiguration } from "../../types/model/configurations";
+import { getOlsrConfiguration } from "../../types/model/peers";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -14,8 +14,8 @@ import {
   type OlsrTwoHopRecord,
   type SimulationMessage,
   type SimulationPacket,
-} from "../../../types/model/simulation";
-import type { UUID } from "../../../types/common/uuid";
+} from "../../types/model/simulation";
+import type { UUID } from "../../types/common/uuid";
 import { SimulationEventRecorder } from "../core/EventRecorder";
 import type { PacketCapableModule, SimulationPeerNode } from "../core/runtimeTypes";
 import { cloneOlsrMessage, isOlsrSimulationMessage } from "./olsrMessage";

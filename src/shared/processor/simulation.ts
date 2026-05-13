@@ -1,5 +1,5 @@
-import { RoutingProtocol } from "../../types/common/protocols";
-import { RefreshAction, StepType, type WorkflowStep } from "../../types/model/steps";
+import { RoutingProtocol } from "../types/common/protocols";
+import { RefreshAction, StepType, type WorkflowStep } from "../types/model/steps";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -10,7 +10,7 @@ import {
   type SimulationResult,
   type SimulationStepResult,
   type SimulationTickSnapshot,
-} from "../../types/model/simulation";
+} from "../types/model/simulation";
 import { BatmanModule } from "./batman/BatmanModule";
 import { AodvModule } from "./aodv/AodvModule";
 import { DsdvModule } from "./dsdv/DsdvModule";

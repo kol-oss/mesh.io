@@ -1,4 +1,4 @@
-import { RoutingProtocol } from "../../../types/common/protocols";
+import { RoutingProtocol } from "../../types/common/protocols.ts";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -8,8 +8,8 @@ import {
   type SimulationMessage,
   type SimulationPacket,
   type ThroughputCalculationEventDetails,
-} from "../../../types/model/simulation.ts";
-import type { UUID } from "../../../types/common/uuid.ts";
+} from "../../types/model/simulation.ts";
+import type { UUID } from "../../types/common/uuid.ts";
 import { SimulationEventRecorder } from "../core/EventRecorder.ts";
 import type { SimulationPeerNode } from "../core/runtimeTypes.ts";
 import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";
@@ -26,8 +26,8 @@ import {
   BATMAN_STATIC_BASE_THROUGHPUT,
   BATMAN_VERSION,
   BATMAN_WIRELESS_BASE_THROUGHPUT,
-} from "../../../constants/batman.ts";
-import { getBatmanConfiguration } from "../../../types/model/peers.ts";
+} from "../../constants/batman.ts";
+import { getBatmanConfiguration } from "../../types/model/peers.ts";
 
 type BatmanNeighbourEntry = {
   neighbourId: UUID;

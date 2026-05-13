@@ -3,8 +3,8 @@ import {
   DSR_MAX_REDISCOVERY_ATTEMPTS,
   DSR_MAX_SALVAGE_COUNT,
   DSR_ROUTE_CACHE_TIMEOUT,
-} from "../../../constants/dsr";
-import { RoutingProtocol } from "../../../types/common/protocols";
+} from "../../constants/dsr";
+import { RoutingProtocol } from "../../types/common/protocols";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -13,8 +13,8 @@ import {
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,
   type SimulationPacket,
-} from "../../../types/model/simulation";
-import type { UUID } from "../../../types/common/uuid";
+} from "../../types/model/simulation";
+import type { UUID } from "../../types/common/uuid";
 import { SimulationEventRecorder } from "../core/EventRecorder";
 import type { PacketCapableModule, SimulationPeerNode } from "../core/runtimeTypes";
 import { cloneDsrMessage, isDsrSimulationMessage } from "./dsrMessage";

@@ -1,14 +1,14 @@
-import { RoutingProtocol } from "../../../types/common/protocols";
+import { RoutingProtocol } from "../../types/common/protocols";
 import {
   SimulationEventType,
   type DsdvRouteRecord,
   type DsdvRouteUpdateMessage,
-} from "../../../types/model/simulation";
-import type { UUID } from "../../../types/common/uuid";
+} from "../../types/model/simulation";
+import type { UUID } from "../../types/common/uuid";
 import { SimulationEventRecorder } from "../core/EventRecorder";
 import type { SimulationPeerNode } from "../core/runtimeTypes";
 import { cloneDsdvMessage } from "./dsdvMessage";
-import { DSDV_METRIC_INFINITY } from "../../../constants/dsdv";
+import { DSDV_METRIC_INFINITY } from "../../constants/dsdv";
 
 type DsdvRouteState = {
   destinationPeerId: UUID;

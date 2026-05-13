@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { UUID } from "../../../types/common/uuid";
+import type { UUID } from "../../types/common/uuid";
 
 export type ToastMessage = {
   id: UUID;

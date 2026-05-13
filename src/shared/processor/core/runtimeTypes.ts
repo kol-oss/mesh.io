@@ -1,4 +1,4 @@
-import type { RoutingProtocol } from "../../../types/common/protocols";
+import type { RoutingProtocol } from "../../types/common/protocols";
 import type {
   AodvRouteRecord,
   BatmanNeighbourRecord,
@@ -12,9 +12,9 @@ import type {
   OlsrTwoHopRecord,
   SimulationPacket,
   SimulationTickSnapshot,
-} from "../../../types/model/simulation";
-import type { NetworkEntity, PeerEntity } from "../../../types/model/entities";
-import type { UUID } from "../../../types/common/uuid";
+} from "../../types/model/simulation";
+import type { NetworkEntity, PeerEntity } from "../../types/model/entities";
+import type { UUID } from "../../types/common/uuid";
 
 export interface RoutingProtocolModule {
   read(message: unknown): boolean;

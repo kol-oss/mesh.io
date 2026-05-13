@@ -1,6 +1,6 @@
-import type { PeerEntity } from "../../../types/model/entities";
-import { RoutingProtocol } from "../../../types/common/protocols";
-import type { UUID } from "../../../types/common/uuid";
+import type { PeerEntity } from "../../types/model/entities";
+import { RoutingProtocol } from "../../types/common/protocols";
+import type { UUID } from "../../types/common/uuid";
 import { AodvModule } from "../aodv/AodvModule";
 import { BatmanModule } from "../batman/BatmanModule";
 import type { SimulationEventRecorder } from "../core/EventRecorder";
