@@ -4,7 +4,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Help from "@/features/help/pages/Help/Help";
 import Workspace from "@/features/workspace/pages/Workspace/Workspace";
 
-function App() {
+export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Workspace />} />
@@ -13,5 +13,3 @@ function App() {
     </Routes>
   );
 }
-
-export default App;
