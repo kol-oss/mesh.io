@@ -1,206 +1,104 @@
-import { useCallback, useRef, useState } from "react";
-import { ActionMode as ToolbarMode } from "@/shared/types/action";
-import type { SimulationEvent } from "@/shared/types/model/simulation";
+import { useCallback, useRef } from "react";
+
+import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
+import {
+  setMessageAnimationHover,
+  openPacketInspectorPinned,
+  closePacketInspectorWindow,
+  toggleTqDisclosure,
+  toggleSequenceDisclosure,
+  setHoveredSimulationPeer,
+  tableInspectionPeerHoverChange,
+  closeTableInspectionWindow,
+} from "@/shared/store/slices/simulationSlice";
+import { selectCurrentSimulationEvent } from "@/shared/store/selectors";
 import type { UUID } from "@/shared/types/common/uuid";
 
-type PacketInspectorWindow = {
-  eventId: UUID;
-  isOpen: boolean;
-  pinned: boolean;
-};
+export const useWindowStates = () => {
+  const dispatch = useAppDispatch();
 
-type TableInspectionWindow = {
-  peerId: UUID;
-  pinned: boolean;
-  isOpen: boolean;
-  stepId: UUID | null;
-};
+  const currentSimulationEvent = useAppSelector(selectCurrentSimulationEvent);
+  const currentSimulationEventId = currentSimulationEvent?.id ?? null;
 
-type MessageHoverState = {
-  eventId: UUID | null;
-  isHovered: boolean;
-};
-
-type SimulationPeerHoverState = {
-  eventId: UUID;
-  peerId: UUID | null;
-} | null;
-
-type Props = {
-  currentSimulationEvent: SimulationEvent | null;
-  currentStepId: UUID | null;
-  simulationInspectionMode: ToolbarMode;
-  isPacketInspectionActive: boolean;
-  currentSimulationEventId: UUID | null;
-};
-
-type Return = {
-  packetInspectorWindows: PacketInspectorWindow[];
-  tableInspectionWindows: TableInspectionWindow[];
-  simulationMessageHoverState: MessageHoverState;
-  simulationTqDisclosureByEvent: Record<string, boolean>;
-  simulationSequenceDisclosureByEvent: Record<string, boolean>;
-  hoveredSimulationPeerState: SimulationPeerHoverState;
-  tableInspectionSuppressHoverRef: React.MutableRefObject<boolean>;
-  handleSimulationPeerHoverChange: (peerId: UUID | null) => void;
-  handleSimulationTqDisclosureToggle: (eventId: UUID) => void;
-  handleSimulationSequenceDisclosureToggle: (eventId: UUID) => void;
-  handleTableInspectionPeerHoverChange: (peerId: UUID | null) => void;
-  handleTableInspectionClose: (peerId: UUID) => void;
-  handleMessageAnimationHoverChange: (isHovered: boolean) => void;
-  handleMessageAnimationInspectRequest: () => void;
-  handlePacketInspectorClose: (eventId: UUID) => void;
-  setPacketInspectorWindows: React.Dispatch<React.SetStateAction<PacketInspectorWindow[]>>;
-  setTableInspectionWindows: React.Dispatch<React.SetStateAction<TableInspectionWindow[]>>;
-};
-
-export const useWindowStates = ({
-  currentSimulationEvent,
-  currentStepId,
-  simulationInspectionMode,
-  isPacketInspectionActive,
-  currentSimulationEventId,
-}: Props): Return => {
-  const [packetInspectorWindows, setPacketInspectorWindows] = useState<PacketInspectorWindow[]>([]);
-  const [tableInspectionWindows, setTableInspectionWindows] = useState<TableInspectionWindow[]>([]);
-  const [simulationMessageHoverState, setSimulationMessageHoverState] = useState<MessageHoverState>(
-    { eventId: null, isHovered: false },
+  const packetInspectorWindows = useAppSelector((state) => state.simulation.packetInspectorWindows);
+  const tableInspectionWindows = useAppSelector((state) => state.simulation.tableInspectionWindows);
+  const simulationMessageHoverState = useAppSelector(
+    (state) => state.simulation.simulationMessageHoverState,
   );
-  const [simulationTqDisclosureByEvent, setSimulationTqDisclosureByEvent] = useState<
-    Record<string, boolean>
-  >({});
-  const [simulationSequenceDisclosureByEvent, setSimulationSequenceDisclosureByEvent] = useState<
-    Record<string, boolean>
-  >({});
-  const [hoveredSimulationPeerState, setHoveredSimulationPeerState] =
-    useState<SimulationPeerHoverState>(null);
+  const simulationTqDisclosureByEvent = useAppSelector(
+    (state) => state.simulation.simulationTqDisclosureByEvent,
+  );
+  const simulationSequenceDisclosureByEvent = useAppSelector(
+    (state) => state.simulation.simulationSequenceDisclosureByEvent,
+  );
+  const hoveredSimulationPeerState = useAppSelector(
+    (state) => state.simulation.hoveredSimulationPeerState,
+  );
 
   const tableInspectionSuppressHoverRef = useRef(false);
 
   const handleSimulationPeerHoverChange = useCallback(
     (peerId: UUID | null) => {
-      if (!currentSimulationEvent) {
-        setHoveredSimulationPeerState(null);
-        return;
-      }
-
-      setHoveredSimulationPeerState({
-        eventId: currentSimulationEvent.id,
-        peerId,
-      });
+      dispatch(
+        setHoveredSimulationPeer(
+          currentSimulationEvent ? { eventId: currentSimulationEvent.id, peerId } : null,
+        ),
+      );
     },
-    [currentSimulationEvent],
+    [currentSimulationEvent, dispatch],
   );
 
-  const handleSimulationTqDisclosureToggle = useCallback((eventId: UUID) => {
-    setSimulationTqDisclosureByEvent((prev) => ({
-      ...prev,
-      [eventId]: !(prev[eventId] ?? false),
-    }));
-  }, []);
+  const handleSimulationTqDisclosureToggle = useCallback(
+    (eventId: UUID) => {
+      dispatch(toggleTqDisclosure(eventId));
+    },
+    [dispatch],
+  );
 
-  const handleSimulationSequenceDisclosureToggle = useCallback((eventId: UUID) => {
-    setSimulationSequenceDisclosureByEvent((prev) => ({
-      ...prev,
-      [eventId]: !(prev[eventId] ?? false),
-    }));
-  }, []);
+  const handleSimulationSequenceDisclosureToggle = useCallback(
+    (eventId: UUID) => {
+      dispatch(toggleSequenceDisclosure(eventId));
+    },
+    [dispatch],
+  );
 
   const handleTableInspectionPeerHoverChange = useCallback(
     (peerId: UUID | null) => {
-      if (simulationInspectionMode !== ToolbarMode.RoutingTable) {
-        return;
-      }
-
       if (peerId === null) {
         tableInspectionSuppressHoverRef.current = false;
       }
-
-      if (tableInspectionSuppressHoverRef.current) {
-        return;
-      }
-
-      setTableInspectionWindows((prev) => {
-        if (peerId === null) {
-          return prev.filter((w) => w.pinned);
-        }
-
-        const existing = prev.find((w) => w.peerId === peerId);
-        if (existing) {
-          if (existing.pinned) return prev;
-          return prev.map((w) =>
-            w.peerId === peerId ? { ...w, isOpen: true, stepId: currentStepId } : w,
-          );
-        }
-
-        return [...prev, { peerId, pinned: false, isOpen: true, stepId: currentStepId }];
-      });
+      if (tableInspectionSuppressHoverRef.current) return;
+      dispatch(tableInspectionPeerHoverChange(peerId));
     },
-    [currentStepId, simulationInspectionMode],
+    [dispatch],
   );
 
-  const handleTableInspectionClose = useCallback((peerId: UUID) => {
-    tableInspectionSuppressHoverRef.current = true;
-    setTableInspectionWindows((prev) => prev.filter((w) => w.peerId !== peerId));
-  }, []);
+  const handleTableInspectionClose = useCallback(
+    (peerId: UUID) => {
+      tableInspectionSuppressHoverRef.current = true;
+      dispatch(closeTableInspectionWindow(peerId));
+    },
+    [dispatch],
+  );
 
   const handleMessageAnimationHoverChange = useCallback(
     (isHovered: boolean) => {
-      setSimulationMessageHoverState({
-        eventId: currentSimulationEventId,
-        isHovered,
-      });
-
-      if (!isPacketInspectionActive || !currentSimulationEventId) {
-        return;
-      }
-
-      setPacketInspectorWindows((prev) => {
-        const existing = prev.find((w) => w.eventId === currentSimulationEventId);
-        if (existing) {
-          if (existing.pinned) {
-            return prev;
-          }
-
-          if (isHovered) {
-            return prev.map((w) =>
-              w.eventId === currentSimulationEventId ? { ...w, isOpen: true, pinned: false } : w,
-            );
-          }
-
-          return prev.filter((w) => w.eventId !== currentSimulationEventId || w.pinned);
-        }
-
-        if (isHovered) {
-          return [...prev, { eventId: currentSimulationEventId, isOpen: true, pinned: false }];
-        }
-
-        return prev;
-      });
+      dispatch(setMessageAnimationHover({ isHovered, currentSimulationEventId }));
     },
-    [currentSimulationEventId, isPacketInspectionActive],
+    [currentSimulationEventId, dispatch],
   );
 
   const handleMessageAnimationInspectRequest = useCallback(() => {
-    if (!currentSimulationEvent || !isPacketInspectionActive) {
-      return;
-    }
+    if (!currentSimulationEvent) return;
+    dispatch(openPacketInspectorPinned(currentSimulationEvent.id));
+  }, [currentSimulationEvent, dispatch]);
 
-    setPacketInspectorWindows((prev) => {
-      const existing = prev.find((w) => w.eventId === currentSimulationEvent.id);
-      if (existing) {
-        return prev.map((w) =>
-          w.eventId === currentSimulationEvent.id ? { ...w, isOpen: true, pinned: true } : w,
-        );
-      }
-
-      return [...prev, { eventId: currentSimulationEvent.id, isOpen: true, pinned: true }];
-    });
-  }, [currentSimulationEvent, isPacketInspectionActive]);
-
-  const handlePacketInspectorClose = useCallback((eventId: UUID) => {
-    setPacketInspectorWindows((prev) => prev.filter((w) => w.eventId !== eventId));
-  }, []);
+  const handlePacketInspectorClose = useCallback(
+    (eventId: UUID) => {
+      dispatch(closePacketInspectorWindow(eventId));
+    },
+    [dispatch],
+  );
 
   return {
     packetInspectorWindows,
@@ -218,7 +116,5 @@ export const useWindowStates = ({
     handleMessageAnimationHoverChange,
     handleMessageAnimationInspectRequest,
     handlePacketInspectorClose,
-    setPacketInspectorWindows,
-    setTableInspectionWindows,
   };
 };

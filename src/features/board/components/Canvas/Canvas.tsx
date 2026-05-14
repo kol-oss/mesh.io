@@ -145,9 +145,6 @@ export default function Canvas({
     workspaceSize,
   });
 
-  const isPacketInspectionActive = simulationInspectionMode === ToolbarMode.PacketStructure;
-  const currentSimulationEventId = currentSimulationEvent?.id ?? null;
-
   const {
     packetInspectorWindows,
     tableInspectionWindows,
@@ -164,14 +161,7 @@ export default function Canvas({
     handleMessageAnimationHoverChange,
     handleMessageAnimationInspectRequest,
     handlePacketInspectorClose,
-    setTableInspectionWindows,
-  } = useWindowStates({
-    currentSimulationEvent,
-    currentStepId,
-    simulationInspectionMode,
-    isPacketInspectionActive,
-    currentSimulationEventId,
-  });
+  } = useWindowStates();
 
   const showCreationToast = useCallback(
     (text: string) => {
@@ -336,7 +326,6 @@ export default function Canvas({
     handleSimulationPeerPointerDown,
   } = useSimulationEventHandlers({
     isSimulationActive,
-    currentStepId,
     simulationInspectionMode,
     onEntitySelect,
     handleStaticLinkPointerDown,
@@ -345,7 +334,6 @@ export default function Canvas({
     handleObstaclePointerDown,
     handleObstacleResizeStart,
     handlePeerPointerDown,
-    setTableInspectionWindows,
     tableInspectionSuppressHoverRef,
   });
 

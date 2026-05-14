@@ -1,4 +1,6 @@
 import { useCallback } from "react";
+import { useAppDispatch } from "@/shared/store/hooks";
+import { pinTableInspectionWindow } from "@/shared/store/slices/simulationSlice";
 import { EntityType } from "@/shared/types/model/entities";
 import { ActionMode as ToolbarMode } from "@/shared/types/action";
 import type { ResizeEdge } from "@/shared/types/interaction";
@@ -12,7 +14,6 @@ type PeerSelectionEntity = Extract<NetworkEntity, { type: typeof EntityType.Peer
 
 type Props = {
   isSimulationActive: boolean;
-  currentStepId: UUID | null;
   simulationInspectionMode: ToolbarMode;
   onEntitySelect: (id: UUID) => void;
   handleStaticLinkPointerDown: (linkId: UUID, event: ReactPointerEvent<SVGLineElement>) => void;
@@ -30,11 +31,6 @@ type Props = {
   handlePeerPointerDown: (
     peer: PeerSelectionEntity,
     event: ReactPointerEvent<HTMLButtonElement>,
-  ) => void;
-  setTableInspectionWindows: (
-    updater: (
-      prev: Array<{ peerId: UUID; pinned: boolean; isOpen: boolean; stepId: UUID | null }>,
-    ) => Array<{ peerId: UUID; pinned: boolean; isOpen: boolean; stepId: UUID | null }>,
   ) => void;
   tableInspectionSuppressHoverRef: React.MutableRefObject<boolean>;
 };
@@ -66,7 +62,6 @@ type Return = {
 
 export const useSimulationEventHandlers = ({
   isSimulationActive,
-  currentStepId,
   simulationInspectionMode,
   onEntitySelect,
   handleStaticLinkPointerDown,
@@ -75,9 +70,9 @@ export const useSimulationEventHandlers = ({
   handleObstaclePointerDown,
   handleObstacleResizeStart,
   handlePeerPointerDown,
-  setTableInspectionWindows,
   tableInspectionSuppressHoverRef,
 }: Props): Return => {
+  const dispatch = useAppDispatch();
   const handleSimulationStaticLinkPointerDown = useCallback(
     (linkId: UUID, event: ReactPointerEvent<SVGLineElement>) => {
       if (!isSimulationActive) {
@@ -145,18 +140,7 @@ export const useSimulationEventHandlers = ({
       event.stopPropagation();
 
       if (simulationInspectionMode === ToolbarMode.RoutingTable) {
-        setTableInspectionWindows((prev) => {
-          const existing = prev.find((w) => w.peerId === peer.id);
-          if (existing) {
-            return prev.map((w) =>
-              w.peerId === peer.id
-                ? { ...w, pinned: true, isOpen: true, stepId: currentStepId }
-                : w,
-            );
-          }
-
-          return [...prev, { peerId: peer.id, pinned: true, isOpen: true, stepId: currentStepId }];
-        });
+        dispatch(pinTableInspectionWindow(peer.id));
         tableInspectionSuppressHoverRef.current = false;
         return;
       }
@@ -164,12 +148,11 @@ export const useSimulationEventHandlers = ({
       onEntitySelect(peer.id);
     },
     [
-      currentStepId,
+      dispatch,
       handlePeerPointerDown,
       isSimulationActive,
       onEntitySelect,
       simulationInspectionMode,
-      setTableInspectionWindows,
       tableInspectionSuppressHoverRef,
     ],
   );

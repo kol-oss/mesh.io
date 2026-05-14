@@ -4,19 +4,11 @@ import { ActionMode as ToolbarMode } from "@/shared/types/action";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import type { SimulationEvent, SimulationStepResult } from "@/shared/types/model/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
+import type {
+  TableInspectionWindow,
+  SimulationPeerHoverState,
+} from "@/shared/store/slices/simulationSlice";
 import { clamp } from "@/shared/utils/math/clamp";
-
-type TableInspectionWindow = {
-  peerId: UUID;
-  pinned: boolean;
-  isOpen: boolean;
-  stepId: UUID | null;
-};
-
-type SimulationPeerHoverState = {
-  eventId: UUID;
-  peerId: UUID | null;
-} | null;
 
 type Params = {
   tableInspectionWindows: TableInspectionWindow[];
