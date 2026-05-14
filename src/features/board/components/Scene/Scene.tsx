@@ -3,7 +3,7 @@ import { Radio } from "lucide-react";
 
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import type { WorkspaceSceneProps } from "@/shared/types/workspace/scene";
-import { shortenLine } from "@/shared/utils/geometry";
+import { shortenLine } from "@/shared/processor/connectivity";
 import Connection from "@/features/board/components/Connection/Connection";
 import Link from "@/features/board/components/Link/Link";
 import Peer from "@/features/board/components/Peer/Peer";

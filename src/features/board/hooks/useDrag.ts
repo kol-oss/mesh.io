@@ -5,7 +5,7 @@ import { OBSTACLE_MIN_WIDTH, OBSTACLE_MIN_HEIGHT } from "@/shared/constants/obst
 import { DragEntityType, DragMode, ResizeEdge } from "@/shared/types/interaction";
 import { EntityType } from "@/shared/types/model/entities";
 import { ActionMode as PlacementMode } from "@/shared/types/action";
-import { toInt } from "@/shared/utils/geometry";
+import { toInt } from "@/shared/processor/connectivity";
 import type {
   WorkspaceDragActions,
   WorkspaceDragEntities,

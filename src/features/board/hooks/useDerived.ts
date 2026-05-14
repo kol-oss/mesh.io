@@ -18,10 +18,10 @@ import type { WorkflowStep } from "@/shared/types/model/steps";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 import type { UUID } from "@/shared/types/common/uuid";
 import {
-  getObstacleBounds,
+  getConnectivityObstacleBounds,
   getRayDistanceWithObstacleBlocking,
-  hasLineOfSight,
-} from "@/shared/utils/geometry";
+  getRangedConnectionPairs,
+} from "@/shared/processor/connectivity";
 import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 
 type UseDerivedParams = {
@@ -98,69 +98,13 @@ export function useDerived({
       : null;
   }, [creationSelectedEntityId, entities]);
 
-  const obstacleBounds = useMemo(() => obstacles.map(getObstacleBounds), [obstacles]);
+  const obstacleBounds = useMemo(() => getConnectivityObstacleBounds(obstacles), [obstacles]);
 
   const connections = useMemo(() => {
-    const enabledPeers = peers.filter((peer) => peer.enabled);
-    const result = [];
-
-    for (let i = 0; i < enabledPeers.length; i += 1) {
-      for (let j = i + 1; j < enabledPeers.length; j += 1) {
-        const peerA = enabledPeers[i];
-        const peerB = enabledPeers[j];
-        const hasSharedProtocol = peerA.protocol === peerB.protocol;
-        if (!hasSharedProtocol) {
-          continue;
-        }
-
-        const deltaX = peerB.x - peerA.x;
-        const deltaY = peerB.y - peerA.y;
-        const distance = Math.hypot(deltaX, deltaY);
-        const clearLineOfSight = hasLineOfSight(peerA.x, peerA.y, peerB.x, peerB.y, obstacleBounds);
-
-        const aToB = distance <= peerA.range && clearLineOfSight;
-        const bToA = distance <= peerB.range && clearLineOfSight;
-
-        if (aToB && bToA) {
-          result.push({
-            type: ConnectionType.Mutual,
-            sourceId: peerA.id,
-            targetId: peerB.id,
-            sourceX: peerA.x,
-            sourceY: peerA.y,
-            targetX: peerB.x,
-            targetY: peerB.y,
-          });
-          continue;
-        }
-
-        if (aToB) {
-          result.push({
-            type: ConnectionType.OneWay,
-            sourceId: peerA.id,
-            targetId: peerB.id,
-            sourceX: peerA.x,
-            sourceY: peerA.y,
-            targetX: peerB.x,
-            targetY: peerB.y,
-          });
-        }
-
-        if (bToA) {
-          result.push({
-            type: ConnectionType.OneWay,
-            sourceId: peerB.id,
-            targetId: peerA.id,
-            sourceX: peerB.x,
-            sourceY: peerB.y,
-            targetX: peerA.x,
-            targetY: peerA.y,
-          });
-        }
-      }
-    }
-
-    return result;
+    return getRangedConnectionPairs(peers, obstacleBounds).map((connection) => ({
+      ...connection,
+      type: ConnectionType.Mutual,
+    }));
   }, [obstacleBounds, peers]);
 
   const rangePolygons = useMemo(() => {

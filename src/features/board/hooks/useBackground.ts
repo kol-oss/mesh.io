@@ -11,7 +11,7 @@ import type {
   WorkspaceBackgroundState,
 } from "@/shared/types/workspace/background";
 import { clamp } from "@/shared/utils/math/clamp";
-import { toInt } from "@/shared/utils/geometry";
+import { toInt } from "@/shared/processor/connectivity";
 
 type UseBackgroundParams = {
   refs: WorkspaceBackgroundRefs;

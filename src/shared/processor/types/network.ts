@@ -1,10 +1,14 @@
-import type { NetworkEntity } from "@/shared/types/model/entities";
+import type { NetworkEntity, ObstacleEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
 import type { SimulationTickSnapshot } from "@/shared/types/model/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
-import { getObstacleBounds, hasLineOfSight } from "@/shared/utils/geometry";
 import type { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
 import type { SimulationNetworkRuntime } from "@/shared/processor/core/runtimeTypes";
+import {
+  canCreateRangedConnection,
+  getConnectivityObstacleBounds,
+  shouldCreateLinkedConnection,
+} from "@/shared/processor/connectivity";
 import type { RuntimeLink } from "./link";
 import { RuntimePeer } from "./peer";
 
@@ -17,7 +21,7 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
 
   private readonly entityOrder: Array<{ type: NetworkEntity["type"]; id: UUID }> = [];
 
-  private readonly obstacles: NetworkEntity[] = [];
+  private readonly obstacles: ObstacleEntity[] = [];
 
   constructor(entities: NetworkEntity[], eventRecorder: SimulationEventRecorder) {
     for (const entity of entities) {
@@ -34,7 +38,9 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
         continue;
       }
 
-      this.obstacles.push(cloneEntity(entity));
+      if (entity.type === EntityType.Obstacle) {
+        this.obstacles.push(cloneEntity(entity));
+      }
     }
 
     this.refreshConnectivity();
@@ -50,12 +56,7 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
 
   refreshConnectivity() {
     const peerList = this.getPeers();
-    const obstacleBounds = this.obstacles
-      .filter(
-        (entity): entity is Extract<NetworkEntity, { type: typeof EntityType.Obstacle }> =>
-          entity.type === EntityType.Obstacle,
-      )
-      .map(getObstacleBounds);
+    const obstacleBounds = getConnectivityObstacleBounds(this.obstacles);
 
     for (const peer of peerList) {
       peer.clearTopology();
@@ -63,37 +64,12 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
 
     for (let index = 0; index < peerList.length; index += 1) {
       const source = peerList[index];
-      if (!source.isActive()) {
-        continue;
-      }
+      const sourcePeer = source.getPeerEntity();
 
       for (let innerIndex = index + 1; innerIndex < peerList.length; innerIndex += 1) {
         const destination = peerList[innerIndex];
-        if (!destination.isActive()) {
-          continue;
-        }
-
-        const sourceEntity = source.getPeerEntity();
-        const destinationEntity = destination.getPeerEntity();
-        const hasSharedProtocol = sourceEntity.protocol === destinationEntity.protocol;
-        if (!hasSharedProtocol) {
-          continue;
-        }
-
-        const distance = Math.hypot(
-          destinationEntity.x - sourceEntity.x,
-          destinationEntity.y - sourceEntity.y,
-        );
-        const inRange = distance <= Math.min(sourceEntity.range, destinationEntity.range);
-        const clearLineOfSight = hasLineOfSight(
-          sourceEntity.x,
-          sourceEntity.y,
-          destinationEntity.x,
-          destinationEntity.y,
-          obstacleBounds,
-        );
-
-        if (inRange && clearLineOfSight) {
+        const destinationPeer = destination.getPeerEntity();
+        if (canCreateRangedConnection(sourcePeer, destinationPeer, obstacleBounds)) {
           source.addRangedPeer(destination.id);
           destination.addRangedPeer(source.id);
         }
@@ -101,13 +77,14 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
     }
 
     for (const link of this.links.values()) {
-      if (!link.enabled || !link.sourcePeerId || !link.destinationPeerId) {
+      const source = link.sourcePeerId ? this.getPeer(link.sourcePeerId) : null;
+      const destination = link.destinationPeerId ? this.getPeer(link.destinationPeerId) : null;
+      const sourcePeer = source?.getPeerEntity() ?? null;
+      const destinationPeer = destination?.getPeerEntity() ?? null;
+      if (!shouldCreateLinkedConnection(link, sourcePeer, destinationPeer)) {
         continue;
       }
-
-      const source = this.getPeer(link.sourcePeerId);
-      const destination = this.getPeer(link.destinationPeerId);
-      if (!source || !destination || !source.isActive() || !destination.isActive()) {
+      if (!source || !destination) {
         continue;
       }
 
