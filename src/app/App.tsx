@@ -2,7 +2,7 @@ import "@/app/styles/index.scss";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import Help from "@/features/help/pages/Help/Help";
-import Workspace from "@/features/board/pages/Workspace/Workspace";
+import Workspace from "@/features/workspace/pages/Workspace/Workspace";
 
 function App() {
   return (
