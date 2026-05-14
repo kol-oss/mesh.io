@@ -25,28 +25,16 @@ import type {
 import type { WorkflowStep } from "@/shared/types/model/steps";
 import { useToast } from "@/shared/toast/useToast";
 import {
-  getWorkspaceExportFileName,
-  parseWorkspaceImportPayload,
+  exportState,
+  importState,
   type WorkspaceImportPayload,
-} from "@/shared/utils/validation";
+} from "@/shared/utils/migration/migration";
 import {
   composeStepsWithRefresh,
   normalizeManualSteps,
   sanitizeManualSteps,
 } from "@/shared/utils/navigation/refreshSteps";
 import type { UUID } from "@/shared/types/common/uuid";
-
-const downloadWorkspacePayload = (payload: WorkspaceImportPayload) => {
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = getWorkspaceExportFileName();
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
 
 export const useNavigationRedux = () => {
   const dispatch = useAppDispatch();
@@ -194,15 +182,14 @@ export const useNavigationRedux = () => {
       display,
     };
 
-    downloadWorkspacePayload(payload);
+    exportState(payload);
     showToast("Workspace exported as JSON");
   }, [display, links, manualSteps, obstacles, peers, showToast, texts]);
 
   const handleImportWorkspace = useCallback(
     async (file: File) => {
       try {
-        const raw = await file.text();
-        const payload = parseWorkspaceImportPayload(raw);
+        const payload = await importState(file);
 
         const confirmed = window.confirm(
           "Import action will clear the current environment and replace it with data from the file. Continue?",

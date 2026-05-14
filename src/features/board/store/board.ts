@@ -54,22 +54,10 @@ import type { UUID } from "@/shared/types/common/uuid";
 import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
 import { normalizeManualSteps, sanitizeManualSteps } from "@/shared/utils/navigation/refreshSteps";
 import {
-  getWorkspaceExportFileName,
-  parseWorkspaceImportPayload,
+  exportState,
+  importState,
   type WorkspaceImportPayload,
-} from "@/shared/utils/validation";
-
-const downloadWorkspacePayload = (payload: WorkspaceImportPayload) => {
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = getWorkspaceExportFileName();
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
+} from "@/shared/utils/migration/migration";
 
 export function useBoardStore() {
   const { showToast } = useToast();
@@ -280,15 +268,14 @@ export function useBoardStore() {
       display,
     };
 
-    downloadWorkspacePayload(payload);
+    exportState(payload);
     showToast("Workspace exported as JSON");
   }, [display, manualSteps, rawLinks, rawObstacles, rawPeers, showToast, texts]);
 
   const handleImportWorkspace = useCallback(
     async (file: File) => {
       try {
-        const raw = await file.text();
-        const payload = parseWorkspaceImportPayload(raw);
+        const payload = await importState(file);
 
         const confirmed = window.confirm(
           "Import action will clear the current environment and replace it with data from the file. Continue?",

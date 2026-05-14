@@ -1,5 +1,6 @@
 import { peerRoutingProtocols, workflowStepTypes } from "@/shared/constants/protocol";
 import { ActionGroup, ActionMode, type ActionModesByGroup } from "@/shared/types/action";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { EntityType } from "@/shared/types/model/entities";
 import type {
   LinkEntity,
@@ -7,20 +8,11 @@ import type {
   ObstacleEntity,
   PeerEntity,
 } from "@/shared/types/model/entities";
-import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { RefreshAction, StepType, type WorkflowStep } from "@/shared/types/model/steps";
-import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
-import type { DisplayState } from "@/shared/store/slices/displaySlice";
 import { TABS } from "@/shared/store/slices/displaySlice";
-
-export type WorkspaceImportPayload = {
-  peers: PeerEntity[];
-  links: LinkEntity[];
-  obstacles: ObstacleEntity[];
-  steps: WorkflowStep[];
-  texts: WorkspaceTextItem[];
-  display: Partial<DisplayState>;
-};
+import type { DisplayState } from "@/shared/store/slices/displaySlice";
+import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
+import type { ImportPayload } from "@/shared/types/common/migration";
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null;
@@ -132,7 +124,7 @@ const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
   return false;
 };
 
-const isValidWorkspaceText = (value: unknown): value is WorkspaceTextItem => {
+const isValidTextItem = (value: unknown): value is WorkspaceTextItem => {
   return (
     isRecord(value) &&
     typeof value.id === "string" &&
@@ -234,7 +226,7 @@ const isValidWorkflowStep = (value: unknown): value is WorkflowStep => {
   return false;
 };
 
-export const parseWorkspaceImportPayload = (raw: string): WorkspaceImportPayload => {
+export const validateAndParseImportPayload = (raw: string): ImportPayload => {
   let parsed: unknown;
 
   try {
@@ -262,7 +254,7 @@ export const parseWorkspaceImportPayload = (raw: string): WorkspaceImportPayload
     Array.isArray(parsed.steps) &&
     parsed.steps.every(isValidWorkflowStep) &&
     (!("texts" in parsed) ||
-      (Array.isArray(parsed.texts) && parsed.texts.every(isValidWorkspaceText))) &&
+      (Array.isArray(parsed.texts) && parsed.texts.every(isValidTextItem))) &&
     (!("display" in parsed) || isValidDisplayState(parsed.display))
   ) {
     return {
@@ -278,7 +270,7 @@ export const parseWorkspaceImportPayload = (raw: string): WorkspaceImportPayload
   throw new Error("Invalid workspace format. Expected peers, links, obstacles, and steps arrays.");
 };
 
-export const getWorkspaceExportFileName = (date = new Date()) => {
+export const getExportFileName = (date = new Date()) => {
   const toPart = (value: number) => String(value).padStart(2, "0");
   const stamp = `${date.getFullYear()}${toPart(date.getMonth() + 1)}${toPart(date.getDate())}-${toPart(
     date.getHours(),
