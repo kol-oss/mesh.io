@@ -13,19 +13,19 @@ import type {
 import { clamp } from "@/shared/utils/math/clamp";
 import { toInt } from "@/shared/utils/geometry";
 
-type UseWorkspaceBackgroundParams = {
+type UseBackgroundParams = {
   refs: WorkspaceBackgroundRefs;
   state: WorkspaceBackgroundState;
   setters: WorkspaceBackgroundSetters;
   actions: WorkspaceBackgroundActions;
 };
 
-export function useWorkspaceBackground({
+export function useBackground({
   refs,
   state,
   setters,
   actions,
-}: UseWorkspaceBackgroundParams): WorkspaceBackgroundHandlers {
+}: UseBackgroundParams): WorkspaceBackgroundHandlers {
   const workspaceRef = refs.workspaceRef;
   const linkSourcePeerIdRef = refs.linkSourcePeerIdRef;
   const stepMessageSourcePeerIdRef = refs.stepMessageSourcePeerIdRef;

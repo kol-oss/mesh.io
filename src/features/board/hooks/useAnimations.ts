@@ -13,7 +13,7 @@ import {
   buildToggleStepAnimation,
 } from "@/shared/utils/workspace/simulationAnimation";
 
-type Props = {
+type UseAnimationsParams = {
   currentSimulationEvent: SimulationEvent | null;
   currentSimulationStepResult: SimulationStepResult | null;
   baseRenderedEntities: NetworkEntity[];
@@ -28,12 +28,12 @@ type Return = {
   renderedEntities: NetworkEntity[];
 };
 
-export const useWorkspaceAnimations = ({
+export const useAnimations = ({
   currentSimulationEvent,
   currentSimulationStepResult,
   baseRenderedEntities,
   peers,
-}: Props): Return => {
+}: UseAnimationsParams): Return => {
   const [moveStepAnimationProgress, setMoveStepAnimationProgress] = useState(1);
 
   const moveStepAnimationSource = useMemo(

@@ -12,19 +12,19 @@ import type {
   WorkspacePlacementState,
 } from "@/shared/types/workspace/placement";
 
-type UseWorkspacePlacementParams = {
+type UsePlacementParams = {
   refs: WorkspacePlacementRefs;
   state: WorkspacePlacementState;
   setters: WorkspacePlacementSetters;
   actions: WorkspacePlacementActions;
 };
 
-export function useWorkspacePlacement({
+export function usePlacement({
   refs,
   state,
   setters,
   actions,
-}: UseWorkspacePlacementParams): WorkspacePlacementHandlers {
+}: UsePlacementParams): WorkspacePlacementHandlers {
   const linkSourcePeerIdRef = refs.linkSourcePeerIdRef;
   const stepMessageSourcePeerIdRef = refs.stepMessageSourcePeerIdRef;
   const stepMovePeerIdRef = refs.stepMovePeerIdRef;

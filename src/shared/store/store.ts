@@ -14,6 +14,8 @@ import obstacleReducer from "@/shared/store/slices/obstacleSlice";
 import stepReducer from "@/shared/store/slices/stepSlice";
 import textReducer from "@/shared/store/slices/textSlice";
 import displayReducer from "@/shared/store/slices/displaySlice";
+import boardReducer from "@/shared/store/slices/boardSlice";
+import simulationReducer from "@/shared/store/slices/simulationSlice";
 import { setState } from "@/shared/store/utils/storeUtils";
 
 export const store = configureStore({
@@ -24,10 +26,12 @@ export const store = configureStore({
     step: stepReducer,
     text: textReducer,
     display: displayReducer,
+    board: boardReducer,
+    simulation: simulationReducer,
   },
 });
 
-// Sync state to localStorage whenever the store changes
+// Sync state to localStorage whenever the store changes.
 store.subscribe(() => {
   const { peer, link, obstacle, step, text, display } = store.getState();
 

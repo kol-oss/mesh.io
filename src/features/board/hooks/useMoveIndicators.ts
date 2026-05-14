@@ -4,7 +4,7 @@ import type { WorkflowStep } from "@/shared/types/model/steps";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-type Props = {
+type UseMoveIndicatorsParams = {
   steps: WorkflowStep[];
   setSteps: (value: WorkflowStep[]) => void;
   isSimulationActive: boolean;
@@ -26,7 +26,7 @@ export const useMoveIndicatorHandlers = ({
   setSteps,
   isSimulationActive,
   getWorkspaceCoordsByClientPosition,
-}: Props): Return => {
+}: UseMoveIndicatorsParams): Return => {
   const moveIndicatorDragStateRef = useRef<{ pointerId: number; stepId: UUID } | null>(null);
 
   const updateMoveStepTarget = useCallback(

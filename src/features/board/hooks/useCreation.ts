@@ -1,9 +1,6 @@
 import { useCallback } from "react";
 
-import {
-  OBSTACLE_DEFAULT_WIDTH,
-  OBSTACLE_DEFAULT_HEIGHT,
-} from "@/shared/constants/obstacle.ts";
+import { OBSTACLE_DEFAULT_WIDTH, OBSTACLE_DEFAULT_HEIGHT } from "@/shared/constants/obstacle.ts";
 import { NEW_PEER_RANGE } from "@/shared/constants/workspace";
 import { getDefaultPeerConfiguration } from "@/shared/constants/protocol";
 import type { BatmanConfiguration } from "@/shared/types/model/configurations.ts";
@@ -31,7 +28,7 @@ import type {
 import { generateUUID, type UUID } from "@/shared/types/common/uuid.ts";
 import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 
-type UseWorkspaceCreationParams = {
+type UseCreationParams = {
   entities: NetworkEntity[];
   steps: WorkflowStep[];
   texts: WorkspaceTextItem[];
@@ -39,13 +36,7 @@ type UseWorkspaceCreationParams = {
   callbacks: WorkspaceCreationCallbacks;
 };
 
-export function useWorkspaceCreation({
-  entities,
-  steps,
-  texts,
-  setters,
-  callbacks,
-}: UseWorkspaceCreationParams) {
+export function useCreation({ entities, steps, texts, setters, callbacks }: UseCreationParams) {
   const createPeerAt = useCallback(
     (x: number, y: number) => {
       const nextPeer: PeerEntity = {

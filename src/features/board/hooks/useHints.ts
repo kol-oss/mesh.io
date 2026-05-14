@@ -8,13 +8,13 @@ import type {
 } from "@/shared/types/workspace/hints";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 
-type UseWorkspaceHintsParams = {
+type UseHintsParams = {
   refs: WorkspaceHintRefs;
   state: WorkspaceHintState;
   actions: WorkspaceHintActions;
 };
 
-export function useWorkspaceHints({ refs, state, actions }: UseWorkspaceHintsParams) {
+export function useHints({ refs, state, actions }: UseHintsParams) {
   const placementModeRef = refs.placementModeRef;
   const hintActiveRef = refs.hintActiveRef;
   const restoreHintTimerRef = refs.restoreHintTimerRef;

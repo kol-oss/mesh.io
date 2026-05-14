@@ -24,7 +24,7 @@ import {
 } from "@/shared/utils/geometry";
 import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 
-type UseWorkspaceDerivedParams = {
+type UseDerivedParams = {
   entities: NetworkEntity[];
   steps: WorkflowStep[];
   selectedId: UUID | null;
@@ -35,7 +35,7 @@ type UseWorkspaceDerivedParams = {
   workspaceSize: { width: number; height: number };
 };
 
-export function useWorkspaceDerived({
+export function useDerived({
   entities,
   steps,
   selectedId,
@@ -44,7 +44,7 @@ export function useWorkspaceDerived({
   placementMode,
   moveTargetPreview,
   workspaceSize,
-}: UseWorkspaceDerivedParams) {
+}: UseDerivedParams) {
   const peers = useMemo(
     () => entities.filter((entity): entity is PeerEntity => entity.type === EntityType.Peer),
     [entities],

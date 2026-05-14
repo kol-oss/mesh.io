@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 
-type Size = {
-  width: number;
-  height: number;
-};
+import type { WorkspaceSize } from "@/shared/types/workspace/shared";
 
 export function useSize(workspaceRef: React.MutableRefObject<HTMLElement | null>) {
-  const [workspaceSize, setWorkspaceSize] = useState<Size>({ width: 0, height: 0 });
+  const [workspaceSize, setWorkspaceSize] = useState<WorkspaceSize>({ width: 0, height: 0 });
 
   useEffect(() => {
     const element = workspaceRef.current;

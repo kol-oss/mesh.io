@@ -1,18 +1,18 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import { useWorkspaceBackground } from "@/features/board/hooks/useBackground";
-import { useWorkspaceCreation } from "@/features/board/hooks/useCreation";
-import { useWorkspaceDerived } from "@/features/board/hooks/useDerived";
-import { useWorkspaceDrag } from "@/features/board/hooks/useDrag";
-import { useWorkspaceHints } from "@/features/board/hooks/useHints";
+import { useBackground } from "@/features/board/hooks/useBackground";
+import { useCreation } from "@/features/board/hooks/useCreation";
+import { useDerived } from "@/features/board/hooks/useDerived";
+import { useDrag } from "@/features/board/hooks/useDrag";
+import { useHints } from "@/features/board/hooks/useHints";
 import { useMoveIndicatorHandlers } from "@/features/board/hooks/useMoveIndicators";
-import { useWorkspacePlacement } from "@/features/board/hooks/usePlacement";
+import { usePlacement } from "@/features/board/hooks/usePlacement";
 import { useSimulationFocus } from "@/features/simulation/hooks/useSimulationFocus";
 import { useSize } from "@/features/board/hooks/useSize";
 import { useTextDelete } from "@/features/board/hooks/useTextDelete";
-import { useWorkspaceTextEdit } from "@/features/board/hooks/useTextEdit";
+import { useTextEdit } from "@/features/board/hooks/useTextEdit";
 import { useSimulationEventHandlers } from "@/features/simulation/hooks/useSimulationEventHandlers";
-import { useWorkspaceAnimations } from "@/features/board/hooks/useAnimations";
+import { useAnimations } from "@/features/board/hooks/useAnimations";
 import { useWindowStates } from "@/features/simulation/hooks/useWindowStates";
 import { useToast } from "@/shared/toast/useToast";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
@@ -116,7 +116,7 @@ export default function Canvas({
   );
 
   const { moveStepAnimation, toggleStepAnimation, simulationMessageAnimations, renderedEntities } =
-    useWorkspaceAnimations({
+    useAnimations({
       currentSimulationEvent,
       currentSimulationStepResult,
       baseRenderedEntities,
@@ -134,7 +134,7 @@ export default function Canvas({
     rangePolygons,
     moveIndicators,
     selectedStepAffectedEntityIds,
-  } = useWorkspaceDerived({
+  } = useDerived({
     entities: renderedEntities,
     steps,
     selectedId,
@@ -189,7 +189,7 @@ export default function Canvas({
     createMoveStep,
     createToggleStep,
     createTextAt,
-  } = useWorkspaceCreation({
+  } = useCreation({
     entities,
     steps,
     texts,
@@ -197,7 +197,7 @@ export default function Canvas({
     callbacks: { onEntitySelect, onStepSelect, showCreationToast },
   });
 
-  const { showPlacementHint, scheduleHintRestore } = useWorkspaceHints({
+  const { showPlacementHint, scheduleHintRestore } = useHints({
     refs: {
       placementModeRef,
       hintActiveRef,
@@ -217,7 +217,7 @@ export default function Canvas({
     handlePeerPointerDownForDrag,
     handleEntityPointerMove,
     handleEntityPointerEnd,
-  } = useWorkspaceDrag({
+  } = useDrag({
     entities,
     texts,
     setEntities,
@@ -239,7 +239,7 @@ export default function Canvas({
     showToast,
   });
 
-  const { handleTextDoubleClick, commitTextEdit, cancelTextEdit } = useWorkspaceTextEdit({
+  const { handleTextDoubleClick, commitTextEdit, cancelTextEdit } = useTextEdit({
     texts,
     editingTextId,
     editingTextDraft,
@@ -254,7 +254,7 @@ export default function Canvas({
     onClearSelection();
   }, [isSimulationActive, onClearSelection, selectedSource]);
 
-  const { handleStaticLinkPointerDown, handlePeerPointerDown } = useWorkspacePlacement({
+  const { handleStaticLinkPointerDown, handlePeerPointerDown } = usePlacement({
     refs: { linkSourcePeerIdRef, stepMessageSourcePeerIdRef, stepMovePeerIdRef },
     state: { placementMode },
     setters: { setCreationSelectedEntityId },
@@ -270,7 +270,7 @@ export default function Canvas({
   });
 
   const { handleBackgroundPointerDown, handleBackgroundPointerMove, handleBackgroundPointerEnd } =
-    useWorkspaceBackground({
+    useBackground({
       refs: {
         workspaceRef,
         linkSourcePeerIdRef,

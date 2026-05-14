@@ -21,7 +21,7 @@ import type { ToolbarPlacementMode } from "@/shared/types/action";
 import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
 import type { UUID } from "@/shared/types/common/uuid";
 
-type UseWorkspaceDragParams = {
+type UseDragParams = {
   entities: WorkspaceDragEntities;
   texts: WorkspaceDragTexts;
   setEntities: SetEntities;
@@ -33,7 +33,7 @@ type UseWorkspaceDragParams = {
   actions: WorkspaceDragActions;
 };
 
-export function useWorkspaceDrag({
+export function useDrag({
   entities,
   texts,
   setEntities,
@@ -43,7 +43,7 @@ export function useWorkspaceDrag({
   setters,
   state,
   actions,
-}: UseWorkspaceDragParams): WorkspaceDragHandlers {
+}: UseDragParams): WorkspaceDragHandlers {
   const dragStateRef = refs.dragStateRef;
 
   const updatePeerPosition = useCallback(

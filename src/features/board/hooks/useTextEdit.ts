@@ -7,19 +7,19 @@ import type {
 import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
 import type { UUID } from "@/shared/types/common/uuid";
 
-type UseWorkspaceTextEditParams = {
+type UseTextEditParams = {
   texts: WorkspaceTextItem[];
   editingTextId: UUID | null;
   editingTextDraft: string;
   setters: WorkspaceTextEditSetters;
 };
 
-export function useWorkspaceTextEdit({
+export function useTextEdit({
   texts,
   editingTextId,
   editingTextDraft,
   setters,
-}: UseWorkspaceTextEditParams): WorkspaceTextEditHandlers {
+}: UseTextEditParams): WorkspaceTextEditHandlers {
   const handleTextDoubleClick = useCallback(
     (item: WorkspaceTextItem) => {
       setters.setSelectedTextId(item.id);

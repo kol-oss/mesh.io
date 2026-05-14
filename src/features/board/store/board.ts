@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
 import {
@@ -15,10 +15,30 @@ import { clearLinks, replaceLinks } from "@/shared/store/slices/linkSlice";
 import { clearObstacles, replaceObstacles } from "@/shared/store/slices/obstacleSlice";
 import { clearSteps, replaceSteps } from "@/shared/store/slices/stepSlice";
 import { clearTexts, replaceTexts } from "@/shared/store/slices/textSlice";
+import { setPlacementMode } from "@/shared/store/slices/boardSlice";
+import {
+  clearSimulation,
+  setIsRunning,
+  setCurrentStepIndex,
+  setCurrentEventIndex,
+  setInspectionMode,
+  simulationCompleted,
+  type SimulationInspectionMode,
+} from "@/shared/store/slices/simulationSlice";
+import {
+  selectEntities,
+  selectNormalizedSteps,
+  selectSteps,
+  selectSelectedSource,
+  selectIsSimulationActive,
+  selectCurrentSimulationStepResult,
+  selectCurrentSimulationEvents,
+  selectNormalizedCurrentEventIndex,
+  selectCurrentSimulationEvent,
+} from "@/shared/store/selectors";
 import { useToast } from "@/shared/toast/useToast";
 import { runSimulation } from "@/shared/processor/simulation";
 import { ActionMode as PlacementMode, ActionMode as ToolbarMode } from "@/shared/types/action";
-import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import type {
   LinkEntity,
@@ -27,21 +47,12 @@ import type {
   PeerEntity,
 } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
-import {
-  SimulationEventType,
-  type RoutingTableChangeDetails,
-  type SimulationEvent,
-  type SimulationPlaybackState,
-} from "@/shared/types/model/simulation";
+import type { SimulationResult } from "@/shared/types/model/simulation";
 import type { WorkflowStep } from "@/shared/types/model/steps";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
-import {
-  composeStepsWithRefresh,
-  normalizeManualSteps,
-  sanitizeManualSteps,
-} from "@/shared/utils/navigation/refreshSteps";
+import { normalizeManualSteps, sanitizeManualSteps } from "@/shared/utils/navigation/refreshSteps";
 import {
   getWorkspaceExportFileName,
   parseWorkspaceImportPayload,
@@ -60,106 +71,45 @@ const downloadWorkspacePayload = (payload: WorkspaceImportPayload) => {
   URL.revokeObjectURL(url);
 };
 
-const collapseOriginatorInsertUpdateEvents = (events: SimulationEvent[]) => {
-  const skipIds = new Set<string>();
-
-  for (let index = 0; index < events.length - 1; index += 1) {
-    const current = events[index];
-    const next = events[index + 1];
-    if (
-      current.type !== SimulationEventType.RoutingTableInsert ||
-      next.type !== SimulationEventType.RoutingTableUpdate
-    ) {
-      continue;
-    }
-
-    if (current.peerId !== next.peerId) {
-      continue;
-    }
-
-    const currentDetails = current.details as RoutingTableChangeDetails;
-    const nextDetails = next.details as RoutingTableChangeDetails;
-    if (
-      currentDetails.protocol !== RoutingProtocol.BATMAN ||
-      nextDetails.protocol !== RoutingProtocol.BATMAN
-    ) {
-      continue;
-    }
-
-    if (
-      currentDetails.originatorPeerId !== nextDetails.originatorPeerId ||
-      currentDetails.hopPeerId !== nextDetails.hopPeerId
-    ) {
-      continue;
-    }
-
-    skipIds.add(current.id);
-  }
-
-  return events.filter((event) => !skipIds.has(event.id));
-};
-
 export function useBoardStore() {
   const { showToast } = useToast();
   const dispatch = useAppDispatch();
   const simulationRunLockRef = useRef(false);
-  const [placementMode, setPlacementMode] = useState<ToolbarPlacementMode>(null);
+
+  const placementMode = useAppSelector((state) => state.board.placementMode);
   const display = useAppSelector((state) => state.display);
   const selectedId = useAppSelector((state) => state.display.selectedId);
   const openedTabs = useAppSelector((state) => state.display.openedTabs);
   const isRefreshHidden = useAppSelector((state) => state.display.refreshHidden);
   const isNavCollapsed = useAppSelector((state) => state.display.navCollapsed ?? false);
 
+  // Raw slices needed for export/import and step normalization check
   const rawPeers = useAppSelector((state) => state.peer);
   const rawLinks = useAppSelector((state) => state.link);
   const rawObstacles = useAppSelector((state) => state.obstacle);
   const manualSteps = useAppSelector((state) => state.step);
   const texts = useAppSelector((state) => state.text);
-  const [simulationPlayback, setSimulationPlayback] = useState<SimulationPlaybackState>({
-    result: null,
-    currentStepIndex: 0,
-    currentEventIndex: 0,
-    isRunning: false,
-  });
-  const [simulationInspectionMode, setSimulationInspectionMode] = useState<ToolbarMode>(
-    ToolbarMode.PacketStructure,
-  );
+
+  // Derived state via memoized selectors
+  const entities = useAppSelector(selectEntities);
+  const normalizedManualSteps = useAppSelector(selectNormalizedSteps);
+  const steps = useAppSelector(selectSteps);
+  const selectedSource = useAppSelector(selectSelectedSource);
+  const isSimulationActive = useAppSelector(selectIsSimulationActive);
+  const currentSimulationStepResult = useAppSelector(selectCurrentSimulationStepResult);
+  const currentSimulationEvents = useAppSelector(selectCurrentSimulationEvents);
+  const normalizedCurrentEventIndex = useAppSelector(selectNormalizedCurrentEventIndex);
+  const currentSimulationEvent = useAppSelector(selectCurrentSimulationEvent);
+
+  const simulationIsRunning = useAppSelector((state) => state.simulation.isRunning);
+  const simulationInspectionMode = useAppSelector((state) => state.simulation.inspectionMode);
+  const simulationResult = useAppSelector((state) => state.simulation.result);
+  const simulationCurrentStepIndex = useAppSelector((state) => state.simulation.currentStepIndex);
+  const simulationCurrentEventIndex = useAppSelector((state) => state.simulation.currentEventIndex);
 
   const invalidateSimulation = useCallback(() => {
-    setSimulationPlayback({
-      result: null,
-      currentStepIndex: 0,
-      currentEventIndex: 0,
-      isRunning: false,
-    });
-  }, []);
-
-  const entities = useMemo<NetworkEntity[]>(
-    () => [...rawPeers, ...rawLinks, ...rawObstacles],
-    [rawPeers, rawLinks, rawObstacles],
-  );
-
-  const normalizedManualSteps = useMemo(() => normalizeManualSteps(manualSteps), [manualSteps]);
-  const steps = useMemo(
-    () => composeStepsWithRefresh(normalizedManualSteps, entities),
-    [normalizedManualSteps, entities],
-  );
-
-  const selectedSource = useMemo<SelectionSource | null>(() => {
-    if (!selectedId) {
-      return null;
-    }
-
-    if (entities.some((entity) => entity.id === selectedId)) {
-      return SelectionSource.Entities;
-    }
-
-    if (steps.some((step) => step.id === selectedId)) {
-      return SelectionSource.Steps;
-    }
-
-    return null;
-  }, [entities, selectedId, steps]);
+    dispatch(clearSimulation());
+  }, [dispatch]);
 
   const setDisplaySelectedId = useCallback(
     (id: UUID | null) => {
@@ -251,28 +201,18 @@ export function useBoardStore() {
 
   const handleWorkspaceStepSelect = useCallback(
     (id: UUID) => {
-      setSimulationPlayback((prev) => {
-        if (!prev.result) {
-          return prev;
-        }
-
-        const stepIndex = prev.result.stepResults.findIndex(
+      if (simulationResult) {
+        const stepIndex = simulationResult.stepResults.findIndex(
           (stepResult) => stepResult.step.id === id,
         );
-        if (stepIndex === -1) {
-          return prev;
+        if (stepIndex !== -1) {
+          dispatch(setCurrentStepIndex(stepIndex));
         }
-
-        return {
-          ...prev,
-          currentStepIndex: stepIndex,
-          currentEventIndex: 0,
-        };
-      });
+      }
 
       setDisplaySelectedId(id);
     },
-    [setDisplaySelectedId],
+    [dispatch, setDisplaySelectedId, simulationResult],
   );
 
   const handleStepSelect = useCallback(
@@ -282,33 +222,26 @@ export function useBoardStore() {
         return;
       }
 
-      setSimulationPlayback((prev) => {
-        if (!prev.result) {
-          return prev;
-        }
-
-        const stepIndex = prev.result.stepResults.findIndex(
+      if (simulationResult) {
+        const stepIndex = simulationResult.stepResults.findIndex(
           (stepResult) => stepResult.step.id === id,
         );
-        if (stepIndex === -1) {
-          return prev;
+        if (stepIndex !== -1) {
+          dispatch(setCurrentStepIndex(stepIndex));
         }
-
-        return {
-          ...prev,
-          currentStepIndex: stepIndex,
-          currentEventIndex: 0,
-        };
-      });
+      }
 
       setDisplaySelectedId(id);
     },
-    [clearSelection, selectedId, selectedSource, setDisplaySelectedId],
+    [clearSelection, dispatch, selectedId, selectedSource, setDisplaySelectedId, simulationResult],
   );
 
-  const handlePlacementModeChange = useCallback((mode: ToolbarPlacementMode) => {
-    setPlacementMode(mode);
-  }, []);
+  const handlePlacementModeChange = useCallback(
+    (mode: ToolbarPlacementMode) => {
+      dispatch(setPlacementMode(mode));
+    },
+    [dispatch],
+  );
 
   const handleNewWorkspace = useCallback(() => {
     const hasData = entities.length > 0 || manualSteps.length > 0;
@@ -382,8 +315,8 @@ export function useBoardStore() {
   );
 
   const focusSimulationStep = useCallback(
-    (stepIndex: number, playback: SimulationPlaybackState) => {
-      const step = playback.result?.stepResults[stepIndex]?.step;
+    (stepIndex: number, result: SimulationResult) => {
+      const step = result.stepResults[stepIndex]?.step;
       if (!step) {
         return;
       }
@@ -394,7 +327,7 @@ export function useBoardStore() {
   );
 
   const handleRunSimulation = useCallback(() => {
-    if (simulationRunLockRef.current || simulationPlayback.isRunning) {
+    if (simulationRunLockRef.current || simulationIsRunning) {
       showToast("Simulation is already running");
       return;
     }
@@ -405,51 +338,39 @@ export function useBoardStore() {
     }
 
     simulationRunLockRef.current = true;
-    setSimulationPlayback((prev) => ({ ...prev, isRunning: true }));
+    dispatch(setIsRunning(true));
 
     try {
       const result = runSimulation({ entities, steps });
-      const nextPlayback: SimulationPlaybackState = {
-        result,
-        currentStepIndex: 0,
-        currentEventIndex: 0,
-        isRunning: false,
-      };
 
-      setSimulationInspectionMode(ToolbarMode.PacketStructure);
-      setSimulationPlayback(nextPlayback);
-      focusSimulationStep(0, nextPlayback);
+      dispatch(setInspectionMode(ToolbarMode.PacketStructure as SimulationInspectionMode));
+      dispatch(simulationCompleted(result));
+      focusSimulationStep(0, result);
       showToast(`Simulation finished with ${result.events.length} events`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Simulation failed";
-      setSimulationPlayback((prev) => ({ ...prev, isRunning: false }));
+      dispatch(setIsRunning(false));
       showToast(message);
     } finally {
       simulationRunLockRef.current = false;
     }
-  }, [entities, focusSimulationStep, showToast, simulationPlayback.isRunning, steps]);
+  }, [dispatch, entities, focusSimulationStep, showToast, simulationIsRunning, steps]);
 
   const navigateSimulationStep = useCallback(
     (direction: -1 | 1) => {
-      if (!simulationPlayback.result) {
+      if (!simulationResult) {
         return;
       }
 
-      const nextStepIndex = simulationPlayback.currentStepIndex + direction;
-      if (nextStepIndex < 0 || nextStepIndex >= simulationPlayback.result.stepResults.length) {
+      const nextStepIndex = simulationCurrentStepIndex + direction;
+      if (nextStepIndex < 0 || nextStepIndex >= simulationResult.stepResults.length) {
         return;
       }
 
-      const nextPlayback: SimulationPlaybackState = {
-        ...simulationPlayback,
-        currentStepIndex: nextStepIndex,
-        currentEventIndex: 0,
-      };
-
-      setSimulationPlayback(nextPlayback);
-      focusSimulationStep(nextStepIndex, nextPlayback);
+      dispatch(setCurrentStepIndex(nextStepIndex));
+      focusSimulationStep(nextStepIndex, simulationResult);
     },
-    [focusSimulationStep, simulationPlayback],
+    [dispatch, focusSimulationStep, simulationCurrentStepIndex, simulationResult],
   );
 
   const handlePrevSimulationStep = useCallback(() => {
@@ -460,9 +381,12 @@ export function useBoardStore() {
     navigateSimulationStep(1);
   }, [navigateSimulationStep]);
 
-  const handleSimulationInspectionModeChange = useCallback((mode: ToolbarMode) => {
-    setSimulationInspectionMode(mode);
-  }, []);
+  const handleSimulationInspectionModeChange = useCallback(
+    (mode: ToolbarMode) => {
+      dispatch(setInspectionMode(mode as SimulationInspectionMode));
+    },
+    [dispatch],
+  );
 
   const handleStopSimulation = useCallback(() => {
     invalidateSimulation();
@@ -482,53 +406,30 @@ export function useBoardStore() {
     placementMode === PlacementMode.Move ||
     placementMode === PlacementMode.Toggle;
 
-  const currentSimulationStepResult =
-    simulationPlayback.result?.stepResults[simulationPlayback.currentStepIndex] ?? null;
-  const isSimulationActive = simulationPlayback.result !== null;
-  const currentSimulationEvents = useMemo(() => {
-    if (!currentSimulationStepResult) {
-      return [];
-    }
-
-    const collapsedEvents = collapseOriginatorInsertUpdateEvents(
-      currentSimulationStepResult.events,
-    );
-
-    return collapsedEvents;
-  }, [currentSimulationStepResult]);
-  const normalizedCurrentEventIndex =
-    currentSimulationEvents.length === 0
-      ? 0
-      : Math.min(simulationPlayback.currentEventIndex, currentSimulationEvents.length - 1);
-  const currentSimulationEvent = currentSimulationEvents[normalizedCurrentEventIndex] ?? null;
-
   const handlePrevSimulationEvent = useCallback(() => {
-    setSimulationPlayback((prev) => ({
-      ...prev,
-      currentEventIndex: Math.max(0, prev.currentEventIndex - 1),
-    }));
-  }, []);
+    dispatch(setCurrentEventIndex(Math.max(0, simulationCurrentEventIndex - 1)));
+  }, [dispatch, simulationCurrentEventIndex]);
 
   const handleNextSimulationEvent = useCallback(() => {
-    setSimulationPlayback((prev) => ({
-      ...prev,
-      currentEventIndex:
+    dispatch(
+      setCurrentEventIndex(
         currentSimulationEvents.length === 0
           ? 0
-          : Math.min(currentSimulationEvents.length - 1, prev.currentEventIndex + 1),
-    }));
-  }, [currentSimulationEvents.length]);
+          : Math.min(currentSimulationEvents.length - 1, simulationCurrentEventIndex + 1),
+      ),
+    );
+  }, [currentSimulationEvents.length, dispatch, simulationCurrentEventIndex]);
 
   return {
     canGoNextEvent:
       currentSimulationEvents.length > 0 &&
       normalizedCurrentEventIndex < currentSimulationEvents.length - 1,
     canGoNextStep:
-      simulationPlayback.result !== null &&
-      simulationPlayback.currentStepIndex < simulationPlayback.result.stepResults.length - 1,
+      simulationResult !== null &&
+      simulationCurrentStepIndex < simulationResult.stepResults.length - 1,
     canGoPrevEvent: normalizedCurrentEventIndex > 0,
-    canGoPrevStep: simulationPlayback.currentStepIndex > 0,
-    canRunSimulation: !simulationPlayback.isRunning,
+    canGoPrevStep: simulationCurrentStepIndex > 0,
+    canRunSimulation: !simulationIsRunning,
     currentSimulationEvent,
     currentSimulationEventIndex: normalizedCurrentEventIndex,
     currentSimulationEvents,
@@ -550,7 +451,6 @@ export function useBoardStore() {
     setEntities,
     setSteps,
     setTexts,
-    simulationPlayback,
     steps,
     texts,
     toggleNavCollapse,
