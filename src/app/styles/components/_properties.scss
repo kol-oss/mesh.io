@@ -21,7 +21,7 @@
       pointer-events: none;
     }
 
-    .properties__input-with-prefix,
+    .properties__input-with-icon,
     .properties__input-with-icon {
       cursor: not-allowed;
     }
@@ -182,7 +182,6 @@
     cursor: pointer;
   }
 
-  &__input-with-prefix,
   &__input-with-icon {
     display: flex;
     align-items: center;

@@ -254,7 +254,7 @@ export default function StepProperties({
 
             <label className="properties__field">
               <span className="properties__field-label">{"Tick"}</span>
-              <div className="properties__input-with-prefix">
+              <div className="properties__input-with-icon">
                 <Clock3 size={12} />
                 <input
                   className="properties__input"

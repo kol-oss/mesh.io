@@ -1,26 +1,6 @@
-import {
-  CircleDot,
-  Clock3,
-  Diamond,
-  ExternalLink,
-  Globe,
-  Lock,
-  Percent,
-  Ruler,
-} from "lucide-react";
+import { CircleDot, Clock3, Diamond, ExternalLink, Globe, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import {
-  getDefaultPeerConfiguration,
-  peerRoutingProtocols,
-} from "@/shared/constants/protocol";
-import {
-  BATMAN_MIN_OGM_INTERVAL,
-  BATMAN_MIN_ELP_INTERVAL,
-  BATMAN_MIN_PURGE_TIMEOUT,
-  BATMAN_MIN_DISTANCE_PENALTY,
-  BATMAN_MIN_PENALTY_PERCENT,
-} from "@/shared/constants/batman";
 import {
   AODV_MAX_HELLO_INTERVAL,
   AODV_MAX_ROUTE_TIMEOUT,
@@ -39,21 +19,27 @@ import { EntityType } from "@/shared/types/model/entities";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type {
   AodvConfiguration,
-  BatmanConfiguration,
   DsdvConfiguration,
   OlsrConfiguration,
+  PeerConfiguration,
 } from "@/shared/types/model/configurations";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import {
   getAodvConfiguration,
-  getBatmanConfiguration,
+  getConfiguration,
   getDsdvConfiguration,
   getOlsrConfiguration,
 } from "@/shared/types/model/peers";
 import type { PeerPropertiesPanelProps } from "@/shared/types/view/properties";
 import { parseNumberValue, parsePositiveNumberValue } from "@/shared/utils/properties";
-
-const protocols = peerRoutingProtocols;
+import Letter from "@/shared/components/Letter/Letter";
+import BatmanProperties from "../BatmanProperties/BatmanProperties";
+import type { UUID } from "@/shared/types/common/uuid";
+import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
+import TextPropertyField from "@/shared/components/Property/TextPropertyField";
+import BooleanPropertyField from "@/shared/components/Property/BooleanPropertyField";
+import ProtocolField from "@/shared/components/Property/ProtocolField";
 
 export default function PeerProperties({
   widthPercent,
@@ -66,27 +52,11 @@ export default function PeerProperties({
 }: PeerPropertiesPanelProps) {
   const isLocked = selectedPeer.locked === true;
   const selectedProtocol = selectedPeer.protocol;
-  const batmanConfiguration = getBatmanConfiguration(selectedPeer);
   const dsdvConfiguration = getDsdvConfiguration(selectedPeer);
   const aodvConfiguration = getAodvConfiguration(selectedPeer);
   const olsrConfiguration = getOlsrConfiguration(selectedPeer);
   const isPeerNameMissing = selectedPeer.name.trim() === "";
   const isProtocolMissing = false;
-  const isBatmanOgmMissing =
-    selectedProtocol === RoutingProtocol.BATMAN &&
-    (batmanConfiguration?.ogmInterval ?? 0) < BATMAN_MIN_OGM_INTERVAL;
-  const isBatmanElpMissing =
-    selectedProtocol === RoutingProtocol.BATMAN &&
-    (batmanConfiguration?.elpInterval ?? 0) < BATMAN_MIN_ELP_INTERVAL;
-  const isBatmanPurgeMissing =
-    selectedProtocol === RoutingProtocol.BATMAN &&
-    (batmanConfiguration?.purgeTimeout ?? 0) < BATMAN_MIN_PURGE_TIMEOUT;
-  const isBatmanPenaltyDistanceMissing =
-    selectedProtocol === RoutingProtocol.BATMAN &&
-    (batmanConfiguration?.distancePenaltyDistance ?? 0) < BATMAN_MIN_DISTANCE_PENALTY;
-  const isBatmanPenaltyPercentMissing =
-    selectedProtocol === RoutingProtocol.BATMAN &&
-    (batmanConfiguration?.distancePenaltyPercent ?? 0) < BATMAN_MIN_PENALTY_PERCENT;
   const isDsdvIncrementalMissing =
     selectedProtocol === RoutingProtocol.DSDV &&
     (dsdvConfiguration?.incrementalUpdateInterval ?? 0) < DSDV_MIN_INTERVAL;
@@ -109,6 +79,31 @@ export default function PeerProperties({
     selectedProtocol === RoutingProtocol.OLSR &&
     (olsrConfiguration?.tcInterval ?? 0) < OLSR_MIN_INTERVAL;
 
+  const updatePeerById = (id: UUID, changes: Partial<PeerConfiguration>) => {
+    if (isLocked) return;
+
+    const updatedEntities = entities.map((entity) => {
+      if (entity.id !== id || entity.type !== EntityType.Peer) {
+        return entity;
+      }
+
+      const configuration = getConfiguration(entity);
+      if (!configuration) {
+        return entity;
+      }
+
+      return {
+        ...entity,
+        configuration: {
+          ...configuration,
+          ...changes,
+        } as PeerConfiguration,
+      };
+    });
+
+    setEntities(updatedEntities);
+  };
+
   const updatePeer = (changes: Partial<PeerEntity>) => {
     if (isLocked) return;
     const updatedEntities = entities.map((entity) => {
@@ -125,14 +120,17 @@ export default function PeerProperties({
     setEntities(updatedEntities);
   };
 
-  const updateBatmanPeers = (changes: Partial<BatmanConfiguration>) => {
+  const updatePeersByProtocol = (
+    protocol: RoutingProtocol,
+    changes: Partial<PeerConfiguration>,
+  ) => {
     if (isLocked) return;
     const updatedEntities = entities.map((entity) => {
-      if (entity.type !== EntityType.Peer || entity.protocol !== RoutingProtocol.BATMAN) {
+      if (entity.type !== EntityType.Peer || entity.protocol !== protocol) {
         return entity;
       }
 
-      const configuration = getBatmanConfiguration(entity);
+      const configuration = getConfiguration(entity);
       if (!configuration) {
         return entity;
       }
@@ -142,7 +140,7 @@ export default function PeerProperties({
         configuration: {
           ...configuration,
           ...changes,
-        },
+        } as PeerConfiguration,
       };
     });
 
@@ -221,19 +219,6 @@ export default function PeerProperties({
     setEntities(updatedEntities);
   };
 
-  const updateBatmanPeer = (changes: Partial<BatmanConfiguration>) => {
-    if (!batmanConfiguration) {
-      return;
-    }
-
-    updatePeer({
-      configuration: {
-        ...batmanConfiguration,
-        ...changes,
-      },
-    });
-  };
-
   const updateDsdvPeer = (changes: Partial<DsdvConfiguration>) => {
     if (!dsdvConfiguration) {
       return;
@@ -259,21 +244,6 @@ export default function PeerProperties({
       },
     });
   };
-
-  const renderBatmanLabel = (label: string, isRequired: boolean) => (
-    <span className="properties__field-label properties__field-label--global">
-      <span
-        className={`properties__field-label-text ${isRequired ? "properties__field-label-text--required" : ""}`}
-      >
-        {label}
-      </span>
-      <Tooltip content={"Global field"}>
-        <span className="properties__global-indicator" aria-label={"Global field"}>
-          <Globe size={12} />
-        </span>
-      </Tooltip>
-    </span>
-  );
 
   const renderGlobalLabel = (label: string, isRequired: boolean) => (
     <span className="properties__field-label properties__field-label--global">
@@ -322,253 +292,77 @@ export default function PeerProperties({
       <section className="properties__section">
         <p className="properties__section-title">{"Configuration"}</p>
 
-        <label className="properties__field">
-          <span
-            className={`properties__field-label ${isPeerNameMissing ? "properties__field-label--required" : ""}`}
-          >
-            {"Name"}
-          </span>
-          <input
-            className={`properties__input ${isPeerNameMissing ? "properties__required-outline" : ""}`}
-            type="text"
+        <PropertyGroup>
+          <TextPropertyField
+            label="Name"
             value={selectedPeer.name}
+            valid={!isPeerNameMissing}
             onChange={(event) => updatePeer({ name: event.target.value })}
           />
-        </label>
+        </PropertyGroup>
 
-        <label className="properties__field">
-          <span className="properties__field-label">{"Position"}</span>
-          <div className="properties__inline-group">
-            <div className="properties__input-with-icon">
-              <span className="properties__input-icon">X</span>
-              <input
-                className="properties__input"
-                type="number"
-                value={selectedPeer.x}
-                onChange={(event) =>
-                  updatePeer({
-                    x: parseNumberValue(event.target.value, selectedPeer.x),
-                  })
-                }
-              />
-            </div>
-            <div className="properties__input-with-icon">
-              <span className="properties__input-icon">Y</span>
-              <input
-                className="properties__input"
-                type="number"
-                value={selectedPeer.y}
-                onChange={(event) =>
-                  updatePeer({
-                    y: parseNumberValue(event.target.value, selectedPeer.y),
-                  })
-                }
-              />
-            </div>
-          </div>
-        </label>
+        <PropertyGroup label="Position">
+          <NumberPropertyField
+            icon={<Letter value="X" />}
+            value={selectedPeer.x}
+            onChange={(event) =>
+              updatePeer({ x: parseNumberValue(event.target.value, selectedPeer.x) })
+            }
+          />
+          <NumberPropertyField
+            icon={<Letter value="Y" />}
+            value={selectedPeer.y}
+            onChange={(event) =>
+              updatePeer({ y: parseNumberValue(event.target.value, selectedPeer.y) })
+            }
+          />
+        </PropertyGroup>
 
-        <div className="properties__field-grid properties__field-grid--two">
-          <label className="properties__field">
-            <span className="properties__field-label">{"Range"}</span>
-            <div className="properties__input-with-prefix">
-              <CircleDot size={12} />
-              <input
-                className="properties__input"
-                type="number"
-                min="1"
-                value={selectedPeer.range}
-                onChange={(event) =>
-                  updatePeer({
-                    range: parsePositiveNumberValue(event.target.value, selectedPeer.range),
-                  })
-                }
-              />
-            </div>
-          </label>
-
-          <label className="properties__field">
-            <span className="properties__field-label">{"Status"}</span>
-            <button
-              className="properties__status"
-              type="button"
-              onClick={() => updatePeer({ enabled: !selectedPeer.enabled })}
-            >
-              <Diamond size={12} />
-              {selectedPeer.enabled ? "Enabled" : "Disabled"}
-            </button>
-          </label>
-        </div>
+        <PropertyGroup>
+          <NumberPropertyField
+            label="Range"
+            icon={<CircleDot size={12} />}
+            value={selectedPeer.range}
+            onChange={(event) =>
+              updatePeer({
+                range: parsePositiveNumberValue(event.target.value, selectedPeer.range),
+              })
+            }
+          />
+          <BooleanPropertyField
+            label="Status"
+            icon={<Diamond size={12} />}
+            value={selectedPeer.enabled}
+            content={{ true: "Enabled", false: "Disabled" }}
+            onChange={() => updatePeer({ enabled: !selectedPeer.enabled })}
+          />
+        </PropertyGroup>
       </section>
 
       <section className="properties__section">
         <p className="properties__section-title">{"Routing"}</p>
 
-        <label className="properties__field">
-          <span
-            className={`properties__field-label ${isProtocolMissing ? "properties__field-label--required" : ""}`}
-          >
-            {"Protocol"}
-          </span>
-          <div
-            className={`properties__protocols ${isProtocolMissing ? "properties__required-outline" : ""}`}
-          >
-            {protocols.map((protocol) => {
-              const isActive = selectedProtocol === protocol;
-              return (
-                <button
-                  className={`properties__protocol ${isActive ? "properties__protocol--active" : ""}`}
-                  key={protocol}
-                  type="button"
-                  onClick={() =>
-                    updatePeer({
-                      protocol,
-                      configuration: getDefaultPeerConfiguration(protocol),
-                    })
-                  }
-                >
-                  {protocol}
-                </button>
-              );
-            })}
-          </div>
-        </label>
+        <PropertyGroup>
+          <ProtocolField
+            peer={selectedPeer}
+            valid={!isProtocolMissing}
+            onClick={(protocol) => updatePeer({ protocol })}
+          />
+        </PropertyGroup>
 
         {selectedProtocol === RoutingProtocol.BATMAN && (
-          <>
-            <label className="properties__field">
-              {renderBatmanLabel(
-                "Distance Penalty",
-                isBatmanPenaltyDistanceMissing || isBatmanPenaltyPercentMissing,
-              )}
-              <div className="properties__inline-group">
-                <div className="properties__input-with-prefix">
-                  <Ruler size={12} />
-                  <input
-                    className={`properties__input ${isBatmanPenaltyDistanceMissing ? "properties__required-outline" : ""}`}
-                    type="number"
-                    min="1"
-                    value={
-                      batmanConfiguration?.distancePenaltyDistance ?? BATMAN_MIN_DISTANCE_PENALTY
-                    }
-                    onChange={(event) =>
-                      updateBatmanPeers({
-                        distancePenaltyDistance: parsePositiveNumberValue(
-                          event.target.value,
-                          batmanConfiguration?.distancePenaltyDistance ??
-                            BATMAN_MIN_DISTANCE_PENALTY,
-                        ),
-                      })
-                    }
-                    aria-label={"Distance"}
-                  />
-                </div>
-                <div className="properties__input-with-prefix">
-                  <Percent size={12} />
-                  <input
-                    className={`properties__input ${isBatmanPenaltyPercentMissing ? "properties__required-outline" : ""}`}
-                    type="number"
-                    min="0"
-                    value={
-                      batmanConfiguration?.distancePenaltyPercent ?? BATMAN_MIN_PENALTY_PERCENT
-                    }
-                    onChange={(event) =>
-                      updateBatmanPeers({
-                        distancePenaltyPercent: parsePositiveNumberValue(
-                          event.target.value,
-                          batmanConfiguration?.distancePenaltyPercent ?? BATMAN_MIN_PENALTY_PERCENT,
-                          0,
-                        ),
-                      })
-                    }
-                    aria-label={"Percentage of penalty"}
-                  />
-                </div>
-              </div>
-            </label>
-
-            <label className="properties__field">
-              <span
-                className={`properties__field-label ${isBatmanElpMissing ? "properties__field-label--required" : ""}`}
-              >
-                {"ELP Interval"}
-              </span>
-              <div className="properties__input-with-prefix">
-                <Clock3 size={12} />
-                <input
-                  className={`properties__input ${isBatmanElpMissing ? "properties__required-outline" : ""}`}
-                  type="number"
-                  min="1"
-                  value={batmanConfiguration?.elpInterval ?? BATMAN_MIN_ELP_INTERVAL}
-                  onChange={(event) =>
-                    updateBatmanPeer({
-                      elpInterval: parseNumberValue(
-                        event.target.value,
-                        batmanConfiguration?.elpInterval ?? BATMAN_MIN_ELP_INTERVAL,
-                      ),
-                    })
-                  }
-                />
-              </div>
-            </label>
-
-            <label className="properties__field">
-              <span
-                className={`properties__field-label ${isBatmanOgmMissing ? "properties__field-label--required" : ""}`}
-              >
-                {"OGM Interval"}
-              </span>
-              <div className="properties__input-with-prefix">
-                <Clock3 size={12} />
-                <input
-                  className={`properties__input ${isBatmanOgmMissing ? "properties__required-outline" : ""}`}
-                  type="number"
-                  min="1"
-                  value={batmanConfiguration?.ogmInterval ?? BATMAN_MIN_OGM_INTERVAL}
-                  onChange={(event) =>
-                    updateBatmanPeer({
-                      ogmInterval: parseNumberValue(
-                        event.target.value,
-                        batmanConfiguration?.ogmInterval ?? BATMAN_MIN_OGM_INTERVAL,
-                      ),
-                    })
-                  }
-                />
-              </div>
-            </label>
-
-            <label className="properties__field">
-              <span
-                className={`properties__field-label ${isBatmanPurgeMissing ? "properties__field-label--required" : ""}`}
-              >
-                {"Purge Timeout"}
-              </span>
-              <div className="properties__input-with-prefix">
-                <Clock3 size={12} />
-                <input
-                  className={`properties__input ${isBatmanPurgeMissing ? "properties__required-outline" : ""}`}
-                  type="number"
-                  min="1"
-                  value={batmanConfiguration?.purgeTimeout ?? BATMAN_MIN_PURGE_TIMEOUT}
-                  onChange={(event) =>
-                    updateBatmanPeer({
-                      purgeTimeout: parseNumberValue(
-                        event.target.value,
-                        batmanConfiguration?.purgeTimeout ?? BATMAN_MIN_PURGE_TIMEOUT,
-                      ),
-                    })
-                  }
-                />
-              </div>
-            </label>
-          </>
+          <BatmanProperties
+            peer={selectedPeer}
+            updatePeerById={updatePeerById}
+            updatePeersByProtocol={updatePeersByProtocol}
+          />
         )}
 
         {selectedProtocol === RoutingProtocol.DSDV && (
           <>
             <label className="properties__field">
               {renderGlobalLabel("Incremental Update Interval", isDsdvIncrementalMissing)}
-              <div className="properties__input-with-prefix">
+              <div className="properties__input-with-icon">
                 <Clock3 size={12} />
                 <input
                   className={`properties__input ${isDsdvIncrementalMissing ? "properties__required-outline" : ""}`}
@@ -596,7 +390,7 @@ export default function PeerProperties({
 
             <label className="properties__field">
               {renderGlobalLabel("Full Dump Interval", isDsdvFullDumpMissing)}
-              <div className="properties__input-with-prefix">
+              <div className="properties__input-with-icon">
                 <Clock3 size={12} />
                 <input
                   className={`properties__input ${isDsdvFullDumpMissing ? "properties__required-outline" : ""}`}
@@ -628,7 +422,7 @@ export default function PeerProperties({
               >
                 {"Route Timeout"}
               </span>
-              <div className="properties__input-with-prefix">
+              <div className="properties__input-with-icon">
                 <Clock3 size={12} />
                 <input
                   className={`properties__input ${isDsdvRouteTimeoutMissing ? "properties__required-outline" : ""}`}
@@ -660,7 +454,7 @@ export default function PeerProperties({
           <>
             <label className="properties__field">
               {renderGlobalLabel("HELLO Interval", isOlsrHelloMissing)}
-              <div className="properties__input-with-prefix">
+              <div className="properties__input-with-icon">
                 <Clock3 size={12} />
                 <input
                   className={`properties__input ${isOlsrHelloMissing ? "properties__required-outline" : ""}`}
@@ -688,7 +482,7 @@ export default function PeerProperties({
 
             <label className="properties__field">
               {renderGlobalLabel("TC Interval", isOlsrTcMissing)}
-              <div className="properties__input-with-prefix">
+              <div className="properties__input-with-icon">
                 <Clock3 size={12} />
                 <input
                   className={`properties__input ${isOlsrTcMissing ? "properties__required-outline" : ""}`}
@@ -720,7 +514,7 @@ export default function PeerProperties({
           <>
             <label className="properties__field">
               {renderGlobalLabel("HELLO Interval", isAodvHelloMissing)}
-              <div className="properties__input-with-prefix">
+              <div className="properties__input-with-icon">
                 <Clock3 size={12} />
                 <input
                   className={`properties__input ${isAodvHelloMissing ? "properties__required-outline" : ""}`}
@@ -752,7 +546,7 @@ export default function PeerProperties({
               >
                 {"Route Timeout"}
               </span>
-              <div className="properties__input-with-prefix">
+              <div className="properties__input-with-icon">
                 <Clock3 size={12} />
                 <input
                   className={`properties__input ${isAodvRouteTimeoutMissing ? "properties__required-outline" : ""}`}

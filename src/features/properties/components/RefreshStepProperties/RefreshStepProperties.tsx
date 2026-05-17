@@ -42,7 +42,7 @@ export default function RefreshStepProperties({
         <div className="properties__inline-group">
           <label className="properties__field">
             <span className="properties__field-label">{"Peer"}</span>
-            <div className="properties__input-with-prefix">
+            <div className="properties__input-with-icon">
               <Radio size={12} />
               <input
                 className="properties__input"
@@ -67,7 +67,7 @@ export default function RefreshStepProperties({
         <div className="properties__inline-group">
           <label className="properties__field">
             <span className="properties__field-label">{"Start tick"}</span>
-            <div className="properties__input-with-prefix">
+            <div className="properties__input-with-icon">
               <Clock3 size={12} />
               <input
                 className="properties__input"
@@ -80,7 +80,7 @@ export default function RefreshStepProperties({
 
           <label className="properties__field">
             <span className="properties__field-label">{"Interval"}</span>
-            <div className="properties__input-with-prefix">
+            <div className="properties__input-with-icon">
               <RotateCw size={12} />
               <input
                 className="properties__input"

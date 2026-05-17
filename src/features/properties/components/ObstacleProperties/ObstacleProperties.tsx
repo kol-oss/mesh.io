@@ -109,7 +109,7 @@ export default function ObstacleProperties({
         <label className="properties__field">
           <span className="properties__field-label">{"Size"}</span>
           <div className="properties__inline-group">
-            <div className="properties__input-with-prefix">
+            <div className="properties__input-with-icon">
               <MoveHorizontal size={12} />
               <input
                 className="properties__input"
@@ -123,7 +123,7 @@ export default function ObstacleProperties({
                 }
               />
             </div>
-            <div className="properties__input-with-prefix">
+            <div className="properties__input-with-icon">
               <MoveVertical size={12} />
               <input
                 className="properties__input"
