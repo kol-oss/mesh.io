@@ -1,10 +1,6 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
-type SelectOption = {
-  value: string;
-  label: string;
-  icon?: ReactNode;
-};
+import type { SelectOption } from "@/shared/types/common/select";
 
 type SelectProps = {
   value: string;

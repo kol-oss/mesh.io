@@ -1,4 +1,4 @@
-import { OLSR_DEFAULT_TC_TTL, OLSR_MAX_INTERVAL, OLSR_MIN_INTERVAL } from "@/shared/constants/olsr";
+import { OLSR_DEFAULT_TC_TTL, OLSR_MIN_INTERVAL } from "@/shared/constants/olsr";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { OlsrConfiguration } from "@/shared/types/model/configurations";
 import { getOlsrConfiguration } from "@/shared/types/model/peers";
@@ -40,7 +40,7 @@ type RouteComputationResult = {
 
 const clampInterval = (value: number) => {
   const normalized = Math.floor(value);
-  return Math.max(OLSR_MIN_INTERVAL, Math.min(OLSR_MAX_INTERVAL, normalized));
+  return Math.max(OLSR_MIN_INTERVAL, normalized);
 };
 
 export class OlsrModule implements PacketCapableModule {

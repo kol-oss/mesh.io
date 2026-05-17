@@ -15,8 +15,6 @@ import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor
 import { DsdvRoutingTable } from "./DsdvRoutingTable";
 import { cloneDsdvMessage, isDsdvSimulationMessage } from "./dsdvMessage";
 import {
-  DSDV_MAX_INTERVAL,
-  DSDV_MAX_TIMEOUT,
   DSDV_METRIC_INFINITY,
   DSDV_MIN_INTERVAL,
   DSDV_MIN_TIMEOUT,
@@ -25,12 +23,12 @@ import {
 
 const clampInterval = (value: number) => {
   const normalized = Math.floor(value);
-  return Math.max(DSDV_MIN_INTERVAL, Math.min(DSDV_MAX_INTERVAL, normalized));
+  return Math.max(DSDV_MIN_INTERVAL, normalized);
 };
 
 const clampTimeout = (value: number) => {
   const normalized = Math.floor(value);
-  return Math.max(DSDV_MIN_TIMEOUT, Math.min(DSDV_MAX_TIMEOUT, normalized));
+  return Math.max(DSDV_MIN_TIMEOUT, normalized);
 };
 
 export class DsdvModule implements PacketCapableModule {

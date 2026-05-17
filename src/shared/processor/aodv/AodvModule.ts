@@ -1,8 +1,6 @@
 import {
   AODV_ACTIVE_ROUTE_TIMEOUT,
   AODV_HELLO_LIFETIME_FACTOR,
-  AODV_MAX_HELLO_INTERVAL,
-  AODV_MAX_ROUTE_TIMEOUT,
   AODV_MIN_HELLO_INTERVAL,
   AODV_MIN_ROUTE_TIMEOUT,
   AODV_PATH_DISCOVERY_TTL,
@@ -41,12 +39,12 @@ type RouteReplyCandidate = {
 
 const clampHelloInterval = (value: number) => {
   const normalized = Math.floor(value);
-  return Math.max(AODV_MIN_HELLO_INTERVAL, Math.min(AODV_MAX_HELLO_INTERVAL, normalized));
+  return Math.max(AODV_MIN_HELLO_INTERVAL, normalized);
 };
 
 const clampRouteTimeout = (value: number) => {
   const normalized = Math.floor(value);
-  return Math.max(AODV_MIN_ROUTE_TIMEOUT, Math.min(AODV_MAX_ROUTE_TIMEOUT, normalized));
+  return Math.max(AODV_MIN_ROUTE_TIMEOUT, normalized);
 };
 
 export class AodvModule implements PacketCapableModule {

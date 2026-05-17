@@ -13,11 +13,15 @@ import type {
 import type { StepPropertiesPanelProps } from "@/shared/types/view/properties";
 import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 import { parseNumberValue } from "@/shared/utils/properties";
-import Select from "@/shared/components/Select/Select";
 import MessageStepProperties from "../MessageStepProperties/MessageStepProperties";
 import MoveStepProperties from "../MoveStepProperties/MoveStepProperties";
 import RefreshStepProperties from "../RefreshStepProperties/RefreshStepProperties";
 import ToggleStepProperties from "../ToggleStepProperties/ToggleStepProperties";
+import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import TextPropertyField from "@/shared/components/Property/TextPropertyField";
+import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
+import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
+import type { SelectOption } from "@/shared/types/common/select";
 
 export default function StepProperties({
   widthPercent,
@@ -45,11 +49,11 @@ export default function StepProperties({
       entity.type === EntityType.Peer || entity.type === EntityType.Link,
   );
 
-  const stepTypeOptions = [
-    { value: StepType.Move, label: "Move", icon: <ChevronsRight size={12} /> },
-    { value: StepType.Message, label: "Message", icon: <Mail size={12} /> },
-    { value: StepType.Toggle, label: "Toggle", icon: <Activity size={12} /> },
-  ] as const;
+  const typeOptions: SelectOption[] = [
+    { label: "Message", icon: <Mail size={12} />, value: StepType.Message },
+    { label: "Move", icon: <ChevronsRight size={12} />, value: StepType.Move },
+    { label: "Toggle", icon: <Activity size={12} />, value: StepType.Toggle },
+  ];
 
   const messageSourceValue =
     selectedStep.type === StepType.Message &&
@@ -82,7 +86,6 @@ export default function StepProperties({
       ? "Disabled"
       : "Enabled";
 
-  const isStepNameMissing = selectedStep.title.trim() === "";
   const isStepMessageSourceMissing =
     selectedStep.type === StepType.Message && messageSourceValue === "";
   const isStepMessageDestinationMissing =
@@ -212,63 +215,42 @@ export default function StepProperties({
           {"Read more"}
         </Link>
       </header>
+
       <section className="properties__section">
         <p className="properties__section-title">{"Configuration"}</p>
 
-        <label className="properties__field">
-          <span
-            className={`properties__field-label ${isStepNameMissing ? "properties__field-label--required" : ""}`}
-          >
-            {"Name"}
-          </span>
-          <input
-            className={`properties__input ${isStepNameMissing ? "properties__required-outline" : ""}`}
-            type="text"
+        <PropertyGroup>
+          <TextPropertyField
+            label="Name"
             value={selectedStep.title}
+            valid={!selectedStep.title}
             onChange={(event) => updateSelectedManualStep({ title: event.target.value })}
           />
-        </label>
+        </PropertyGroup>
 
-        <div className="properties__field">
-          <div className="properties__inline-group">
-            <label className="properties__field">
-              <span className="properties__field-label">{"Type"}</span>
-              <Select
-                allowEmpty={false}
-                value={selectedStep.type}
-                invalid={false}
-                options={stepTypeOptions.map((stepType) => ({
-                  value: stepType.value,
-                  label: stepType.label,
-                  icon: stepType.icon,
-                }))}
-                onChange={(value) => {
-                  const nextType = value as ManualWorkflowStep["type"];
-                  const updatedSteps = steps.map((step) =>
-                    step.id === selectedStep.id ? convertStepType(step, nextType) : step,
-                  );
-                  setSteps(updatedSteps);
-                }}
-              />
-            </label>
-
-            <label className="properties__field">
-              <span className="properties__field-label">{"Tick"}</span>
-              <div className="properties__input-with-icon">
-                <Clock3 size={12} />
-                <input
-                  className="properties__input"
-                  type="number"
-                  min="2"
-                  value={selectedStep.tick}
-                  onChange={(event) =>
-                    updateStepTick(parseNumberValue(event.target.value, selectedStep.tick))
-                  }
-                />
-              </div>
-            </label>
-          </div>
-        </div>
+        <PropertyGroup>
+          <SelectPropertyField
+            label="Type"
+            value={selectedStep.type}
+            options={typeOptions}
+            onChange={(value) => {
+              const nextType = value as ManualWorkflowStep["type"];
+              const updatedSteps = steps.map((step) =>
+                step.id === selectedStep.id ? convertStepType(step, nextType) : step,
+              );
+              setSteps(updatedSteps);
+            }}
+          />
+          <NumberPropertyField
+            label="Tick"
+            icon={<Clock3 size={12} />}
+            value={selectedStep.tick}
+            min={2}
+            onChange={(event) =>
+              updateStepTick(parseNumberValue(event.target.value, selectedStep.tick))
+            }
+          />
+        </PropertyGroup>
 
         {selectedStep.type === StepType.Message && (
           <MessageStepProperties
