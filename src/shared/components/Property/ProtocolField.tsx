@@ -4,15 +4,14 @@ import PropertyLabel from "./PropertyLabel";
 
 type ProtocolFieldProps = {
   peer: PeerEntity;
-  valid?: boolean;
   onClick: (protocol: RoutingProtocol) => void;
 };
 
-export default function ProtocolField({ peer, valid, onClick }: ProtocolFieldProps) {
+export default function ProtocolField({ peer, onClick }: ProtocolFieldProps) {
   return (
     <>
-      <PropertyLabel label="Protocol" valid={valid} />
-      <div className={`properties__protocols ${!valid ? "properties__required-outline" : ""}`}>
+      <PropertyLabel label="Protocol" />
+      <div className={`properties__protocols`}>
         {ROUTING_PROTOCOLS.map((protocol) => {
           const isActive = peer.protocol === protocol;
           return (
