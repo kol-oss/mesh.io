@@ -1,5 +1,4 @@
 import { type RoutingProtocol } from "../types/common/protocols";
-import type { UUID } from "../types/common/uuid";
 import type { PeerConfiguration } from "../types/model/configurations";
 import type { PeerEntity } from "../types/model/entities";
 
@@ -17,10 +16,13 @@ export const parseNumber = (value: string, fallback: number) => {
   return isNaN(Number(value)) ? fallback : Number(value);
 };
 
-export const getChangeFunction = (
+export const getOnConfigurationChange = (
   peer: PeerEntity,
-  updatePeerById: (id: UUID, changes: Partial<PeerConfiguration>) => void,
-  updatePeersByProtocol: (protocol: RoutingProtocol, changes: Partial<PeerConfiguration>) => void,
+  updateConfiguration: (changes: Partial<PeerConfiguration>) => void,
+  updateConfigurationByProtocol: (
+    protocol: RoutingProtocol,
+    changes: Partial<PeerConfiguration>,
+  ) => void,
 ) => {
   return (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -32,10 +34,10 @@ export const getChangeFunction = (
     const parsedValue = parseNumber(value, min);
 
     return global
-      ? updatePeersByProtocol(peer.protocol, {
+      ? updateConfigurationByProtocol(peer.protocol, {
           [field]: parsedValue,
         })
-      : updatePeerById(peer.id, {
+      : updateConfiguration({
           [field]: parsedValue,
         });
   };

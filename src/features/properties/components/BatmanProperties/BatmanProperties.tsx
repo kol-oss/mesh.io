@@ -6,24 +6,26 @@ import {
   BATMAN_MIN_PURGE_TIMEOUT,
 } from "@/shared/constants/batman";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
-import type { UUID } from "@/shared/types/common/uuid";
 import type { BatmanConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
 import { getConfiguration, type PeerEntity } from "@/shared/types/model/peers";
 import { Clock3, Percent, Ruler } from "lucide-react";
 import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
 import PropertyGroup from "@/shared/components/Property/PropertyGroup";
-import { getChangeFunction } from "@/shared/utils/properties";
+import { getOnConfigurationChange } from "@/shared/utils/properties";
 
 type BatmanPropertiesProps = {
   peer: PeerEntity;
-  updatePeerById: (id: UUID, changes: Partial<PeerConfiguration>) => void;
-  updatePeersByProtocol: (protocol: RoutingProtocol, changes: Partial<PeerConfiguration>) => void;
+  updateConfiguration: (changes: Partial<PeerConfiguration>) => void;
+  updateConfigurationByProtocol: (
+    protocol: RoutingProtocol,
+    changes: Partial<PeerConfiguration>,
+  ) => void;
 };
 
 export default function BatmanProperties({
   peer,
-  updatePeerById,
-  updatePeersByProtocol,
+  updateConfiguration,
+  updateConfigurationByProtocol,
 }: BatmanPropertiesProps) {
   const {
     ogmInterval = BATMAN_MIN_OGM_INTERVAL,
@@ -33,7 +35,11 @@ export default function BatmanProperties({
     distancePenaltyPercent: penaltyPercent = BATMAN_MIN_PENALTY_PERCENT,
   } = getConfiguration(peer) as BatmanConfiguration;
 
-  const onChange = getChangeFunction(peer, updatePeerById, updatePeersByProtocol);
+  const onChange = getOnConfigurationChange(
+    peer,
+    updateConfiguration,
+    updateConfigurationByProtocol,
+  );
   return (
     <>
       <PropertyGroup label="Distance Penalty" global>
