@@ -1,7 +1,11 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-import type { LinkEntity, NetworkEntity, ObstacleEntity, PeerEntity } from "@/shared/types/model/entities";
-import type { RefreshStep, WorkflowStep } from "@/shared/types/model/steps";
+import type {
+  LinkEntity,
+  NetworkEntity,
+  ObstacleEntity,
+  PeerEntity,
+} from "@/shared/types/model/entities";
 
 export type PropertiesResizeHandler = (event: ReactPointerEvent<HTMLDivElement>) => void;
 
@@ -18,19 +22,3 @@ export type EntityPropertiesPanelProps<T extends NetworkEntity> = {
 export type PeerPropertiesPanelProps = EntityPropertiesPanelProps<PeerEntity>;
 export type LinkPropertiesPanelProps = EntityPropertiesPanelProps<LinkEntity>;
 export type ObstaclePropertiesPanelProps = EntityPropertiesPanelProps<ObstacleEntity>;
-
-export type StepPropertiesPanelProps = {
-  widthPercent: number;
-  onResizeStart: PropertiesResizeHandler;
-  selectedStep: WorkflowStep;
-  entities: NetworkEntity[];
-  steps: WorkflowStep[];
-  setSteps: (value: WorkflowStep[]) => void;
-};
-
-export type RefreshStepPropertiesPanelProps = {
-  widthPercent: number;
-  onResizeStart: PropertiesResizeHandler;
-  selectedStep: RefreshStep;
-  peers: PeerEntity[];
-};

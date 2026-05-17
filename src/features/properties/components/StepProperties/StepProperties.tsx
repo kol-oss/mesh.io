@@ -2,7 +2,7 @@ import { Activity, ChevronsRight, Clock3, ExternalLink, Mail } from "lucide-reac
 import { Link } from "react-router-dom";
 import { EntityType } from "@/shared/types/model/entities";
 import { StepType } from "@/shared/types/model/steps";
-import type { LinkEntity, PeerEntity } from "@/shared/types/model/entities";
+import type { LinkEntity, NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
 import type {
   ManualWorkflowStep,
   MessageStep,
@@ -10,18 +10,27 @@ import type {
   ToggleStep,
   WorkflowStep,
 } from "@/shared/types/model/steps";
-import type { StepPropertiesPanelProps } from "@/shared/types/view/properties";
+import type { PropertiesResizeHandler } from "@/shared/types/view/properties";
 import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 import { parseNumberValue } from "@/shared/utils/properties";
 import MessageStepProperties from "./MessageStepProperties";
 import MoveStepProperties from "./MoveStepProperties";
-import RefreshStepProperties from "../RefreshStepProperties/RefreshStepProperties";
+import RefreshStepProperties from "./RefreshStepProperties";
 import ToggleStepProperties from "./ToggleStepProperties";
 import PropertyGroup from "@/shared/components/Property/PropertyGroup";
 import TextPropertyField from "@/shared/components/Property/TextPropertyField";
 import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
 import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
 import type { SelectOption } from "@/shared/types/common/select";
+
+type StepPropertiesPanelProps = {
+  widthPercent: number;
+  onResizeStart: PropertiesResizeHandler;
+  selectedStep: WorkflowStep;
+  entities: NetworkEntity[];
+  steps: WorkflowStep[];
+  setSteps: (value: WorkflowStep[]) => void;
+};
 
 export default function StepProperties({
   widthPercent,

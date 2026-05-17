@@ -1,17 +1,26 @@
 import { Clock3, ExternalLink, Radio, RotateCw } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { RefreshStepPropertiesPanelProps } from "@/shared/types/view/properties";
 import LockMessage from "@/shared/components/Property/LockMessage";
 import PropertyGroup from "@/shared/components/Property/PropertyGroup";
 import TextPropertyField from "@/shared/components/Property/TextPropertyField";
 import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
+import type { PropertiesResizeHandler } from "@/shared/types/view/properties";
+import type { RefreshStep } from "@/shared/types/model/steps";
+import type { PeerEntity } from "@/shared/types/model/entities";
+
+type RefreshStepPropertiesProps = {
+  widthPercent: number;
+  onResizeStart: PropertiesResizeHandler;
+  selectedStep: RefreshStep;
+  peers: PeerEntity[];
+};
 
 export default function RefreshStepProperties({
   widthPercent,
   onResizeStart,
   selectedStep,
   peers,
-}: RefreshStepPropertiesPanelProps) {
+}: RefreshStepPropertiesProps) {
   const refreshPeer = peers.find((peer) => peer.id === selectedStep.refreshPeerId) ?? null;
 
   return (
