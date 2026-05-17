@@ -7,19 +7,17 @@ import {
 } from "@/shared/constants/batman";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import type { BatmanConfiguration } from "@/shared/types/model/configurations";
+import type { BatmanConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
 import { getConfiguration, type PeerEntity } from "@/shared/types/model/peers";
-import { parsePositiveNumberValue } from "@/shared/utils/properties";
 import { Clock3, Percent, Ruler } from "lucide-react";
 import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
 import PropertyGroup from "@/shared/components/Property/PropertyGroup";
-
-const ROUTING_PROTOCOL = RoutingProtocol.BATMAN;
+import { getChangeFunction } from "@/shared/utils/properties";
 
 type BatmanPropertiesProps = {
   peer: PeerEntity;
-  updatePeerById: (id: UUID, changes: Partial<BatmanConfiguration>) => void;
-  updatePeersByProtocol: (protocol: RoutingProtocol, changes: Partial<BatmanConfiguration>) => void;
+  updatePeerById: (id: UUID, changes: Partial<PeerConfiguration>) => void;
+  updatePeersByProtocol: (protocol: RoutingProtocol, changes: Partial<PeerConfiguration>) => void;
 };
 
 export default function BatmanProperties({
@@ -27,46 +25,34 @@ export default function BatmanProperties({
   updatePeerById,
   updatePeersByProtocol,
 }: BatmanPropertiesProps) {
-  const configuration = getConfiguration(peer) as BatmanConfiguration;
-  const peerId = peer.id;
+  const {
+    ogmInterval = BATMAN_MIN_OGM_INTERVAL,
+    elpInterval = BATMAN_MIN_ELP_INTERVAL,
+    purgeTimeout = BATMAN_MIN_PURGE_TIMEOUT,
+    distancePenaltyDistance: penaltyDistance = BATMAN_MIN_DISTANCE_PENALTY,
+    distancePenaltyPercent: penaltyPercent = BATMAN_MIN_PENALTY_PERCENT,
+  } = getConfiguration(peer) as BatmanConfiguration;
 
-  const isOgmMissing = (configuration?.ogmInterval ?? 0) < BATMAN_MIN_OGM_INTERVAL;
-  const isElpMissing = (configuration?.elpInterval ?? 0) < BATMAN_MIN_ELP_INTERVAL;
-  const isPurgeMissing = (configuration?.purgeTimeout ?? 0) < BATMAN_MIN_PURGE_TIMEOUT;
-  const isPenaltyDistanceMissing =
-    (configuration?.distancePenaltyDistance ?? 0) < BATMAN_MIN_DISTANCE_PENALTY;
-  const isPenaltyPercentMissing =
-    (configuration?.distancePenaltyPercent ?? 0) < BATMAN_MIN_PENALTY_PERCENT;
-
+  const onChange = getChangeFunction(peer, updatePeerById, updatePeersByProtocol);
   return (
     <>
       <PropertyGroup label="Distance Penalty" global>
         <NumberPropertyField
           icon={<Ruler size={12} />}
-          valid={!isPenaltyDistanceMissing}
-          value={configuration?.distancePenaltyDistance ?? BATMAN_MIN_DISTANCE_PENALTY}
+          valid={penaltyDistance >= BATMAN_MIN_DISTANCE_PENALTY}
+          value={penaltyDistance}
           min={BATMAN_MIN_DISTANCE_PENALTY}
           onChange={(event) =>
-            updatePeersByProtocol(ROUTING_PROTOCOL, {
-              distancePenaltyDistance: parsePositiveNumberValue(
-                event.target.value,
-                configuration?.distancePenaltyDistance ?? BATMAN_MIN_DISTANCE_PENALTY,
-              ),
-            })
+            onChange(event, "distancePenaltyDistance", BATMAN_MIN_DISTANCE_PENALTY, true)
           }
         />
         <NumberPropertyField
           icon={<Percent size={12} />}
-          valid={!isPenaltyPercentMissing}
-          value={configuration?.distancePenaltyPercent ?? BATMAN_MIN_PENALTY_PERCENT}
+          valid={penaltyPercent >= BATMAN_MIN_PENALTY_PERCENT}
+          value={penaltyPercent}
           min={BATMAN_MIN_PENALTY_PERCENT}
           onChange={(event) =>
-            updatePeersByProtocol(ROUTING_PROTOCOL, {
-              distancePenaltyPercent: parsePositiveNumberValue(
-                event.target.value,
-                configuration?.distancePenaltyPercent ?? BATMAN_MIN_PENALTY_PERCENT,
-              ),
-            })
+            onChange(event, "distancePenaltyPercent", BATMAN_MIN_PENALTY_PERCENT, true)
           }
         />
       </PropertyGroup>
@@ -75,17 +61,10 @@ export default function BatmanProperties({
         <NumberPropertyField
           label="ELP Interval"
           icon={<Clock3 size={12} />}
-          valid={!isElpMissing}
-          value={configuration?.elpInterval ?? BATMAN_MIN_ELP_INTERVAL}
+          valid={elpInterval >= BATMAN_MIN_ELP_INTERVAL}
+          value={elpInterval}
           min={BATMAN_MIN_ELP_INTERVAL}
-          onChange={(event) =>
-            updatePeerById(peerId, {
-              elpInterval: parsePositiveNumberValue(
-                event.target.value,
-                configuration?.elpInterval ?? BATMAN_MIN_ELP_INTERVAL,
-              ),
-            })
-          }
+          onChange={(event) => onChange(event, "elpInterval", BATMAN_MIN_ELP_INTERVAL)}
         />
       </PropertyGroup>
 
@@ -93,17 +72,10 @@ export default function BatmanProperties({
         <NumberPropertyField
           label="OGM Interval"
           icon={<Clock3 size={12} />}
-          valid={!isOgmMissing}
-          value={configuration?.ogmInterval ?? BATMAN_MIN_OGM_INTERVAL}
+          valid={ogmInterval >= BATMAN_MIN_OGM_INTERVAL}
+          value={ogmInterval}
           min={BATMAN_MIN_OGM_INTERVAL}
-          onChange={(event) =>
-            updatePeerById(peerId, {
-              ogmInterval: parsePositiveNumberValue(
-                event.target.value,
-                configuration?.ogmInterval ?? BATMAN_MIN_OGM_INTERVAL,
-              ),
-            })
-          }
+          onChange={(event) => onChange(event, "ogmInterval", BATMAN_MIN_OGM_INTERVAL)}
         />
       </PropertyGroup>
 
@@ -111,17 +83,10 @@ export default function BatmanProperties({
         <NumberPropertyField
           label="Purge Timeout"
           icon={<Clock3 size={12} />}
-          valid={!isPurgeMissing}
-          value={configuration?.purgeTimeout ?? BATMAN_MIN_PURGE_TIMEOUT}
+          valid={purgeTimeout >= BATMAN_MIN_PURGE_TIMEOUT}
+          value={purgeTimeout}
           min={BATMAN_MIN_PURGE_TIMEOUT}
-          onChange={(event) =>
-            updatePeerById(peerId, {
-              purgeTimeout: parsePositiveNumberValue(
-                event.target.value,
-                configuration?.purgeTimeout ?? BATMAN_MIN_PURGE_TIMEOUT,
-              ),
-            })
-          }
+          onChange={(event) => onChange(event, "purgeTimeout", BATMAN_MIN_PURGE_TIMEOUT)}
         />
       </PropertyGroup>
     </>
