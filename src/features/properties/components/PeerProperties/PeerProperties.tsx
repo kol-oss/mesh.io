@@ -1,4 +1,4 @@
-import { CircleDot, Diamond, ExternalLink, Lock } from "lucide-react";
+import { CircleDot, Diamond, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { EntityType } from "@/shared/types/model/entities";
@@ -18,6 +18,7 @@ import BooleanPropertyField from "@/shared/components/Property/BooleanPropertyFi
 import ProtocolField from "@/shared/components/Property/ProtocolField";
 import BatmanProperties from "./BatmanProperties";
 import AodvProperties from "./AodvProperties";
+import LockMessage from "@/shared/components/Property/LockMessage";
 
 export default function PeerProperties({
   title,
@@ -120,12 +121,7 @@ export default function PeerProperties({
         </Link>
       </header>
 
-      {isLocked && (
-        <div className="properties__locked-notice">
-          <Lock size={12} />
-          {"This entity is unmodifiable."}
-        </div>
-      )}
+      {isLocked && <LockMessage />}
 
       {/* Peer-specific properties */}
       <section className="properties__section">

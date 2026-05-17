@@ -8,7 +8,8 @@ type NumberPropertyFieldProps = {
   min?: number;
   max?: number;
   global?: boolean;
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
 export default function NumberPropertyField({
@@ -19,6 +20,7 @@ export default function NumberPropertyField({
   min,
   max,
   global = false,
+  disabled = false,
   onChange,
 }: NumberPropertyFieldProps) {
   return (
@@ -32,6 +34,7 @@ export default function NumberPropertyField({
           value={value}
           min={min}
           max={max}
+          disabled={disabled}
           onChange={onChange}
         />
       </div>

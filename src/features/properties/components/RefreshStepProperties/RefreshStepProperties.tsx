@@ -1,6 +1,10 @@
-import { Clock3, ExternalLink, Lock, Radio, RotateCw } from "lucide-react";
+import { Clock3, ExternalLink, Radio, RotateCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { RefreshStepPropertiesPanelProps } from "@/shared/types/view/properties";
+import LockMessage from "@/shared/components/Property/LockMessage";
+import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import TextPropertyField from "@/shared/components/Property/TextPropertyField";
+import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
 
 export default function RefreshStepProperties({
   widthPercent,
@@ -26,10 +30,7 @@ export default function RefreshStepProperties({
         </Link>
       </header>
 
-      <div className="properties__locked-notice">
-        <Lock size={12} />
-        {"This step is unmodifiable."}
-      </div>
+      <LockMessage />
 
       <section className="properties__section">
         <p className="properties__section-title">{"Configuration"}</p>
@@ -39,58 +40,30 @@ export default function RefreshStepProperties({
           <input className="properties__input" type="text" value={selectedStep.title} disabled />
         </label>
 
-        <div className="properties__inline-group">
-          <label className="properties__field">
-            <span className="properties__field-label">{"Peer"}</span>
-            <div className="properties__input-with-icon">
-              <Radio size={12} />
-              <input
-                className="properties__input"
-                type="text"
-                value={refreshPeer?.name ?? "Unknown peer"}
-                disabled
-              />
-            </div>
-          </label>
+        <PropertyGroup>
+          <TextPropertyField
+            label="Peer"
+            icon={<Radio size={12} />}
+            value={refreshPeer?.name ?? "Unknown"}
+            disabled
+          />
+          <TextPropertyField label="Protocol" value={selectedStep.refreshProtocol} disabled />
+        </PropertyGroup>
 
-          <label className="properties__field">
-            <span className="properties__field-label">{"Protocol"}</span>
-            <input
-              className="properties__input"
-              type="text"
-              value={selectedStep.refreshProtocol}
-              disabled
-            />
-          </label>
-        </div>
-
-        <div className="properties__inline-group">
-          <label className="properties__field">
-            <span className="properties__field-label">{"Start tick"}</span>
-            <div className="properties__input-with-icon">
-              <Clock3 size={12} />
-              <input
-                className="properties__input"
-                type="number"
-                value={selectedStep.refreshStartTick}
-                disabled
-              />
-            </div>
-          </label>
-
-          <label className="properties__field">
-            <span className="properties__field-label">{"Interval"}</span>
-            <div className="properties__input-with-icon">
-              <RotateCw size={12} />
-              <input
-                className="properties__input"
-                type="number"
-                value={selectedStep.refreshInterval}
-                disabled
-              />
-            </div>
-          </label>
-        </div>
+        <PropertyGroup>
+          <NumberPropertyField
+            label="Start tick"
+            icon={<Clock3 size={12} />}
+            value={selectedStep.refreshStartTick}
+            disabled
+          />
+          <NumberPropertyField
+            label="Interval"
+            icon={<RotateCw size={12} />}
+            value={selectedStep.refreshInterval}
+            disabled
+          />
+        </PropertyGroup>
       </section>
     </aside>
   );

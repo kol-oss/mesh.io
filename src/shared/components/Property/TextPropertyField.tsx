@@ -6,7 +6,8 @@ type TextPropertyFieldProps = {
   valid?: boolean;
   value: string;
   global?: boolean;
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
 export default function TextPropertyField({
@@ -15,6 +16,7 @@ export default function TextPropertyField({
   valid = true,
   value,
   global = false,
+  disabled = false,
   onChange,
 }: TextPropertyFieldProps) {
   return (
@@ -26,6 +28,7 @@ export default function TextPropertyField({
           className={`properties__input ${valid ? "" : "properties__required-outline"}`}
           type="text"
           value={value}
+          disabled={disabled}
           onChange={onChange}
         />
       </div>
