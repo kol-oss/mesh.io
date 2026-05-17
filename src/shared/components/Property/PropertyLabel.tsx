@@ -11,7 +11,7 @@ export default function PropertyLabel({ label, valid = true, global = false }: P
   return (
     <span className="properties__field-label properties__field-label--global">
       <span
-        className={`properties__field-label-text ${valid ? "" : "properties__field-label-text--invalid"}`}
+        className={`properties__field-label ${valid ? "" : "properties__field-label--required"}`}
       >
         {label}
       </span>

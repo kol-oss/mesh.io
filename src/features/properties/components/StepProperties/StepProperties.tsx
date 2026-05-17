@@ -13,10 +13,10 @@ import type {
 import type { StepPropertiesPanelProps } from "@/shared/types/view/properties";
 import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 import { parseNumberValue } from "@/shared/utils/properties";
-import MessageStepProperties from "../MessageStepProperties/MessageStepProperties";
-import MoveStepProperties from "../MoveStepProperties/MoveStepProperties";
+import MessageStepProperties from "./MessageStepProperties";
+import MoveStepProperties from "./MoveStepProperties";
 import RefreshStepProperties from "../RefreshStepProperties/RefreshStepProperties";
-import ToggleStepProperties from "../ToggleStepProperties/ToggleStepProperties";
+import ToggleStepProperties from "./ToggleStepProperties";
 import PropertyGroup from "@/shared/components/Property/PropertyGroup";
 import TextPropertyField from "@/shared/components/Property/TextPropertyField";
 import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
@@ -223,7 +223,7 @@ export default function StepProperties({
           <TextPropertyField
             label="Name"
             value={selectedStep.title}
-            valid={!selectedStep.title}
+            valid={!!selectedStep.title}
             onChange={(event) => updateSelectedManualStep({ title: event.target.value })}
           />
         </PropertyGroup>

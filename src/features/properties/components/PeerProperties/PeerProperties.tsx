@@ -135,7 +135,7 @@ export default function PeerProperties({
           <TextPropertyField
             label="Name"
             value={peer.name}
-            valid={!peer.name}
+            valid={!!peer.name}
             onChange={(event) => updatePeer({ name: event.target.value })}
           />
         </PropertyGroup>
