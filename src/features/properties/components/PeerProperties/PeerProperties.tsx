@@ -9,15 +9,15 @@ import { getConfiguration } from "@/shared/types/model/peers";
 import type { PeerPropertiesPanelProps } from "@/shared/types/view/properties";
 import { parseNumber } from "@/shared/utils/properties";
 import Letter from "@/shared/components/Letter/Letter";
-import AodvProperties from "../AodvProperties/AodvProperties";
-import BatmanProperties from "../BatmanProperties/BatmanProperties";
-import DsdvProperties from "../DsdvProperties/DsdvProperties";
-import OlsrProperties from "../OlsrProperties/OlsrProperties";
+import DsdvProperties from "./DsdvProperties";
+import OlsrProperties from "./OlsrProperties";
 import PropertyGroup from "@/shared/components/Property/PropertyGroup";
 import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
 import TextPropertyField from "@/shared/components/Property/TextPropertyField";
 import BooleanPropertyField from "@/shared/components/Property/BooleanPropertyField";
 import ProtocolField from "@/shared/components/Property/ProtocolField";
+import BatmanProperties from "./BatmanProperties";
+import AodvProperties from "./AodvProperties";
 
 export default function PeerProperties({
   title,
@@ -127,6 +127,7 @@ export default function PeerProperties({
         </div>
       )}
 
+      {/* Peer-specific properties */}
       <section className="properties__section">
         <p className="properties__section-title">{"Configuration"}</p>
 
@@ -173,6 +174,7 @@ export default function PeerProperties({
         </PropertyGroup>
       </section>
 
+      {/* Routing-specific properties */}
       <section className="properties__section">
         <p className="properties__section-title">{"Routing"}</p>
 
