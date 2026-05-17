@@ -5,16 +5,16 @@ import PropertyLabel from "./PropertyLabel";
 type SelectPropertyFieldProps = {
   label?: string;
   value: string;
-  options: SelectOption[];
   valid?: boolean;
+  options: SelectOption[];
   onChange: (value: string) => void;
 };
 
 export default function SelectPropertyField({
   label,
   value,
-  options,
   valid = true,
+  options,
   onChange,
 }: SelectPropertyFieldProps) {
   return (

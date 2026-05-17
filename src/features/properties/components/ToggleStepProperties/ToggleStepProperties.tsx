@@ -2,7 +2,9 @@ import { Activity, Link2, Radio } from "lucide-react";
 import { EntityType } from "@/shared/types/model/entities";
 import type { LinkEntity, PeerEntity } from "@/shared/types/model/entities";
 import type { ToggleStep } from "@/shared/types/model/steps";
-import Select from "@/shared/components/Select/Select";
+import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
+import BooleanPropertyField from "@/shared/components/Property/BooleanPropertyField";
 
 type ToggleStepPropertiesProps = {
   toggleTargets: Array<PeerEntity | LinkEntity>;
@@ -26,38 +28,23 @@ export default function ToggleStepProperties({
   }));
 
   return (
-    <div className="properties__field">
-      <div className="properties__inline-group">
-        <div className="properties__field">
-          <span
-            className={`properties__field-label ${isStepToggleEntityMissing ? "properties__field-label--required" : ""}`}
-          >
-            {"Entity"}
-          </span>
-          <Select
-            value={toggleTargetValue}
-            invalid={isStepToggleEntityMissing}
-            options={toggleTargetOptions}
-            onChange={(value) => updateStep({ targetEntityId: value || null })}
-          />
-        </div>
-
-        <label className="properties__field">
-          <span
-            className={`properties__field-label ${isStepToggleEntityMissing ? "properties__field-label--required" : ""}`}
-          >
-            {"New status"}
-          </span>
-          <button
-            className={`properties__status ${isStepToggleEntityMissing ? "properties__required-outline" : ""}`}
-            type="button"
-            disabled
-          >
-            <Activity size={12} />
-            {reverseStatusLabel}
-          </button>
-        </label>
-      </div>
-    </div>
+    <>
+      <PropertyGroup>
+        <SelectPropertyField
+          label="Entity"
+          value={toggleTargetValue}
+          valid={!isStepToggleEntityMissing}
+          options={toggleTargetOptions}
+          onChange={(value) => updateStep({ targetEntityId: value || null })}
+        />
+        <BooleanPropertyField
+          label="New Status"
+          icon={<Activity size={12} />}
+          value={reverseStatusLabel === "Enabled"}
+          content={{ true: "Enabled", false: "Disabled" }}
+          disabled
+        />
+      </PropertyGroup>
+    </>
   );
 }

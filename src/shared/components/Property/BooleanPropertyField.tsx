@@ -10,7 +10,8 @@ type BooleanPropertyFieldProps = {
     false: string;
   };
   global?: boolean;
-  onChange: () => void;
+  disabled?: boolean;
+  onChange?: () => void;
 };
 
 export default function BooleanPropertyField({
@@ -20,12 +21,13 @@ export default function BooleanPropertyField({
   value,
   content,
   global = false,
+  disabled = false,
   onChange,
 }: BooleanPropertyFieldProps) {
   return (
     <>
       {label && <PropertyLabel label={label} valid={valid} global={global} />}
-      <button className="properties__status" type="button" onClick={onChange}>
+      <button className="properties__status" type="button" onClick={onChange} disabled={disabled}>
         {icon}
         {value ? content.true : content.false}
       </button>
