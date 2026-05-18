@@ -1,32 +1,25 @@
-import { Radio } from "lucide-react";
-import type { PeerEntity } from "@/shared/types/model/entities";
+import { EntityType, type PeerEntity } from "@/shared/types/model/entities";
 import type { MessageStep } from "@/shared/types/model/steps";
 import PropertyGroup from "@/shared/components/Property/PropertyGroup";
 import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
+import { ENTITY_TYPE_ICONS } from "@/shared/utils/icons";
 
 type MessageStepPropertiesProps = {
-  selectedStep: MessageStep;
+  step: MessageStep;
   peers: PeerEntity[];
-  messageSourceValue: string;
-  messageDestinationValue: string;
-  isStepMessageSourceMissing: boolean;
-  isStepMessageDestinationMissing: boolean;
   updateStep: (changes: Partial<MessageStep>) => void;
 };
 
 export default function MessageStepProperties({
-  selectedStep,
+  step,
   peers,
-  messageSourceValue,
-  messageDestinationValue,
-  isStepMessageSourceMissing,
-  isStepMessageDestinationMissing,
   updateStep,
 }: MessageStepPropertiesProps) {
-  const peerSelectOptions = peers.map((peer) => ({
-    value: peer.id,
+  const Icon = ENTITY_TYPE_ICONS[EntityType.Peer];
+  const peerOptions = peers.map((peer) => ({
     label: peer.name,
-    icon: <Radio size={12} />,
+    icon: <Icon size={12} />,
+    value: peer.id,
   }));
 
   return (
@@ -34,15 +27,13 @@ export default function MessageStepProperties({
       <PropertyGroup>
         <SelectPropertyField
           label="Source"
-          value={messageSourceValue}
-          valid={!isStepMessageSourceMissing}
-          options={peerSelectOptions}
+          value={step.sourcePeerId || ""}
+          valid={!!step.sourcePeerId}
+          options={peerOptions}
           onChange={(value) => {
             const nextSource = value || null;
             const nextDestination =
-              nextSource && selectedStep.destinationPeerId === nextSource
-                ? null
-                : selectedStep.destinationPeerId;
+              nextSource && step.destinationPeerId === nextSource ? null : step.destinationPeerId;
 
             updateStep({
               sourcePeerId: nextSource,
@@ -52,12 +43,12 @@ export default function MessageStepProperties({
         />
         <SelectPropertyField
           label="Destination"
-          value={messageDestinationValue}
-          valid={!isStepMessageDestinationMissing}
-          options={peerSelectOptions.filter((peer) => peer.value !== messageSourceValue)}
+          value={step.destinationPeerId || ""}
+          valid={!!step.destinationPeerId}
+          options={peerOptions.filter((peer) => peer.value !== step.sourcePeerId)}
           onChange={(value) => {
             const nextDestination = value || null;
-            if (nextDestination && nextDestination === messageSourceValue) {
+            if (nextDestination && nextDestination === step.sourcePeerId) {
               return;
             }
             updateStep({ destinationPeerId: nextDestination });

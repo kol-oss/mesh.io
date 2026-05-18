@@ -64,44 +64,13 @@ export default function StepProperties({
     { label: "Toggle", icon: <Activity size={12} />, value: StepType.Toggle },
   ];
 
-  const messageSourceValue =
-    selectedStep.type === StepType.Message &&
-    peers.some((peer) => peer.id === selectedStep.sourcePeerId)
-      ? (selectedStep.sourcePeerId ?? "")
-      : "";
-
-  const messageDestinationValue =
-    selectedStep.type === StepType.Message &&
-    selectedStep.destinationPeerId !== (messageSourceValue || null) &&
-    peers.some((peer) => peer.id === selectedStep.destinationPeerId)
-      ? (selectedStep.destinationPeerId ?? "")
-      : "";
-
   const toggleTargetValue =
     selectedStep.type === StepType.Toggle &&
     toggleTargets.some((entity) => entity.id === selectedStep.targetEntityId)
       ? (selectedStep.targetEntityId ?? "")
       : "";
 
-  const moveTargetValue =
-    selectedStep.type === StepType.Move && peers.some((peer) => peer.id === selectedStep.movePeerId)
-      ? (selectedStep.movePeerId ?? "")
-      : "";
-
   const toggleTargetEntity = toggleTargets.find((entity) => entity.id === toggleTargetValue);
-  const reverseStatusLabel = !toggleTargetEntity
-    ? "Disabled"
-    : toggleTargetEntity.enabled
-      ? "Disabled"
-      : "Enabled";
-
-  const isStepMessageSourceMissing =
-    selectedStep.type === StepType.Message && messageSourceValue === "";
-  const isStepMessageDestinationMissing =
-    selectedStep.type === StepType.Message && messageDestinationValue === "";
-  const isStepToggleEntityMissing =
-    selectedStep.type === StepType.Toggle && toggleTargetValue === "";
-  const isStepMoveEntityMissing = selectedStep.type === StepType.Move && moveTargetValue === "";
 
   const updateSelectedManualStep = (changes: Partial<ManualWorkflowStep>) => {
     const updatedSteps = steps.map((step) => {
@@ -263,32 +232,24 @@ export default function StepProperties({
 
         {selectedStep.type === StepType.Message && (
           <MessageStepProperties
-            selectedStep={selectedStep}
+            step={selectedStep}
             peers={peers}
-            messageSourceValue={messageSourceValue}
-            messageDestinationValue={messageDestinationValue}
-            isStepMessageSourceMissing={isStepMessageSourceMissing}
-            isStepMessageDestinationMissing={isStepMessageDestinationMissing}
             updateStep={updateSelectedManualStep}
           />
         )}
 
         {selectedStep.type === StepType.Toggle && (
           <ToggleStepProperties
-            toggleTargets={toggleTargets}
-            toggleTargetValue={toggleTargetValue}
-            isStepToggleEntityMissing={isStepToggleEntityMissing}
-            reverseStatusLabel={reverseStatusLabel}
+            targets={toggleTargets}
+            selected={toggleTargetEntity}
             updateStep={updateSelectedManualStep}
           />
         )}
 
         {selectedStep.type === StepType.Move && (
           <MoveStepProperties
-            selectedStep={selectedStep}
+            step={selectedStep}
             peers={peers}
-            moveTargetValue={moveTargetValue}
-            isStepMoveEntityMissing={isStepMoveEntityMissing}
             updateStep={updateSelectedManualStep}
           />
         )}
