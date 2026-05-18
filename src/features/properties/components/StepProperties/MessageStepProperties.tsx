@@ -24,36 +24,33 @@ export default function MessageStepProperties({
     value: peer.id,
   }));
 
+  const { sourcePeerId, destinationPeerId } = step;
   return (
     <>
       <PropertyGroup>
         <SelectPropertyField
           label="Source"
-          value={step.sourcePeerId || ""}
-          valid={!!step.sourcePeerId}
+          value={sourcePeerId}
+          valid={!!sourcePeerId}
           options={peerOptions}
           onChange={(value) => {
-            const nextSource = value || null;
-            const nextDestination =
-              nextSource && step.destinationPeerId === nextSource ? null : step.destinationPeerId;
-
             updateStep({
-              sourcePeerId: nextSource,
-              destinationPeerId: nextDestination,
+              sourcePeerId: value,
+              destinationPeerId: destinationPeerId === value ? null : destinationPeerId,
             });
           }}
         />
         <SelectPropertyField
           label="Destination"
-          value={step.destinationPeerId || ""}
-          valid={!!step.destinationPeerId}
-          options={peerOptions.filter((peer) => peer.value !== step.sourcePeerId)}
+          value={destinationPeerId}
+          valid={!!destinationPeerId}
+          options={peerOptions.filter((peer) => peer.value !== sourcePeerId)}
           onChange={(value) => {
-            const nextDestination = value || null;
-            if (nextDestination && nextDestination === step.sourcePeerId) {
+            if (value === sourcePeerId) {
               return;
             }
-            updateStep({ destinationPeerId: nextDestination });
+
+            updateStep({ destinationPeerId: value });
           }}
         />
       </PropertyGroup>

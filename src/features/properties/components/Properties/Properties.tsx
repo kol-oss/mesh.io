@@ -42,7 +42,7 @@ export default function Properties({
       <StepProperties
         widthPercent={widthPercent}
         onResizeStart={onResizeStart}
-        selectedStep={selectedStep}
+        step={selectedStep}
         entities={entities}
         steps={steps}
         setSteps={setSteps}

@@ -23,28 +23,28 @@ export default function MoveStepProperties({ step, peers, updateStep }: MoveStep
     value: peer.id,
   }));
 
+  const { movePeerId } = step;
   return (
     <>
       <PropertyGroup>
         <SelectPropertyField
           label="Peer"
-          value={step.movePeerId || ""}
-          valid={!!step.movePeerId}
+          value={movePeerId || ""}
+          valid={!!movePeerId}
           options={peerOptions}
           onChange={(value) => {
-            const nextMovePeerId = value || null;
-            const selectedPeer = peers.find((peer) => peer.id === nextMovePeerId);
+            const peer = peers.find((peer) => peer.id === value);
             const hasMoveCoordinates = step.x !== 0 || step.y !== 0;
 
-            if (!selectedPeer || hasMoveCoordinates) {
-              updateStep({ movePeerId: nextMovePeerId });
+            if (!peer || hasMoveCoordinates) {
+              updateStep({ movePeerId: value });
               return;
             }
 
             updateStep({
-              movePeerId: nextMovePeerId,
-              x: selectedPeer.x,
-              y: selectedPeer.y,
+              movePeerId: value,
+              x: peer.x,
+              y: peer.y,
             });
           }}
         />

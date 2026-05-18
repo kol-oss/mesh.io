@@ -1,5 +1,10 @@
 import { Activity, type LucideIcon } from "lucide-react";
-import type { LinkEntity, PeerEntity } from "@/shared/types/model/entities";
+import {
+  EntityType,
+  type LinkEntity,
+  type NetworkEntity,
+  type PeerEntity,
+} from "@/shared/types/model/entities";
 import type { ToggleStep } from "@/shared/types/model/steps";
 import PropertyGroup from "@/shared/components/Property/PropertyGroup";
 import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
@@ -20,16 +25,22 @@ const mapToSelectOptions = (options: Array<PeerEntity | LinkEntity>): SelectOpti
 };
 
 type ToggleStepPropertiesProps = {
-  selected?: PeerEntity | LinkEntity;
-  targets: Array<PeerEntity | LinkEntity>;
+  step: ToggleStep;
+  entities: NetworkEntity[];
   updateStep: (changes: Partial<ToggleStep>) => void;
 };
 
 export default function ToggleStepProperties({
-  selected,
-  targets,
+  step,
+  entities,
   updateStep,
 }: ToggleStepPropertiesProps) {
+  const targets = entities.filter(
+    (entity): entity is PeerEntity | LinkEntity =>
+      entity.type === EntityType.Peer || entity.type === EntityType.Link,
+  );
+  const selected = targets.find((entity) => entity.id === step.targetEntityId);
+
   const entityOptions: SelectOption<UUID>[] = mapToSelectOptions(targets);
 
   return (
@@ -37,10 +48,10 @@ export default function ToggleStepProperties({
       <PropertyGroup>
         <SelectPropertyField
           label="Entity"
-          value={selected?.id}
-          valid={!!selected}
+          value={step.targetEntityId}
+          valid={!!step.targetEntityId}
           options={entityOptions}
-          onChange={(value) => updateStep({ targetEntityId: value || null })}
+          onChange={(value) => updateStep({ targetEntityId: value })}
         />
         <BooleanPropertyField
           label="New Status"
