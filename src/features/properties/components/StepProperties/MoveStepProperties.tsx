@@ -22,7 +22,7 @@ export default function MoveStepProperties({ step, peers, updateStep }: MoveStep
     value: peer.id,
   }));
 
-  const { movePeerId } = step;
+  const { entityId: movePeerId } = step;
   return (
     <>
       <PropertyGroup>
@@ -36,12 +36,12 @@ export default function MoveStepProperties({ step, peers, updateStep }: MoveStep
             const hasMoveCoordinates = step.x !== 0 || step.y !== 0;
 
             if (!peer || hasMoveCoordinates) {
-              updateStep({ movePeerId: value });
+              updateStep({ entityId: value });
               return;
             }
 
             updateStep({
-              movePeerId: value,
+              entityId: value,
               x: peer.x,
               y: peer.y,
             });

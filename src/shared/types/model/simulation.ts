@@ -1,7 +1,7 @@
-import type { NetworkEntity, PeerEntity } from "./entities";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
-import type { WorkflowStep } from "./steps";
 import type { UUID } from "@/shared/types/common/uuid";
+import type { NetworkEntity, PeerEntity } from "./entities";
+import type { Step } from "./steps";
 
 export const SimulationEventType = {
   SystemMessageBroadcast: "SYSTEM_MESSAGE_BROADCAST",
@@ -424,7 +424,7 @@ export type EntityStatusChangedEventDetails = {
 export type SimulationStepBoundaryDetails = {
   stepId: UUID;
   stepTitle: string;
-  stepType: WorkflowStep["type"];
+  stepType: Step["type"];
 };
 
 export type SimulationEventDetails =
@@ -467,7 +467,7 @@ export type SimulationTickSnapshot = {
 };
 
 export type SimulationStepResult = {
-  step: WorkflowStep;
+  step: Step;
   events: SimulationEvent[];
   eventSnapshots: SimulationTickSnapshot[];
   snapshot: SimulationTickSnapshot;
@@ -475,12 +475,12 @@ export type SimulationStepResult = {
 
 export type SimulationInput = {
   entities: NetworkEntity[];
-  steps: WorkflowStep[];
+  steps: Step[];
 };
 
 export type SimulationResult = {
   events: SimulationEvent[];
-  steps: WorkflowStep[];
+  steps: Step[];
   stepResults: SimulationStepResult[];
 };
 

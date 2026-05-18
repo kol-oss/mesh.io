@@ -10,7 +10,7 @@ import type {
   PeerEntity,
 } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
-import type { WorkflowStep } from "@/shared/types/model/steps";
+import type { Step } from "@/shared/types/model/steps";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import {
   composeStepsWithRefresh,
@@ -74,7 +74,7 @@ export const usePropertiesRedux = () => {
   );
 
   const setSteps = useCallback(
-    (value: WorkflowStep[]) => {
+    (value: Step[]) => {
       dispatch(replaceSteps(normalizeManualSteps(value)));
     },
     [dispatch],

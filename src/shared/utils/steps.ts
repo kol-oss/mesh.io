@@ -1,14 +1,14 @@
 import { MIN_STEP_TICK } from "../constants/steps";
 import {
   StepType,
-  type ManualWorkflowStep,
   type MessageStep,
   type MoveStep,
+  type Step,
   type ToggleStep,
-  type WorkflowStep,
+  type UserStep,
 } from "../types/model/steps";
 
-export const convertStep = (step: WorkflowStep, type: StepType): WorkflowStep => {
+export const convertStep = (step: Step, type: StepType): Step => {
   if (step.type === type) return step;
 
   const base = {
@@ -22,8 +22,8 @@ export const convertStep = (step: WorkflowStep, type: StepType): WorkflowStep =>
     return {
       ...base,
       type: StepType.Message,
-      sourcePeerId: null,
-      destinationPeerId: null,
+      sourceId: null,
+      destinationId: null,
     } satisfies MessageStep;
   }
 
@@ -31,20 +31,20 @@ export const convertStep = (step: WorkflowStep, type: StepType): WorkflowStep =>
     return {
       ...base,
       type: StepType.Toggle,
-      targetEntityId: null,
+      entityId: null,
     } satisfies ToggleStep;
   }
 
   return {
     ...base,
     type: StepType.Move,
-    movePeerId: null,
+    entityId: null,
     x: 0,
     y: 0,
   } satisfies MoveStep;
 };
 
-export const updateStep = (step: WorkflowStep, changes: Partial<ManualWorkflowStep>) => {
+export const updateStep = (step: Step, changes: Partial<UserStep>) => {
   if (step.type === StepType.Message) {
     return {
       ...step,
@@ -69,11 +69,7 @@ export const updateStep = (step: WorkflowStep, changes: Partial<ManualWorkflowSt
   return step;
 };
 
-export const updateTickAndReorder = (
-  step: WorkflowStep,
-  tick: number,
-  steps: WorkflowStep[],
-): WorkflowStep[] => {
+export const updateTickAndReorder = (step: Step, tick: number, steps: Step[]): Step[] => {
   const normalizedTick = Math.max(MIN_STEP_TICK, tick);
   const stepIndex = steps.findIndex((s) => s.id === step.id);
   if (stepIndex === -1) {

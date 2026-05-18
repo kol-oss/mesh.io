@@ -1,12 +1,12 @@
-import { useCallback, useRef } from "react";
-import { StepType } from "@/shared/types/model/steps";
-import type { WorkflowStep } from "@/shared/types/model/steps";
 import type { UUID } from "@/shared/types/common/uuid";
+import type { Step } from "@/shared/types/model/steps";
+import { StepType } from "@/shared/types/model/steps";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useRef } from "react";
 
 type UseMoveIndicatorsParams = {
-  steps: WorkflowStep[];
-  setSteps: (value: WorkflowStep[]) => void;
+  steps: Step[];
+  setSteps: (value: Step[]) => void;
   isSimulationActive: boolean;
   getWorkspaceCoordsByClientPosition: (
     clientX: number,

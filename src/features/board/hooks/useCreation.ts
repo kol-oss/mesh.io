@@ -1,36 +1,36 @@
 import { useCallback } from "react";
 
-import { OBSTACLE_DEFAULT_WIDTH, OBSTACLE_DEFAULT_HEIGHT } from "@/shared/constants/obstacle.ts";
-import { NEW_PEER_RANGE } from "@/shared/constants/workspace";
+import { OBSTACLE_DEFAULT_HEIGHT, OBSTACLE_DEFAULT_WIDTH } from "@/shared/constants/obstacle.ts";
 import { getDefaultPeerConfiguration } from "@/shared/constants/protocol";
+import { NEW_PEER_RANGE } from "@/shared/constants/workspace";
+import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
+import { generateUUID, type UUID } from "@/shared/types/common/uuid.ts";
 import type { BatmanConfiguration } from "@/shared/types/model/configurations.ts";
-import { EntityType } from "@/shared/types/model/entities.ts";
 import type {
   LinkEntity,
   NetworkEntity,
   ObstacleEntity,
   PeerEntity,
 } from "@/shared/types/model/entities.ts";
-import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
+import { EntityType } from "@/shared/types/model/entities.ts";
 import type {
-  ManualWorkflowStep,
   MessageStep,
   MoveStep,
+  Step,
   ToggleStep,
-  WorkflowStep,
+  UserStep,
 } from "@/shared/types/model/steps.ts";
 import { StepType } from "@/shared/types/model/steps.ts";
-import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
 import type {
   WorkspaceCreationCallbacks,
   WorkspaceCreationSetters,
 } from "@/shared/types/workspace/creation";
-import { generateUUID, type UUID } from "@/shared/types/common/uuid.ts";
+import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
 import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 
 type UseCreationParams = {
   entities: NetworkEntity[];
-  steps: WorkflowStep[];
+  steps: Step[];
   texts: WorkspaceTextItem[];
   setters: WorkspaceCreationSetters;
   callbacks: WorkspaceCreationCallbacks;
@@ -99,7 +99,7 @@ export function useCreation({ entities, steps, texts, setters, callbacks }: UseC
   );
 
   const createStep = useCallback(
-    (step: ManualWorkflowStep) => {
+    (step: UserStep) => {
       setters.setSteps([...steps, step]);
       callbacks.onStepSelect(step.id);
       callbacks.showCreationToast(`Step "${step.title}" added`);
@@ -123,8 +123,8 @@ export function useCreation({ entities, steps, texts, setters, callbacks }: UseC
         title: "Message",
         type: StepType.Message,
         tick: getNextManualStepTick(),
-        sourcePeerId,
-        destinationPeerId,
+        sourceId: sourcePeerId,
+        destinationId: destinationPeerId,
       };
 
       createStep(step);
@@ -139,7 +139,7 @@ export function useCreation({ entities, steps, texts, setters, callbacks }: UseC
         title: "Move",
         type: StepType.Move,
         tick: getNextManualStepTick(),
-        movePeerId,
+        entityId: movePeerId,
         x,
         y,
       };
@@ -156,7 +156,7 @@ export function useCreation({ entities, steps, texts, setters, callbacks }: UseC
         title: "Toggle",
         type: StepType.Toggle,
         tick: getNextManualStepTick(),
-        targetEntityId,
+        entityId: targetEntityId,
       };
 
       createStep(step);

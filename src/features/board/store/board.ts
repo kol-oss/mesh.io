@@ -1,45 +1,46 @@
 import { useCallback, useEffect, useRef } from "react";
 
+import { runSimulation } from "@/shared/processor/simulation";
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
+import {
+  selectCurrentSimulationEvent,
+  selectCurrentSimulationEvents,
+  selectCurrentSimulationStepResult,
+  selectEntities,
+  selectIsSimulationActive,
+  selectNormalizedCurrentEventIndex,
+  selectNormalizedSteps,
+  selectSelectedSource,
+  selectSteps,
+} from "@/shared/store/selectors";
+import { setPlacementMode } from "@/shared/store/slices/boardSlice";
 import {
   TABS,
   clearState,
-  setOpenedTab,
   replaceDisplay,
+  setOpenedTab,
   setRefreshHidden,
   setSelectedId,
   toggleNavCollapsed,
 } from "@/shared/store/slices/displaySlice";
-import { clearPeers, replacePeers } from "@/shared/store/slices/peerSlice";
 import { clearLinks, replaceLinks } from "@/shared/store/slices/linkSlice";
 import { clearObstacles, replaceObstacles } from "@/shared/store/slices/obstacleSlice";
-import { clearSteps, replaceSteps } from "@/shared/store/slices/stepSlice";
-import { clearTexts, replaceTexts } from "@/shared/store/slices/textSlice";
-import { setPlacementMode } from "@/shared/store/slices/boardSlice";
+import { clearPeers, replacePeers } from "@/shared/store/slices/peerSlice";
 import {
   clearSimulation,
-  setIsRunning,
-  setCurrentStepIndex,
   setCurrentEventIndex,
+  setCurrentStepIndex,
   setInspectionMode,
+  setIsRunning,
   simulationCompleted,
   type SimulationInspectionMode,
 } from "@/shared/store/slices/simulationSlice";
-import {
-  selectEntities,
-  selectNormalizedSteps,
-  selectSteps,
-  selectSelectedSource,
-  selectIsSimulationActive,
-  selectCurrentSimulationStepResult,
-  selectCurrentSimulationEvents,
-  selectNormalizedCurrentEventIndex,
-  selectCurrentSimulationEvent,
-} from "@/shared/store/selectors";
+import { clearSteps, replaceSteps } from "@/shared/store/slices/stepSlice";
+import { clearTexts, replaceTexts } from "@/shared/store/slices/textSlice";
 import { useToast } from "@/shared/toast/useToast";
-import { runSimulation } from "@/shared/processor/simulation";
+import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as PlacementMode, ActionMode as ToolbarMode } from "@/shared/types/action";
-import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
+import type { UUID } from "@/shared/types/common/uuid";
 import type {
   LinkEntity,
   NetworkEntity,
@@ -48,16 +49,15 @@ import type {
 } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
 import type { SimulationResult } from "@/shared/types/model/simulation";
-import type { WorkflowStep } from "@/shared/types/model/steps";
-import type { ToolbarPlacementMode } from "@/shared/types/action";
-import type { UUID } from "@/shared/types/common/uuid";
+import type { Step } from "@/shared/types/model/steps";
+import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
-import { normalizeManualSteps, sanitizeManualSteps } from "@/shared/utils/navigation/refreshSteps";
 import {
   exportState,
   importState,
   type WorkspaceImportPayload,
 } from "@/shared/utils/migration/migration";
+import { normalizeManualSteps, sanitizeManualSteps } from "@/shared/utils/navigation/refreshSteps";
 
 export function useBoardStore() {
   const { showToast } = useToast();
@@ -134,7 +134,7 @@ export function useBoardStore() {
   }, [dispatch, manualSteps.length, normalizedManualSteps]);
 
   const setSteps = useCallback(
-    (nextSteps: WorkflowStep[]) => {
+    (nextSteps: Step[]) => {
       invalidateSimulation();
       dispatch(replaceSteps(normalizeManualSteps(nextSteps)));
     },

@@ -23,7 +23,7 @@ export default function MessageStepProperties({
     value: peer.id,
   }));
 
-  const { sourcePeerId, destinationPeerId } = step;
+  const { sourceId: sourcePeerId, destinationId: destinationPeerId } = step;
   return (
     <>
       <PropertyGroup>
@@ -34,8 +34,8 @@ export default function MessageStepProperties({
           options={peerOptions}
           onChange={(value) => {
             updateStep({
-              sourcePeerId: value,
-              destinationPeerId: destinationPeerId === value ? null : destinationPeerId,
+              sourceId: value,
+              destinationId: destinationPeerId === value ? null : destinationPeerId,
             });
           }}
         />
@@ -50,7 +50,7 @@ export default function MessageStepProperties({
               return;
             }
 
-            updateStep({ destinationPeerId: value });
+            updateStep({ destinationId: value });
           }}
         />
       </PropertyGroup>

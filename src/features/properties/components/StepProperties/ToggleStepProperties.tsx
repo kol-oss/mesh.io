@@ -28,7 +28,7 @@ export default function ToggleStepProperties({
     (entity): entity is PeerEntity | LinkEntity =>
       entity.type === EntityType.Peer || entity.type === EntityType.Link,
   );
-  const selected = targets.find((entity) => entity.id === step.targetEntityId);
+  const selected = targets.find((entity) => entity.id === step.entityId);
   const entityOptions: SelectOption<UUID>[] = targets.map((target) => {
     return {
       label: target.name,
@@ -42,10 +42,10 @@ export default function ToggleStepProperties({
       <PropertyGroup>
         <SelectPropertyField
           label="Entity"
-          value={step.targetEntityId}
-          valid={!!step.targetEntityId}
+          value={step.entityId}
+          valid={!!step.entityId}
           options={entityOptions}
-          onChange={(value) => updateStep({ targetEntityId: value })}
+          onChange={(value) => updateStep({ entityId: value })}
         />
         <BooleanPropertyField
           label="New Status"

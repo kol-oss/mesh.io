@@ -1,29 +1,29 @@
-import { useCallback, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
+import {
+  TABS,
+  clearState,
+  replaceDisplay,
+  setOpenedTab,
+  setRefreshHidden,
+  setSelectedId,
+  toggleNavCollapsed,
+} from "@/shared/store/slices/displaySlice";
 import { clearLinks, replaceLinks } from "@/shared/store/slices/linkSlice";
 import { clearObstacles, replaceObstacles } from "@/shared/store/slices/obstacleSlice";
 import { clearPeers, replacePeers } from "@/shared/store/slices/peerSlice";
 import { clearSteps, replaceSteps } from "@/shared/store/slices/stepSlice";
 import { clearTexts, replaceTexts } from "@/shared/store/slices/textSlice";
-import {
-  TABS,
-  clearState,
-  setOpenedTab,
-  replaceDisplay,
-  setRefreshHidden,
-  setSelectedId,
-  toggleNavCollapsed,
-} from "@/shared/store/slices/displaySlice";
-import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
-import { EntityType } from "@/shared/types/model/entities";
+import { useToast } from "@/shared/toast/useToast";
+import type { UUID } from "@/shared/types/common/uuid";
 import type {
   LinkEntity,
   NetworkEntity,
   ObstacleEntity,
   PeerEntity,
 } from "@/shared/types/model/entities";
-import type { WorkflowStep } from "@/shared/types/model/steps";
-import { useToast } from "@/shared/toast/useToast";
+import { EntityType } from "@/shared/types/model/entities";
+import type { Step } from "@/shared/types/model/steps";
+import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import {
   exportState,
   importState,
@@ -34,7 +34,7 @@ import {
   normalizeManualSteps,
   sanitizeManualSteps,
 } from "@/shared/utils/navigation/refreshSteps";
-import type { UUID } from "@/shared/types/common/uuid";
+import { useCallback, useMemo } from "react";
 
 export const useNavigationRedux = () => {
   const dispatch = useAppDispatch();
@@ -98,7 +98,7 @@ export const useNavigationRedux = () => {
   );
 
   const setSteps = useCallback(
-    (value: WorkflowStep[]) => {
+    (value: Step[]) => {
       dispatch(replaceSteps(normalizeManualSteps(value)));
     },
     [dispatch],

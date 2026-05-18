@@ -12,7 +12,7 @@ type RefreshStepPropertiesProps = {
 };
 
 export default function RefreshStepProperties({ step, peers }: RefreshStepPropertiesProps) {
-  const peer = peers.find((peer) => peer.id === step.refreshPeerId) ?? null;
+  const peer = peers.find((peer) => peer.id === step.peerId) ?? null;
 
   return (
     <>
@@ -23,20 +23,20 @@ export default function RefreshStepProperties({ step, peers }: RefreshStepProper
           value={peer?.name ?? "Unknown"}
           disabled
         />
-        <TextPropertyField label="Protocol" value={step.refreshProtocol} disabled />
+        <TextPropertyField label="Protocol" value={step.protocol} disabled />
       </PropertyGroup>
 
       <PropertyGroup>
         <NumberPropertyField
           label="Start tick"
           icon={<Clock3 size={12} />}
-          value={step.refreshStartTick}
+          value={step.startTick}
           disabled
         />
         <NumberPropertyField
           label="Interval"
           icon={<RotateCw size={12} />}
-          value={step.refreshInterval}
+          value={step.interval}
           disabled
         />
       </PropertyGroup>

@@ -1,3 +1,21 @@
+import { useNavigationRedux } from "@/features/navigation/hooks/useNavigationRedux";
+import Tooltip from "@/shared/components/Tooltip/Tooltip";
+import { useListReorder } from "@/shared/hooks/useListReorder";
+import { useToast } from "@/shared/toast/useToast";
+import { generateUUID } from "@/shared/types/common/uuid";
+import type { SimulationStepResult } from "@/shared/types/model/simulation";
+import type {
+  MessageStep,
+  MoveStep,
+  RefreshStep,
+  Step,
+  ToggleStep,
+} from "@/shared/types/model/steps";
+import { StepType } from "@/shared/types/model/steps";
+import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
+import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
+import { migrateSteps } from "@/shared/utils/navigation/stepMigration";
+import { Activity, ChevronRight, ChevronsRight, Eye, EyeOff, Mail, Plus } from "lucide-react";
 import {
   Fragment,
   useCallback,
@@ -7,25 +25,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import { Activity, ChevronRight, ChevronsRight, Eye, EyeOff, Mail, Plus } from "lucide-react";
 import { createPortal } from "react-dom";
-import { useListReorder } from "@/shared/hooks/useListReorder";
-import { useToast } from "@/shared/toast/useToast";
-import type { SimulationStepResult } from "@/shared/types/model/simulation";
-import { StepType } from "@/shared/types/model/steps";
-import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
-import type {
-  MessageStep,
-  MoveStep,
-  RefreshStep,
-  ToggleStep,
-  WorkflowStep,
-} from "@/shared/types/model/steps";
-import { generateUUID } from "@/shared/types/common/uuid";
-import { migrateSteps } from "@/shared/utils/navigation/stepMigration";
-import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
-import Tooltip from "@/shared/components/Tooltip/Tooltip";
-import { useNavigationRedux } from "@/features/navigation/hooks/useNavigationRedux";
 import StepRecord from "../StepRecord/StepRecord";
 
 type StepListProps = {
@@ -35,15 +35,15 @@ type StepListProps = {
 const isSameRefreshStep = (left: RefreshStep, right: RefreshStep) => {
   return (
     left.tick === right.tick &&
-    left.refreshPeerId === right.refreshPeerId &&
-    left.refreshProtocol === right.refreshProtocol &&
-    left.refreshAction === right.refreshAction &&
-    left.refreshStartTick === right.refreshStartTick &&
-    left.refreshInterval === right.refreshInterval
+    left.peerId === right.peerId &&
+    left.protocol === right.protocol &&
+    left.action === right.action &&
+    left.startTick === right.startTick &&
+    left.interval === right.interval
   );
 };
 
-const isSelectedStep = (step: WorkflowStep, selectedStep: WorkflowStep | null) => {
+const isSelectedStep = (step: Step, selectedStep: Step | null) => {
   if (!selectedStep) {
     return false;
   }
@@ -222,15 +222,15 @@ export default function StepList({ currentSimulationStepResult }: StepListProps)
     const manualSteps = steps.filter((step) => !isRefreshStep(step));
     const nextTick =
       manualSteps.length > 0 ? Math.max(1, manualSteps[manualSteps.length - 1].tick) : 1;
-    const newStep: WorkflowStep =
+    const newStep: Step =
       type === StepType.Message
         ? ({
             id: generateUUID(),
             title: "Message",
             type: StepType.Message,
             tick: nextTick,
-            sourcePeerId: null,
-            destinationPeerId: null,
+            sourceId: null,
+            destinationId: null,
           } satisfies MessageStep)
         : type === StepType.Toggle
           ? ({
@@ -238,14 +238,14 @@ export default function StepList({ currentSimulationStepResult }: StepListProps)
               title: "Toggle",
               type: StepType.Toggle,
               tick: nextTick,
-              targetEntityId: null,
+              entityId: null,
             } satisfies ToggleStep)
           : ({
               id: generateUUID(),
               title: "Move",
               type: StepType.Move,
               tick: nextTick,
-              movePeerId: null,
+              entityId: null,
               x: 0,
               y: 0,
             } satisfies MoveStep);

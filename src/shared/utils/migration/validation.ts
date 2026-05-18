@@ -1,18 +1,18 @@
 import { peerRoutingProtocols, workflowStepTypes } from "@/shared/constants/protocol";
+import type { DisplayState } from "@/shared/store/slices/displaySlice";
+import { TABS } from "@/shared/store/slices/displaySlice";
 import { ActionGroup, ActionMode, type ActionModesByGroup } from "@/shared/types/action";
+import type { ImportPayload } from "@/shared/types/common/migration";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
-import { EntityType } from "@/shared/types/model/entities";
 import type {
   LinkEntity,
   NetworkEntity,
   ObstacleEntity,
   PeerEntity,
 } from "@/shared/types/model/entities";
-import { RefreshAction, StepType, type WorkflowStep } from "@/shared/types/model/steps";
-import { TABS } from "@/shared/store/slices/displaySlice";
-import type { DisplayState } from "@/shared/store/slices/displaySlice";
+import { EntityType } from "@/shared/types/model/entities";
+import { RefreshAction, StepType, type Step } from "@/shared/types/model/steps";
 import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
-import type { ImportPayload } from "@/shared/types/common/migration";
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null;
@@ -184,7 +184,7 @@ const isValidDisplayState = (value: unknown): value is Partial<DisplayState> => 
   );
 };
 
-const isValidWorkflowStep = (value: unknown): value is WorkflowStep => {
+const isValidWorkflowStep = (value: unknown): value is Step => {
   if (!isRecord(value)) {
     return false;
   }
@@ -192,7 +192,7 @@ const isValidWorkflowStep = (value: unknown): value is WorkflowStep => {
   if (
     typeof value.id !== "string" ||
     typeof value.title !== "string" ||
-    !workflowStepTypes.includes(value.type as WorkflowStep["type"]) ||
+    !workflowStepTypes.includes(value.type as Step["type"]) ||
     !isFiniteNumber(value.tick)
   ) {
     return false;

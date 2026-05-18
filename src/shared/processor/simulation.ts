@@ -1,5 +1,14 @@
+import { AodvModule } from "@/shared/processor/aodv/AodvModule";
+import { BatmanModule } from "@/shared/processor/batman/BatmanModule";
+import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
+import type {
+  PacketCapableModule,
+  RoutingProtocolModule,
+} from "@/shared/processor/core/runtimeTypes";
+import { DsdvModule } from "@/shared/processor/dsdv/DsdvModule";
+import { OlsrModule } from "@/shared/processor/olsr/OlsrModule";
+import { RuntimeNetwork } from "@/shared/processor/types/network";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
-import { RefreshAction, StepType, type WorkflowStep } from "@/shared/types/model/steps";
 import {
   SimulationEventType,
   SimulationMessageKind,
@@ -11,15 +20,9 @@ import {
   type SimulationStepResult,
   type SimulationTickSnapshot,
 } from "@/shared/types/model/simulation";
-import { BatmanModule } from "@/shared/processor/batman/BatmanModule";
-import { AodvModule } from "@/shared/processor/aodv/AodvModule";
-import { DsdvModule } from "@/shared/processor/dsdv/DsdvModule";
-import { OlsrModule } from "@/shared/processor/olsr/OlsrModule";
-import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { PacketCapableModule, RoutingProtocolModule } from "@/shared/processor/core/runtimeTypes";
-import { RuntimeNetwork } from "@/shared/processor/types/network";
+import { RefreshAction, StepType, type Step } from "@/shared/types/model/steps";
 
-const sortSteps = (steps: WorkflowStep[]) => {
+const sortSteps = (steps: Step[]) => {
   return [...steps]
     .map((step, index) => ({ step, index }))
     .sort((left, right) => {
@@ -53,7 +56,7 @@ export function runSimulation(input: SimulationInput): SimulationResult {
       simulationTick += 1;
     }
 
-    const stepEventsForTick: WorkflowStep[] = [];
+    const stepEventsForTick: Step[] = [];
     while (stepIndex < steps.length && steps[stepIndex].tick === tick) {
       stepEventsForTick.push(steps[stepIndex]);
       stepIndex += 1;
@@ -86,41 +89,41 @@ export function runSimulation(input: SimulationInput): SimulationResult {
 }
 
 const processStep = (
-  step: WorkflowStep,
+  step: Step,
   network: RuntimeNetwork,
   eventRecorder: SimulationEventRecorder,
 ) => {
   if (step.type === StepType.Move) {
-    if (!step.movePeerId) {
+    if (!step.entityId) {
       return;
     }
 
-    const peer = network.getPeer(step.movePeerId);
+    const peer = network.getPeer(step.entityId);
     if (!peer) {
       return;
     }
 
     const currentPeer = peer.getPeerEntity();
     const moveDetails: PeerMovedEventDetails = {
-      peerId: step.movePeerId,
+      peerId: step.entityId,
       fromX: currentPeer.x,
       fromY: currentPeer.y,
       toX: step.x,
       toY: step.y,
     };
 
-    network.updatePeerPosition(step.movePeerId, step.x, step.y);
+    network.updatePeerPosition(step.entityId, step.x, step.y);
     network.refreshConnectivity();
-    eventRecorder.save(step.movePeerId, SimulationEventType.SystemPeerMoved, moveDetails);
+    eventRecorder.save(step.entityId, SimulationEventType.SystemPeerMoved, moveDetails);
     return;
   }
 
   if (step.type === StepType.Toggle) {
-    if (!step.targetEntityId) {
+    if (!step.entityId) {
       return;
     }
 
-    const toggleResult = network.toggleEntity(step.targetEntityId);
+    const toggleResult = network.toggleEntity(step.entityId);
     if (!toggleResult) {
       return;
     }
@@ -128,31 +131,24 @@ const processStep = (
     network.refreshConnectivity();
 
     const statusDetails: EntityStatusChangedEventDetails = {
-      entityId: step.targetEntityId,
+      entityId: step.entityId,
       entityType: toggleResult.entityType,
       previousEnabled: toggleResult.previousEnabled,
       nextEnabled: toggleResult.nextEnabled,
     };
 
-    eventRecorder.save(
-      step.targetEntityId,
-      SimulationEventType.SystemEntityStatusChanged,
-      statusDetails,
-    );
+    eventRecorder.save(step.entityId, SimulationEventType.SystemEntityStatusChanged, statusDetails);
     return;
   }
 
   if (step.type === StepType.Refresh) {
-    const peer = network.getPeer(step.refreshPeerId);
-    const module = peer?.getModule(step.refreshProtocol);
+    const peer = network.getPeer(step.peerId);
+    const module = peer?.getModule(step.protocol);
     if (!module) {
       return;
     }
 
-    if (
-      step.refreshProtocol === RoutingProtocol.BATMAN &&
-      step.refreshAction === RefreshAction.BatmanElp
-    ) {
+    if (step.protocol === RoutingProtocol.BATMAN && step.action === RefreshAction.BatmanElp) {
       if (!(module instanceof BatmanModule)) {
         return;
       }
@@ -160,10 +156,7 @@ const processStep = (
       return;
     }
 
-    if (
-      step.refreshProtocol === RoutingProtocol.BATMAN &&
-      step.refreshAction === RefreshAction.BatmanOgm
-    ) {
+    if (step.protocol === RoutingProtocol.BATMAN && step.action === RefreshAction.BatmanOgm) {
       if (!(module instanceof BatmanModule)) {
         return;
       }
@@ -173,10 +166,7 @@ const processStep = (
       return;
     }
 
-    if (
-      step.refreshProtocol === RoutingProtocol.DSDV &&
-      step.refreshAction === RefreshAction.DsdvFullDump
-    ) {
+    if (step.protocol === RoutingProtocol.DSDV && step.action === RefreshAction.DsdvFullDump) {
       if (!(module instanceof DsdvModule)) {
         return;
       }
@@ -186,10 +176,7 @@ const processStep = (
       return;
     }
 
-    if (
-      step.refreshProtocol === RoutingProtocol.DSDV &&
-      step.refreshAction === RefreshAction.DsdvIncremental
-    ) {
+    if (step.protocol === RoutingProtocol.DSDV && step.action === RefreshAction.DsdvIncremental) {
       if (!(module instanceof DsdvModule)) {
         return;
       }
@@ -199,10 +186,7 @@ const processStep = (
       return;
     }
 
-    if (
-      step.refreshProtocol === RoutingProtocol.AODV &&
-      step.refreshAction === RefreshAction.AodvHello
-    ) {
+    if (step.protocol === RoutingProtocol.AODV && step.action === RefreshAction.AodvHello) {
       if (!(module instanceof AodvModule)) {
         return;
       }
@@ -212,10 +196,7 @@ const processStep = (
       return;
     }
 
-    if (
-      step.refreshProtocol === RoutingProtocol.OLSR &&
-      step.refreshAction === RefreshAction.OlsrHello
-    ) {
+    if (step.protocol === RoutingProtocol.OLSR && step.action === RefreshAction.OlsrHello) {
       if (!(module instanceof OlsrModule)) {
         return;
       }
@@ -225,10 +206,7 @@ const processStep = (
       return;
     }
 
-    if (
-      step.refreshProtocol === RoutingProtocol.OLSR &&
-      step.refreshAction === RefreshAction.OlsrTc
-    ) {
+    if (step.protocol === RoutingProtocol.OLSR && step.action === RefreshAction.OlsrTc) {
       if (!(module instanceof OlsrModule)) {
         return;
       }
@@ -243,15 +221,15 @@ const processStep = (
     return;
   }
 
-  if (!step.sourcePeerId || !step.destinationPeerId) {
+  if (!step.sourceId || !step.destinationId) {
     return;
   }
 
-  const sourcePeer = network.getPeer(step.sourcePeerId);
+  const sourcePeer = network.getPeer(step.sourceId);
   const sourceProtocol = sourcePeer?.getPrimaryProtocol() ?? null;
   const sourceModule = sourceProtocol ? sourcePeer?.getModule(sourceProtocol) : null;
   if (!sourceModule || !isPacketCapableModule(sourceModule)) {
-    eventRecorder.save(step.sourcePeerId, SimulationEventType.SystemMessageDropped, {
+    eventRecorder.save(step.sourceId, SimulationEventType.SystemMessageDropped, {
       reason: sourcePeer
         ? `Source peer does not have a ${sourceProtocol ?? "Unknown"} module`
         : "Source peer does not exist",
@@ -263,7 +241,7 @@ const processStep = (
   const packet: SimulationPacket = {
     kind: SimulationMessageKind.Packet,
     sourcePeerId: null,
-    destinationPeerId: step.destinationPeerId,
+    destinationPeerId: step.destinationId,
     timeToLive: 50,
   };
   sourceModule.send(packet);

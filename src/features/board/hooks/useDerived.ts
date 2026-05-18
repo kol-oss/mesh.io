@@ -1,32 +1,32 @@
 import { useMemo } from "react";
 
 import { RANGE_SAMPLES } from "@/shared/constants/workspace";
-import { ConnectionType } from "@/shared/types/interaction";
-import { EntityType } from "@/shared/types/model/entities";
+import {
+  getConnectivityObstacleBounds,
+  getRangedConnectionPairs,
+  getRayDistanceWithObstacleBlocking,
+} from "@/shared/processor/connectivity";
+import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as PlacementMode } from "@/shared/types/action";
-import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
-import { StepType } from "@/shared/types/model/steps";
-import type { MoveIndicator } from "@/shared/types/workspace/scene";
-import type { RangePolygon } from "@/shared/types/workspace/interaction";
+import type { UUID } from "@/shared/types/common/uuid";
+import { ConnectionType } from "@/shared/types/interaction";
 import type {
   LinkEntity,
   NetworkEntity,
   ObstacleEntity,
   PeerEntity,
 } from "@/shared/types/model/entities";
-import type { WorkflowStep } from "@/shared/types/model/steps";
-import type { ToolbarPlacementMode } from "@/shared/types/action";
-import type { UUID } from "@/shared/types/common/uuid";
-import {
-  getConnectivityObstacleBounds,
-  getRayDistanceWithObstacleBlocking,
-  getRangedConnectionPairs,
-} from "@/shared/processor/connectivity";
+import { EntityType } from "@/shared/types/model/entities";
+import type { Step } from "@/shared/types/model/steps";
+import { StepType } from "@/shared/types/model/steps";
+import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
+import type { RangePolygon } from "@/shared/types/workspace/interaction";
+import type { MoveIndicator } from "@/shared/types/workspace/scene";
 import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 
 type UseDerivedParams = {
   entities: NetworkEntity[];
-  steps: WorkflowStep[];
+  steps: Step[];
   selectedId: UUID | null;
   selectedSource: SelectionSource | null;
   creationSelectedEntityId: UUID | null;
@@ -153,11 +153,11 @@ export function useDerived({
     }
 
     const step = steps.find((candidate) => candidate.id === selectedId);
-    if (!step || step.type !== StepType.Move || isRefreshStep(step) || step.movePeerId === null) {
+    if (!step || step.type !== StepType.Move || isRefreshStep(step) || step.entityId === null) {
       return null;
     }
 
-    const sourcePeer = peerById.get(step.movePeerId);
+    const sourcePeer = peerById.get(step.entityId);
     if (!sourcePeer) {
       return null;
     }
@@ -215,20 +215,20 @@ export function useDerived({
     const ids = new Set<UUID>();
 
     if (step.type === StepType.Message) {
-      if (step.sourcePeerId !== null) ids.add(step.sourcePeerId);
-      if (step.destinationPeerId !== null) ids.add(step.destinationPeerId);
+      if (step.sourceId !== null) ids.add(step.sourceId);
+      if (step.destinationId !== null) ids.add(step.destinationId);
     }
 
     if (step.type === StepType.Move) {
-      if (step.movePeerId !== null) ids.add(step.movePeerId);
+      if (step.entityId !== null) ids.add(step.entityId);
     }
 
     if (step.type === StepType.Toggle) {
-      if (step.targetEntityId !== null) ids.add(step.targetEntityId);
+      if (step.entityId !== null) ids.add(step.entityId);
     }
 
     if (step.type === StepType.Refresh) {
-      ids.add(step.refreshPeerId);
+      ids.add(step.peerId);
     }
 
     return ids;

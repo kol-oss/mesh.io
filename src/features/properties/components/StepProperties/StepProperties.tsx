@@ -8,7 +8,7 @@ import { MIN_STEP_TICK } from "@/shared/constants/steps";
 import type { SelectOption } from "@/shared/types/common/select";
 import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
-import type { ManualWorkflowStep, WorkflowStep } from "@/shared/types/model/steps";
+import type { Step, UserStep } from "@/shared/types/model/steps";
 import { StepType } from "@/shared/types/model/steps";
 import { parseNumberValue } from "@/shared/utils/properties";
 import { convertStep, updateStep, updateTickAndReorder } from "@/shared/utils/steps";
@@ -19,10 +19,10 @@ import RefreshStepProperties from "./RefreshStepProperties";
 import ToggleStepProperties from "./ToggleStepProperties";
 
 type StepPropertiesPanelProps = {
-  step: WorkflowStep;
+  step: Step;
   entities: NetworkEntity[];
-  steps: WorkflowStep[];
-  setSteps: (value: WorkflowStep[]) => void;
+  steps: Step[];
+  setSteps: (value: Step[]) => void;
 };
 
 export default function StepProperties({
@@ -39,7 +39,7 @@ export default function StepProperties({
     { label: "Toggle", icon: getStepTypeIcon(StepType.Toggle), value: StepType.Toggle },
   ];
 
-  const updateManualStep = (changes: Partial<ManualWorkflowStep>) => {
+  const updateManualStep = (changes: Partial<UserStep>) => {
     const updatedSteps = steps.map((s) => {
       if (s.id === step.id) {
         return updateStep(s, changes);

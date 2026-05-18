@@ -1,12 +1,12 @@
-import { type PointerEvent as ReactPointerEvent } from "react";
-import { Activity, ChevronsRight, Mail, RotateCw } from "lucide-react";
-import { StepType } from "@/shared/types/model/steps";
-import type { WorkflowStep } from "@/shared/types/model/steps";
-import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 import Tooltip from "@/shared/components/Tooltip/Tooltip";
+import type { Step } from "@/shared/types/model/steps";
+import { StepType } from "@/shared/types/model/steps";
+import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
+import { Activity, ChevronsRight, Mail, RotateCw } from "lucide-react";
+import { type PointerEvent as ReactPointerEvent } from "react";
 
 type StepRecordProps = {
-  step: WorkflowStep;
+  step: Step;
   isSelected: boolean;
   isDragging?: boolean;
   onSelect: () => void;
