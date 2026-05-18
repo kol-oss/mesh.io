@@ -12,18 +12,10 @@ type PropertiesProps = {
 };
 
 export default function Properties({ isRuntime: isRuntime, isLocked = false }: PropertiesProps) {
-  const {
-    selectedId: id,
-    selectedSource: source,
-    entities,
-    setEntities,
-    steps,
-    setSteps,
-    isNavCollapsed: collapsed,
-  } = usePropertiesRedux();
+  const { id, source, entities, setEntities, steps, setSteps, isCollapsed } = usePropertiesRedux();
   const { widthPercent, onResizeStart } = useSidebarResize({ side: SidebarResizeSide.Right });
 
-  if (!id || !source || collapsed || (isRuntime && source === SelectionSource.Steps)) {
+  if (!id || !source || isCollapsed || (isRuntime && source === SelectionSource.Steps)) {
     return null;
   }
 
