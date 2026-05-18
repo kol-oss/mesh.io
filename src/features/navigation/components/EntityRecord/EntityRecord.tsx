@@ -1,13 +1,13 @@
-import { type PointerEvent as ReactPointerEvent } from "react";
-import { Link, Lock, LockOpen, Radio, SquareSlash } from "lucide-react";
-import { EntityType } from "@/shared/types/model/entities";
-import type { NetworkEntity } from "@/shared/types/model/entities";
 import Tooltip from "@/shared/components/Tooltip/Tooltip";
+import { getEntityTypeIcon } from "@/shared/constants/icons";
+import { getEntityTypeName } from "@/shared/constants/names";
+import type { NetworkEntity } from "@/shared/types/model/entities";
+import { Lock, LockOpen } from "lucide-react";
+import { type PointerEvent as ReactPointerEvent } from "react";
 
 type EntityRecordProps = {
   entity: NetworkEntity;
   isSelected: boolean;
-  isDragging?: boolean;
   onSelect: () => void;
   onToggleLock: () => void;
   onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
@@ -16,44 +16,35 @@ type EntityRecordProps = {
 export default function EntityRecord({
   entity,
   isSelected,
-  isDragging,
   onSelect,
   onToggleLock,
   onPointerDown,
 }: EntityRecordProps) {
-  const entityTypeTooltip = {
-    [EntityType.Peer]: "Peer",
-    [EntityType.Link]: "Link",
-    [EntityType.Obstacle]: "Obstacle",
-  }[entity.type];
+  const { type, locked } = entity;
+  const icon = getEntityTypeIcon(type, 13);
 
-  const entityTypeIcon = {
-    [EntityType.Peer]: <Radio size={13} />,
-    [EntityType.Link]: <Link size={13} />,
-    [EntityType.Obstacle]: <SquareSlash size={13} />,
-  }[entity.type];
-
+  const lockMessage = locked ? "Unlock" : "Lock";
   return (
     <div
-      className={`navigation__entity-item${isSelected ? " navigation__entity-item--selected" : ""}${isDragging ? " navigation__entity-item--dragging" : ""}`}
+      className={`navigation__entity-item${isSelected ? " navigation__entity-item--selected" : ""}`}
       onClick={onSelect}
       onPointerDown={onPointerDown}
     >
-      <Tooltip content={entityTypeTooltip}>
-        <span className="navigation__entity-type">{entityTypeIcon}</span>
+      <Tooltip content={getEntityTypeName(type)}>
+        <span className="navigation__entity-type">{icon}</span>
       </Tooltip>
       <span className="navigation__entity-title">{entity.name}</span>
-      <Tooltip content={entity.locked ? "Unlock" : "Lock"}>
+      <Tooltip content={lockMessage}>
         <button
-          className={`navigation__entity-lock ${entity.locked ? "navigation__entity-lock--active" : ""}`}
+          className={`navigation__entity-lock ${locked ? "navigation__entity-lock--active" : ""}`}
           onClick={(event) => {
             event.stopPropagation();
             onToggleLock();
           }}
           type="button"
-          aria-label={entity.locked ? "Unlock" : "Lock"}
+          aria-label={lockMessage}
         >
-          {entity.locked ? <Lock size={11} /> : <LockOpen size={11} />}
+          {locked ? <Lock size={11} /> : <LockOpen size={11} />}
         </button>
       </Tooltip>
     </div>
