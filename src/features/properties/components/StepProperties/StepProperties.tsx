@@ -58,7 +58,7 @@ export default function StepProperties({
       entity.type === EntityType.Peer || entity.type === EntityType.Link,
   );
 
-  const typeOptions: SelectOption[] = [
+  const typeOptions: SelectOption<StepType>[] = [
     { label: "Message", icon: <Mail size={12} />, value: StepType.Message },
     { label: "Move", icon: <ChevronsRight size={12} />, value: StepType.Move },
     { label: "Toggle", icon: <Activity size={12} />, value: StepType.Toggle },

@@ -6,14 +6,15 @@ import SelectPropertyField from "@/shared/components/Property/SelectPropertyFiel
 import BooleanPropertyField from "@/shared/components/Property/BooleanPropertyField";
 import { ENTITY_TYPE_ICONS } from "@/shared/utils/icons";
 import type { SelectOption } from "@/shared/types/common/select";
+import type { UUID } from "@/shared/types/common/uuid";
 
-const mapToSelectOptions = (options: Array<PeerEntity | LinkEntity>): SelectOption[] => {
+const mapToSelectOptions = (options: Array<PeerEntity | LinkEntity>): SelectOption<UUID>[] => {
   return options.map((entity) => {
     const Icon: LucideIcon = ENTITY_TYPE_ICONS[entity.type];
     return {
-      value: entity.id,
       label: entity.name,
       icon: <Icon size={12} />,
+      value: entity.id,
     };
   });
 };
@@ -29,14 +30,14 @@ export default function ToggleStepProperties({
   targets,
   updateStep,
 }: ToggleStepPropertiesProps) {
-  const entityOptions = mapToSelectOptions(targets);
+  const entityOptions: SelectOption<UUID>[] = mapToSelectOptions(targets);
 
   return (
     <>
       <PropertyGroup>
         <SelectPropertyField
           label="Entity"
-          value={selected?.id || ""}
+          value={selected?.id}
           valid={!!selected}
           options={entityOptions}
           onChange={(value) => updateStep({ targetEntityId: value || null })}

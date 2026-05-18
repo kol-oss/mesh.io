@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-export type SelectOption = {
+export type SelectOption<T> = {
   label: string;
   icon?: ReactNode;
-  value: string;
+  value: T;
 };

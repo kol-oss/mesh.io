@@ -3,6 +3,8 @@ import type { MessageStep } from "@/shared/types/model/steps";
 import PropertyGroup from "@/shared/components/Property/PropertyGroup";
 import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
 import { ENTITY_TYPE_ICONS } from "@/shared/utils/icons";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { SelectOption } from "@/shared/types/common/select";
 
 type MessageStepPropertiesProps = {
   step: MessageStep;
@@ -16,7 +18,7 @@ export default function MessageStepProperties({
   updateStep,
 }: MessageStepPropertiesProps) {
   const Icon = ENTITY_TYPE_ICONS[EntityType.Peer];
-  const peerOptions = peers.map((peer) => ({
+  const peerOptions: SelectOption<UUID>[] = peers.map((peer) => ({
     label: peer.name,
     icon: <Icon size={12} />,
     value: peer.id,

@@ -6,6 +6,8 @@ import SelectPropertyField from "@/shared/components/Property/SelectPropertyFiel
 import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
 import Letter from "@/shared/components/Letter/Letter";
 import { ENTITY_TYPE_ICONS } from "@/shared/utils/icons";
+import type { SelectOption } from "@/shared/types/common/select";
+import type { UUID } from "@/shared/types/common/uuid";
 
 type MoveStepPropertiesProps = {
   step: MoveStep;
@@ -15,7 +17,7 @@ type MoveStepPropertiesProps = {
 
 export default function MoveStepProperties({ step, peers, updateStep }: MoveStepPropertiesProps) {
   const Icon = ENTITY_TYPE_ICONS[EntityType.Peer];
-  const peerOptions = peers.map((peer) => ({
+  const peerOptions: SelectOption<UUID>[] = peers.map((peer) => ({
     label: peer.name,
     icon: <Icon size={12} />,
     value: peer.id,

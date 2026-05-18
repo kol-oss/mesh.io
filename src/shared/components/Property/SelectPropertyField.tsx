@@ -2,21 +2,21 @@ import type { SelectOption } from "@/shared/types/common/select";
 import Select from "../Select/Select";
 import PropertyLabel from "./PropertyLabel";
 
-type SelectPropertyFieldProps = {
+type SelectPropertyFieldProps<T> = {
   label?: string;
-  value: string;
+  value: T;
   valid?: boolean;
-  options: SelectOption[];
-  onChange: (value: string) => void;
+  options: SelectOption<T>[];
+  onChange: (value: T) => void;
 };
 
-export default function SelectPropertyField({
+export default function SelectPropertyField<T>({
   label,
   value,
   valid = true,
   options,
   onChange,
-}: SelectPropertyFieldProps) {
+}: SelectPropertyFieldProps<T>) {
   return (
     <>
       {label && <PropertyLabel label={label} valid={valid} />}

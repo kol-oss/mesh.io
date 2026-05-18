@@ -2,17 +2,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import type { SelectOption } from "@/shared/types/common/select";
 
-type SelectProps = {
-  value: string;
-  options: SelectOption[];
+type SelectProps<T> = {
+  value: T;
+  options: SelectOption<T>[];
   placeholder?: string;
-  onChange: (value: string) => void;
+  onChange: (value: T) => void;
   disabled?: boolean;
   allowEmpty?: boolean;
   invalid?: boolean;
 };
 
-export default function Select({
+export default function Select<T>({
   value,
   options,
   placeholder = "Select",
@@ -20,7 +20,7 @@ export default function Select({
   disabled = false,
   allowEmpty = true,
   invalid = false,
-}: SelectProps) {
+}: SelectProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
@@ -84,27 +84,25 @@ export default function Select({
 
       {isOpen && (
         <div className="properties-select__menu" role="listbox">
-          {[...(allowEmpty ? [{ value: "", label: placeholder }] : []), ...options].map(
-            (option) => {
-              const isSelected = option.value === value;
-              return (
-                <button
-                  className={`properties-select__option ${isSelected ? "properties-select__option--selected" : ""}`}
-                  key={`option-${option.value || "empty"}`}
-                  type="button"
-                  onClick={() => {
-                    onChange(option.value);
-                    setIsOpen(false);
-                  }}
-                >
-                  <span className="properties-select__value">
-                    {option.icon && <span className="properties-select__icon">{option.icon}</span>}
-                    <span>{option.label}</span>
-                  </span>
-                </button>
-              );
-            },
-          )}
+          {[...(allowEmpty ? [{ value, label: placeholder }] : []), ...options].map((option) => {
+            const isSelected = option.value === value;
+            return (
+              <button
+                className={`properties-select__option ${isSelected ? "properties-select__option--selected" : ""}`}
+                key={`option-${option.value || "empty"}`}
+                type="button"
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+              >
+                <span className="properties-select__value">
+                  {option.icon && <span className="properties-select__icon">{option.icon}</span>}
+                  <span>{option.label}</span>
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
