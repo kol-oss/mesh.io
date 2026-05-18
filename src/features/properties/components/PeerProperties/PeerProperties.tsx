@@ -1,60 +1,49 @@
-import { CircleDot, Diamond, ExternalLink } from "lucide-react";
-import { Link } from "react-router-dom";
+import { CircleDot, Diamond } from "lucide-react";
 
-import { EntityType } from "@/shared/types/model/entities";
+import Letter from "@/shared/components/Letter/Letter";
+import BooleanPropertyField from "@/shared/components/Property/BooleanPropertyField";
+import LockMessage from "@/shared/components/Property/LockMessage";
+import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
+import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import PropertyHeader from "@/shared/components/Property/PropertyHeader";
+import ProtocolField from "@/shared/components/Property/ProtocolField";
+import TextPropertyField from "@/shared/components/Property/TextPropertyField";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { PeerConfiguration } from "@/shared/types/model/configurations";
 import type { PeerEntity } from "@/shared/types/model/entities";
+import { EntityType } from "@/shared/types/model/entities";
 import { getConfiguration } from "@/shared/types/model/peers";
-import type { PeerPropertiesPanelProps } from "@/shared/types/view/properties";
+import type { EntityPropertiesPanelProps } from "@/shared/types/view/properties";
+import { updateEntity } from "@/shared/utils/mutation";
 import { parseNumber } from "@/shared/utils/properties";
-import Letter from "@/shared/components/Letter/Letter";
+import AodvProperties from "./AodvProperties";
+import BatmanProperties from "./BatmanProperties";
 import DsdvProperties from "./DsdvProperties";
 import OlsrProperties from "./OlsrProperties";
-import PropertyGroup from "@/shared/components/Property/PropertyGroup";
-import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
-import TextPropertyField from "@/shared/components/Property/TextPropertyField";
-import BooleanPropertyField from "@/shared/components/Property/BooleanPropertyField";
-import ProtocolField from "@/shared/components/Property/ProtocolField";
-import BatmanProperties from "./BatmanProperties";
-import AodvProperties from "./AodvProperties";
-import LockMessage from "@/shared/components/Property/LockMessage";
+
+type PeerPropertiesPanelProps = EntityPropertiesPanelProps<PeerEntity>;
 
 export default function PeerProperties({
-  title,
-  description,
-  widthPercent,
-  selected: peer,
+  selected,
   entities,
+  widthPercent,
   setEntities,
   onResizeStart,
 }: PeerPropertiesPanelProps) {
-  const { locked: isLocked, protocol } = peer;
+  const { locked: isLocked, protocol } = selected;
   const updatePeer = (changes: Partial<PeerEntity>) => {
-    if (isLocked) return;
-    const updatedEntities = entities.map((entity) => {
-      if (entity.id !== peer.id || entity.type !== EntityType.Peer) {
-        return entity;
-      }
-
-      return {
-        ...entity,
-        ...changes,
-      };
-    });
-
-    setEntities(updatedEntities);
+    setEntities(updateEntity(selected, entities, changes));
   };
 
   const updateConfiguration = (changes: Partial<PeerConfiguration>) => {
     if (isLocked) return;
 
     const updatedEntities = entities.map((entity) => {
-      if (entity.id !== peer.id || entity.type !== EntityType.Peer) {
+      if (entity.id !== selected.id || entity.type !== EntityType.Peer) {
         return entity;
       }
 
-      const configuration = getConfiguration(peer);
+      const configuration = getConfiguration(selected);
       if (!configuration) {
         return entity;
       }
@@ -112,14 +101,9 @@ export default function PeerProperties({
         onPointerDown={onResizeStart}
       />
 
-      <header className="properties__header">
-        <p className="properties__title">{title}</p>
-        <p className="properties__subtitle">{description}</p>
-        <Link className="properties__read-more" to="/docs" target="_blank" rel="noreferrer">
-          <ExternalLink size={12} />
-          {"Read more"}
-        </Link>
-      </header>
+      <PropertyHeader title="Peer" link="/docs">
+        {"A mesh network node with built-in support for specific routing protocols."}
+      </PropertyHeader>
 
       {isLocked && <LockMessage />}
 
@@ -130,8 +114,8 @@ export default function PeerProperties({
         <PropertyGroup>
           <TextPropertyField
             label="Name"
-            value={peer.name}
-            valid={!!peer.name}
+            value={selected.name}
+            valid={!!selected.name}
             onChange={(event) => updatePeer({ name: event.target.value })}
           />
         </PropertyGroup>
@@ -139,13 +123,13 @@ export default function PeerProperties({
         <PropertyGroup label="Position">
           <NumberPropertyField
             icon={<Letter value="X" />}
-            value={peer.x}
-            onChange={(event) => updatePeer({ x: parseNumber(event.target.value, peer.x) })}
+            value={selected.x}
+            onChange={(event) => updatePeer({ x: parseNumber(event.target.value, selected.x) })}
           />
           <NumberPropertyField
             icon={<Letter value="Y" />}
-            value={peer.y}
-            onChange={(event) => updatePeer({ y: parseNumber(event.target.value, peer.y) })}
+            value={selected.y}
+            onChange={(event) => updatePeer({ y: parseNumber(event.target.value, selected.y) })}
           />
         </PropertyGroup>
 
@@ -153,19 +137,19 @@ export default function PeerProperties({
           <NumberPropertyField
             label="Range"
             icon={<CircleDot size={12} />}
-            value={peer.range}
+            value={selected.range}
             onChange={(event) =>
               updatePeer({
-                range: parseNumber(event.target.value, peer.range),
+                range: parseNumber(event.target.value, selected.range),
               })
             }
           />
           <BooleanPropertyField
             label="Status"
             icon={<Diamond size={12} />}
-            value={peer.enabled}
+            value={selected.enabled}
             content={{ true: "Enabled", false: "Disabled" }}
-            onChange={() => updatePeer({ enabled: !peer.enabled })}
+            onChange={() => updatePeer({ enabled: !selected.enabled })}
           />
         </PropertyGroup>
       </section>
@@ -175,12 +159,12 @@ export default function PeerProperties({
         <p className="properties__section-title">{"Routing"}</p>
 
         <PropertyGroup>
-          <ProtocolField peer={peer} onClick={(protocol) => updatePeer({ protocol })} />
+          <ProtocolField peer={selected} onClick={(protocol) => updatePeer({ protocol })} />
         </PropertyGroup>
 
         {protocol === RoutingProtocol.BATMAN && (
           <BatmanProperties
-            peer={peer}
+            peer={selected}
             updateConfiguration={updateConfiguration}
             updateConfigurationByProtocol={updateConfigurationByProtocol}
           />
@@ -188,7 +172,7 @@ export default function PeerProperties({
 
         {protocol === RoutingProtocol.DSDV && (
           <DsdvProperties
-            peer={peer}
+            peer={selected}
             updateConfiguration={updateConfiguration}
             updateConfigurationByProtocol={updateConfigurationByProtocol}
           />
@@ -196,7 +180,7 @@ export default function PeerProperties({
 
         {protocol === RoutingProtocol.OLSR && (
           <OlsrProperties
-            peer={peer}
+            peer={selected}
             updateConfiguration={updateConfiguration}
             updateConfigurationByProtocol={updateConfigurationByProtocol}
           />
@@ -204,7 +188,7 @@ export default function PeerProperties({
 
         {protocol === RoutingProtocol.AODV && (
           <AodvProperties
-            peer={peer}
+            peer={selected}
             updateConfiguration={updateConfiguration}
             updateConfigurationByProtocol={updateConfigurationByProtocol}
           />

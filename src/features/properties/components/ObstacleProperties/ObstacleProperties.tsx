@@ -1,31 +1,28 @@
-import { ExternalLink, Lock, MoveHorizontal, MoveVertical } from "lucide-react";
-import { Link } from "react-router-dom";
-import { EntityType } from "@/shared/types/model/entities";
+import Letter from "@/shared/components/Letter/Letter";
+import LockMessage from "@/shared/components/Property/LockMessage";
+import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
+import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import PropertyHeader from "@/shared/components/Property/PropertyHeader";
+import TextPropertyField from "@/shared/components/Property/TextPropertyField";
 import type { ObstacleEntity } from "@/shared/types/model/entities";
-import type { ObstaclePropertiesPanelProps } from "@/shared/types/view/properties";
+import type { EntityPropertiesPanelProps } from "@/shared/types/view/properties";
+import { updateEntity } from "@/shared/utils/mutation";
 import { parseNumberValue, parsePositiveNumberValue } from "@/shared/utils/properties";
+import { MoveHorizontal, MoveVertical } from "lucide-react";
+
+type ObstaclePropertiesPanelProps = EntityPropertiesPanelProps<ObstacleEntity>;
 
 export default function ObstacleProperties({
+  selected,
+  entities,
   widthPercent,
   onResizeStart,
-  selected: selectedObstacle,
-  entities,
   setEntities,
-  title,
-  description,
 }: ObstaclePropertiesPanelProps) {
-  const isLocked = selectedObstacle.locked === true;
-  const isObstacleNameMissing = selectedObstacle.name.trim() === "";
+  const { name, locked: isLocked } = selected;
 
   const updateObstacle = (changes: Partial<ObstacleEntity>) => {
-    if (isLocked) return;
-    const updatedEntities = entities.map((entity) => {
-      if (entity.id !== selectedObstacle.id || entity.type !== EntityType.Obstacle) {
-        return entity;
-      }
-      return { ...entity, ...changes };
-    });
-    setEntities(updatedEntities);
+    setEntities(updateEntity(selected, entities, changes));
   };
 
   return (
@@ -41,104 +38,68 @@ export default function ObstacleProperties({
         onPointerDown={onResizeStart}
       />
 
-      <header className="properties__header">
-        <p className="properties__title">{title}</p>
-        <p className="properties__subtitle">{description}</p>
-        <Link className="properties__read-more" to="/docs" target="_blank" rel="noreferrer">
-          <ExternalLink size={12} />
-          {"Read more"}
-        </Link>
-      </header>
+      <PropertyHeader title="Obstacle" link="/docs">
+        {"A physical barrier that blocks signal propagation between nearby nodes."}
+      </PropertyHeader>
 
-      {isLocked && (
-        <div className="properties__locked-notice">
-          <Lock size={12} />
-          {"This entity is unmodifiable."}
-        </div>
-      )}
+      {isLocked && <LockMessage />}
 
       <section className="properties__section">
         <p className="properties__section-title">{"Configuration"}</p>
 
-        <label className="properties__field">
-          <span
-            className={`properties__field-label ${isObstacleNameMissing ? "properties__field-label--required" : ""}`}
-          >
-            {"Name"}
-          </span>
-          <input
-            className={`properties__input ${isObstacleNameMissing ? "properties__required-outline" : ""}`}
-            type="text"
-            value={selectedObstacle.name}
+        <PropertyGroup>
+          <TextPropertyField
+            label="Name"
+            value={name}
+            valid={!!name}
             onChange={(event) => updateObstacle({ name: event.target.value })}
+            disabled={isLocked}
           />
-        </label>
+        </PropertyGroup>
 
-        <label className="properties__field">
-          <span className="properties__field-label">{"Position"}</span>
-          <div className="properties__inline-group">
-            <div className="properties__input-with-icon">
-              <span className="properties__input-icon">X</span>
-              <input
-                className="properties__input"
-                type="number"
-                value={selectedObstacle.x}
-                onChange={(event) =>
-                  updateObstacle({
-                    x: parseNumberValue(event.target.value, selectedObstacle.x),
-                  })
-                }
-              />
-            </div>
-            <div className="properties__input-with-icon">
-              <span className="properties__input-icon">Y</span>
-              <input
-                className="properties__input"
-                type="number"
-                value={selectedObstacle.y}
-                onChange={(event) =>
-                  updateObstacle({
-                    y: parseNumberValue(event.target.value, selectedObstacle.y),
-                  })
-                }
-              />
-            </div>
-          </div>
-        </label>
+        <PropertyGroup label="Position">
+          <NumberPropertyField
+            icon={<Letter value="X" />}
+            value={selected.x}
+            onChange={(event) =>
+              updateObstacle({ x: parseNumberValue(event.target.value, selected.x) })
+            }
+            disabled={isLocked}
+          />
+          <NumberPropertyField
+            icon={<Letter value="Y" />}
+            value={selected.y}
+            onChange={(event) =>
+              updateObstacle({ y: parseNumberValue(event.target.value, selected.y) })
+            }
+            disabled={isLocked}
+          />
+        </PropertyGroup>
 
-        <label className="properties__field">
-          <span className="properties__field-label">{"Size"}</span>
-          <div className="properties__inline-group">
-            <div className="properties__input-with-icon">
-              <MoveHorizontal size={12} />
-              <input
-                className="properties__input"
-                type="number"
-                min="1"
-                value={selectedObstacle.width}
-                onChange={(event) =>
-                  updateObstacle({
-                    width: parsePositiveNumberValue(event.target.value, selectedObstacle.width),
-                  })
-                }
-              />
-            </div>
-            <div className="properties__input-with-icon">
-              <MoveVertical size={12} />
-              <input
-                className="properties__input"
-                type="number"
-                min="1"
-                value={selectedObstacle.height}
-                onChange={(event) =>
-                  updateObstacle({
-                    height: parsePositiveNumberValue(event.target.value, selectedObstacle.height),
-                  })
-                }
-              />
-            </div>
-          </div>
-        </label>
+        <PropertyGroup label="Size">
+          <NumberPropertyField
+            icon={<MoveHorizontal size={12} />}
+            value={selected.width}
+            min={1}
+            onChange={(event) =>
+              updateObstacle({
+                width: parsePositiveNumberValue(event.target.value, selected.width),
+              })
+            }
+            disabled={isLocked}
+          />
+          <NumberPropertyField
+            icon={<MoveVertical size={12} />}
+            value={selected.height}
+            min={1}
+            onChange={(event) =>
+              updateObstacle({
+                height: parsePositiveNumberValue(event.target.value, selected.height),
+              })
+            }
+            disabled={isLocked}
+          />
+        </PropertyGroup>
       </section>
     </aside>
   );

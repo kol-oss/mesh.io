@@ -1,11 +1,6 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-import type {
-  LinkEntity,
-  NetworkEntity,
-  ObstacleEntity,
-  PeerEntity,
-} from "@/shared/types/model/entities";
+import type { NetworkEntity } from "@/shared/types/model/entities";
 
 export type PropertiesResizeHandler = (event: ReactPointerEvent<HTMLDivElement>) => void;
 
@@ -18,7 +13,3 @@ export type EntityPropertiesPanelProps<T extends NetworkEntity> = {
   title: string;
   description: string;
 };
-
-export type PeerPropertiesPanelProps = EntityPropertiesPanelProps<PeerEntity>;
-export type LinkPropertiesPanelProps = EntityPropertiesPanelProps<LinkEntity>;
-export type ObstaclePropertiesPanelProps = EntityPropertiesPanelProps<ObstacleEntity>;

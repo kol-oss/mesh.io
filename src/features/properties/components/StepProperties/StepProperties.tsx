@@ -93,7 +93,7 @@ export default function StepProperties({
           />
         </PropertyGroup>
 
-        {stepType !== StepType.Refresh && (
+        {!isRefresh && (
           <PropertyGroup>
             <SelectPropertyField
               label="Type"

@@ -1,72 +1,42 @@
-import { Diamond, ExternalLink, Lock, Radio } from "lucide-react";
-import { Link } from "react-router-dom";
-import { EntityType } from "@/shared/types/model/entities";
-import type { LinkEntity, PeerEntity } from "@/shared/types/model/entities";
-import type { LinkPropertiesPanelProps } from "@/shared/types/view/properties";
-import Select from "@/shared/components/Select/Select";
+import BooleanPropertyField from "@/shared/components/Property/BooleanPropertyField";
+import LockMessage from "@/shared/components/Property/LockMessage";
+import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import PropertyHeader from "@/shared/components/Property/PropertyHeader";
+import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
+import TextPropertyField from "@/shared/components/Property/TextPropertyField";
+import { getEntityTypeIcon } from "@/shared/constants/icons";
 import type { UUID } from "@/shared/types/common/uuid";
+import type { LinkEntity, PeerEntity } from "@/shared/types/model/entities";
+import { EntityType } from "@/shared/types/model/entities";
+import type { EntityPropertiesPanelProps } from "@/shared/types/view/properties";
+import { updateEntity } from "@/shared/utils/mutation";
+import { Diamond } from "lucide-react";
+
+type LinkPropertiesPanelProps = EntityPropertiesPanelProps<LinkEntity>;
 
 export default function LinkProperties({
+  selected,
+  entities,
   widthPercent,
   onResizeStart,
-  selected: selectedLink,
-  entities,
   setEntities,
-  title,
-  description,
 }: LinkPropertiesPanelProps) {
-  const isLocked = selectedLink.locked === true;
+  const {
+    name,
+    locked: isLocked,
+    sourcePeerId: sourceValue,
+    destinationPeerId: destinationValue,
+  } = selected;
   const peers = entities.filter((entity): entity is PeerEntity => entity.type === EntityType.Peer);
 
-  const sourceValue =
-    selectedLink.sourcePeerId && peers.some((peer) => peer.id === selectedLink.sourcePeerId)
-      ? selectedLink.sourcePeerId
-      : "";
-  const destinationValue =
-    selectedLink.destinationPeerId &&
-    selectedLink.destinationPeerId !== sourceValue &&
-    peers.some((peer) => peer.id === selectedLink.destinationPeerId)
-      ? selectedLink.destinationPeerId
-      : "";
-
-  const isLinkNameMissing = selectedLink.name.trim() === "";
-  const isLinkSourceMissing = sourceValue === "";
-  const isLinkDestinationMissing = destinationValue === "";
-
-  const linkPeerOptions = peers.map((peer) => ({
+  const peerOptions = peers.map((peer) => ({
     value: peer.id,
     label: peer.name,
-    icon: <Radio size={12} />,
+    icon: getEntityTypeIcon(peer.type),
   }));
 
   const updateLink = (changes: Partial<LinkEntity>) => {
-    if (isLocked) return;
-
-    const nextSource =
-      "sourcePeerId" in changes
-        ? (changes.sourcePeerId ?? null)
-        : (selectedLink.sourcePeerId ?? null);
-    const nextDestination =
-      "destinationPeerId" in changes
-        ? (changes.destinationPeerId ?? null)
-        : (selectedLink.destinationPeerId ?? null);
-
-    if (nextSource && nextDestination && nextSource === nextDestination) {
-      return;
-    }
-
-    const updatedEntities = entities.map((entity) => {
-      if (entity.id !== selectedLink.id || entity.type !== EntityType.Link) {
-        return entity;
-      }
-
-      return {
-        ...entity,
-        ...changes,
-      };
-    });
-
-    setEntities(updatedEntities);
+    setEntities(updateEntity(selected, entities, changes));
   };
 
   return (
@@ -82,99 +52,69 @@ export default function LinkProperties({
         onPointerDown={onResizeStart}
       />
 
-      <header className="properties__header">
-        <p className="properties__title">{title}</p>
-        <p className="properties__subtitle">{description}</p>
-        <Link className="properties__read-more" to="/docs" target="_blank" rel="noreferrer">
-          <ExternalLink size={12} />
-          {"Read more"}
-        </Link>
-      </header>
+      <PropertyHeader title="Link" link="/docs">
+        {"A persistent bidirectional connection between two nodes in the network."}
+      </PropertyHeader>
 
-      {isLocked && (
-        <div className="properties__locked-notice">
-          <Lock size={12} />
-          {"This entity is unmodifiable."}
-        </div>
-      )}
+      {isLocked && <LockMessage />}
 
       <section className="properties__section">
         <p className="properties__section-title">{"Configuration"}</p>
 
-        <label className="properties__field">
-          <span
-            className={`properties__field-label ${isLinkNameMissing ? "properties__field-label--required" : ""}`}
-          >
-            {"Name"}
-          </span>
-          <input
-            className={`properties__input ${isLinkNameMissing ? "properties__required-outline" : ""}`}
-            type="text"
-            value={selectedLink.name}
+        <PropertyGroup>
+          <TextPropertyField
+            label="Name"
+            value={name}
+            valid={!!name}
             onChange={(event) => updateLink({ name: event.target.value })}
+            disabled={isLocked}
           />
-        </label>
+        </PropertyGroup>
 
-        <div className="properties__field">
-          <div className="properties__inline-group">
-            <div className="properties__field">
-              <span
-                className={`properties__field-label ${isLinkSourceMissing ? "properties__field-label--required" : ""}`}
-              >
-                {"Source"}
-              </span>
-              <Select
-                value={sourceValue}
-                invalid={isLinkSourceMissing}
-                options={linkPeerOptions}
-                onChange={(value) => {
-                  const nextSource = (value as UUID) || null;
-                  const nextDestination =
-                    nextSource && selectedLink.destinationPeerId === nextSource
-                      ? null
-                      : selectedLink.destinationPeerId;
+        <PropertyGroup>
+          <SelectPropertyField
+            label="Source"
+            value={sourceValue}
+            valid={!!sourceValue}
+            options={peerOptions}
+            onChange={(value) => {
+              const nextSource = (value as UUID) || null;
+              const nextDestination =
+                nextSource && selected.destinationPeerId === nextSource
+                  ? null
+                  : selected.destinationPeerId;
 
-                  updateLink({
-                    sourcePeerId: nextSource,
-                    destinationPeerId: nextDestination,
-                  });
-                }}
-              />
-            </div>
+              updateLink({
+                sourcePeerId: nextSource,
+                destinationPeerId: nextDestination,
+              });
+            }}
+          />
 
-            <div className="properties__field">
-              <span
-                className={`properties__field-label ${isLinkDestinationMissing ? "properties__field-label--required" : ""}`}
-              >
-                {"Destination"}
-              </span>
-              <Select
-                value={destinationValue}
-                invalid={isLinkDestinationMissing}
-                options={linkPeerOptions.filter((peer) => peer.value !== sourceValue)}
-                onChange={(value) => {
-                  const nextDestination = (value as UUID) || null;
-                  if (nextDestination && nextDestination === sourceValue) {
-                    return;
-                  }
-                  updateLink({ destinationPeerId: nextDestination });
-                }}
-              />
-            </div>
-          </div>
-        </div>
+          <SelectPropertyField
+            label="Destination"
+            value={destinationValue}
+            valid={!!destinationValue}
+            options={peerOptions.filter((peer) => peer.value !== sourceValue)}
+            onChange={(value) => {
+              const nextDestination = (value as UUID) || null;
+              if (nextDestination && nextDestination === sourceValue) {
+                return;
+              }
+              updateLink({ destinationPeerId: nextDestination });
+            }}
+          />
+        </PropertyGroup>
 
-        <label className="properties__field">
-          <span className="properties__field-label">{"Status"}</span>
-          <button
-            className="properties__status"
-            type="button"
-            onClick={() => updateLink({ enabled: !selectedLink.enabled })}
-          >
-            <Diamond size={12} />
-            {selectedLink.enabled ? "Enabled" : "Disabled"}
-          </button>
-        </label>
+        <PropertyGroup>
+          <BooleanPropertyField
+            label="Status"
+            icon={<Diamond size={12} />}
+            value={selected.enabled}
+            content={{ true: "Enabled", false: "Disabled" }}
+            onChange={() => updateLink({ enabled: !selected.enabled })}
+          />
+        </PropertyGroup>
       </section>
     </aside>
   );
