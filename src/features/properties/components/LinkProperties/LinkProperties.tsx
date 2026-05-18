@@ -8,19 +8,13 @@ import { getEntityTypeIcon } from "@/shared/constants/icons";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { LinkEntity, PeerEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
-import type { EntityPropertiesPanelProps } from "@/shared/types/view/properties";
+import type { EntityPropertiesProps } from "@/shared/types/view/properties";
 import { updateEntity } from "@/shared/utils/mutation";
 import { Diamond } from "lucide-react";
 
-type LinkPropertiesPanelProps = EntityPropertiesPanelProps<LinkEntity>;
+type LinkPropertiesProps = EntityPropertiesProps<LinkEntity>;
 
-export default function LinkProperties({
-  selected,
-  entities,
-  widthPercent,
-  onResizeStart,
-  setEntities,
-}: LinkPropertiesPanelProps) {
+export default function LinkProperties({ selected, entities, setEntities }: LinkPropertiesProps) {
   const {
     name,
     locked: isLocked,
@@ -28,7 +22,6 @@ export default function LinkProperties({
     destinationPeerId: destinationValue,
   } = selected;
   const peers = entities.filter((entity): entity is PeerEntity => entity.type === EntityType.Peer);
-
   const peerOptions = peers.map((peer) => ({
     value: peer.id,
     label: peer.name,
@@ -40,18 +33,7 @@ export default function LinkProperties({
   };
 
   return (
-    <aside
-      className={`properties ${isLocked ? "properties--locked" : ""}`}
-      style={{ width: `${widthPercent}%` }}
-    >
-      <div
-        className="properties__resizer"
-        role="separator"
-        aria-label={"Resize properties"}
-        aria-orientation="vertical"
-        onPointerDown={onResizeStart}
-      />
-
+    <>
       <PropertyHeader title="Link" link="/docs">
         {"A persistent bidirectional connection between two nodes in the network."}
       </PropertyHeader>
@@ -77,15 +59,12 @@ export default function LinkProperties({
             value={sourceValue}
             valid={!!sourceValue}
             options={peerOptions}
-            onChange={(value) => {
-              const nextSource = (value as UUID) || null;
+            onChange={(value: UUID | null) => {
               const nextDestination =
-                nextSource && selected.destinationPeerId === nextSource
-                  ? null
-                  : selected.destinationPeerId;
+                selected.destinationPeerId === value ? null : selected.destinationPeerId;
 
               updateLink({
-                sourcePeerId: nextSource,
+                sourcePeerId: value,
                 destinationPeerId: nextDestination,
               });
             }}
@@ -96,12 +75,11 @@ export default function LinkProperties({
             value={destinationValue}
             valid={!!destinationValue}
             options={peerOptions.filter((peer) => peer.value !== sourceValue)}
-            onChange={(value) => {
-              const nextDestination = (value as UUID) || null;
-              if (nextDestination && nextDestination === sourceValue) {
+            onChange={(value: UUID | null) => {
+              if (value && value === sourceValue) {
                 return;
               }
-              updateLink({ destinationPeerId: nextDestination });
+              updateLink({ destinationPeerId: value });
             }}
           />
         </PropertyGroup>
@@ -112,10 +90,11 @@ export default function LinkProperties({
             icon={<Diamond size={12} />}
             value={selected.enabled}
             content={{ true: "Enabled", false: "Disabled" }}
+            disabled={isLocked}
             onChange={() => updateLink({ enabled: !selected.enabled })}
           />
         </PropertyGroup>
       </section>
-    </aside>
+    </>
   );
 }

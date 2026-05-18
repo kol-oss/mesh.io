@@ -1,74 +1,69 @@
+import { usePropertiesRedux } from "@/features/properties/hooks/usePropertiesRedux";
 import { useSidebarResize } from "@/shared/hooks/useSidebarResize";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import { SidebarResizeSide } from "@/shared/types/view/view";
-import type { SimulationStepResult } from "@/shared/types/model/simulation";
-import { usePropertiesRedux } from "@/features/properties/hooks/usePropertiesRedux";
+import type React from "react";
 import EntityProperties from "../EntityProperties/EntityProperties";
 import StepProperties from "../StepProperties/StepProperties";
 
 type PropertiesProps = {
-  isStepPlacementMode: boolean;
-  currentSimulationStepResult: SimulationStepResult | null;
-  isEntityReadOnly?: boolean;
+  isRuntime: boolean;
+  isLocked?: boolean;
 };
 
-export default function Properties({
-  isStepPlacementMode,
-  currentSimulationStepResult,
-  isEntityReadOnly = false,
-}: PropertiesProps) {
-  const { selectedId, selectedSource, entities, setEntities, steps, setSteps, isNavCollapsed } =
-    usePropertiesRedux();
+export default function Properties({ isRuntime: isRuntime, isLocked = false }: PropertiesProps) {
+  const {
+    selectedId: id,
+    selectedSource: source,
+    entities,
+    setEntities,
+    steps,
+    setSteps,
+    isNavCollapsed: collapsed,
+  } = usePropertiesRedux();
   const { widthPercent, onResizeStart } = useSidebarResize({ side: SidebarResizeSide.Right });
 
-  const shouldHideSelection =
-    isStepPlacementMode ||
-    (currentSimulationStepResult !== null && selectedSource === SelectionSource.Steps);
-
-  const effectiveSelectedId = shouldHideSelection ? null : selectedId;
-  const effectiveSelectedSource = shouldHideSelection ? null : selectedSource;
-
-  if (isNavCollapsed || !effectiveSelectedId || !effectiveSelectedSource) {
+  if (!id || !source || collapsed || (isRuntime && source === SelectionSource.Steps)) {
     return null;
   }
 
-  if (effectiveSelectedSource === SelectionSource.Steps) {
-    const selectedStep = steps.find((step) => step.id === effectiveSelectedId);
-    if (!selectedStep) {
+  let properties: React.ReactNode = null;
+  if (source === SelectionSource.Entities) {
+    const entity = entities.find((entity) => entity.id === id);
+    if (!entity) {
       return null;
     }
 
-    return (
-      <StepProperties
-        widthPercent={widthPercent}
-        onResizeStart={onResizeStart}
-        step={selectedStep}
-        entities={entities}
-        steps={steps}
-        setSteps={setSteps}
-      />
+    properties = (
+      <EntityProperties selected={entity} entities={entities} setEntities={setEntities} />
+    );
+  } else if (source === SelectionSource.Steps) {
+    const step = steps.find((step) => step.id === id);
+    if (!step) {
+      return null;
+    }
+
+    properties = (
+      <StepProperties step={step} steps={steps} entities={entities} setSteps={setSteps} />
     );
   }
 
-  const selectedEntity = entities.find((entity) => entity.id === effectiveSelectedId);
-  if (!selectedEntity) {
-    return null;
-  }
-
-  const effectiveSelectedEntity = isEntityReadOnly
-    ? {
-        ...selectedEntity,
-        locked: true,
-      }
-    : selectedEntity;
-
   return (
-    <EntityProperties
-      widthPercent={widthPercent}
-      onResizeStart={onResizeStart}
-      selectedEntity={effectiveSelectedEntity}
-      entities={entities}
-      setEntities={setEntities}
-    />
+    <>
+      <aside
+        className={`properties ${isLocked ? "properties--locked" : ""}`}
+        style={{ width: `${widthPercent}%` }}
+      >
+        <div
+          className="properties__resizer"
+          role="separator"
+          aria-label={"Resize properties"}
+          aria-orientation="vertical"
+          onPointerDown={onResizeStart}
+        />
+
+        {properties}
+      </aside>
+    </>
   );
 }

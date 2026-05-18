@@ -10,7 +10,6 @@ import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
 import type { ManualWorkflowStep, WorkflowStep } from "@/shared/types/model/steps";
 import { StepType } from "@/shared/types/model/steps";
-import type { PropertiesResizeHandler } from "@/shared/types/view/properties";
 import { parseNumberValue } from "@/shared/utils/properties";
 import { convertStep, updateStep, updateTickAndReorder } from "@/shared/utils/steps";
 import { Clock3 } from "lucide-react";
@@ -23,8 +22,6 @@ type StepPropertiesPanelProps = {
   step: WorkflowStep;
   entities: NetworkEntity[];
   steps: WorkflowStep[];
-  widthPercent: number;
-  onResizeStart: PropertiesResizeHandler;
   setSteps: (value: WorkflowStep[]) => void;
 };
 
@@ -32,8 +29,6 @@ export default function StepProperties({
   step,
   entities,
   steps,
-  widthPercent,
-  onResizeStart,
   setSteps,
 }: StepPropertiesPanelProps) {
   const peers = entities.filter((entity): entity is PeerEntity => entity.type === EntityType.Peer);
@@ -65,9 +60,7 @@ export default function StepProperties({
   const isRefresh = stepType === StepType.Refresh;
 
   return (
-    <aside className="properties" style={{ width: `${widthPercent}%` }}>
-      <div className="properties__resizer" onPointerDown={onResizeStart} />
-
+    <>
       {isRefresh ? (
         <PropertyHeader title="Refresh Step" link="/docs">
           {
@@ -130,6 +123,6 @@ export default function StepProperties({
           <MoveStepProperties step={step} peers={peers} updateStep={updateManualStep} />
         )}
       </section>
-    </aside>
+    </>
   );
 }

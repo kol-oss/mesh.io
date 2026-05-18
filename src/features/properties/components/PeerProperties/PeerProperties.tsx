@@ -13,7 +13,7 @@ import type { PeerConfiguration } from "@/shared/types/model/configurations";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
 import { getConfiguration } from "@/shared/types/model/peers";
-import type { EntityPropertiesPanelProps } from "@/shared/types/view/properties";
+import type { EntityPropertiesProps } from "@/shared/types/view/properties";
 import { updateEntity } from "@/shared/utils/mutation";
 import { parseNumber } from "@/shared/utils/properties";
 import AodvProperties from "./AodvProperties";
@@ -21,15 +21,9 @@ import BatmanProperties from "./BatmanProperties";
 import DsdvProperties from "./DsdvProperties";
 import OlsrProperties from "./OlsrProperties";
 
-type PeerPropertiesPanelProps = EntityPropertiesPanelProps<PeerEntity>;
+type PeerPropertiesProps = EntityPropertiesProps<PeerEntity>;
 
-export default function PeerProperties({
-  selected,
-  entities,
-  widthPercent,
-  setEntities,
-  onResizeStart,
-}: PeerPropertiesPanelProps) {
+export default function PeerProperties({ selected, entities, setEntities }: PeerPropertiesProps) {
   const { locked: isLocked, protocol } = selected;
   const updatePeer = (changes: Partial<PeerEntity>) => {
     setEntities(updateEntity(selected, entities, changes));
@@ -89,18 +83,7 @@ export default function PeerProperties({
   };
 
   return (
-    <aside
-      className={`properties ${isLocked ? "properties--locked" : ""}`}
-      style={{ width: `${widthPercent}%` }}
-    >
-      <div
-        className="properties__resizer"
-        role="separator"
-        aria-label={"Resize properties"}
-        aria-orientation="vertical"
-        onPointerDown={onResizeStart}
-      />
-
+    <>
       <PropertyHeader title="Peer" link="/docs">
         {"A mesh network node with built-in support for specific routing protocols."}
       </PropertyHeader>
@@ -116,6 +99,7 @@ export default function PeerProperties({
             label="Name"
             value={selected.name}
             valid={!!selected.name}
+            disabled={isLocked}
             onChange={(event) => updatePeer({ name: event.target.value })}
           />
         </PropertyGroup>
@@ -124,11 +108,13 @@ export default function PeerProperties({
           <NumberPropertyField
             icon={<Letter value="X" />}
             value={selected.x}
+            disabled={isLocked}
             onChange={(event) => updatePeer({ x: parseNumber(event.target.value, selected.x) })}
           />
           <NumberPropertyField
             icon={<Letter value="Y" />}
             value={selected.y}
+            disabled={isLocked}
             onChange={(event) => updatePeer({ y: parseNumber(event.target.value, selected.y) })}
           />
         </PropertyGroup>
@@ -138,6 +124,7 @@ export default function PeerProperties({
             label="Range"
             icon={<CircleDot size={12} />}
             value={selected.range}
+            disabled={isLocked}
             onChange={(event) =>
               updatePeer({
                 range: parseNumber(event.target.value, selected.range),
@@ -149,6 +136,7 @@ export default function PeerProperties({
             icon={<Diamond size={12} />}
             value={selected.enabled}
             content={{ true: "Enabled", false: "Disabled" }}
+            disabled={isLocked}
             onChange={() => updatePeer({ enabled: !selected.enabled })}
           />
         </PropertyGroup>
@@ -194,6 +182,6 @@ export default function PeerProperties({
           />
         )}
       </section>
-    </aside>
+    </>
   );
 }

@@ -5,39 +5,25 @@ import PropertyGroup from "@/shared/components/Property/PropertyGroup";
 import PropertyHeader from "@/shared/components/Property/PropertyHeader";
 import TextPropertyField from "@/shared/components/Property/TextPropertyField";
 import type { ObstacleEntity } from "@/shared/types/model/entities";
-import type { EntityPropertiesPanelProps } from "@/shared/types/view/properties";
+import type { EntityPropertiesProps } from "@/shared/types/view/properties";
 import { updateEntity } from "@/shared/utils/mutation";
 import { parseNumberValue, parsePositiveNumberValue } from "@/shared/utils/properties";
 import { MoveHorizontal, MoveVertical } from "lucide-react";
 
-type ObstaclePropertiesPanelProps = EntityPropertiesPanelProps<ObstacleEntity>;
+type ObstaclePropertiesProps = EntityPropertiesProps<ObstacleEntity>;
 
 export default function ObstacleProperties({
   selected,
   entities,
-  widthPercent,
-  onResizeStart,
   setEntities,
-}: ObstaclePropertiesPanelProps) {
+}: ObstaclePropertiesProps) {
   const { name, locked: isLocked } = selected;
-
   const updateObstacle = (changes: Partial<ObstacleEntity>) => {
     setEntities(updateEntity(selected, entities, changes));
   };
 
   return (
-    <aside
-      className={`properties ${isLocked ? "properties--locked" : ""}`}
-      style={{ width: `${widthPercent}%` }}
-    >
-      <div
-        className="properties__resizer"
-        role="separator"
-        aria-label={"Resize properties"}
-        aria-orientation="vertical"
-        onPointerDown={onResizeStart}
-      />
-
+    <>
       <PropertyHeader title="Obstacle" link="/docs">
         {"A physical barrier that blocks signal propagation between nearby nodes."}
       </PropertyHeader>
@@ -101,6 +87,6 @@ export default function ObstacleProperties({
           />
         </PropertyGroup>
       </section>
-    </aside>
+    </>
   );
 }

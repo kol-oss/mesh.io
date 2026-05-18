@@ -1,8 +1,8 @@
+import Canvas from "@/features/board/components/Canvas/Canvas";
+import { useBoardStore } from "@/features/board/store/board";
 import Navigation from "@/features/navigation/components/Navigation/Navigation";
 import Properties from "@/features/properties/components/Properties/Properties";
 import Toolbar from "@/features/tools/components/Toolbar/Toolbar";
-import Canvas from "@/features/board/components/Canvas/Canvas";
-import { useBoardStore } from "@/features/board/store/board";
 
 export default function Workspace() {
   const {
@@ -18,7 +18,6 @@ export default function Workspace() {
     handleNextSimulationEvent,
     handleNextSimulationStep,
     isSimulationActive,
-    isStepPlacementMode,
     placementMode,
     setSimulationInspectionMode,
     simulationInspectionMode,
@@ -84,11 +83,7 @@ export default function Workspace() {
         />
       </div>
       <div className="workspace-page__properties">
-        <Properties
-          isStepPlacementMode={isStepPlacementMode}
-          currentSimulationStepResult={currentSimulationStepResult}
-          isEntityReadOnly={isSimulationActive}
-        />
+        <Properties isRuntime={!!currentSimulationStepResult} isLocked={isSimulationActive} />
       </div>
     </div>
   );
