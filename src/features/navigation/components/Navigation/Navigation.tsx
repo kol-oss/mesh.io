@@ -1,10 +1,12 @@
 import EntityList from "@/features/navigation/components/EntityList/EntityList";
+import Menu from "@/features/navigation/components/Menu/Menu";
 import StepList from "@/features/navigation/components/StepList/StepList";
 import Title from "@/features/navigation/components/Title/Title";
-import Menu from "@/features/navigation/components/Menu/Menu";
-import { useSidebarResize } from "@/shared/hooks/useSidebarResize";
 import { useNavigationRedux } from "@/features/navigation/hooks/useNavigationRedux";
+import Resizer from "@/shared/components/Resizer/Resizer";
+import { useSidebarResize } from "@/shared/hooks/useSidebarResize";
 import type { SimulationStepResult } from "@/shared/types/model/simulation";
+import CollapsedTitle from "../Title/CollapsedTitle";
 
 type NavigationProps = {
   currentSimulationStepResult: SimulationStepResult | null;
@@ -19,21 +21,18 @@ export default function Navigation({ currentSimulationStepResult }: NavigationPr
       className={`navigation ${isCollapsed ? "navigation--collapsed" : ""}`}
       style={isCollapsed ? undefined : { width: `${widthPercent}%` }}
     >
-      <Title />
+      {isCollapsed && <CollapsedTitle />}
+
       {!isCollapsed && (
         <>
+          <Title />
           <Menu />
           <div className="navigation__lists">
             <EntityList />
             <StepList currentSimulationStepResult={currentSimulationStepResult} />
           </div>
-          <div
-            className="navigation__resizer"
-            role="separator"
-            aria-label={"Resize sidebar"}
-            aria-orientation="vertical"
-            onPointerDown={onResizeStart}
-          />
+
+          <Resizer onResizeStart={onResizeStart} />
         </>
       )}
     </aside>

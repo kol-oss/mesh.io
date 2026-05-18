@@ -1,7 +1,8 @@
 import { usePropertiesRedux } from "@/features/properties/hooks/usePropertiesRedux";
+import Resizer from "@/shared/components/Resizer/Resizer";
 import { useSidebarResize } from "@/shared/hooks/useSidebarResize";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
-import { SidebarResizeSide } from "@/shared/types/view/view";
+import { ResizeSide } from "@/shared/types/view/view";
 import type React from "react";
 import EntityProperties from "../EntityProperties/EntityProperties";
 import StepProperties from "../StepProperties/StepProperties";
@@ -11,9 +12,9 @@ type PropertiesProps = {
   isLocked?: boolean;
 };
 
-export default function Properties({ isRuntime: isRuntime, isLocked = false }: PropertiesProps) {
+export default function Properties({ isRuntime, isLocked = false }: PropertiesProps) {
   const { id, source, entities, setEntities, steps, setSteps, isCollapsed } = usePropertiesRedux();
-  const { widthPercent, onResizeStart } = useSidebarResize({ side: SidebarResizeSide.Right });
+  const { widthPercent, onResizeStart } = useSidebarResize({ side: ResizeSide.Right });
 
   if (!id || !source || isCollapsed || (isRuntime && source === SelectionSource.Steps)) {
     return null;
@@ -46,13 +47,7 @@ export default function Properties({ isRuntime: isRuntime, isLocked = false }: P
         className={`properties ${isLocked ? "properties--locked" : ""}`}
         style={{ width: `${widthPercent}%` }}
       >
-        <div
-          className="properties__resizer"
-          role="separator"
-          aria-label={"Resize properties"}
-          aria-orientation="vertical"
-          onPointerDown={onResizeStart}
-        />
+        <Resizer onResizeStart={onResizeStart} side={ResizeSide.Right} />
 
         {properties}
       </aside>

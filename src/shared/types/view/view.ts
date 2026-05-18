@@ -1,4 +1,4 @@
-export enum SidebarResizeSide {
+export enum ResizeSide {
   Left = "LEFT",
   Right = "RIGHT",
 }
