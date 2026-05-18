@@ -1,27 +1,23 @@
-import { Activity, ChevronsRight, Clock3, Mail } from "lucide-react";
-import { EntityType } from "@/shared/types/model/entities";
-import { StepType } from "@/shared/types/model/steps";
+import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
+import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import PropertyHeader from "@/shared/components/Property/PropertyHeader";
+import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
+import TextPropertyField from "@/shared/components/Property/TextPropertyField";
+import { getStepTypeIcon } from "@/shared/constants/icons";
+import { MIN_STEP_TICK } from "@/shared/constants/steps";
+import type { SelectOption } from "@/shared/types/common/select";
 import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
-import type {
-  ManualWorkflowStep,
-  MessageStep,
-  MoveStep,
-  ToggleStep,
-  WorkflowStep,
-} from "@/shared/types/model/steps";
+import { EntityType } from "@/shared/types/model/entities";
+import type { ManualWorkflowStep, WorkflowStep } from "@/shared/types/model/steps";
+import { StepType } from "@/shared/types/model/steps";
 import type { PropertiesResizeHandler } from "@/shared/types/view/properties";
-import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 import { parseNumberValue } from "@/shared/utils/properties";
+import { convertStep, updateStep, updateTickAndReorder } from "@/shared/utils/steps";
+import { Clock3 } from "lucide-react";
 import MessageStepProperties from "./MessageStepProperties";
 import MoveStepProperties from "./MoveStepProperties";
-import ToggleStepProperties from "./ToggleStepProperties";
-import PropertyGroup from "@/shared/components/Property/PropertyGroup";
-import TextPropertyField from "@/shared/components/Property/TextPropertyField";
-import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
-import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
-import type { SelectOption } from "@/shared/types/common/select";
-import PropertyHeader from "@/shared/components/Property/PropertyHeader";
 import RefreshStepProperties from "./RefreshStepProperties";
+import ToggleStepProperties from "./ToggleStepProperties";
 
 type StepPropertiesPanelProps = {
   step: WorkflowStep;
@@ -43,36 +39,15 @@ export default function StepProperties({
   const peers = entities.filter((entity): entity is PeerEntity => entity.type === EntityType.Peer);
 
   const typeOptions: SelectOption<StepType>[] = [
-    { label: "Message", icon: <Mail size={12} />, value: StepType.Message },
-    { label: "Move", icon: <ChevronsRight size={12} />, value: StepType.Move },
-    { label: "Toggle", icon: <Activity size={12} />, value: StepType.Toggle },
+    { label: "Message", icon: getStepTypeIcon(StepType.Message), value: StepType.Message },
+    { label: "Move", icon: getStepTypeIcon(StepType.Move), value: StepType.Move },
+    { label: "Toggle", icon: getStepTypeIcon(StepType.Toggle), value: StepType.Toggle },
   ];
 
-  const updateSelectedManualStep = (changes: Partial<ManualWorkflowStep>) => {
+  const updateManualStep = (changes: Partial<ManualWorkflowStep>) => {
     const updatedSteps = steps.map((s) => {
-      if (s.id !== step.id) {
-        return s;
-      }
-
-      if (s.type === StepType.Message) {
-        return {
-          ...s,
-          ...(changes as Partial<MessageStep>),
-        } satisfies MessageStep;
-      }
-
-      if (s.type === StepType.Move) {
-        return {
-          ...s,
-          ...(changes as Partial<MoveStep>),
-        } satisfies MoveStep;
-      }
-
-      if (s.type === StepType.Toggle) {
-        return {
-          ...s,
-          ...(changes as Partial<ToggleStep>),
-        } satisfies ToggleStep;
+      if (s.id === step.id) {
+        return updateStep(s, changes);
       }
 
       return s;
@@ -81,78 +56,8 @@ export default function StepProperties({
     setSteps(updatedSteps);
   };
 
-  const convertStepType = (step: WorkflowStep, nextType: ManualWorkflowStep["type"]) => {
-    if (step.type === nextType || isRefreshStep(step)) {
-      return step;
-    }
-
-    const base = {
-      id: step.id,
-      title: step.title,
-      tick: step.tick,
-    };
-
-    if (nextType === StepType.Message) {
-      return {
-        ...base,
-        type: StepType.Message,
-        sourcePeerId: null,
-        destinationPeerId: null,
-      } satisfies MessageStep;
-    }
-
-    if (nextType === StepType.Toggle) {
-      return {
-        ...base,
-        type: StepType.Toggle,
-        targetEntityId: null,
-      } satisfies ToggleStep;
-    }
-
-    return {
-      ...base,
-      type: StepType.Move,
-      movePeerId: null,
-      x: 0,
-      y: 0,
-    } satisfies MoveStep;
-  };
-
   const updateStepTick = (nextTick: number) => {
-    const normalizedTick = Math.max(2, nextTick);
-    const stepIndex = steps.findIndex((s) => s.id === step.id);
-    if (stepIndex === -1) {
-      return;
-    }
-
-    const updatedStep = {
-      ...steps[stepIndex],
-      tick: normalizedTick,
-    };
-
-    const stepsWithoutCurrent = steps.filter((s) => s.id !== step.id);
-    const lastSameTickIndex = (() => {
-      let lastIndex = -1;
-      for (let i = 0; i < stepsWithoutCurrent.length; i++) {
-        if (stepsWithoutCurrent[i].tick === normalizedTick) {
-          lastIndex = i;
-        }
-      }
-      return lastIndex;
-    })();
-
-    const insertIndex =
-      lastSameTickIndex >= 0
-        ? lastSameTickIndex + 1
-        : (() => {
-            const firstGreaterIndex = stepsWithoutCurrent.findIndex(
-              (step) => step.tick > normalizedTick,
-            );
-            return firstGreaterIndex === -1 ? stepsWithoutCurrent.length : firstGreaterIndex;
-          })();
-
-    const reorderedSteps = [...stepsWithoutCurrent];
-    reorderedSteps.splice(insertIndex, 0, updatedStep);
+    const reorderedSteps = updateTickAndReorder(step, nextTick, steps);
     setSteps(reorderedSteps);
   };
 
@@ -183,7 +88,7 @@ export default function StepProperties({
             label="Name"
             value={step.title}
             valid={!!step.title}
-            onChange={(event) => updateSelectedManualStep({ title: event.target.value })}
+            onChange={(event) => updateManualStep({ title: event.target.value })}
             disabled={isRefresh}
           />
         </PropertyGroup>
@@ -194,10 +99,9 @@ export default function StepProperties({
               label="Type"
               value={step.type}
               options={typeOptions}
-              onChange={(value) => {
-                const nextType = value as ManualWorkflowStep["type"];
-                const updatedSteps = steps.map((step) =>
-                  step.id === step.id ? convertStepType(step, nextType) : step,
+              onChange={(value: StepType) => {
+                const updatedSteps = steps.map((s) =>
+                  s.id === step.id ? convertStep(s, value) : s,
                 );
                 setSteps(updatedSteps);
               }}
@@ -206,7 +110,7 @@ export default function StepProperties({
               label="Tick"
               icon={<Clock3 size={12} />}
               value={step.tick}
-              min={2}
+              min={MIN_STEP_TICK}
               onChange={(event) => updateStepTick(parseNumberValue(event.target.value, step.tick))}
             />
           </PropertyGroup>
@@ -215,19 +119,15 @@ export default function StepProperties({
         {stepType === StepType.Refresh && <RefreshStepProperties step={step} peers={peers} />}
 
         {stepType === StepType.Message && (
-          <MessageStepProperties step={step} peers={peers} updateStep={updateSelectedManualStep} />
+          <MessageStepProperties step={step} peers={peers} updateStep={updateManualStep} />
         )}
 
         {stepType === StepType.Toggle && (
-          <ToggleStepProperties
-            step={step}
-            entities={entities}
-            updateStep={updateSelectedManualStep}
-          />
+          <ToggleStepProperties step={step} entities={entities} updateStep={updateManualStep} />
         )}
 
         {stepType === StepType.Move && (
-          <MoveStepProperties step={step} peers={peers} updateStep={updateSelectedManualStep} />
+          <MoveStepProperties step={step} peers={peers} updateStep={updateManualStep} />
         )}
       </section>
     </aside>

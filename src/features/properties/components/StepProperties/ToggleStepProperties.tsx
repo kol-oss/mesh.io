@@ -1,4 +1,9 @@
-import { Activity, type LucideIcon } from "lucide-react";
+import BooleanPropertyField from "@/shared/components/Property/BooleanPropertyField";
+import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
+import { getEntityTypeIcon } from "@/shared/constants/icons";
+import type { SelectOption } from "@/shared/types/common/select";
+import type { UUID } from "@/shared/types/common/uuid";
 import {
   EntityType,
   type LinkEntity,
@@ -6,23 +11,7 @@ import {
   type PeerEntity,
 } from "@/shared/types/model/entities";
 import type { ToggleStep } from "@/shared/types/model/steps";
-import PropertyGroup from "@/shared/components/Property/PropertyGroup";
-import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
-import BooleanPropertyField from "@/shared/components/Property/BooleanPropertyField";
-import { ENTITY_TYPE_ICONS } from "@/shared/utils/icons";
-import type { SelectOption } from "@/shared/types/common/select";
-import type { UUID } from "@/shared/types/common/uuid";
-
-const mapToSelectOptions = (options: Array<PeerEntity | LinkEntity>): SelectOption<UUID>[] => {
-  return options.map((entity) => {
-    const Icon: LucideIcon = ENTITY_TYPE_ICONS[entity.type];
-    return {
-      label: entity.name,
-      icon: <Icon size={12} />,
-      value: entity.id,
-    };
-  });
-};
+import { Activity } from "lucide-react";
 
 type ToggleStepPropertiesProps = {
   step: ToggleStep;
@@ -40,8 +29,13 @@ export default function ToggleStepProperties({
       entity.type === EntityType.Peer || entity.type === EntityType.Link,
   );
   const selected = targets.find((entity) => entity.id === step.targetEntityId);
-
-  const entityOptions: SelectOption<UUID>[] = mapToSelectOptions(targets);
+  const entityOptions: SelectOption<UUID>[] = targets.map((target) => {
+    return {
+      label: target.name,
+      icon: getEntityTypeIcon(target.type),
+      value: target.id,
+    };
+  });
 
   return (
     <>

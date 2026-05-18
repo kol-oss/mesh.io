@@ -1,9 +1,10 @@
-import { Clock3, Radio, RotateCw } from "lucide-react";
+import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
 import PropertyGroup from "@/shared/components/Property/PropertyGroup";
 import TextPropertyField from "@/shared/components/Property/TextPropertyField";
-import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
+import { getEntityTypeIcon } from "@/shared/constants/icons";
+import { EntityType, type PeerEntity } from "@/shared/types/model/entities";
 import type { RefreshStep } from "@/shared/types/model/steps";
-import type { PeerEntity } from "@/shared/types/model/entities";
+import { Clock3, RotateCw } from "lucide-react";
 
 type RefreshStepPropertiesProps = {
   step: RefreshStep;
@@ -18,7 +19,7 @@ export default function RefreshStepProperties({ step, peers }: RefreshStepProper
       <PropertyGroup>
         <TextPropertyField
           label="Peer"
-          icon={<Radio size={12} />}
+          icon={getEntityTypeIcon(EntityType.Peer)}
           value={peer?.name ?? "Unknown"}
           disabled
         />

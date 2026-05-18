@@ -1,10 +1,10 @@
-import { EntityType, type PeerEntity } from "@/shared/types/model/entities";
-import type { MessageStep } from "@/shared/types/model/steps";
 import PropertyGroup from "@/shared/components/Property/PropertyGroup";
 import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
-import { ENTITY_TYPE_ICONS } from "@/shared/utils/icons";
-import type { UUID } from "@/shared/types/common/uuid";
+import { getEntityTypeIcon } from "@/shared/constants/icons";
 import type { SelectOption } from "@/shared/types/common/select";
+import type { UUID } from "@/shared/types/common/uuid";
+import { type PeerEntity } from "@/shared/types/model/entities";
+import type { MessageStep } from "@/shared/types/model/steps";
 
 type MessageStepPropertiesProps = {
   step: MessageStep;
@@ -17,10 +17,9 @@ export default function MessageStepProperties({
   peers,
   updateStep,
 }: MessageStepPropertiesProps) {
-  const Icon = ENTITY_TYPE_ICONS[EntityType.Peer];
   const peerOptions: SelectOption<UUID>[] = peers.map((peer) => ({
     label: peer.name,
-    icon: <Icon size={12} />,
+    icon: getEntityTypeIcon(peer.type),
     value: peer.id,
   }));
 
@@ -40,6 +39,7 @@ export default function MessageStepProperties({
             });
           }}
         />
+
         <SelectPropertyField
           label="Destination"
           value={destinationPeerId}
