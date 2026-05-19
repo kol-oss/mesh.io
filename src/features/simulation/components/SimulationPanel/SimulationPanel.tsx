@@ -1,9 +1,5 @@
 import type { UUID } from "@/shared/types/common/uuid";
-import {
-  QualityWindowBit,
-  type Event,
-  type SimulationStepResult,
-} from "@/shared/types/model/simulation";
+import { QualityWindowBit, type Event, type StepResult } from "@/shared/types/model/simulation";
 import {
   formatFixed,
   getEventDescription,
@@ -36,7 +32,7 @@ type SimulationPanelProps = {
   currentEvent: Event | null;
   currentEventIndex: number;
   currentEventsTotal: number;
-  currentStepResult: SimulationStepResult | null;
+  currentStepResult: StepResult | null;
   isTqDisclosureOpen: boolean;
   isSequenceDisclosureOpen: boolean;
   onPeerHoverChange: (peerId: UUID | null) => void;

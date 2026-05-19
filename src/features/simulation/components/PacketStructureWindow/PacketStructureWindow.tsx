@@ -2,10 +2,10 @@ import {
   DsdvUpdateType,
   SimulationMessageKind,
   type Event,
+  type Message,
   type OlsrHelloMessage,
   type OlsrTcMessage,
-  type SimulationMessage,
-  type SimulationStepResult,
+  type StepResult,
 } from "@/shared/types/model/simulation";
 import { ExternalLink, X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
@@ -13,7 +13,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 type PacketStructureWindowProps = {
   isOpen: boolean;
   currentEvent: Event | null;
-  currentStepResult: SimulationStepResult | null;
+  currentStepResult: StepResult | null;
   onClose: () => void;
 };
 
@@ -359,7 +359,7 @@ export default function PacketStructureWindow({
   );
 }
 
-const getPacketInspectorTitle = (message: SimulationMessage | null) => {
+const getPacketInspectorTitle = (message: Message | null) => {
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
     return "Echo Location Message (ELP)";
   }
@@ -407,7 +407,7 @@ const getPacketInspectorTitle = (message: SimulationMessage | null) => {
   return "Originator Message version 2 (OGMv2)";
 };
 
-const getPacketInspectorStructureAria = (message: SimulationMessage | null) => {
+const getPacketInspectorStructureAria = (message: Message | null) => {
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
     return "Echo Location Message structure";
   }
@@ -455,7 +455,7 @@ const getPacketInspectorStructureAria = (message: SimulationMessage | null) => {
   return "Originator Message version 2 structure";
 };
 
-const getPacketReadMorePath = (message: SimulationMessage | null) => {
+const getPacketReadMorePath = (message: Message | null) => {
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
     return "/docs/batman#echo-location-protocol";
   }
@@ -508,7 +508,7 @@ const getPacketReadMorePath = (message: SimulationMessage | null) => {
 };
 
 const getDsrStructureRows = (
-  message: SimulationMessage,
+  message: Message,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
   if (message.kind === SimulationMessageKind.DsrRouteRequestMessage) {
@@ -667,7 +667,7 @@ const getDsrStructureRows = (
 };
 
 const getAodvStructureRows = (
-  message: SimulationMessage,
+  message: Message,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
   if (message.kind === SimulationMessageKind.AodvRouteRequestMessage) {
@@ -1077,7 +1077,7 @@ const getDsdvUpdateTypeLabel = (updateType: DsdvUpdateType) => {
 };
 
 const getDsdvStructureRows = (
-  message: SimulationMessage,
+  message: Message,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
   if (message.kind !== SimulationMessageKind.DsdvRouteUpdateMessage) {
@@ -1140,7 +1140,7 @@ const getDsdvStructureRows = (
 };
 
 const getBatmanOgmStructureRows = (
-  message: SimulationMessage,
+  message: Message,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
   if (message.kind !== SimulationMessageKind.BatmanOriginatorMessage) {
@@ -1218,7 +1218,7 @@ const getBatmanOgmStructureRows = (
 };
 
 const getBatmanElpStructureRows = (
-  message: SimulationMessage,
+  message: Message,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
   if (message.kind !== SimulationMessageKind.BatmanEchoLocationMessage) {
@@ -1297,10 +1297,10 @@ const getBatmanElpStructureRows = (
   ];
 };
 
-const getEventMessage = (event: Event): SimulationMessage | null => {
+const getEventMessage = (event: Event): Message | null => {
   if (!("message" in event.details)) {
     return null;
   }
 
-  return event.details.message as SimulationMessage;
+  return event.details.message as Message;
 };

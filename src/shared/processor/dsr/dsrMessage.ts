@@ -1,6 +1,6 @@
-import { SimulationMessageKind, type SimulationMessage } from "@/shared/types/model/simulation";
+import { SimulationMessageKind, type Message } from "@/shared/types/model/simulation";
 
-export const cloneDsrMessage = <T extends SimulationMessage>(message: T): T => {
+export const cloneDsrMessage = <T extends Message>(message: T): T => {
   return {
     ...message,
     ...(message.kind === SimulationMessageKind.DsrRouteRequestMessage
@@ -15,12 +15,12 @@ export const cloneDsrMessage = <T extends SimulationMessage>(message: T): T => {
   };
 };
 
-export const isDsrSimulationMessage = (value: unknown): value is SimulationMessage => {
+export const isDsrSimulationMessage = (value: unknown): value is Message => {
   if (!value || typeof value !== "object") {
     return false;
   }
 
-  const candidate = value as Partial<SimulationMessage>;
+  const candidate = value as Partial<Message>;
   return (
     candidate.kind === SimulationMessageKind.Packet ||
     candidate.kind === SimulationMessageKind.DsrRouteRequestMessage ||

@@ -1,7 +1,7 @@
 import PacketStructureWindow from "@/features/simulation/components/PacketStructureWindow/PacketStructureWindow";
 import TableInspectionWindow from "@/features/simulation/components/TableInspectionWindow/TableInspectionWindow";
 import type { UUID } from "@/shared/types/common/uuid";
-import type { Event, SimulationStepResult } from "@/shared/types/model/simulation";
+import type { Event, StepResult } from "@/shared/types/model/simulation";
 
 type PacketInspectorWindowState = {
   eventId: UUID;
@@ -21,7 +21,7 @@ type Props = {
   tableInspectionWindows: TableInspectionWindowState[];
   simulationMessageHoverState: { eventId: UUID | null; isHovered: boolean };
   currentStepId: UUID | null;
-  currentSimulationStepResult: SimulationStepResult | null;
+  currentSimulationStepResult: StepResult | null;
   currentSimulationEvent: Event | null;
   onPacketInspectorClose: (eventId: UUID) => void;
   onTableInspectionClose: (peerId: UUID) => void;

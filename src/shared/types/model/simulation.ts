@@ -39,7 +39,7 @@ export const SimulationMessageKind = {
 export type SimulationMessageKind =
   (typeof SimulationMessageKind)[keyof typeof SimulationMessageKind];
 
-export type SimulationPacket = {
+export type Packet = {
   kind: typeof SimulationMessageKind.Packet;
   sourcePeerId: UUID | null;
   destinationPeerId: UUID;
@@ -205,8 +205,8 @@ export type DsrRouteErrorMessage = {
   routePeerIds: UUID[];
 };
 
-export type SimulationMessage =
-  | SimulationPacket
+export type Message =
+  | Packet
   | BatmanOriginatorMessage
   | BatmanEchoLocationMessage
   | DsdvRouteUpdateMessage
@@ -301,7 +301,7 @@ export type BatmanRoutingTableChangeDetails = {
   hopPeerId: UUID;
   previousRoute: BatmanRouteRecord | null;
   nextRoute: BatmanRouteRecord | null;
-  message?: SimulationMessage;
+  message?: Message;
   reason: string;
 };
 
@@ -311,7 +311,7 @@ export type DsdvRoutingTableChangeDetails = {
   nextHopPeerId: UUID;
   previousRoute: DsdvRouteRecord | null;
   nextRoute: DsdvRouteRecord | null;
-  message?: SimulationMessage;
+  message?: Message;
   reason: string;
 };
 
@@ -321,7 +321,7 @@ export type AodvRoutingTableChangeDetails = {
   nextHopPeerId: UUID;
   previousRoute: AodvRouteRecord | null;
   nextRoute: AodvRouteRecord | null;
-  message?: SimulationMessage;
+  message?: Message;
   reason: string;
 };
 
@@ -331,7 +331,7 @@ export type OlsrRoutingTableChangeDetails = {
   nextHopPeerId: UUID;
   previousRoute: OlsrRouteRecord | null;
   nextRoute: OlsrRouteRecord | null;
-  message?: SimulationMessage;
+  message?: Message;
   reason: string;
 };
 
@@ -341,7 +341,7 @@ export type DsrRoutingTableChangeDetails = {
   nextHopPeerId: UUID;
   previousRoute: DsrRouteRecord | null;
   nextRoute: DsrRouteRecord | null;
-  message?: SimulationMessage;
+  message?: Message;
   reason: string;
 };
 
@@ -355,23 +355,23 @@ export type RoutingTableChangeDetails =
 export type BroadcastEventDetails = {
   neighbourPeerIds: UUID[];
   retransmit: boolean;
-  message: SimulationMessage;
+  message: Message;
   note?: string;
 };
 
 export type MessageTransferEventDetails = {
   hopPeerId: UUID;
-  message: SimulationMessage;
+  message: Message;
 };
 
 export type DroppedEventDetails = {
-  message?: SimulationMessage;
+  message?: Message;
   reason: string;
   reasonCode?: "NO_ROUTE" | "SOURCE_UNAVAILABLE";
 };
 
 export type ThroughputCalculationEventDetails = {
-  message: SimulationMessage;
+  message: Message;
   reason: string;
   breakdown?: {
     baseThroughput: number;
@@ -403,7 +403,7 @@ export type RouteSelectedEventDetails = {
     | AodvRouteRecord
     | OlsrRouteRecord
     | DsrRouteRecord;
-  message: SimulationPacket;
+  message: Packet;
 };
 
 export type PeerMovedEventDetails = {
@@ -421,7 +421,7 @@ export type EntityStatusChangedEventDetails = {
   nextEnabled: boolean;
 };
 
-export type SimulationStepBoundaryDetails = {
+export type StepBoundaryDetails = {
   stepId: UUID;
   stepTitle: string;
   stepType: Step["type"];
@@ -436,7 +436,7 @@ export type EventDetails =
   | PeerMovedEventDetails
   | EntityStatusChangedEventDetails
   | RoutingTableChangeDetails
-  | SimulationStepBoundaryDetails;
+  | StepBoundaryDetails;
 
 export type Event = {
   id: UUID;
@@ -447,7 +447,7 @@ export type Event = {
   details: EventDetails;
 };
 
-export type SimulationPeerSnapshot = PeerEntity & {
+export type PeerSnapshot = PeerEntity & {
   batmanRoutingTable: BatmanRouteRecord[];
   batmanNeighboursTable: BatmanNeighbourRecord[];
   dsdvRoutingTable: DsdvRouteRecord[];
@@ -460,17 +460,17 @@ export type SimulationPeerSnapshot = PeerEntity & {
   olsrRoutingTable: OlsrRouteRecord[];
 };
 
-export type SimulationTickSnapshot = {
+export type Snapshot = {
   tick: number;
   entities: NetworkEntity[];
-  peers: SimulationPeerSnapshot[];
+  peers: PeerSnapshot[];
 };
 
-export type SimulationStepResult = {
+export type StepResult = {
   step: Step;
   events: Event[];
-  eventSnapshots: SimulationTickSnapshot[];
-  snapshot: SimulationTickSnapshot;
+  eventSnapshots: Snapshot[];
+  snapshot: Snapshot;
 };
 
 export type SimulationInput = {
@@ -481,7 +481,7 @@ export type SimulationInput = {
 export type SimulationResult = {
   events: Event[];
   steps: Step[];
-  stepResults: SimulationStepResult[];
+  stepResults: StepResult[];
 };
 
 export type SimulationPlaybackState = {

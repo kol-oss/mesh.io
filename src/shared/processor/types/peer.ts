@@ -1,10 +1,7 @@
 import { AodvModule } from "@/shared/processor/aodv/AodvModule";
 import { BatmanModule } from "@/shared/processor/batman/BatmanModule";
 import type { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import type {
-  RoutingProtocolModule,
-  SnapshotCapablePeerNode,
-} from "@/shared/processor/core/runtimeTypes";
+import type { RoutingModule, SnapshotCapablePeerNode } from "@/shared/processor/core/runtimeTypes";
 import { DsdvModule } from "@/shared/processor/dsdv/DsdvModule";
 import { DsrModule } from "@/shared/processor/dsr/DsrModule";
 import { OlsrModule } from "@/shared/processor/olsr/OlsrModule";
@@ -14,7 +11,7 @@ import type { PeerEntity } from "@/shared/types/model/entities";
 import type { RuntimeNetwork } from "./network";
 
 export class RuntimePeer implements SnapshotCapablePeerNode {
-  private readonly modules = new Map<RoutingProtocol, RoutingProtocolModule>();
+  private readonly modules = new Map<RoutingProtocol, RoutingModule>();
   private readonly rangedPeerIds = new Set<UUID>();
   private readonly linkedPeerIds = new Set<UUID>();
   private readonly entity: PeerEntity;
@@ -69,7 +66,7 @@ export class RuntimePeer implements SnapshotCapablePeerNode {
     return this.modules.get(protocol) ?? null;
   }
 
-  getPeerEntity() {
+  getEntity() {
     return this.entity;
   }
 

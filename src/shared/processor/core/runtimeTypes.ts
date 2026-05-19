@@ -1,46 +1,43 @@
 import type { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
 import type {
   AodvRouteRecord,
   BatmanNeighbourRecord,
   BatmanRouteRecord,
-  DsrRouteRecord,
   DsdvRouteRecord,
+  DsrRouteRecord,
   OlsrNeighbourRecord,
   OlsrRouteRecord,
   OlsrSelectorRecord,
   OlsrTopologyRecord,
   OlsrTwoHopRecord,
-  SimulationPacket,
-  SimulationTickSnapshot,
+  Packet,
+  Snapshot,
 } from "@/shared/types/model/simulation";
-import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
-import type { UUID } from "@/shared/types/common/uuid";
 
-export interface RoutingProtocolModule {
+export interface RoutingModule {
   read(message: unknown): boolean;
+  send(packet: Packet): boolean;
   refresh(): void;
   tick(): void;
 }
 
-export interface SimulationPeerNode {
+export interface PeerNode {
   readonly id: UUID;
   readonly name: string;
   isActive(): boolean;
   supports(protocol: RoutingProtocol): boolean;
-  getModule(protocol: RoutingProtocol): RoutingProtocolModule | null;
-  getNeighbour(peerId: UUID): SimulationPeerNode | null;
-  getNeighbours(): SimulationPeerNode[];
-  getRangedNeighbours(): SimulationPeerNode[];
+  getModule(protocol: RoutingProtocol): RoutingModule | null;
+  getNeighbour(peerId: UUID): PeerNode | null;
+  getNeighbours(): PeerNode[];
+  getRangedNeighbours(): PeerNode[];
   isLinkedNeighbour(peerId: UUID): boolean;
   isRangedNeighbour(peerId: UUID): boolean;
-  getPeerEntity(): PeerEntity;
+  getEntity(): PeerEntity;
 }
 
-export interface PacketCapableModule extends RoutingProtocolModule {
-  send(packet: SimulationPacket): boolean;
-}
-
-export interface SnapshotCapablePeerNode extends SimulationPeerNode {
+export interface SnapshotCapablePeerNode extends PeerNode {
   getBatmanRoutingTable(): BatmanRouteRecord[];
   getBatmanNeighboursTable(): BatmanNeighbourRecord[];
   getDsdvRoutingTable(): DsdvRouteRecord[];
@@ -53,11 +50,11 @@ export interface SnapshotCapablePeerNode extends SimulationPeerNode {
   getOlsrRoutingTable(): OlsrRouteRecord[];
 }
 
-export interface SimulationNetworkRuntime {
+export interface Network {
   getPeer(peerId: UUID): SnapshotCapablePeerNode | null;
   getPeers(): SnapshotCapablePeerNode[];
   refreshConnectivity(): void;
   tickModules(): void;
-  snapshot(tick: number): SimulationTickSnapshot;
+  snapshot(tick: number): Snapshot;
   exportEntities(): NetworkEntity[];
 }

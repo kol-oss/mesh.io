@@ -1,6 +1,6 @@
 import { MOVE_STEP_ANIMATION_DURATION } from "@/shared/constants/animation";
 import type { NetworkEntity } from "@/shared/types/model/entities";
-import type { Event, SimulationStepResult } from "@/shared/types/model/simulation";
+import type { Event, StepResult } from "@/shared/types/model/simulation";
 import type {
   MessageAnimation,
   MoveStepAnimation,
@@ -15,7 +15,7 @@ import { useEffect, useMemo, useState } from "react";
 
 type UseAnimationsParams = {
   currentSimulationEvent: Event | null;
-  currentSimulationStepResult: SimulationStepResult | null;
+  currentSimulationStepResult: StepResult | null;
   baseRenderedEntities: NetworkEntity[];
   peers: Array<NetworkEntity & { type: "PEER" }>;
 };

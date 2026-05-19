@@ -7,7 +7,7 @@ import {
   AODV_SEQUENCE_INITIAL,
 } from "@/shared/constants/aodv";
 import { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
+import type { PeerNode, RoutingModule } from "@/shared/processor/core/runtimeTypes";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import { getAodvConfiguration } from "@/shared/types/model/peers";
@@ -20,7 +20,7 @@ import {
   type AodvRouteReplyMessage,
   type AodvRouteRequestMessage,
   type AodvUnreachableDestination,
-  type SimulationPacket,
+  type Packet,
 } from "@/shared/types/model/simulation";
 import { cloneAodvMessage, isAodvSimulationMessage } from "./aodvMessage";
 
@@ -47,8 +47,8 @@ const clampRouteTimeout = (value: number) => {
   return Math.max(AODV_MIN_ROUTE_TIMEOUT, normalized);
 };
 
-export class AodvModule implements PacketCapableModule {
-  private readonly routingPeer: SimulationPeerNode;
+export class AodvModule implements RoutingModule {
+  private readonly routingPeer: PeerNode;
 
   private readonly eventRecorder: EventRecorder;
 
@@ -60,7 +60,7 @@ export class AodvModule implements PacketCapableModule {
 
   private requestSequence = 0;
 
-  constructor(routingPeer: SimulationPeerNode, eventRecorder: EventRecorder) {
+  constructor(routingPeer: PeerNode, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
 
@@ -88,7 +88,7 @@ export class AodvModule implements PacketCapableModule {
         return true;
       }
 
-      const forwardedPacket: SimulationPacket = {
+      const forwardedPacket: Packet = {
         ...message,
         timeToLive: Math.max(0, message.timeToLive - 1),
       };
@@ -172,7 +172,7 @@ export class AodvModule implements PacketCapableModule {
     }
   }
 
-  send(packet: SimulationPacket): boolean {
+  send(packet: Packet): boolean {
     if (!this.routingPeer.isActive()) {
       this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneAodvMessage(packet),
@@ -181,7 +181,7 @@ export class AodvModule implements PacketCapableModule {
       return false;
     }
 
-    const sourcePacket: SimulationPacket =
+    const sourcePacket: Packet =
       packet.sourcePeerId === null ? { ...packet, sourcePeerId: this.routingPeer.id } : packet;
 
     if (sourcePacket.destinationPeerId === this.routingPeer.id) {
@@ -207,7 +207,7 @@ export class AodvModule implements PacketCapableModule {
       }));
   }
 
-  private routeAndWrite(packet: SimulationPacket): boolean {
+  private routeAndWrite(packet: Packet): boolean {
     if (packet.timeToLive <= 0) {
       this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneAodvMessage(packet),
@@ -258,7 +258,7 @@ export class AodvModule implements PacketCapableModule {
     const requestId = this.requestSequence;
     const requestedSequenceNumber = this.getRequestedDestinationSequence(destinationPeerId);
     const queue: Array<{
-      peer: SimulationPeerNode;
+      peer: PeerNode;
       previousHopPeerId: UUID | null;
       hopCount: number;
       pathPeerIds: UUID[];
@@ -531,7 +531,7 @@ export class AodvModule implements PacketCapableModule {
     return true;
   }
 
-  private writePacket(packet: SimulationPacket, hopPeerId: UUID) {
+  private writePacket(packet: Packet, hopPeerId: UUID) {
     const hop = this.routingPeer.getNeighbour(hopPeerId);
     if (!hop) {
       this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
@@ -851,8 +851,8 @@ export class AodvModule implements PacketCapableModule {
   }
 
   private getPeersAlongPath(pathPeerIds: UUID[]) {
-    const peers: SimulationPeerNode[] = [];
-    let currentPeer: SimulationPeerNode | null = this.routingPeer;
+    const peers: PeerNode[] = [];
+    let currentPeer: PeerNode | null = this.routingPeer;
 
     for (let index = 0; index < pathPeerIds.length; index += 1) {
       const expectedPeerId = pathPeerIds[index];
@@ -872,7 +872,7 @@ export class AodvModule implements PacketCapableModule {
     return peers;
   }
 
-  private getAodvModule(peer: SimulationPeerNode | null) {
+  private getAodvModule(peer: PeerNode | null) {
     if (!peer) {
       return null;
     }
@@ -895,7 +895,7 @@ export class AodvModule implements PacketCapableModule {
   }
 
   private getHelloInterval() {
-    const configuration = getAodvConfiguration(this.routingPeer.getPeerEntity());
+    const configuration = getAodvConfiguration(this.routingPeer.getEntity());
     if (!configuration) {
       return AODV_MIN_HELLO_INTERVAL;
     }
@@ -904,7 +904,7 @@ export class AodvModule implements PacketCapableModule {
   }
 
   private getRouteTimeout() {
-    const configuration = getAodvConfiguration(this.routingPeer.getPeerEntity());
+    const configuration = getAodvConfiguration(this.routingPeer.getEntity());
     if (!configuration) {
       return AODV_MIN_ROUTE_TIMEOUT;
     }

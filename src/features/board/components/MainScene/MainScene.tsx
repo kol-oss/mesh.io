@@ -2,7 +2,7 @@ import Scene from "@/features/board/components/Scene/Scene";
 import SimulationPanel from "@/features/simulation/components/SimulationPanel/SimulationPanel";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as PlacementMode } from "@/shared/types/action";
-import type { Event, SimulationStepResult } from "@/shared/types/model/simulation";
+import type { Event, StepResult } from "@/shared/types/model/simulation";
 import type { WorkspaceSceneProps } from "@/shared/types/workspace/scene";
 
 type Props = {
@@ -12,7 +12,7 @@ type Props = {
   handleBackgroundPointerDown: (event: React.PointerEvent<HTMLElement>) => void;
   handleBackgroundPointerMove: (event: React.PointerEvent<HTMLElement>) => void;
   handleBackgroundPointerEnd: (event: React.PointerEvent<HTMLElement>) => void;
-  currentSimulationStepResult: SimulationStepResult | null;
+  currentSimulationStepResult: StepResult | null;
   currentSimulationEvent: Event | null;
   simulationAnchorPosition: { x: number; y: number } | null;
   canGoNextSimulationEvent: boolean;

@@ -7,14 +7,14 @@ import type {
 import { ActionMode as ToolbarMode } from "@/shared/types/action";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
-import type { Event, SimulationStepResult } from "@/shared/types/model/simulation";
+import type { Event, StepResult } from "@/shared/types/model/simulation";
 import { clamp } from "@/shared/utils/math/clamp";
 
 type Params = {
   tableInspectionWindows: TableInspectionWindow[];
   currentStepId: UUID | null;
   currentSimulationEvent: Event | null;
-  currentSimulationStepResult: SimulationStepResult | null;
+  currentSimulationStepResult: StepResult | null;
   peers: PeerEntity[];
   simulationInspectionMode: ToolbarMode;
   hoveredSimulationPeerState: SimulationPeerHoverState;

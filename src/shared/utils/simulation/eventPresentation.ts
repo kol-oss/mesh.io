@@ -16,11 +16,11 @@ import {
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,
   type Event,
+  type Message,
   type OlsrHelloMessage,
   type OlsrTcMessage,
   type RouteSelectedEventDetails,
   type RoutingTableChangeDetails,
-  type SimulationMessage,
   type ThroughputCalculationEventDetails,
 } from "@/shared/types/model/simulation";
 import {
@@ -40,62 +40,50 @@ import {
   renderPeerName,
 } from "./eventHelpers";
 
-const isBatmanMessage = (message: SimulationMessage | null) => {
+const isBatmanMessage = (message: Message | null) => {
   return (
     message?.kind === SimulationMessageKind.BatmanOriginatorMessage ||
     message?.kind === SimulationMessageKind.BatmanEchoLocationMessage
   );
 };
 
-const isDsdvMessage = (message: SimulationMessage | null): message is DsdvRouteUpdateMessage => {
+const isDsdvMessage = (message: Message | null): message is DsdvRouteUpdateMessage => {
   return message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage;
 };
 
-const isAodvRouteRequestMessage = (
-  message: SimulationMessage | null,
-): message is AodvRouteRequestMessage => {
+const isAodvRouteRequestMessage = (message: Message | null): message is AodvRouteRequestMessage => {
   return message?.kind === SimulationMessageKind.AodvRouteRequestMessage;
 };
 
-const isAodvRouteReplyMessage = (
-  message: SimulationMessage | null,
-): message is AodvRouteReplyMessage => {
+const isAodvRouteReplyMessage = (message: Message | null): message is AodvRouteReplyMessage => {
   return message?.kind === SimulationMessageKind.AodvRouteReplyMessage;
 };
 
-const isAodvRouteErrorMessage = (
-  message: SimulationMessage | null,
-): message is AodvRouteErrorMessage => {
+const isAodvRouteErrorMessage = (message: Message | null): message is AodvRouteErrorMessage => {
   return message?.kind === SimulationMessageKind.AodvRouteErrorMessage;
 };
 
-const isAodvHelloMessage = (message: SimulationMessage | null): message is AodvHelloMessage => {
+const isAodvHelloMessage = (message: Message | null): message is AodvHelloMessage => {
   return message?.kind === SimulationMessageKind.AodvHelloMessage;
 };
 
-const isOlsrHelloMessage = (message: SimulationMessage | null): message is OlsrHelloMessage => {
+const isOlsrHelloMessage = (message: Message | null): message is OlsrHelloMessage => {
   return message?.kind === SimulationMessageKind.OlsrHelloMessage;
 };
 
-const isOlsrTcMessage = (message: SimulationMessage | null): message is OlsrTcMessage => {
+const isOlsrTcMessage = (message: Message | null): message is OlsrTcMessage => {
   return message?.kind === SimulationMessageKind.OlsrTcMessage;
 };
 
-const isDsrRouteRequestMessage = (
-  message: SimulationMessage | null,
-): message is DsrRouteRequestMessage => {
+const isDsrRouteRequestMessage = (message: Message | null): message is DsrRouteRequestMessage => {
   return message?.kind === SimulationMessageKind.DsrRouteRequestMessage;
 };
 
-const isDsrRouteReplyMessage = (
-  message: SimulationMessage | null,
-): message is DsrRouteReplyMessage => {
+const isDsrRouteReplyMessage = (message: Message | null): message is DsrRouteReplyMessage => {
   return message?.kind === SimulationMessageKind.DsrRouteReplyMessage;
 };
 
-const isDsrRouteErrorMessage = (
-  message: SimulationMessage | null,
-): message is DsrRouteErrorMessage => {
+const isDsrRouteErrorMessage = (message: Message | null): message is DsrRouteErrorMessage => {
   return message?.kind === SimulationMessageKind.DsrRouteErrorMessage;
 };
 
@@ -111,7 +99,7 @@ const getRouteChange = (event: Event): RoutingTableChangeDetails | null => {
   return event.details as RoutingTableChangeDetails;
 };
 
-const detectEventProtocol = (event: Event, message: SimulationMessage | null) => {
+const detectEventProtocol = (event: Event, message: Message | null) => {
   const routeChange = getRouteChange(event);
   if (routeChange) {
     return routeChange.protocol;
@@ -153,7 +141,7 @@ const detectEventProtocol = (event: Event, message: SimulationMessage | null) =>
   return null;
 };
 
-export const getEventMessage = (event: Event): SimulationMessage | null => {
+export const getEventMessage = (event: Event): Message | null => {
   return getBatmanEventMessage(event);
 };
 
@@ -508,7 +496,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
 
 export const getSimulationReadMorePath = (
   event: Event,
-  message: SimulationMessage | null,
+  message: Message | null,
   hasRouteChange: boolean,
   hasThroughputBreakdown: boolean,
   hasSequenceWindowExplanation: boolean,

@@ -1,10 +1,7 @@
 import { AodvModule } from "@/shared/processor/aodv/AodvModule";
 import { BatmanModule } from "@/shared/processor/batman/BatmanModule";
 import { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import type {
-  PacketCapableModule,
-  RoutingProtocolModule,
-} from "@/shared/processor/core/runtimeTypes";
+import type { RoutingModule } from "@/shared/processor/core/runtimeTypes";
 import { DsdvModule } from "@/shared/processor/dsdv/DsdvModule";
 import { OlsrModule } from "@/shared/processor/olsr/OlsrModule";
 import { RuntimeNetwork } from "@/shared/processor/types/network";
@@ -13,12 +10,12 @@ import {
   EventType,
   SimulationMessageKind,
   type EntityStatusChangedEventDetails,
+  type Packet,
   type PeerMovedEventDetails,
   type SimulationInput,
-  type SimulationPacket,
   type SimulationResult,
-  type SimulationStepResult,
-  type SimulationTickSnapshot,
+  type Snapshot,
+  type StepResult,
 } from "@/shared/types/model/simulation";
 import { RefreshAction, StepType, type Step } from "@/shared/types/model/steps";
 import { sortStepsByTick } from "./steps";
@@ -29,8 +26,8 @@ export function runSimulation(input: SimulationInput): SimulationResult {
   const eventRecorder = new EventRecorder();
   const network = new RuntimeNetwork(entities, eventRecorder);
   const sortedSteps = sortStepsByTick(steps);
-  const stepResults: SimulationStepResult[] = [];
-  const eventSnapshots: SimulationTickSnapshot[] = [];
+  const stepResults: StepResult[] = [];
+  const eventSnapshots: Snapshot[] = [];
 
   eventRecorder.addListener(() => {
     eventSnapshots.push(network.snapshot(eventRecorder.getCurrentTick()));
@@ -89,7 +86,7 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
       return;
     }
 
-    const currentPeer = peer.getPeerEntity();
+    const currentPeer = peer.getEntity();
     const moveDetails: PeerMovedEventDetails = {
       peerId: step.entityId,
       fromX: currentPeer.x,
@@ -224,7 +221,7 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
     return;
   }
 
-  const packet: SimulationPacket = {
+  const packet: Packet = {
     kind: SimulationMessageKind.Packet,
     sourcePeerId: null,
     destinationPeerId: step.destinationId,
@@ -233,6 +230,6 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
   sourceModule.send(packet);
 };
 
-const isPacketCapableModule = (module: RoutingProtocolModule): module is PacketCapableModule => {
-  return typeof (module as PacketCapableModule).send === "function";
+const isPacketCapableModule = (module: RoutingModule): module is RoutingModule => {
+  return typeof (module as RoutingModule).send === "function";
 };

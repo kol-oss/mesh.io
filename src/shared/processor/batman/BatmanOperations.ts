@@ -6,7 +6,7 @@ import {
   BATMAN_WIRELESS_BASE_THROUGHPUT,
 } from "@/shared/constants/batman.ts";
 import { EventRecorder } from "@/shared/processor/core/EventRecorder.ts";
-import type { SimulationPeerNode } from "@/shared/processor/core/runtimeTypes.ts";
+import type { PeerNode } from "@/shared/processor/core/runtimeTypes.ts";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
@@ -16,8 +16,8 @@ import {
   type BatmanEchoLocationMessage,
   type BatmanNeighbourRecord,
   type BatmanOriginatorMessage,
-  type SimulationMessage,
-  type SimulationPacket,
+  type Message,
+  type Packet,
   type ThroughputCalculationEventDetails,
 } from "@/shared/types/model/simulation.ts";
 import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";
@@ -37,7 +37,7 @@ type BatmanNeighbourEntry = {
 };
 
 export class BatmanOperations {
-  private readonly routingPeer: SimulationPeerNode;
+  private readonly routingPeer: PeerNode;
 
   private readonly eventRecorder: EventRecorder;
 
@@ -46,7 +46,7 @@ export class BatmanOperations {
   private readonly neighbourTable: Map<UUID, BatmanNeighbourEntry>;
 
   constructor(params: {
-    routingPeer: SimulationPeerNode;
+    routingPeer: PeerNode;
     eventRecorder: EventRecorder;
     originatorTable: BatmanOriginatorTable;
     neighbourTable: Map<UUID, BatmanNeighbourEntry>;
@@ -146,7 +146,7 @@ export class BatmanOperations {
     return this.broadcast(forwarded);
   }
 
-  routeAndWrite(packet: SimulationPacket) {
+  routeAndWrite(packet: Packet) {
     if (packet.timeToLive <= 0) {
       this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneMessage(packet),
@@ -174,7 +174,7 @@ export class BatmanOperations {
     return this.write(packet, selectedRoute.hopPeerId);
   }
 
-  write(message: SimulationMessage, hopPeerId: UUID) {
+  write(message: Message, hopPeerId: UUID) {
     const hop = this.routingPeer.getNeighbour(hopPeerId);
     if (!hop) {
       this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
@@ -251,12 +251,12 @@ export class BatmanOperations {
       return false;
     }
 
-    const routingPeerEntity = this.routingPeer.getPeerEntity();
+    const routingPeerEntity = this.routingPeer.getEntity();
     const routingConfiguration = getBatmanConfiguration(routingPeerEntity);
     if (!routingConfiguration) {
       return false;
     }
-    const senderPeerEntity = senderPeer.getPeerEntity();
+    const senderPeerEntity = senderPeer.getEntity();
     const isStaticLink = this.routingPeer.isLinkedNeighbour(message.senderPeerId);
     const isWirelessLink =
       !isStaticLink && this.routingPeer.isRangedNeighbour(message.senderPeerId);
@@ -324,7 +324,7 @@ export class BatmanOperations {
   }
 
   private recordThroughputCalculated(
-    message: SimulationMessage,
+    message: Message,
     reason: string,
     breakdown?: ThroughputCalculationEventDetails["breakdown"],
     ogmSelection?: ThroughputCalculationEventDetails["ogmSelection"],

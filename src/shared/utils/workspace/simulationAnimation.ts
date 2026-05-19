@@ -5,10 +5,10 @@ import type {
   DroppedEventDetails,
   EntityStatusChangedEventDetails,
   Event,
+  Message,
   PeerMovedEventDetails,
+  PeerSnapshot,
   RouteSelectedEventDetails,
-  SimulationMessage,
-  SimulationPeerSnapshot,
   ThroughputCalculationEventDetails,
 } from "@/shared/types/model/simulation";
 import { EventType, SimulationMessageKind } from "@/shared/types/model/simulation";
@@ -21,7 +21,7 @@ import type {
 export const buildSimulationMessageAnimations = (
   currentEvent: Event | null,
   currentStepResult: {
-    snapshot: { peers: SimulationPeerSnapshot[] };
+    snapshot: { peers: PeerSnapshot[] };
     events: Event[];
   } | null,
   fallbackPeers: PeerEntity[],
@@ -30,7 +30,7 @@ export const buildSimulationMessageAnimations = (
     return [];
   }
 
-  const peerById = new Map<UUID, SimulationPeerSnapshot | PeerEntity>();
+  const peerById = new Map<UUID, PeerSnapshot | PeerEntity>();
 
   for (const peer of currentStepResult.snapshot.peers) {
     peerById.set(peer.id, peer);
@@ -274,7 +274,7 @@ export const buildToggleStepAnimation = (
 
 const getDroppedMessageAnimation = (
   eventPeerId: UUID,
-  message: SimulationMessage,
+  message: Message,
 ): { sourcePeerId: UUID; targetPeerId: UUID } | null => {
   if (message.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
     return message.senderPeerId !== eventPeerId

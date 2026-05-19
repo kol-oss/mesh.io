@@ -4,10 +4,7 @@ import {
   BATMAN_VERSION,
 } from "@/shared/constants/batman.ts";
 import { EventRecorder } from "@/shared/processor/core/EventRecorder.ts";
-import type {
-  PacketCapableModule,
-  SimulationPeerNode,
-} from "@/shared/processor/core/runtimeTypes.ts";
+import type { PeerNode, RoutingModule } from "@/shared/processor/core/runtimeTypes.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
 import {
@@ -18,7 +15,7 @@ import {
   type BatmanEchoLocationNeighbour,
   type BatmanNeighbourRecord,
   type BatmanOriginatorMessage,
-  type SimulationPacket,
+  type Packet,
 } from "@/shared/types/model/simulation.ts";
 import { cloneMessage, isSimulationMessage } from "./batmanMessage.ts";
 import { BatmanOperations } from "./BatmanOperations.ts";
@@ -30,12 +27,12 @@ type BatmanNeighbourEntry = {
   ewmaThroughput: number;
 };
 
-export class BatmanModule implements PacketCapableModule {
+export class BatmanModule implements RoutingModule {
   private readonly originatorTable: BatmanOriginatorTable;
 
   private readonly operations: BatmanOperations;
 
-  private readonly routingPeer: SimulationPeerNode;
+  private readonly routingPeer: PeerNode;
 
   private readonly eventRecorder: EventRecorder;
 
@@ -47,10 +44,10 @@ export class BatmanModule implements PacketCapableModule {
 
   private readonly neighbourTable = new Map<UUID, BatmanNeighbourEntry>();
 
-  constructor(routingPeer: SimulationPeerNode, eventRecorder: EventRecorder) {
+  constructor(routingPeer: PeerNode, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
-    const configuration = getBatmanConfiguration(routingPeer.getPeerEntity());
+    const configuration = getBatmanConfiguration(routingPeer.getEntity());
     if (!configuration) {
       throw new Error("BATMAN module requires a BATMAN peer entity.");
     }
@@ -77,7 +74,7 @@ export class BatmanModule implements PacketCapableModule {
         return true;
       }
 
-      const forwardedPacket: SimulationPacket = {
+      const forwardedPacket: Packet = {
         ...message,
         timeToLive: Math.max(0, message.timeToLive - 1),
       };
@@ -131,7 +128,7 @@ export class BatmanModule implements PacketCapableModule {
     this.originatorTable.tick();
   }
 
-  send(packet: SimulationPacket) {
+  send(packet: Packet) {
     if (!this.routingPeer.isActive()) {
       this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneMessage(packet),
@@ -166,7 +163,7 @@ export class BatmanModule implements PacketCapableModule {
 
     this.lastElpTickSent = currentTick;
     this.elpSequence += 1;
-    const configuration = getBatmanConfiguration(this.routingPeer.getPeerEntity());
+    const configuration = getBatmanConfiguration(this.routingPeer.getEntity());
     if (!configuration) {
       return;
     }

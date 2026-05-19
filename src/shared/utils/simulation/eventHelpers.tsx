@@ -9,10 +9,10 @@ import {
   type DroppedEventDetails,
   type EntityStatusChangedEventDetails,
   type Event,
+  type Message,
   type PeerMovedEventDetails,
   type RouteSelectedEventDetails,
   type RoutingTableChangeDetails,
-  type SimulationMessage,
   type ThroughputCalculationEventDetails,
 } from "@/shared/types/model/simulation";
 import type { ReactNode } from "react";
@@ -53,7 +53,7 @@ export const getEventTitle = (event: Event) => {
 
 export const getSimulationReadMorePath = (
   event: Event,
-  message: SimulationMessage | null,
+  message: Message | null,
   hasRouteChange: boolean,
   hasThroughputBreakdown: boolean,
   hasSequenceWindowExplanation: boolean,
@@ -271,15 +271,15 @@ export const getMessageSummary = (
   return null;
 };
 
-export const getEventMessage = (event: Event): SimulationMessage | null => {
+export const getEventMessage = (event: Event): Message | null => {
   if (!("message" in event.details)) {
     return null;
   }
 
-  return event.details.message as SimulationMessage;
+  return event.details.message as Message;
 };
 
-const getBroadcastTitle = (event: Event, message: SimulationMessage | null) => {
+const getBroadcastTitle = (event: Event, message: Message | null) => {
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
     return "ELP Broadcast";
   }
@@ -297,7 +297,7 @@ const getBroadcastTitle = (event: Event, message: SimulationMessage | null) => {
   return "Broadcast Message";
 };
 
-const getDroppedTitle = (event: Event, message: SimulationMessage | null) => {
+const getDroppedTitle = (event: Event, message: Message | null) => {
   if (isSourcePacketSendFailure(event, message)) {
     return "Packet Send Failed";
   }
@@ -317,7 +317,7 @@ const getDroppedTitle = (event: Event, message: SimulationMessage | null) => {
   return "Drop Message";
 };
 
-const getBroadcastDescription = (event: Event, message: SimulationMessage | null) => {
+const getBroadcastDescription = (event: Event, message: Message | null) => {
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
     return (
       <>{`Every ELP Interval B.A.T.M.A.N. node broadcast an Echo Location Protocol (ELP) message to neighbours. If this node wants to announce its' neighbors it should append a neighbor entry message for each neighbor to be announced and fill the "Number of Neighbors" field accordingly.`}</>
@@ -351,7 +351,7 @@ const getBroadcastDescription = (event: Event, message: SimulationMessage | null
   return <>{"The node broadcast a message to neighbouring nodes."}</>;
 };
 
-const getDroppedDescription = (actor: string, event: Event, message: SimulationMessage | null) => {
+const getDroppedDescription = (actor: string, event: Event, message: Message | null) => {
   if (isSourcePacketSendFailure(event, message)) {
     const details = event.details as DroppedEventDetails;
     return (
@@ -414,10 +414,7 @@ export const getThroughputBreakdown = (event: Event) => {
   return details.breakdown ?? null;
 };
 
-export const getOgmBroadcastThroughputExplanation = (
-  event: Event,
-  message: SimulationMessage | null,
-) => {
+export const getOgmBroadcastThroughputExplanation = (event: Event, message: Message | null) => {
   if (event.type !== EventType.SystemMessageBroadcast) {
     return null;
   }
@@ -480,7 +477,7 @@ export const getThroughputEwmaExplanation = (
 };
 
 const getRouteInsertTitle = (
-  message: SimulationMessage | null,
+  message: Message | null,
   routeChange: RoutingTableChangeDetails | null,
 ) => {
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage || routeChange) {
@@ -491,7 +488,7 @@ const getRouteInsertTitle = (
 };
 
 const getRouteUpdateTitle = (
-  message: SimulationMessage | null,
+  message: Message | null,
   routeChange: RoutingTableChangeDetails | null,
 ) => {
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage || routeChange) {
@@ -502,7 +499,7 @@ const getRouteUpdateTitle = (
 };
 
 const getRouteRemoveTitle = (
-  message: SimulationMessage | null,
+  message: Message | null,
   routeChange: RoutingTableChangeDetails | null,
 ) => {
   if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage || routeChange) {
@@ -589,7 +586,7 @@ const getPeerDisplayName = (peerId: UUID, peerNameById: Map<UUID, string>) => {
   return peerNameById.get(peerId) ?? "Unknown";
 };
 
-const isSourcePacketSendFailure = (event: Event, message: SimulationMessage | null) => {
+const isSourcePacketSendFailure = (event: Event, message: Message | null) => {
   if (event.type !== EventType.SystemMessageDropped) {
     return false;
   }

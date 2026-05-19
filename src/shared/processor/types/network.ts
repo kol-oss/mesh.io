@@ -4,17 +4,17 @@ import {
   shouldCreateLinkedConnection,
 } from "@/shared/processor/connectivity";
 import type { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { SimulationNetworkRuntime } from "@/shared/processor/core/runtimeTypes";
+import type { Network } from "@/shared/processor/core/runtimeTypes";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { NetworkEntity, ObstacleEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
-import type { SimulationTickSnapshot } from "@/shared/types/model/simulation";
+import type { Snapshot } from "@/shared/types/model/simulation";
 import type { RuntimeLink } from "./link";
 import { RuntimePeer } from "./peer";
 
 const cloneEntity = <T extends NetworkEntity>(entity: T): T => ({ ...entity });
 
-export class RuntimeNetwork implements SimulationNetworkRuntime {
+export class RuntimeNetwork implements Network {
   private readonly peers = new Map<UUID, RuntimePeer>();
 
   private readonly links = new Map<UUID, RuntimeLink>();
@@ -64,11 +64,11 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
 
     for (let index = 0; index < peerList.length; index += 1) {
       const source = peerList[index];
-      const sourcePeer = source.getPeerEntity();
+      const sourcePeer = source.getEntity();
 
       for (let innerIndex = index + 1; innerIndex < peerList.length; innerIndex += 1) {
         const destination = peerList[innerIndex];
-        const destinationPeer = destination.getPeerEntity();
+        const destinationPeer = destination.getEntity();
         if (canCreateRangedConnection(sourcePeer, destinationPeer, obstacleBounds)) {
           source.addRangedPeer(destination.id);
           destination.addRangedPeer(source.id);
@@ -79,8 +79,8 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
     for (const link of this.links.values()) {
       const source = link.sourcePeerId ? this.getPeer(link.sourcePeerId) : null;
       const destination = link.destinationPeerId ? this.getPeer(link.destinationPeerId) : null;
-      const sourcePeer = source?.getPeerEntity() ?? null;
-      const destinationPeer = destination?.getPeerEntity() ?? null;
+      const sourcePeer = source?.getEntity() ?? null;
+      const destinationPeer = destination?.getEntity() ?? null;
       if (!shouldCreateLinkedConnection(link, sourcePeer, destinationPeer)) {
         continue;
       }
@@ -95,7 +95,7 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
 
   tickModules() {
     for (const peer of this.getPeers()) {
-      const protocol = peer.getPeerEntity().protocol;
+      const protocol = peer.getEntity().protocol;
       peer.getModule(protocol)?.tick();
     }
   }
@@ -111,7 +111,7 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
   } | null {
     const peer = this.peers.get(entityId);
     if (peer) {
-      const previousEnabled = peer.getPeerEntity().enabled;
+      const previousEnabled = peer.getEntity().enabled;
       const nextEnabled = !previousEnabled;
       peer.setEnabled(nextEnabled);
       return {
@@ -139,7 +139,7 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
   exportEntities() {
     const peerEntities = new Map<UUID, NetworkEntity>();
     for (const peer of this.getPeers()) {
-      peerEntities.set(peer.id, { ...peer.getPeerEntity() });
+      peerEntities.set(peer.id, { ...peer.getEntity() });
     }
 
     const linkEntities = new Map<UUID, NetworkEntity>();
@@ -167,12 +167,12 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
       .filter((entity): entity is NetworkEntity => entity !== null);
   }
 
-  snapshot(tick: number): SimulationTickSnapshot {
+  snapshot(tick: number): Snapshot {
     return {
       tick,
       entities: this.exportEntities(),
       peers: this.getPeers().map((peer) => ({
-        ...peer.getPeerEntity(),
+        ...peer.getEntity(),
         batmanRoutingTable: peer.getBatmanRoutingTable(),
         batmanNeighboursTable: peer.getBatmanNeighboursTable(),
         dsdvRoutingTable: peer.getDsdvRoutingTable(),

@@ -1,5 +1,5 @@
 import { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
+import type { PeerNode } from "@/shared/processor/core/runtimeTypes";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import {
@@ -20,13 +20,13 @@ type BatmanRoute = {
 export class BatmanOriginatorTable {
   private readonly originators = new Map<UUID, Map<UUID, BatmanRoute>>();
 
-  private readonly routingPeer: SimulationPeerNode;
+  private readonly routingPeer: PeerNode;
 
   private readonly eventRecorder: EventRecorder;
 
   private readonly purgeTimeout: number;
 
-  constructor(routingPeer: SimulationPeerNode, eventRecorder: EventRecorder, purgeTimeout: number) {
+  constructor(routingPeer: PeerNode, eventRecorder: EventRecorder, purgeTimeout: number) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
     this.purgeTimeout = purgeTimeout;

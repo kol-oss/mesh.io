@@ -3,7 +3,7 @@ import Tooltip from "@/shared/components/Tooltip/Tooltip";
 import { useListReorder } from "@/shared/hooks/useListReorder";
 import { useToast } from "@/shared/toast/useToast";
 import { generateUUID } from "@/shared/types/common/uuid";
-import type { SimulationStepResult } from "@/shared/types/model/simulation";
+import type { StepResult } from "@/shared/types/model/simulation";
 import type {
   MessageStep,
   MoveStep,
@@ -29,7 +29,7 @@ import { createPortal } from "react-dom";
 import StepRecord from "../StepRecord/StepRecord";
 
 type StepListProps = {
-  currentSimulationStepResult: SimulationStepResult | null;
+  currentSimulationStepResult: StepResult | null;
 };
 
 const isSameRefreshStep = (left: RefreshStep, right: RefreshStep) => {

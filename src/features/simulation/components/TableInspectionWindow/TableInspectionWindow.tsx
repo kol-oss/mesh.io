@@ -1,18 +1,18 @@
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { StepResult } from "@/shared/types/model/simulation";
 import { ChevronRight, ExternalLink, X } from "lucide-react";
 import {
   useEffect,
   useRef,
   useState,
-  type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
-import { RoutingProtocol } from "@/shared/types/common/protocols";
-import type { SimulationStepResult } from "@/shared/types/model/simulation";
-import type { UUID } from "@/shared/types/common/uuid";
 
 type TableInspectionWindowProps = {
   isOpen: boolean;
-  currentStepResult: SimulationStepResult | null;
+  currentStepResult: StepResult | null;
   currentEventId: UUID | null;
   inspectedPeerId: UUID | null;
   onClose: () => void;

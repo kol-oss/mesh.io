@@ -1,6 +1,6 @@
 import { OLSR_DEFAULT_TC_TTL, OLSR_MIN_INTERVAL } from "@/shared/constants/olsr";
 import { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
+import type { PeerNode, RoutingModule } from "@/shared/processor/core/runtimeTypes";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { OlsrConfiguration } from "@/shared/types/model/configurations";
@@ -8,6 +8,7 @@ import { getOlsrConfiguration } from "@/shared/types/model/peers";
 import {
   EventType,
   SimulationMessageKind,
+  type Message,
   type OlsrHelloMessage,
   type OlsrNeighbourRecord,
   type OlsrRouteRecord,
@@ -15,8 +16,7 @@ import {
   type OlsrTcMessage,
   type OlsrTopologyRecord,
   type OlsrTwoHopRecord,
-  type SimulationMessage,
-  type SimulationPacket,
+  type Packet,
 } from "@/shared/types/model/simulation";
 import { cloneOlsrMessage, isOlsrSimulationMessage } from "./olsrMessage";
 
@@ -43,8 +43,8 @@ const clampInterval = (value: number) => {
   return Math.max(OLSR_MIN_INTERVAL, normalized);
 };
 
-export class OlsrModule implements PacketCapableModule {
-  private readonly routingPeer: SimulationPeerNode;
+export class OlsrModule implements RoutingModule {
+  private readonly routingPeer: PeerNode;
 
   private readonly eventRecorder: EventRecorder;
 
@@ -67,7 +67,7 @@ export class OlsrModule implements PacketCapableModule {
   private ansn = 0;
 
   private getConfiguration(): OlsrConfiguration {
-    const peer = this.routingPeer.getPeerEntity();
+    const peer = this.routingPeer.getEntity();
     const configuration = getOlsrConfiguration(peer);
     if (!configuration) {
       throw new Error("OLSR module requires an OLSR peer entity.");
@@ -76,7 +76,7 @@ export class OlsrModule implements PacketCapableModule {
     return configuration;
   }
 
-  constructor(routingPeer: SimulationPeerNode, eventRecorder: EventRecorder) {
+  constructor(routingPeer: PeerNode, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
   }
@@ -91,7 +91,7 @@ export class OlsrModule implements PacketCapableModule {
         return true;
       }
 
-      const forwardedPacket: SimulationPacket = {
+      const forwardedPacket: Packet = {
         ...message,
         timeToLive: Math.max(0, message.timeToLive - 1),
       };
@@ -234,7 +234,7 @@ export class OlsrModule implements PacketCapableModule {
     }
   }
 
-  send(packet: SimulationPacket): boolean {
+  send(packet: Packet): boolean {
     if (!this.routingPeer.isActive()) {
       this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneOlsrMessage(packet),
@@ -505,7 +505,7 @@ export class OlsrModule implements PacketCapableModule {
     }
   }
 
-  private recomputeRoutingTable(reason: string, message: SimulationMessage | null) {
+  private recomputeRoutingTable(reason: string, message: Message | null) {
     const computation = this.calculateRoutes(reason);
     const nextRoutes = computation.routes;
     const previousRoutes = new Map(this.routingTable);
@@ -694,7 +694,7 @@ export class OlsrModule implements PacketCapableModule {
     };
   }
 
-  private routeAndWrite(packet: SimulationPacket) {
+  private routeAndWrite(packet: Packet) {
     if (packet.timeToLive <= 0) {
       this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneOlsrMessage(packet),
@@ -722,7 +722,7 @@ export class OlsrModule implements PacketCapableModule {
     return this.write(packet, selectedRoute.nextHopPeerId);
   }
 
-  private write(message: SimulationPacket | OlsrHelloMessage | OlsrTcMessage, hopPeerId: UUID) {
+  private write(message: Packet | OlsrHelloMessage | OlsrTcMessage, hopPeerId: UUID) {
     const hop = this.routingPeer.getNeighbour(hopPeerId);
     if (!hop) {
       this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
@@ -778,7 +778,7 @@ export class OlsrModule implements PacketCapableModule {
   }
 
   private getKnownSymmetricNeighbours() {
-    const neighbours: SimulationPeerNode[] = [];
+    const neighbours: PeerNode[] = [];
 
     for (const record of this.neighbourTable.values()) {
       const peer = this.routingPeer.getNeighbour(record.neighbourPeerId);

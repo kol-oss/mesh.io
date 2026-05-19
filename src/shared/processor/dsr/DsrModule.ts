@@ -5,7 +5,7 @@ import {
   DSR_ROUTE_CACHE_TIMEOUT,
 } from "@/shared/constants/dsr";
 import { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
+import type { PeerNode, RoutingModule } from "@/shared/processor/core/runtimeTypes";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import {
@@ -15,7 +15,7 @@ import {
   type DsrRouteRecord,
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,
-  type SimulationPacket,
+  type Packet,
 } from "@/shared/types/model/simulation";
 import { cloneDsrMessage, isDsrSimulationMessage } from "./dsrMessage";
 
@@ -26,8 +26,8 @@ type DiscoveryResult = {
   requestId: number;
 };
 
-export class DsrModule implements PacketCapableModule {
-  private readonly routingPeer: SimulationPeerNode;
+export class DsrModule implements RoutingModule {
+  private readonly routingPeer: PeerNode;
 
   private readonly eventRecorder: EventRecorder;
 
@@ -35,7 +35,7 @@ export class DsrModule implements PacketCapableModule {
 
   private requestSequence = 0;
 
-  constructor(routingPeer: SimulationPeerNode, eventRecorder: EventRecorder) {
+  constructor(routingPeer: PeerNode, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
   }
@@ -50,7 +50,7 @@ export class DsrModule implements PacketCapableModule {
         return true;
       }
 
-      const forwardedPacket: SimulationPacket = {
+      const forwardedPacket: Packet = {
         ...message,
         timeToLive: Math.max(0, message.timeToLive - 1),
       };
@@ -88,7 +88,7 @@ export class DsrModule implements PacketCapableModule {
     }
   }
 
-  send(packet: SimulationPacket): boolean {
+  send(packet: Packet): boolean {
     if (!this.routingPeer.isActive()) {
       this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneDsrMessage(packet),
@@ -105,7 +105,7 @@ export class DsrModule implements PacketCapableModule {
       return false;
     }
 
-    const sourcePacket: SimulationPacket =
+    const sourcePacket: Packet =
       packet.sourcePeerId === null ? { ...packet, sourcePeerId: this.routingPeer.id } : packet;
 
     if (sourcePacket.destinationPeerId === this.routingPeer.id) {
@@ -152,7 +152,7 @@ export class DsrModule implements PacketCapableModule {
     this.requestSequence += 1;
     const requestId = this.requestSequence;
 
-    const queue: Array<{ peer: SimulationPeerNode; pathPeerIds: UUID[] }> = [
+    const queue: Array<{ peer: PeerNode; pathPeerIds: UUID[] }> = [
       { peer: this.routingPeer, pathPeerIds: [this.routingPeer.id] },
     ];
 
@@ -295,7 +295,7 @@ export class DsrModule implements PacketCapableModule {
   }
 
   private forwardPacketOnRoute(
-    packet: SimulationPacket,
+    packet: Packet,
     routePeerIds: UUID[],
     salvageCount: number,
   ): boolean {
@@ -470,7 +470,7 @@ export class DsrModule implements PacketCapableModule {
   }
 
   private createRouteError(
-    packet: SimulationPacket,
+    packet: Packet,
     brokenFromPeerId: UUID,
     brokenToPeerId: UUID,
     salvageCount: number,
@@ -531,7 +531,7 @@ export class DsrModule implements PacketCapableModule {
 
   private getModulesAlongPath(pathPeerIds: UUID[]) {
     const modules: DsrModule[] = [];
-    let currentPeer: SimulationPeerNode | null = this.routingPeer;
+    let currentPeer: PeerNode | null = this.routingPeer;
 
     for (let index = 0; index < pathPeerIds.length; index += 1) {
       const expectedPeerId = pathPeerIds[index];
