@@ -1,7 +1,7 @@
-import type { LucideIcon } from "lucide-react";
-import { TooltipPlacement } from "@/shared/types/view/view";
-import Tooltip from "@/shared/components/Tooltip/Tooltip";
 import { TOOLBAR_ICON_SIZE, TOOLBAR_ICON_STROKE_WIDTH } from "@/features/tools/constants/toolbar";
+import Tooltip from "@/shared/components/Tooltip/Tooltip";
+import { TooltipPlacement } from "@/shared/types/view/view";
+import type { LucideIcon } from "lucide-react";
 
 type ToolbarButtonProps = {
   icon: LucideIcon;
@@ -9,8 +9,6 @@ type ToolbarButtonProps = {
   isActive?: boolean;
   isDisabled?: boolean;
   className?: string;
-  iconSize?: number;
-  iconStrokeWidth?: number;
   iconClassName?: string;
   iconFill?: string;
   ariaPressed?: boolean;
@@ -23,8 +21,6 @@ export default function ToolbarButton({
   isActive = false,
   isDisabled = false,
   className,
-  iconSize = TOOLBAR_ICON_SIZE,
-  iconStrokeWidth = TOOLBAR_ICON_STROKE_WIDTH,
   iconClassName,
   iconFill,
   ariaPressed,
@@ -43,8 +39,8 @@ export default function ToolbarButton({
         onClick={onClick}
       >
         <Icon
-          size={iconSize}
-          strokeWidth={iconStrokeWidth}
+          size={TOOLBAR_ICON_SIZE}
+          strokeWidth={TOOLBAR_ICON_STROKE_WIDTH}
           className={iconClassName}
           {...(iconFill !== undefined ? { fill: iconFill } : {})}
         />

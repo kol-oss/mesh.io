@@ -1,17 +1,10 @@
-import { Check, ChevronDown } from "lucide-react";
-import { ActionGroup as ToolbarGroup } from "@/shared/types/action";
-import { TooltipPlacement } from "@/shared/types/view/view";
-import Tooltip from "@/shared/components/Tooltip/Tooltip";
-import ToolbarButton from "../ToolbarButton/ToolbarButton";
-import {
-  TOOLBAR_ICON_STROKE_WIDTH,
-  TOOLBAR_MENU_ICON_SIZE,
-  TOOLBAR_MENU_CHECK_SIZE,
-  TOOLBAR_GROUP_LABELS,
-  getModeIconClassName,
-} from "@/features/tools/constants/toolbar";
-import type { ActionToolMode } from "@/shared/types/action";
 import type { ModeButton, ModeGroup } from "@/features/tools/constants/toolbar";
+import { getModeIconClassName } from "@/features/tools/constants/toolbar";
+import type { ActionToolMode } from "@/shared/types/action";
+import { ActionGroup as ToolbarGroup } from "@/shared/types/action";
+import GroupMenu from "../GroupMenu/GroupMenu";
+import GroupMenuButton from "../GroupMenu/GroupMenuButton";
+import ToolbarButton from "../ToolbarButton/ToolbarButton";
 
 type ToolbarModeGroupProps = {
   group: ModeGroup;
@@ -67,61 +60,20 @@ export default function ToolbarModeGroup({
           onClick={() => onSelect(group.id, activeItem.key, false)}
         />
 
-        <Tooltip content={TOOLBAR_GROUP_LABELS[group.id]} placement={TooltipPlacement.Top}>
-          <button
-            className={`toolbar__button toolbar__menu-toggle${isMenuOpen ? " toolbar__menu-toggle--open" : ""}`}
-            type="button"
-            aria-label={`Open ${group.id} menu`}
-            aria-expanded={isMenuOpen}
-            disabled={isDisabled || itemIsLocked}
-            onClick={(event) => {
-              if (isDisabled || itemIsLocked) return;
-              event.stopPropagation();
-              onMenuToggle(group.id);
-            }}
-          >
-            <ChevronDown size={10} strokeWidth={TOOLBAR_ICON_STROKE_WIDTH} />
-          </button>
-        </Tooltip>
+        <GroupMenuButton
+          id={group.id}
+          isOpened={isMenuOpen}
+          isEnabled={!isDisabled && !itemIsLocked}
+          onClick={onMenuToggle}
+        />
 
         {isMenuOpen && (
-          <div className="toolbar__menu" role="menu" onClick={(e) => e.stopPropagation()}>
-            {group.items.map((item) => {
-              const Icon = item.icon;
-              const isActiveItem = activeItem.key === item.key;
-              const optionIsLocked =
-                group.id === ToolbarGroup.Inspection ? !isSimulationActive : item.locked === true;
-
-              return (
-                <button
-                  className={`toolbar__menu-option${isActiveItem ? " toolbar__menu-option--active" : ""}`}
-                  key={`${group.id}-${item.key}`}
-                  type="button"
-                  role="menuitem"
-                  disabled={optionIsLocked || isDisabled}
-                  onClick={() => {
-                    if (optionIsLocked || isDisabled) return;
-                    onSelect(group.id, item.key, true);
-                  }}
-                >
-                  <span className="toolbar__menu-check" aria-hidden="true">
-                    {isActiveItem ? (
-                      <Check
-                        size={TOOLBAR_MENU_CHECK_SIZE}
-                        strokeWidth={TOOLBAR_ICON_STROKE_WIDTH}
-                      />
-                    ) : null}
-                  </span>
-                  <Icon
-                    size={TOOLBAR_MENU_ICON_SIZE}
-                    strokeWidth={TOOLBAR_ICON_STROKE_WIDTH}
-                    className={getModeIconClassName(item.key)}
-                  />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
+          <GroupMenu
+            group={group}
+            mode={activeItem.key}
+            isEnabled={!isDisabled}
+            onSelect={onSelect}
+          />
         )}
       </div>
     </div>
