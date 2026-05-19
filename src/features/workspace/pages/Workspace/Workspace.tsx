@@ -77,9 +77,9 @@ export default function Workspace() {
           onPrevStep={handlePrevSimulationStep}
           onNextStep={handleNextSimulationStep}
           onInspectionModeChange={setSimulationInspectionMode}
-          canGoPrevStep={canGoPrevStep}
-          canGoNextStep={canGoNextStep}
-          isSimulationActive={isSimulationActive}
+          prevExist={canGoPrevStep}
+          nextExist={canGoNextStep}
+          isRuntime={isSimulationActive}
         />
       </div>
       <div className="workspace-page__properties">

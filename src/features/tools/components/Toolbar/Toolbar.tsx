@@ -1,114 +1,81 @@
 import { ACTIONS, MODE_GROUPS } from "@/features/tools/constants/toolbar";
 import { useToolbarRedux } from "@/features/tools/hooks/useToolbarRedux";
 import type { ActionToolMode, ToolbarPlacementMode } from "@/shared/types/action";
-import {
-  ActionMode as PlacementMode,
-  ActionGroup as ToolbarGroup,
-  ActionMode as ToolbarMode,
-} from "@/shared/types/action";
+import { ActionGroup, ActionMode } from "@/shared/types/action";
 import { isGroupDisabled } from "@/shared/utils/action";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ActionButton from "../ActionButton/ActionButton";
 import ModeButton from "../ModeButton/ModeButton";
 
+const DEFAULT_GROUP = ActionGroup.Navigation;
+
 type ToolbarProps = {
+  isRuntime: boolean;
+  prevExist: boolean;
+  nextExist: boolean;
   onPlacementModeChange: (mode: ToolbarPlacementMode) => void;
   onRun: () => void;
   onStop: () => void;
   onPrevStep: () => void;
   onNextStep: () => void;
-  onInspectionModeChange: (mode: ToolbarMode) => void;
-  canGoPrevStep: boolean;
-  canGoNextStep: boolean;
-  isSimulationActive: boolean;
+  onInspectionModeChange: (mode: ActionMode) => void;
 };
 
 export default function Toolbar({
+  isRuntime,
+  prevExist,
+  nextExist,
   onPlacementModeChange,
   onRun,
   onStop,
   onPrevStep,
   onNextStep,
   onInspectionModeChange,
-  canGoPrevStep,
-  canGoNextStep,
-  isSimulationActive,
 }: ToolbarProps) {
-  const { selectedGroupId, activeItemsByGroup, setGroupMode, setSelectedGroup } = useToolbarRedux();
-  const [openedMenuGroup, setOpenedMenuGroup] = useState<ToolbarGroup | null>(null);
+  const {
+    selectedGroupId: group,
+    activeItemsByGroup: activeModes,
+    setGroupMode,
+    setSelectedGroup,
+  } = useToolbarRedux();
+  const [openedMenuGroup, setOpenedMenuGroup] = useState<ActionGroup | null>(null);
   const toolbarRef = useRef<HTMLDivElement | null>(null);
-  const previousSimulationActiveRef = useRef(isSimulationActive);
 
-  const effectiveSelectedGroupId =
-    isSimulationActive &&
-    (selectedGroupId === ToolbarGroup.Entities || selectedGroupId === ToolbarGroup.Steps)
-      ? ToolbarGroup.Navigation
-      : selectedGroupId;
+  if (isGroupDisabled(group, isRuntime)) {
+    setSelectedGroup(DEFAULT_GROUP);
+  }
 
   useEffect(() => {
-    if (isSimulationActive && !previousSimulationActiveRef.current) {
-      if (selectedGroupId === ToolbarGroup.Entities || selectedGroupId === ToolbarGroup.Steps) {
-        setSelectedGroup(ToolbarGroup.Navigation);
-      }
+    let placementMode: ToolbarPlacementMode = null;
+    if (group === ActionGroup.Entities) {
+      placementMode = activeModes[ActionGroup.Entities].key as ToolbarPlacementMode;
     }
 
-    if (!isSimulationActive && previousSimulationActiveRef.current) {
-      if (selectedGroupId === ToolbarGroup.Inspection) {
-        setSelectedGroup(ToolbarGroup.Navigation);
-      }
+    if (group === ActionGroup.Steps) {
+      placementMode = activeModes[ActionGroup.Steps].key as ToolbarPlacementMode;
     }
 
-    previousSimulationActiveRef.current = isSimulationActive;
-  }, [isSimulationActive, selectedGroupId, setSelectedGroup]);
+    if (group === ActionGroup.Text) {
+      placementMode = activeModes[ActionGroup.Text].key as ToolbarPlacementMode;
+    }
+    onPlacementModeChange(placementMode);
+  }, [group, activeModes, onPlacementModeChange]);
 
   useEffect(() => {
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (!toolbarRef.current?.contains(event.target as Node)) {
-        setOpenedMenuGroup(null);
-      }
-    };
-
-    window.addEventListener("mousedown", handleOutsideClick);
-    return () => window.removeEventListener("mousedown", handleOutsideClick);
-  }, []);
-
-  useEffect(() => {
-    const entitiesMode = activeItemsByGroup[ToolbarGroup.Entities].key;
-    const stepsMode = activeItemsByGroup[ToolbarGroup.Steps].key;
-    const textMode = activeItemsByGroup[ToolbarGroup.Text].key;
-    const nextPlacementMode: ToolbarPlacementMode =
-      effectiveSelectedGroupId === ToolbarGroup.Entities &&
-      (entitiesMode === PlacementMode.Peer ||
-        entitiesMode === PlacementMode.Link ||
-        entitiesMode === PlacementMode.Obstacle)
-        ? entitiesMode
-        : effectiveSelectedGroupId === ToolbarGroup.Steps &&
-            (stepsMode === PlacementMode.Message ||
-              stepsMode === PlacementMode.Move ||
-              stepsMode === PlacementMode.Toggle)
-          ? stepsMode
-          : effectiveSelectedGroupId === ToolbarGroup.Text && textMode === PlacementMode.Text
-            ? PlacementMode.Text
-            : null;
-
-    onPlacementModeChange(nextPlacementMode);
-  }, [activeItemsByGroup, effectiveSelectedGroupId, onPlacementModeChange]);
-
-  useEffect(() => {
-    if (effectiveSelectedGroupId !== ToolbarGroup.Inspection) {
-      onInspectionModeChange(ToolbarMode.NavigationMove);
+    if (group !== ActionGroup.Inspection) {
+      onInspectionModeChange(ActionMode.NavigationMove);
       return;
     }
 
-    onInspectionModeChange(activeItemsByGroup[ToolbarGroup.Inspection].key as ToolbarMode);
-  }, [activeItemsByGroup, effectiveSelectedGroupId, onInspectionModeChange]);
+    onInspectionModeChange(activeModes[ActionGroup.Inspection].key as ActionMode);
+  }, [activeModes, group, onInspectionModeChange]);
 
   const handleGroupSelect = useCallback(
-    (groupId: ToolbarGroup, modeKey: ActionToolMode, fromMenu: boolean) => {
-      setGroupMode(groupId, modeKey);
+    (groupId: ActionGroup, mode: ActionToolMode, fromMenu: boolean) => {
+      setGroupMode(groupId, mode);
       setSelectedGroup(groupId);
-      if (groupId === ToolbarGroup.Inspection) {
-        onInspectionModeChange(modeKey as ToolbarMode);
+      if (groupId === ActionGroup.Inspection) {
+        onInspectionModeChange(mode as ActionMode);
       }
       if (fromMenu) {
         setOpenedMenuGroup(null);
@@ -117,21 +84,21 @@ export default function Toolbar({
     [onInspectionModeChange, setGroupMode, setSelectedGroup],
   );
 
-  const handleMenuToggle = useCallback((groupId: ToolbarGroup) => {
+  const handleMenuToggle = useCallback((groupId: ActionGroup) => {
     setOpenedMenuGroup((prev) => (prev === groupId ? null : groupId));
   }, []);
 
   return (
     <div className="toolbar" role="toolbar" aria-label={"Workspace toolbar"} ref={toolbarRef}>
       <div className="toolbar__cluster">
-        {MODE_GROUPS.map((group) => {
+        {MODE_GROUPS.map((modeGroup) => {
           return (
             <ModeButton
-              group={group}
-              mode={activeItemsByGroup[group.id]}
-              isActive={effectiveSelectedGroupId === group.id}
-              isDisabled={isGroupDisabled(group.id, isSimulationActive)}
-              isOpened={openedMenuGroup === group.id}
+              group={modeGroup}
+              mode={activeModes[modeGroup.id]}
+              isActive={group === modeGroup.id}
+              isDisabled={isGroupDisabled(modeGroup.id, isRuntime)}
+              isOpened={openedMenuGroup === modeGroup.id}
               onSelect={handleGroupSelect}
               onToggle={handleMenuToggle}
             />
@@ -145,9 +112,9 @@ export default function Toolbar({
         {ACTIONS.map((item) => (
           <ActionButton
             item={item}
-            isRuntime={isSimulationActive}
-            prevExist={canGoPrevStep}
-            nextExist={canGoNextStep}
+            isRuntime={isRuntime}
+            prevExist={prevExist}
+            nextExist={nextExist}
             onRun={onRun}
             onStop={onStop}
             onPrevStep={onPrevStep}
