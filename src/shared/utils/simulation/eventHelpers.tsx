@@ -1,21 +1,21 @@
-import type { ReactNode } from "react";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
 import { EntityType } from "@/shared/types/model/entities";
 import {
-  type DroppedEventDetails,
-  type EntityStatusChangedEventDetails,
-  type PeerMovedEventDetails,
-  type RouteSelectedEventDetails,
+  EventType,
   SimulationMessageKind,
-  SimulationEventType,
   type BatmanRouteRecord,
   type BatmanRoutingTableChangeDetails,
+  type DroppedEventDetails,
+  type EntityStatusChangedEventDetails,
+  type Event,
+  type PeerMovedEventDetails,
+  type RouteSelectedEventDetails,
   type RoutingTableChangeDetails,
-  type SimulationEvent,
   type SimulationMessage,
   type ThroughputCalculationEventDetails,
 } from "@/shared/types/model/simulation";
-import type { UUID } from "@/shared/types/common/uuid";
+import type { ReactNode } from "react";
 
 const isBatmanRoute = (
   route: RouteSelectedEventDetails["selectedRoute"],
@@ -23,28 +23,28 @@ const isBatmanRoute = (
   return "originatorPeerId" in route;
 };
 
-export const getEventTitle = (event: SimulationEvent) => {
+export const getEventTitle = (event: Event) => {
   const message = getEventMessage(event);
   const routeChange = getRouteChange(event);
 
   switch (event.type) {
-    case SimulationEventType.RoutingTableInsert:
+    case EventType.RoutingTableInsert:
       return getRouteInsertTitle(message, routeChange);
-    case SimulationEventType.RoutingTableUpdate:
+    case EventType.RoutingTableUpdate:
       return getRouteUpdateTitle(message, routeChange);
-    case SimulationEventType.RoutingTableRemove:
+    case EventType.RoutingTableRemove:
       return getRouteRemoveTitle(message, routeChange);
-    case SimulationEventType.SystemMessageBroadcast:
+    case EventType.SystemMessageBroadcast:
       return getBroadcastTitle(event, message);
-    case SimulationEventType.SystemRouteSelected:
+    case EventType.SystemRouteSelected:
       return "Route Selected";
-    case SimulationEventType.SystemThroughputCalculated:
+    case EventType.SystemThroughputCalculated:
       return "Throughput Estimation";
-    case SimulationEventType.SystemMessageDropped:
+    case EventType.SystemMessageDropped:
       return getDroppedTitle(event, message);
-    case SimulationEventType.SystemPeerMoved:
+    case EventType.SystemPeerMoved:
       return "Peer Moved";
-    case SimulationEventType.SystemEntityStatusChanged:
+    case EventType.SystemEntityStatusChanged:
       return "Entity Status Changed";
     default:
       return "Simulation Event";
@@ -52,7 +52,7 @@ export const getEventTitle = (event: SimulationEvent) => {
 };
 
 export const getSimulationReadMorePath = (
-  event: SimulationEvent,
+  event: Event,
   message: SimulationMessage | null,
   hasRouteChange: boolean,
   hasThroughputBreakdown: boolean,
@@ -76,10 +76,10 @@ export const getSimulationReadMorePath = (
 
   if (
     hasRouteChange ||
-    event.type === SimulationEventType.SystemRouteSelected ||
-    event.type === SimulationEventType.RoutingTableInsert ||
-    event.type === SimulationEventType.RoutingTableUpdate ||
-    event.type === SimulationEventType.RoutingTableRemove
+    event.type === EventType.SystemRouteSelected ||
+    event.type === EventType.RoutingTableInsert ||
+    event.type === EventType.RoutingTableUpdate ||
+    event.type === EventType.RoutingTableRemove
   ) {
     return "/docs/batman#route-selection";
   }
@@ -87,17 +87,17 @@ export const getSimulationReadMorePath = (
   return "/docs/batman#what-you-need-to-know";
 };
 
-export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UUID, string>) => {
+export const getEventDescription = (event: Event, peerNameById: Map<UUID, string>) => {
   const actor = "Node";
   const routeChange = getRouteChange(event);
   const message = getEventMessage(event);
 
   if (routeChange) {
-    if (event.type === SimulationEventType.RoutingTableInsert) {
+    if (event.type === EventType.RoutingTableInsert) {
       return getRouteInsertDescription();
     }
 
-    if (event.type === SimulationEventType.RoutingTableUpdate) {
+    if (event.type === EventType.RoutingTableUpdate) {
       return getRouteUpdateDescription();
     }
 
@@ -105,24 +105,24 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
   }
 
   switch (event.type) {
-    case SimulationEventType.SystemMessageBroadcast:
+    case EventType.SystemMessageBroadcast:
       return getBroadcastDescription(event, message);
-    case SimulationEventType.SystemRouteSelected: {
+    case EventType.SystemRouteSelected: {
       const details = event.details as RouteSelectedEventDetails;
       if (!isBatmanRoute(details.selectedRoute)) {
         return `${actor} emitted a simulation event.`;
       }
       return `Selected route to ${getPeerDisplayName(details.selectedRoute.originatorPeerId, peerNameById)} via ${getPeerDisplayName(details.selectedRoute.hopPeerId, peerNameById)} with throughput ${details.selectedRoute.quality}.`;
     }
-    case SimulationEventType.SystemThroughputCalculated:
+    case EventType.SystemThroughputCalculated:
       return getThroughputCalculatedDescription(actor, event);
-    case SimulationEventType.SystemMessageDropped:
+    case EventType.SystemMessageDropped:
       return getDroppedDescription(actor, event, message);
-    case SimulationEventType.SystemPeerMoved: {
+    case EventType.SystemPeerMoved: {
       const details = event.details as PeerMovedEventDetails;
       return `Peer is moved to point (${details.toX}, ${details.toY}).`;
     }
-    case SimulationEventType.SystemEntityStatusChanged: {
+    case EventType.SystemEntityStatusChanged: {
       const details = event.details as EntityStatusChangedEventDetails;
       const entityLabel = details.entityType === EntityType.Link ? "Link" : "Peer";
       return `${entityLabel} is now ${details.nextEnabled ? "(details.nextEnabled)" : "disabled"}.`;
@@ -132,11 +132,11 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
   }
 };
 
-export const getRouteChange = (event: SimulationEvent): RoutingTableChangeDetails | null => {
+export const getRouteChange = (event: Event): RoutingTableChangeDetails | null => {
   if (
-    event.type !== SimulationEventType.RoutingTableInsert &&
-    event.type !== SimulationEventType.RoutingTableUpdate &&
-    event.type !== SimulationEventType.RoutingTableRemove
+    event.type !== EventType.RoutingTableInsert &&
+    event.type !== EventType.RoutingTableUpdate &&
+    event.type !== EventType.RoutingTableRemove
   ) {
     return null;
   }
@@ -153,8 +153,8 @@ export const getRouteRows = (details: BatmanRoutingTableChangeDetails): BatmanRo
   return details.previousRoute ? [details.previousRoute] : [];
 };
 
-export const getSelectedRoute = (event: SimulationEvent): BatmanRouteRecord | null => {
-  if (event.type !== SimulationEventType.SystemRouteSelected) {
+export const getSelectedRoute = (event: Event): BatmanRouteRecord | null => {
+  if (event.type !== EventType.SystemRouteSelected) {
     return null;
   }
 
@@ -163,7 +163,7 @@ export const getSelectedRoute = (event: SimulationEvent): BatmanRouteRecord | nu
 };
 
 export const getMessageSummary = (
-  event: SimulationEvent,
+  event: Event,
   peerNameById: Map<UUID, string>,
   onPeerHoverChange: (peerId: UUID | null) => void,
 ): Array<{ label: string; value: ReactNode }> | null => {
@@ -172,7 +172,7 @@ export const getMessageSummary = (
     return null;
   }
 
-  if (event.type === SimulationEventType.SystemRouteSelected) {
+  if (event.type === EventType.SystemRouteSelected) {
     const details = event.details as RouteSelectedEventDetails;
     if (!isBatmanRoute(details.selectedRoute)) {
       return null;
@@ -236,7 +236,7 @@ export const getMessageSummary = (
     ];
   }
 
-  if (event.type === SimulationEventType.SystemPeerMoved) {
+  if (event.type === EventType.SystemPeerMoved) {
     const details = event.details as PeerMovedEventDetails;
     return [
       {
@@ -254,7 +254,7 @@ export const getMessageSummary = (
     ];
   }
 
-  if (event.type === SimulationEventType.SystemEntityStatusChanged) {
+  if (event.type === EventType.SystemEntityStatusChanged) {
     const details = event.details as EntityStatusChangedEventDetails;
     return [
       {
@@ -271,7 +271,7 @@ export const getMessageSummary = (
   return null;
 };
 
-export const getEventMessage = (event: SimulationEvent): SimulationMessage | null => {
+export const getEventMessage = (event: Event): SimulationMessage | null => {
   if (!("message" in event.details)) {
     return null;
   }
@@ -279,7 +279,7 @@ export const getEventMessage = (event: SimulationEvent): SimulationMessage | nul
   return event.details.message as SimulationMessage;
 };
 
-const getBroadcastTitle = (event: SimulationEvent, message: SimulationMessage | null) => {
+const getBroadcastTitle = (event: Event, message: SimulationMessage | null) => {
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
     return "ELP Broadcast";
   }
@@ -297,7 +297,7 @@ const getBroadcastTitle = (event: SimulationEvent, message: SimulationMessage | 
   return "Broadcast Message";
 };
 
-const getDroppedTitle = (event: SimulationEvent, message: SimulationMessage | null) => {
+const getDroppedTitle = (event: Event, message: SimulationMessage | null) => {
   if (isSourcePacketSendFailure(event, message)) {
     return "Packet Send Failed";
   }
@@ -317,7 +317,7 @@ const getDroppedTitle = (event: SimulationEvent, message: SimulationMessage | nu
   return "Drop Message";
 };
 
-const getBroadcastDescription = (event: SimulationEvent, message: SimulationMessage | null) => {
+const getBroadcastDescription = (event: Event, message: SimulationMessage | null) => {
   if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
     return (
       <>{`Every ELP Interval B.A.T.M.A.N. node broadcast an Echo Location Protocol (ELP) message to neighbours. If this node wants to announce its' neighbors it should append a neighbor entry message for each neighbor to be announced and fill the "Number of Neighbors" field accordingly.`}</>
@@ -351,11 +351,7 @@ const getBroadcastDescription = (event: SimulationEvent, message: SimulationMess
   return <>{"The node broadcast a message to neighbouring nodes."}</>;
 };
 
-const getDroppedDescription = (
-  actor: string,
-  event: SimulationEvent,
-  message: SimulationMessage | null,
-) => {
+const getDroppedDescription = (actor: string, event: Event, message: SimulationMessage | null) => {
   if (isSourcePacketSendFailure(event, message)) {
     const details = event.details as DroppedEventDetails;
     return (
@@ -380,7 +376,7 @@ const getDroppedDescription = (
   return <>{`${actor} dropped a message during processing.`}</>;
 };
 
-const getThroughputCalculatedDescription = (actor: string, event: SimulationEvent) => {
+const getThroughputCalculatedDescription = (actor: string, event: Event) => {
   const details = event.details as ThroughputCalculationEventDetails;
   if (details.message.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
     return (
@@ -405,8 +401,8 @@ const getThroughputCalculatedDescription = (actor: string, event: SimulationEven
   return <>{`${actor} calculated throughput: ${details.reason}`}</>;
 };
 
-export const getThroughputBreakdown = (event: SimulationEvent) => {
-  if (event.type !== SimulationEventType.SystemThroughputCalculated) {
+export const getThroughputBreakdown = (event: Event) => {
+  if (event.type !== EventType.SystemThroughputCalculated) {
     return null;
   }
 
@@ -419,10 +415,10 @@ export const getThroughputBreakdown = (event: SimulationEvent) => {
 };
 
 export const getOgmBroadcastThroughputExplanation = (
-  event: SimulationEvent,
+  event: Event,
   message: SimulationMessage | null,
 ) => {
-  if (event.type !== SimulationEventType.SystemMessageBroadcast) {
+  if (event.type !== EventType.SystemMessageBroadcast) {
     return null;
   }
 
@@ -437,8 +433,8 @@ export const getOgmBroadcastThroughputExplanation = (
   return "At the originator node, OGMv2 starts with throughput value 2**32. Each next peer then combines the carried OGM throughput with neighbour throughput derived from ELP using a min() operation, and forwards the selected value.";
 };
 
-export const getOgmThroughputSelectionExplanation = (event: SimulationEvent) => {
-  if (event.type !== SimulationEventType.SystemThroughputCalculated) {
+export const getOgmThroughputSelectionExplanation = (event: Event) => {
+  if (event.type !== EventType.SystemThroughputCalculated) {
     return null;
   }
 
@@ -538,11 +534,8 @@ const getRouteUpdateDescription = () => {
   );
 };
 
-export const getRouteSequenceWindowExplanation = (event: SimulationEvent) => {
-  if (
-    event.type !== SimulationEventType.RoutingTableInsert &&
-    event.type !== SimulationEventType.RoutingTableUpdate
-  ) {
+export const getRouteSequenceWindowExplanation = (event: Event) => {
+  if (event.type !== EventType.RoutingTableInsert && event.type !== EventType.RoutingTableUpdate) {
     return null;
   }
 
@@ -596,8 +589,8 @@ const getPeerDisplayName = (peerId: UUID, peerNameById: Map<UUID, string>) => {
   return peerNameById.get(peerId) ?? "Unknown";
 };
 
-const isSourcePacketSendFailure = (event: SimulationEvent, message: SimulationMessage | null) => {
-  if (event.type !== SimulationEventType.SystemMessageDropped) {
+const isSourcePacketSendFailure = (event: Event, message: SimulationMessage | null) => {
+  if (event.type !== EventType.SystemMessageDropped) {
     return false;
   }
 

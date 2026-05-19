@@ -21,7 +21,7 @@ import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as ToolbarMode } from "@/shared/types/action";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { NetworkEntity } from "@/shared/types/model/entities";
-import { type SimulationEvent, type SimulationStepResult } from "@/shared/types/model/simulation";
+import { type Event, type SimulationStepResult } from "@/shared/types/model/simulation";
 import type { Step } from "@/shared/types/model/steps";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import type { WorkspacePanState } from "@/shared/types/workspace/background";
@@ -39,7 +39,7 @@ type CanvasProps = {
   selectedSource: SelectionSource | null;
   placementMode: ToolbarPlacementMode;
   simulationInspectionMode: ToolbarMode;
-  currentSimulationEvent: SimulationEvent | null;
+  currentSimulationEvent: Event | null;
   currentSimulationEventIndex: number;
   currentSimulationEventsTotal: number;
   currentSimulationStepResult: SimulationStepResult | null;

@@ -3,7 +3,7 @@ import type { UUID } from "@/shared/types/common/uuid";
 import type { NetworkEntity, PeerEntity } from "./entities";
 import type { Step } from "./steps";
 
-export const SimulationEventType = {
+export const EventType = {
   SystemMessageBroadcast: "SYSTEM_MESSAGE_BROADCAST",
   SystemRouteSelected: "SYSTEM_ROUTE_SELECTED",
   SystemThroughputCalculated: "SYSTEM_THROUGHPUT_CALCULATED",
@@ -18,7 +18,7 @@ export const SimulationEventType = {
   SimulationStepEnd: "SIMULATION_STEP_END",
 } as const;
 
-export type SimulationEventType = (typeof SimulationEventType)[keyof typeof SimulationEventType];
+export type EventType = (typeof EventType)[keyof typeof EventType];
 
 export const SimulationMessageKind = {
   Packet: "PACKET",
@@ -427,7 +427,7 @@ export type SimulationStepBoundaryDetails = {
   stepType: Step["type"];
 };
 
-export type SimulationEventDetails =
+export type EventDetails =
   | BroadcastEventDetails
   | MessageTransferEventDetails
   | RouteSelectedEventDetails
@@ -438,13 +438,13 @@ export type SimulationEventDetails =
   | RoutingTableChangeDetails
   | SimulationStepBoundaryDetails;
 
-export type SimulationEvent = {
+export type Event = {
   id: UUID;
   tick: number;
   stepId: UUID | null;
   peerId: UUID;
-  type: SimulationEventType;
-  details: SimulationEventDetails;
+  type: EventType;
+  details: EventDetails;
 };
 
 export type SimulationPeerSnapshot = PeerEntity & {
@@ -468,7 +468,7 @@ export type SimulationTickSnapshot = {
 
 export type SimulationStepResult = {
   step: Step;
-  events: SimulationEvent[];
+  events: Event[];
   eventSnapshots: SimulationTickSnapshot[];
   snapshot: SimulationTickSnapshot;
 };
@@ -479,7 +479,7 @@ export type SimulationInput = {
 };
 
 export type SimulationResult = {
-  events: SimulationEvent[];
+  events: Event[];
   steps: Step[];
   stepResults: SimulationStepResult[];
 };

@@ -1,12 +1,12 @@
+import { EventRecorder } from "@/shared/processor/core/EventRecorder";
+import type { SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
 import {
-  SimulationEventType,
+  EventType,
   type BatmanOriginatorMessage,
   type BatmanRouteRecord,
 } from "@/shared/types/model/simulation";
-import type { UUID } from "@/shared/types/common/uuid";
-import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
 import { cloneMessage } from "./batmanMessage";
 import { BatmanSequenceWindow } from "./BatmanSequenceWindow";
 
@@ -22,15 +22,11 @@ export class BatmanOriginatorTable {
 
   private readonly routingPeer: SimulationPeerNode;
 
-  private readonly eventRecorder: SimulationEventRecorder;
+  private readonly eventRecorder: EventRecorder;
 
   private readonly purgeTimeout: number;
 
-  constructor(
-    routingPeer: SimulationPeerNode,
-    eventRecorder: SimulationEventRecorder,
-    purgeTimeout: number,
-  ) {
+  constructor(routingPeer: SimulationPeerNode, eventRecorder: EventRecorder, purgeTimeout: number) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
     this.purgeTimeout = purgeTimeout;
@@ -69,7 +65,7 @@ export class BatmanOriginatorTable {
         const previousRoute = this.toRouteRecord(originatorPeerId, route);
         if (tick - route.lastTick > this.purgeTimeout) {
           routes.delete(hopPeerId);
-          this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableRemove, {
+          this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableRemove, {
             protocol: RoutingProtocol.BATMAN,
             originatorPeerId,
             hopPeerId,
@@ -157,7 +153,7 @@ export class BatmanOriginatorTable {
     routes.set(hopPeerId, route);
     this.originators.set(originatorPeerId, routes);
 
-    this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableInsert, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableInsert, {
       protocol: RoutingProtocol.BATMAN,
       originatorPeerId,
       hopPeerId,
@@ -185,7 +181,7 @@ export class BatmanOriginatorTable {
     const processed = route.sequenceWindow.process(message.sequence);
     if (processed) {
       route.throughput = throughput;
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableUpdate, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableUpdate, {
         protocol: RoutingProtocol.BATMAN,
         originatorPeerId,
         hopPeerId,

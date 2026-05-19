@@ -1,28 +1,28 @@
+import type { UUID } from "@/shared/types/common/uuid";
+import type { PeerEntity } from "@/shared/types/model/entities";
 import type {
   BroadcastEventDetails,
   DroppedEventDetails,
   EntityStatusChangedEventDetails,
+  Event,
   PeerMovedEventDetails,
   RouteSelectedEventDetails,
-  SimulationEvent,
   SimulationMessage,
   SimulationPeerSnapshot,
   ThroughputCalculationEventDetails,
 } from "@/shared/types/model/simulation";
-import type { UUID } from "@/shared/types/common/uuid";
-import { SimulationEventType, SimulationMessageKind } from "@/shared/types/model/simulation";
+import { EventType, SimulationMessageKind } from "@/shared/types/model/simulation";
 import type {
   MessageAnimation,
   MoveStepAnimation,
   ToggleStepAnimation,
 } from "@/shared/types/workspace/scene";
-import type { PeerEntity } from "@/shared/types/model/entities";
 
 export const buildSimulationMessageAnimations = (
-  currentEvent: SimulationEvent | null,
+  currentEvent: Event | null,
   currentStepResult: {
     snapshot: { peers: SimulationPeerSnapshot[] };
-    events: SimulationEvent[];
+    events: Event[];
   } | null,
   fallbackPeers: PeerEntity[],
 ): MessageAnimation[] => {
@@ -68,7 +68,7 @@ export const buildSimulationMessageAnimations = (
     };
   };
 
-  if (currentEvent.type === SimulationEventType.SystemMessageBroadcast) {
+  if (currentEvent.type === EventType.SystemMessageBroadcast) {
     const details = currentEvent.details as BroadcastEventDetails;
     return details.neighbourPeerIds
       .map((peerId, index) =>
@@ -77,7 +77,7 @@ export const buildSimulationMessageAnimations = (
       .filter((animation): animation is MessageAnimation => animation !== null);
   }
 
-  if (currentEvent.type === SimulationEventType.SystemRouteSelected) {
+  if (currentEvent.type === EventType.SystemRouteSelected) {
     const details = currentEvent.details as RouteSelectedEventDetails;
     const hopPeerId =
       "hopPeerId" in details.selectedRoute
@@ -89,7 +89,7 @@ export const buildSimulationMessageAnimations = (
     ]);
   }
 
-  if (currentEvent.type === SimulationEventType.SystemMessageDropped) {
+  if (currentEvent.type === EventType.SystemMessageDropped) {
     const details = currentEvent.details as DroppedEventDetails;
     if (!details.message) {
       return [];
@@ -106,7 +106,7 @@ export const buildSimulationMessageAnimations = (
     ]);
   }
 
-  if (currentEvent.type === SimulationEventType.SystemThroughputCalculated) {
+  if (currentEvent.type === EventType.SystemThroughputCalculated) {
     const details = currentEvent.details as ThroughputCalculationEventDetails;
     if (details.message.kind === SimulationMessageKind.BatmanOriginatorMessage) {
       return toMessageAnimations([
@@ -219,8 +219,8 @@ export const buildSimulationMessageAnimations = (
   }
 
   if (
-    currentEvent.type === SimulationEventType.RoutingTableInsert ||
-    currentEvent.type === SimulationEventType.RoutingTableUpdate
+    currentEvent.type === EventType.RoutingTableInsert ||
+    currentEvent.type === EventType.RoutingTableUpdate
   ) {
     const details = currentEvent.details as { hopPeerId?: UUID; nextHopPeerId?: UUID };
     const nextHopPeerId = details.hopPeerId ?? details.nextHopPeerId ?? null;
@@ -237,9 +237,9 @@ export const buildSimulationMessageAnimations = (
 };
 
 export const buildMoveStepAnimation = (
-  currentEvent: SimulationEvent | null,
+  currentEvent: Event | null,
 ): Omit<MoveStepAnimation, "progress"> | null => {
-  if (!currentEvent || currentEvent.type !== SimulationEventType.SystemPeerMoved) {
+  if (!currentEvent || currentEvent.type !== EventType.SystemPeerMoved) {
     return null;
   }
 
@@ -254,9 +254,9 @@ export const buildMoveStepAnimation = (
 };
 
 export const buildToggleStepAnimation = (
-  currentEvent: SimulationEvent | null,
+  currentEvent: Event | null,
 ): ToggleStepAnimation | null => {
-  if (!currentEvent || currentEvent.type !== SimulationEventType.SystemEntityStatusChanged) {
+  if (!currentEvent || currentEvent.type !== EventType.SystemEntityStatusChanged) {
     return null;
   }
 

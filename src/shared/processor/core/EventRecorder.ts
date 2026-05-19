@@ -1,25 +1,21 @@
-import type {
-  SimulationEvent,
-  SimulationEventDetails,
-  SimulationEventType,
-} from "@/shared/types/model/simulation";
+import { START_TICK } from "@/shared/constants/tick";
 import { generateUUID, type UUID } from "@/shared/types/common/uuid";
+import type { Event, EventDetails, EventType } from "@/shared/types/model/simulation";
+import type { EventListener } from "../types/events";
 
-export class SimulationEventRecorder {
-  private readonly events: SimulationEvent[] = [];
+export class EventRecorder {
+  private readonly events: Event[] = [];
+  private readonly listeners = new Set<EventListener>();
 
-  private readonly saveListeners = new Set<(event: SimulationEvent) => void>();
-
-  private currentTick = 1;
-
+  private currentTick = START_TICK;
   private currentStepId: UUID | null = null;
 
   setCurrentStep(stepId: UUID | null) {
     this.currentStepId = stepId;
   }
 
-  save(peerId: UUID, type: SimulationEventType, details: SimulationEventDetails) {
-    const event: SimulationEvent = {
+  record(peerId: UUID, type: EventType, details: EventDetails) {
+    const event: Event = {
       id: generateUUID(),
       tick: this.currentTick,
       stepId: this.currentStepId,
@@ -29,28 +25,24 @@ export class SimulationEventRecorder {
     };
 
     this.events.push(event);
-
-    for (const listener of this.saveListeners) {
+    for (const listener of this.listeners) {
       listener(event);
     }
   }
 
-  onSave(listener: (event: SimulationEvent) => void) {
-    this.saveListeners.add(listener);
-    return () => {
-      this.saveListeners.delete(listener);
-    };
+  addListener(listener: EventListener) {
+    this.listeners.add(listener);
   }
 
   addTick(ticksNumber = 1) {
     this.currentTick += ticksNumber;
   }
 
-  getCurrentTick() {
-    return this.currentTick;
-  }
-
   getEvents() {
     return this.events;
+  }
+
+  getCurrentTick() {
+    return this.currentTick;
   }
 }

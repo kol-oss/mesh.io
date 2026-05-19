@@ -1,14 +1,14 @@
+import { DSDV_METRIC_INFINITY } from "@/shared/constants/dsdv";
+import { EventRecorder } from "@/shared/processor/core/EventRecorder";
+import type { SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
 import {
-  SimulationEventType,
+  EventType,
   type DsdvRouteRecord,
   type DsdvRouteUpdateMessage,
 } from "@/shared/types/model/simulation";
-import type { UUID } from "@/shared/types/common/uuid";
-import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
 import { cloneDsdvMessage } from "./dsdvMessage";
-import { DSDV_METRIC_INFINITY } from "@/shared/constants/dsdv";
 
 type DsdvRouteState = {
   destinationPeerId: UUID;
@@ -27,7 +27,7 @@ export class DsdvRoutingTable {
 
   private readonly routingPeer: SimulationPeerNode;
 
-  private readonly eventRecorder: SimulationEventRecorder;
+  private readonly eventRecorder: EventRecorder;
 
   private getRouteTimeout: () => number;
 
@@ -35,7 +35,7 @@ export class DsdvRoutingTable {
 
   constructor(params: {
     routingPeer: SimulationPeerNode;
-    eventRecorder: SimulationEventRecorder;
+    eventRecorder: EventRecorder;
     getRouteTimeout: () => number;
     getRouteExpiryTick: (nextHopPeerId: UUID, fallbackTick: number) => number;
   }) {
@@ -61,7 +61,7 @@ export class DsdvRoutingTable {
     this.routes.set(this.routingPeer.id, nextState);
 
     if (!previous) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableInsert, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableInsert, {
         protocol: RoutingProtocol.DSDV,
         destinationPeerId: this.routingPeer.id,
         nextHopPeerId: this.routingPeer.id,
@@ -72,7 +72,7 @@ export class DsdvRoutingTable {
       return;
     }
 
-    this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableUpdate, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableUpdate, {
       protocol: RoutingProtocol.DSDV,
       destinationPeerId: this.routingPeer.id,
       nextHopPeerId: this.routingPeer.id,
@@ -136,9 +136,9 @@ export class DsdvRoutingTable {
       ? `Accepted fresher or better DSDV route (seq ${params.incomingSequenceNumber}, metric ${metric}).`
       : `Discovered new DSDV route (seq ${params.incomingSequenceNumber}, metric ${metric}).`;
 
-    this.eventRecorder.save(
+    this.eventRecorder.record(
       this.routingPeer.id,
-      current ? SimulationEventType.RoutingTableUpdate : SimulationEventType.RoutingTableInsert,
+      current ? EventType.RoutingTableUpdate : EventType.RoutingTableInsert,
       {
         protocol: RoutingProtocol.DSDV,
         destinationPeerId: params.destinationPeerId,
@@ -182,7 +182,7 @@ export class DsdvRoutingTable {
         });
         changed = true;
 
-        this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableRemove, {
+        this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableRemove, {
           protocol: RoutingProtocol.DSDV,
           destinationPeerId: previousRoute.destinationPeerId,
           nextHopPeerId: previousRoute.nextHopPeerId,
@@ -203,7 +203,7 @@ export class DsdvRoutingTable {
         this.routes.delete(destinationPeerId);
         changed = true;
 
-        this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableRemove, {
+        this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableRemove, {
           protocol: RoutingProtocol.DSDV,
           destinationPeerId: previousRoute.destinationPeerId,
           nextHopPeerId: previousRoute.nextHopPeerId,

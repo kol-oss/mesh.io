@@ -4,9 +4,12 @@ import {
   DSR_MAX_SALVAGE_COUNT,
   DSR_ROUTE_CACHE_TIMEOUT,
 } from "@/shared/constants/dsr";
+import { EventRecorder } from "@/shared/processor/core/EventRecorder";
+import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
 import {
-  SimulationEventType,
+  EventType,
   SimulationMessageKind,
   type DsrRouteErrorMessage,
   type DsrRouteRecord,
@@ -14,9 +17,6 @@ import {
   type DsrRouteRequestMessage,
   type SimulationPacket,
 } from "@/shared/types/model/simulation";
-import type { UUID } from "@/shared/types/common/uuid";
-import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
 import { cloneDsrMessage, isDsrSimulationMessage } from "./dsrMessage";
 
 type RouteCacheEntry = DsrRouteRecord;
@@ -29,13 +29,13 @@ type DiscoveryResult = {
 export class DsrModule implements PacketCapableModule {
   private readonly routingPeer: SimulationPeerNode;
 
-  private readonly eventRecorder: SimulationEventRecorder;
+  private readonly eventRecorder: EventRecorder;
 
   private readonly routeCache = new Map<UUID, RouteCacheEntry>();
 
   private requestSequence = 0;
 
-  constructor(routingPeer: SimulationPeerNode, eventRecorder: SimulationEventRecorder) {
+  constructor(routingPeer: SimulationPeerNode, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
   }
@@ -77,7 +77,7 @@ export class DsrModule implements PacketCapableModule {
       }
 
       this.routeCache.delete(destinationPeerId);
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableRemove, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableRemove, {
         protocol: RoutingProtocol.DSR,
         destinationPeerId,
         nextHopPeerId: route.nextHopPeerId,
@@ -90,7 +90,7 @@ export class DsrModule implements PacketCapableModule {
 
   send(packet: SimulationPacket): boolean {
     if (!this.routingPeer.isActive()) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneDsrMessage(packet),
         reason: "Source peer is disabled",
       });
@@ -98,7 +98,7 @@ export class DsrModule implements PacketCapableModule {
     }
 
     if (packet.timeToLive <= 0) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneDsrMessage(packet),
         reason: "Packet TTL reached zero",
       });
@@ -133,7 +133,7 @@ export class DsrModule implements PacketCapableModule {
       }
     }
 
-    this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
       message: cloneDsrMessage(sourcePacket),
       reason: "No DSR source route is available for the destination",
       reasonCode: "NO_ROUTE",
@@ -180,7 +180,7 @@ export class DsrModule implements PacketCapableModule {
         routePeerIds: [...current.pathPeerIds],
       };
 
-      this.eventRecorder.save(current.peer.id, SimulationEventType.SystemMessageBroadcast, {
+      this.eventRecorder.record(current.peer.id, EventType.SystemMessageBroadcast, {
         neighbourPeerIds: neighbours.map((peer) => peer.id),
         retransmit: current.peer.id !== this.routingPeer.id,
         message: cloneDsrMessage(requestMessage),
@@ -250,7 +250,7 @@ export class DsrModule implements PacketCapableModule {
         routePeerIds: [...pathPeerIds],
       };
 
-      this.eventRecorder.save(senderPeerId, SimulationEventType.SystemThroughputCalculated, {
+      this.eventRecorder.record(senderPeerId, EventType.SystemThroughputCalculated, {
         message: cloneDsrMessage(replyMessage),
         reason: `DSR Route Reply ${requestId} unicast to ${previousPeerId} carrying source route ${pathPeerIds.join(" -> ")}.`,
       });
@@ -319,7 +319,7 @@ export class DsrModule implements PacketCapableModule {
       }
 
       if (currentPacket.timeToLive <= 0) {
-        this.eventRecorder.save(currentPeer.id, SimulationEventType.SystemMessageDropped, {
+        this.eventRecorder.record(currentPeer.id, EventType.SystemMessageDropped, {
           message: cloneDsrMessage(currentPacket),
           reason: "Packet TTL reached zero",
         });
@@ -335,7 +335,7 @@ export class DsrModule implements PacketCapableModule {
         pathPeerIds: routePeerIds.slice(index),
       };
 
-      this.eventRecorder.save(currentPeer.id, SimulationEventType.SystemRouteSelected, {
+      this.eventRecorder.record(currentPeer.id, EventType.SystemRouteSelected, {
         protocol: RoutingProtocol.DSR,
         destinationPeerId: packet.destinationPeerId,
         selectedRoute,
@@ -345,7 +345,7 @@ export class DsrModule implements PacketCapableModule {
       const nextPeer = currentPeer.getNeighbour(nextPeerId);
       if (!nextPeer || !nextPeer.supports(RoutingProtocol.DSR)) {
         const routeError = this.createRouteError(packet, currentPeerId, nextPeerId, salvageCount);
-        this.eventRecorder.save(currentPeer.id, SimulationEventType.SystemMessageDropped, {
+        this.eventRecorder.record(currentPeer.id, EventType.SystemMessageDropped, {
           message: cloneDsrMessage(routeError),
           reason: "Selected next hop does not support DSR",
         });
@@ -359,14 +359,10 @@ export class DsrModule implements PacketCapableModule {
           if (salvageRoute) {
             const prefix = routePeerIds.slice(0, index + 1);
             const salvagedPath = [...prefix, ...salvageRoute.pathPeerIds.slice(1)];
-            this.eventRecorder.save(
-              currentPeer.id,
-              SimulationEventType.SystemThroughputCalculated,
-              {
-                message: cloneDsrMessage(routeError),
-                reason: `DSR packet salvaging reused cached alternate route ${salvagedPath.join(" -> ")}.`,
-              },
-            );
+            this.eventRecorder.record(currentPeer.id, EventType.SystemThroughputCalculated, {
+              message: cloneDsrMessage(routeError),
+              reason: `DSR packet salvaging reused cached alternate route ${salvagedPath.join(" -> ")}.`,
+            });
 
             return this.forwardPacketOnRoute(currentPacket, salvagedPath, salvageCount + 1);
           }
@@ -438,7 +434,7 @@ export class DsrModule implements PacketCapableModule {
     this.routeCache.set(destinationPeerId, nextRoute);
 
     if (!previousRoute) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableInsert, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableInsert, {
         protocol: RoutingProtocol.DSR,
         destinationPeerId,
         nextHopPeerId: nextRoute.nextHopPeerId,
@@ -455,7 +451,7 @@ export class DsrModule implements PacketCapableModule {
       previousRoute.metric !== nextRoute.metric ||
       previousRoute.pathPeerIds.join("|") !== nextRoute.pathPeerIds.join("|")
     ) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableUpdate, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableUpdate, {
         protocol: RoutingProtocol.DSR,
         destinationPeerId,
         nextHopPeerId: nextRoute.nextHopPeerId,
@@ -509,7 +505,7 @@ export class DsrModule implements PacketCapableModule {
       }
 
       this.routeCache.delete(destinationPeerId);
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableRemove, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableRemove, {
         protocol: RoutingProtocol.DSR,
         destinationPeerId,
         nextHopPeerId: route.nextHopPeerId,

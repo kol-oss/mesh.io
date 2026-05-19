@@ -1,13 +1,16 @@
-import type { PeerEntity } from "@/shared/types/model/entities";
-import { RoutingProtocol } from "@/shared/types/common/protocols";
-import type { UUID } from "@/shared/types/common/uuid";
 import { AodvModule } from "@/shared/processor/aodv/AodvModule";
 import { BatmanModule } from "@/shared/processor/batman/BatmanModule";
-import type { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { RoutingProtocolModule, SnapshotCapablePeerNode } from "@/shared/processor/core/runtimeTypes";
+import type { EventRecorder } from "@/shared/processor/core/EventRecorder";
+import type {
+  RoutingProtocolModule,
+  SnapshotCapablePeerNode,
+} from "@/shared/processor/core/runtimeTypes";
 import { DsdvModule } from "@/shared/processor/dsdv/DsdvModule";
 import { DsrModule } from "@/shared/processor/dsr/DsrModule";
 import { OlsrModule } from "@/shared/processor/olsr/OlsrModule";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { PeerEntity } from "@/shared/types/model/entities";
 import type { RuntimeNetwork } from "./network";
 
 export class RuntimePeer implements SnapshotCapablePeerNode {
@@ -17,7 +20,7 @@ export class RuntimePeer implements SnapshotCapablePeerNode {
   private readonly entity: PeerEntity;
   private readonly network: RuntimeNetwork;
 
-  constructor(entity: PeerEntity, network: RuntimeNetwork, eventRecorder: SimulationEventRecorder) {
+  constructor(entity: PeerEntity, network: RuntimeNetwork, eventRecorder: EventRecorder) {
     this.entity = entity;
     this.network = network;
 

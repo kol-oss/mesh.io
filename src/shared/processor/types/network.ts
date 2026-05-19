@@ -1,14 +1,14 @@
-import type { NetworkEntity, ObstacleEntity } from "@/shared/types/model/entities";
-import { EntityType } from "@/shared/types/model/entities";
-import type { SimulationTickSnapshot } from "@/shared/types/model/simulation";
-import type { UUID } from "@/shared/types/common/uuid";
-import type { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { SimulationNetworkRuntime } from "@/shared/processor/core/runtimeTypes";
 import {
   canCreateRangedConnection,
   getConnectivityObstacleBounds,
   shouldCreateLinkedConnection,
 } from "@/shared/processor/connectivity";
+import type { EventRecorder } from "@/shared/processor/core/EventRecorder";
+import type { SimulationNetworkRuntime } from "@/shared/processor/core/runtimeTypes";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { NetworkEntity, ObstacleEntity } from "@/shared/types/model/entities";
+import { EntityType } from "@/shared/types/model/entities";
+import type { SimulationTickSnapshot } from "@/shared/types/model/simulation";
 import type { RuntimeLink } from "./link";
 import { RuntimePeer } from "./peer";
 
@@ -23,7 +23,7 @@ export class RuntimeNetwork implements SimulationNetworkRuntime {
 
   private readonly obstacles: ObstacleEntity[] = [];
 
-  constructor(entities: NetworkEntity[], eventRecorder: SimulationEventRecorder) {
+  constructor(entities: NetworkEntity[], eventRecorder: EventRecorder) {
     for (const entity of entities) {
       this.entityOrder.push({ type: entity.type, id: entity.id });
 

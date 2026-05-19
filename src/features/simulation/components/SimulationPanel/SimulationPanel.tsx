@@ -1,12 +1,9 @@
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { Link } from "react-router-dom";
+import type { UUID } from "@/shared/types/common/uuid";
 import {
   QualityWindowBit,
-  type SimulationEvent,
+  type Event,
   type SimulationStepResult,
 } from "@/shared/types/model/simulation";
-import type { UUID } from "@/shared/types/common/uuid";
 import {
   formatFixed,
   getEventDescription,
@@ -20,20 +17,23 @@ import {
   getRouteRows,
   getRouteSequenceWindowExplanation,
   getSelectedRoute,
-  isBatmanRouteRecord,
   getSimulationReadMorePath,
   getThroughputBaseExplanation,
   getThroughputBreakdown,
   getThroughputEwmaExplanation,
+  isBatmanRouteRecord,
   renderPeerName,
 } from "@/shared/utils/simulation/eventPresentation";
+import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { Link } from "react-router-dom";
 
 type SimulationPanelProps = {
   anchorX: number;
   anchorY: number;
   canGoNextEvent: boolean;
   canGoPrevEvent: boolean;
-  currentEvent: SimulationEvent | null;
+  currentEvent: Event | null;
   currentEventIndex: number;
   currentEventsTotal: number;
   currentStepResult: SimulationStepResult | null;

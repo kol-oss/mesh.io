@@ -1,6 +1,6 @@
 import { AodvModule } from "@/shared/processor/aodv/AodvModule";
 import { BatmanModule } from "@/shared/processor/batman/BatmanModule";
-import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
+import { EventRecorder } from "@/shared/processor/core/EventRecorder";
 import type {
   PacketCapableModule,
   RoutingProtocolModule,
@@ -10,7 +10,7 @@ import { OlsrModule } from "@/shared/processor/olsr/OlsrModule";
 import { RuntimeNetwork } from "@/shared/processor/types/network";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import {
-  SimulationEventType,
+  EventType,
   SimulationMessageKind,
   type EntityStatusChangedEventDetails,
   type PeerMovedEventDetails,
@@ -21,35 +21,25 @@ import {
   type SimulationTickSnapshot,
 } from "@/shared/types/model/simulation";
 import { RefreshAction, StepType, type Step } from "@/shared/types/model/steps";
-
-const sortSteps = (steps: Step[]) => {
-  return [...steps]
-    .map((step, index) => ({ step, index }))
-    .sort((left, right) => {
-      if (left.step.tick !== right.step.tick) {
-        return left.step.tick - right.step.tick;
-      }
-
-      return left.index - right.index;
-    })
-    .map(({ step }) => step);
-};
+import { sortStepsByTick } from "./steps";
 
 export function runSimulation(input: SimulationInput): SimulationResult {
-  const eventRecorder = new SimulationEventRecorder();
-  const network = new RuntimeNetwork(input.entities, eventRecorder);
-  const steps = sortSteps(input.steps);
+  const { entities, steps } = input;
+
+  const eventRecorder = new EventRecorder();
+  const network = new RuntimeNetwork(entities, eventRecorder);
+  const sortedSteps = sortStepsByTick(steps);
   const stepResults: SimulationStepResult[] = [];
   const eventSnapshots: SimulationTickSnapshot[] = [];
 
-  eventRecorder.onSave(() => {
+  eventRecorder.addListener(() => {
     eventSnapshots.push(network.snapshot(eventRecorder.getCurrentTick()));
   });
 
   let simulationTick = 1;
   let stepIndex = 0;
-  while (stepIndex < steps.length) {
-    const tick = steps[stepIndex].tick;
+  while (stepIndex < sortedSteps.length) {
+    const tick = sortedSteps[stepIndex].tick;
     while (simulationTick < tick) {
       network.tickModules();
       eventRecorder.addTick(1);
@@ -57,8 +47,8 @@ export function runSimulation(input: SimulationInput): SimulationResult {
     }
 
     const stepEventsForTick: Step[] = [];
-    while (stepIndex < steps.length && steps[stepIndex].tick === tick) {
-      stepEventsForTick.push(steps[stepIndex]);
+    while (stepIndex < sortedSteps.length && sortedSteps[stepIndex].tick === tick) {
+      stepEventsForTick.push(sortedSteps[stepIndex]);
       stepIndex += 1;
     }
 
@@ -83,16 +73,12 @@ export function runSimulation(input: SimulationInput): SimulationResult {
 
   return {
     events: eventRecorder.getEvents(),
-    steps,
+    steps: sortedSteps,
     stepResults,
   };
 }
 
-const processStep = (
-  step: Step,
-  network: RuntimeNetwork,
-  eventRecorder: SimulationEventRecorder,
-) => {
+const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRecorder) => {
   if (step.type === StepType.Move) {
     if (!step.entityId) {
       return;
@@ -114,7 +100,7 @@ const processStep = (
 
     network.updatePeerPosition(step.entityId, step.x, step.y);
     network.refreshConnectivity();
-    eventRecorder.save(step.entityId, SimulationEventType.SystemPeerMoved, moveDetails);
+    eventRecorder.record(step.entityId, EventType.SystemPeerMoved, moveDetails);
     return;
   }
 
@@ -137,7 +123,7 @@ const processStep = (
       nextEnabled: toggleResult.nextEnabled,
     };
 
-    eventRecorder.save(step.entityId, SimulationEventType.SystemEntityStatusChanged, statusDetails);
+    eventRecorder.record(step.entityId, EventType.SystemEntityStatusChanged, statusDetails);
     return;
   }
 
@@ -229,7 +215,7 @@ const processStep = (
   const sourceProtocol = sourcePeer?.getPrimaryProtocol() ?? null;
   const sourceModule = sourceProtocol ? sourcePeer?.getModule(sourceProtocol) : null;
   if (!sourceModule || !isPacketCapableModule(sourceModule)) {
-    eventRecorder.save(step.sourceId, SimulationEventType.SystemMessageDropped, {
+    eventRecorder.record(step.sourceId, EventType.SystemMessageDropped, {
       reason: sourcePeer
         ? `Source peer does not have a ${sourceProtocol ?? "Unknown"} module`
         : "Source peer does not exist",

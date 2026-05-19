@@ -4,7 +4,7 @@ import PropertyHeader from "@/shared/components/Property/PropertyHeader";
 import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
 import TextPropertyField from "@/shared/components/Property/TextPropertyField";
 import { getStepTypeIcon } from "@/shared/constants/icons";
-import { MIN_STEP_TICK } from "@/shared/constants/steps";
+import { MIN_TICK } from "@/shared/constants/tick";
 import type { SelectOption } from "@/shared/types/common/select";
 import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
@@ -103,7 +103,7 @@ export default function StepProperties({
               label="Tick"
               icon={<Clock3 size={12} />}
               value={step.tick}
-              min={MIN_STEP_TICK}
+              min={MIN_TICK}
               onChange={(event) => updateStepTick(parseNumberValue(event.target.value, step.tick))}
             />
           </PropertyGroup>

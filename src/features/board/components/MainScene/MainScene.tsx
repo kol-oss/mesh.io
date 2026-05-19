@@ -1,9 +1,9 @@
-import { ActionMode as PlacementMode } from "@/shared/types/action";
-import type { SimulationEvent, SimulationStepResult } from "@/shared/types/model/simulation";
-import type { ToolbarPlacementMode } from "@/shared/types/action";
-import type { WorkspaceSceneProps } from "@/shared/types/workspace/scene";
-import SimulationPanel from "@/features/simulation/components/SimulationPanel/SimulationPanel";
 import Scene from "@/features/board/components/Scene/Scene";
+import SimulationPanel from "@/features/simulation/components/SimulationPanel/SimulationPanel";
+import type { ToolbarPlacementMode } from "@/shared/types/action";
+import { ActionMode as PlacementMode } from "@/shared/types/action";
+import type { Event, SimulationStepResult } from "@/shared/types/model/simulation";
+import type { WorkspaceSceneProps } from "@/shared/types/workspace/scene";
 
 type Props = {
   placementMode: ToolbarPlacementMode;
@@ -13,7 +13,7 @@ type Props = {
   handleBackgroundPointerMove: (event: React.PointerEvent<HTMLElement>) => void;
   handleBackgroundPointerEnd: (event: React.PointerEvent<HTMLElement>) => void;
   currentSimulationStepResult: SimulationStepResult | null;
-  currentSimulationEvent: SimulationEvent | null;
+  currentSimulationEvent: Event | null;
   simulationAnchorPosition: { x: number; y: number } | null;
   canGoNextSimulationEvent: boolean;
   canGoPrevSimulationEvent: boolean;

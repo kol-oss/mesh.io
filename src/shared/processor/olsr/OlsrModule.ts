@@ -1,9 +1,12 @@
 import { OLSR_DEFAULT_TC_TTL, OLSR_MIN_INTERVAL } from "@/shared/constants/olsr";
+import { EventRecorder } from "@/shared/processor/core/EventRecorder";
+import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
 import type { OlsrConfiguration } from "@/shared/types/model/configurations";
 import { getOlsrConfiguration } from "@/shared/types/model/peers";
 import {
-  SimulationEventType,
+  EventType,
   SimulationMessageKind,
   type OlsrHelloMessage,
   type OlsrNeighbourRecord,
@@ -15,9 +18,6 @@ import {
   type SimulationMessage,
   type SimulationPacket,
 } from "@/shared/types/model/simulation";
-import type { UUID } from "@/shared/types/common/uuid";
-import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
 import { cloneOlsrMessage, isOlsrSimulationMessage } from "./olsrMessage";
 
 type OlsrTopologyEntry = {
@@ -46,7 +46,7 @@ const clampInterval = (value: number) => {
 export class OlsrModule implements PacketCapableModule {
   private readonly routingPeer: SimulationPeerNode;
 
-  private readonly eventRecorder: SimulationEventRecorder;
+  private readonly eventRecorder: EventRecorder;
 
   private readonly neighbourTable = new Map<UUID, OlsrNeighbourRecord>();
 
@@ -76,7 +76,7 @@ export class OlsrModule implements PacketCapableModule {
     return configuration;
   }
 
-  constructor(routingPeer: SimulationPeerNode, eventRecorder: SimulationEventRecorder) {
+  constructor(routingPeer: SimulationPeerNode, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
   }
@@ -156,7 +156,7 @@ export class OlsrModule implements PacketCapableModule {
         advertisedNeighbours: [],
       };
 
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageBroadcast, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageBroadcast, {
         neighbourPeerIds: [],
         retransmit: false,
         message: cloneOlsrMessage(tcMessage),
@@ -236,7 +236,7 @@ export class OlsrModule implements PacketCapableModule {
 
   send(packet: SimulationPacket): boolean {
     if (!this.routingPeer.isActive()) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneOlsrMessage(packet),
         reason: "Source peer is disabled",
       });
@@ -307,7 +307,7 @@ export class OlsrModule implements PacketCapableModule {
 
     const sender = this.routingPeer.getNeighbour(message.senderPeerId);
     if (!sender || !sender.supports(RoutingProtocol.OLSR)) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneOlsrMessage(message),
         reason: "Selected next hop does not support OLSR",
       });
@@ -367,7 +367,7 @@ export class OlsrModule implements PacketCapableModule {
 
     const sender = this.routingPeer.getNeighbour(message.senderPeerId);
     if (!sender || !sender.supports(RoutingProtocol.OLSR)) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneOlsrMessage(message),
         reason: "Selected next hop does not support OLSR",
       });
@@ -515,7 +515,7 @@ export class OlsrModule implements PacketCapableModule {
         continue;
       }
 
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableRemove, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableRemove, {
         protocol: RoutingProtocol.OLSR,
         destinationPeerId,
         nextHopPeerId: previousRoute.nextHopPeerId,
@@ -529,7 +529,7 @@ export class OlsrModule implements PacketCapableModule {
     for (const [destinationPeerId, nextRoute] of nextRoutes.entries()) {
       const previousRoute = previousRoutes.get(destinationPeerId) ?? null;
       if (!previousRoute) {
-        this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableInsert, {
+        this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableInsert, {
           protocol: RoutingProtocol.OLSR,
           destinationPeerId,
           nextHopPeerId: nextRoute.nextHopPeerId,
@@ -546,7 +546,7 @@ export class OlsrModule implements PacketCapableModule {
         previousRoute.metric !== nextRoute.metric ||
         previousRoute.sequenceNumber !== nextRoute.sequenceNumber
       ) {
-        this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableUpdate, {
+        this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableUpdate, {
           protocol: RoutingProtocol.OLSR,
           destinationPeerId,
           nextHopPeerId: nextRoute.nextHopPeerId,
@@ -564,7 +564,7 @@ export class OlsrModule implements PacketCapableModule {
     }
 
     if (message) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemThroughputCalculated, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemThroughputCalculated, {
         message: cloneOlsrMessage(message),
         reason: computation.explanation,
       });
@@ -696,7 +696,7 @@ export class OlsrModule implements PacketCapableModule {
 
   private routeAndWrite(packet: SimulationPacket) {
     if (packet.timeToLive <= 0) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneOlsrMessage(packet),
         reason: "Packet TTL reached zero",
       });
@@ -705,14 +705,14 @@ export class OlsrModule implements PacketCapableModule {
 
     const selectedRoute = this.routingTable.get(packet.destinationPeerId) ?? null;
     if (!selectedRoute) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         reason: "No OLSR route is available for the destination",
         reasonCode: "NO_ROUTE",
       });
       return false;
     }
 
-    this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemRouteSelected, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.SystemRouteSelected, {
       protocol: RoutingProtocol.OLSR,
       destinationPeerId: packet.destinationPeerId,
       selectedRoute,
@@ -725,7 +725,7 @@ export class OlsrModule implements PacketCapableModule {
   private write(message: SimulationPacket | OlsrHelloMessage | OlsrTcMessage, hopPeerId: UUID) {
     const hop = this.routingPeer.getNeighbour(hopPeerId);
     if (!hop) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneOlsrMessage(message),
         reason: "Selected next hop is not a current neighbour",
       });
@@ -733,7 +733,7 @@ export class OlsrModule implements PacketCapableModule {
     }
 
     if (!hop.supports(RoutingProtocol.OLSR)) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneOlsrMessage(message),
         reason: "Selected next hop does not support OLSR",
       });
@@ -759,7 +759,7 @@ export class OlsrModule implements PacketCapableModule {
       (peer) => peer.id !== excludedPeerId,
     );
 
-    this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageBroadcast, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageBroadcast, {
       neighbourPeerIds: neighbours.map((peer) => peer.id),
       retransmit,
       message: cloneOlsrMessage(message),

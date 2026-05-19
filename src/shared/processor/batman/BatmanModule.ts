@@ -1,6 +1,18 @@
 import {
+  BATMAN_MAX_THROUGHPUT,
+  BATMAN_TIME_TO_LIVE,
+  BATMAN_VERSION,
+} from "@/shared/constants/batman.ts";
+import { EventRecorder } from "@/shared/processor/core/EventRecorder.ts";
+import type {
+  PacketCapableModule,
+  SimulationPeerNode,
+} from "@/shared/processor/core/runtimeTypes.ts";
+import type { UUID } from "@/shared/types/common/uuid.ts";
+import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
+import {
   BatmanPacketType,
-  SimulationEventType,
+  EventType,
   SimulationMessageKind,
   type BatmanEchoLocationMessage,
   type BatmanEchoLocationNeighbour,
@@ -8,18 +20,9 @@ import {
   type BatmanOriginatorMessage,
   type SimulationPacket,
 } from "@/shared/types/model/simulation.ts";
-import type { UUID } from "@/shared/types/common/uuid.ts";
-import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder.ts";
-import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes.ts";
-import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";
 import { cloneMessage, isSimulationMessage } from "./batmanMessage.ts";
 import { BatmanOperations } from "./BatmanOperations.ts";
-import {
-  BATMAN_MAX_THROUGHPUT,
-  BATMAN_TIME_TO_LIVE,
-  BATMAN_VERSION,
-} from "@/shared/constants/batman.ts";
-import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
+import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";
 type BatmanNeighbourEntry = {
   neighbourId: UUID;
   lastSeen: number;
@@ -34,7 +37,7 @@ export class BatmanModule implements PacketCapableModule {
 
   private readonly routingPeer: SimulationPeerNode;
 
-  private readonly eventRecorder: SimulationEventRecorder;
+  private readonly eventRecorder: EventRecorder;
 
   private ogmSequence = 0;
 
@@ -44,7 +47,7 @@ export class BatmanModule implements PacketCapableModule {
 
   private readonly neighbourTable = new Map<UUID, BatmanNeighbourEntry>();
 
-  constructor(routingPeer: SimulationPeerNode, eventRecorder: SimulationEventRecorder) {
+  constructor(routingPeer: SimulationPeerNode, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
     const configuration = getBatmanConfiguration(routingPeer.getPeerEntity());
@@ -130,7 +133,7 @@ export class BatmanModule implements PacketCapableModule {
 
   send(packet: SimulationPacket) {
     if (!this.routingPeer.isActive()) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneMessage(packet),
         reason: "Source peer is disabled",
       });

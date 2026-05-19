@@ -1,7 +1,8 @@
 import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
 import {
   DsdvUpdateType,
-  SimulationEventType,
+  EventType,
   SimulationMessageKind,
   type AodvHelloMessage,
   type AodvRouteErrorMessage,
@@ -9,31 +10,30 @@ import {
   type AodvRouteRequestMessage,
   type BatmanRouteRecord,
   type BroadcastEventDetails,
+  type DroppedEventDetails,
+  type DsdvRouteUpdateMessage,
   type DsrRouteErrorMessage,
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,
-  type DsdvRouteUpdateMessage,
-  type DroppedEventDetails,
+  type Event,
   type OlsrHelloMessage,
   type OlsrTcMessage,
-  type RoutingTableChangeDetails,
   type RouteSelectedEventDetails,
-  type SimulationEvent,
+  type RoutingTableChangeDetails,
   type SimulationMessage,
   type ThroughputCalculationEventDetails,
 } from "@/shared/types/model/simulation";
-import type { UUID } from "@/shared/types/common/uuid";
 import {
   formatFixed,
   getEventDescription as getBatmanEventDescription,
   getEventMessage as getBatmanEventMessage,
   getEventTitle as getBatmanEventTitle,
   getMessageSummary as getBatmanMessageSummary,
+  getSimulationReadMorePath as getBatmanSimulationReadMorePath,
   getOgmBroadcastThroughputExplanation,
   getOgmThroughputSelectionExplanation,
   getPeerLabel,
   getRouteSequenceWindowExplanation,
-  getSimulationReadMorePath as getBatmanSimulationReadMorePath,
   getThroughputBaseExplanation,
   getThroughputBreakdown,
   getThroughputEwmaExplanation,
@@ -99,11 +99,11 @@ const isDsrRouteErrorMessage = (
   return message?.kind === SimulationMessageKind.DsrRouteErrorMessage;
 };
 
-const getRouteChange = (event: SimulationEvent): RoutingTableChangeDetails | null => {
+const getRouteChange = (event: Event): RoutingTableChangeDetails | null => {
   if (
-    event.type !== SimulationEventType.RoutingTableInsert &&
-    event.type !== SimulationEventType.RoutingTableUpdate &&
-    event.type !== SimulationEventType.RoutingTableRemove
+    event.type !== EventType.RoutingTableInsert &&
+    event.type !== EventType.RoutingTableUpdate &&
+    event.type !== EventType.RoutingTableRemove
   ) {
     return null;
   }
@@ -111,13 +111,13 @@ const getRouteChange = (event: SimulationEvent): RoutingTableChangeDetails | nul
   return event.details as RoutingTableChangeDetails;
 };
 
-const detectEventProtocol = (event: SimulationEvent, message: SimulationMessage | null) => {
+const detectEventProtocol = (event: Event, message: SimulationMessage | null) => {
   const routeChange = getRouteChange(event);
   if (routeChange) {
     return routeChange.protocol;
   }
 
-  if (event.type === SimulationEventType.SystemRouteSelected) {
+  if (event.type === EventType.SystemRouteSelected) {
     return (event.details as RouteSelectedEventDetails).protocol;
   }
 
@@ -153,11 +153,11 @@ const detectEventProtocol = (event: SimulationEvent, message: SimulationMessage 
   return null;
 };
 
-export const getEventMessage = (event: SimulationEvent): SimulationMessage | null => {
+export const getEventMessage = (event: Event): SimulationMessage | null => {
   return getBatmanEventMessage(event);
 };
 
-export const getEventTitle = (event: SimulationEvent) => {
+export const getEventTitle = (event: Event) => {
   const message = getEventMessage(event);
   const protocol = detectEventProtocol(event, message);
 
@@ -175,7 +175,7 @@ export const getEventTitle = (event: SimulationEvent) => {
     }
 
     if (protocol === RoutingProtocol.AODV) {
-      if (event.type === SimulationEventType.SystemMessageBroadcast) {
+      if (event.type === EventType.SystemMessageBroadcast) {
         if (isAodvHelloMessage(message)) {
           return "AODV HELLO Broadcast";
         }
@@ -187,19 +187,19 @@ export const getEventTitle = (event: SimulationEvent) => {
         return "AODV Route Request Broadcast";
       }
 
-      if (event.type === SimulationEventType.RoutingTableInsert) {
+      if (event.type === EventType.RoutingTableInsert) {
         return "AODV Route Added";
       }
 
-      if (event.type === SimulationEventType.RoutingTableUpdate) {
+      if (event.type === EventType.RoutingTableUpdate) {
         return "AODV Route Updated";
       }
 
-      if (event.type === SimulationEventType.RoutingTableRemove) {
+      if (event.type === EventType.RoutingTableRemove) {
         return "AODV Route Removed";
       }
 
-      if (event.type === SimulationEventType.SystemThroughputCalculated) {
+      if (event.type === EventType.SystemThroughputCalculated) {
         if (isAodvRouteReplyMessage(message)) {
           return "AODV Route Reply Forwarded";
         }
@@ -211,11 +211,11 @@ export const getEventTitle = (event: SimulationEvent) => {
         return "AODV Control Processed";
       }
 
-      if (event.type === SimulationEventType.SystemMessageDropped) {
+      if (event.type === EventType.SystemMessageDropped) {
         return "Packet Send Failed";
       }
 
-      if (event.type === SimulationEventType.SystemRouteSelected) {
+      if (event.type === EventType.SystemRouteSelected) {
         return "Route Selected";
       }
 
@@ -223,23 +223,23 @@ export const getEventTitle = (event: SimulationEvent) => {
     }
 
     if (protocol === RoutingProtocol.DSR) {
-      if (event.type === SimulationEventType.SystemMessageBroadcast) {
+      if (event.type === EventType.SystemMessageBroadcast) {
         return "DSR Route Request Broadcast";
       }
 
-      if (event.type === SimulationEventType.RoutingTableInsert) {
+      if (event.type === EventType.RoutingTableInsert) {
         return "DSR Route Cached";
       }
 
-      if (event.type === SimulationEventType.RoutingTableUpdate) {
+      if (event.type === EventType.RoutingTableUpdate) {
         return "DSR Route Updated";
       }
 
-      if (event.type === SimulationEventType.RoutingTableRemove) {
+      if (event.type === EventType.RoutingTableRemove) {
         return "DSR Route Removed";
       }
 
-      if (event.type === SimulationEventType.SystemThroughputCalculated) {
+      if (event.type === EventType.SystemThroughputCalculated) {
         if (isDsrRouteReplyMessage(message)) {
           return "DSR Route Reply Forwarded";
         }
@@ -251,18 +251,18 @@ export const getEventTitle = (event: SimulationEvent) => {
         return "DSR Control Processed";
       }
 
-      if (event.type === SimulationEventType.SystemMessageDropped) {
+      if (event.type === EventType.SystemMessageDropped) {
         return "Packet Send Failed";
       }
 
-      if (event.type === SimulationEventType.SystemRouteSelected) {
+      if (event.type === EventType.SystemRouteSelected) {
         return "Route Selected";
       }
 
       return "Simulation Event";
     }
 
-    if (event.type === SimulationEventType.SystemMessageBroadcast) {
+    if (event.type === EventType.SystemMessageBroadcast) {
       if (isOlsrHelloMessage(message)) {
         return "OLSR HELLO Broadcast";
       }
@@ -274,63 +274,63 @@ export const getEventTitle = (event: SimulationEvent) => {
       return "Broadcast Message";
     }
 
-    if (event.type === SimulationEventType.RoutingTableInsert) {
+    if (event.type === EventType.RoutingTableInsert) {
       return "OLSR Route Added";
     }
 
-    if (event.type === SimulationEventType.RoutingTableUpdate) {
+    if (event.type === EventType.RoutingTableUpdate) {
       return "OLSR Route Updated";
     }
 
-    if (event.type === SimulationEventType.RoutingTableRemove) {
+    if (event.type === EventType.RoutingTableRemove) {
       return "OLSR Route Removed";
     }
 
-    if (event.type === SimulationEventType.SystemThroughputCalculated) {
+    if (event.type === EventType.SystemThroughputCalculated) {
       return "OLSR Route Calculation";
     }
 
-    if (event.type === SimulationEventType.SystemMessageDropped) {
+    if (event.type === EventType.SystemMessageDropped) {
       return "Packet Send Failed";
     }
 
-    if (event.type === SimulationEventType.SystemRouteSelected) {
+    if (event.type === EventType.SystemRouteSelected) {
       return "Route Selected";
     }
 
     return "Simulation Event";
   }
 
-  if (event.type === SimulationEventType.SystemMessageBroadcast && isDsdvMessage(message)) {
+  if (event.type === EventType.SystemMessageBroadcast && isDsdvMessage(message)) {
     return message.updateType === DsdvUpdateType.Incremental
       ? "DSDV Incremental Broadcast"
       : "DSDV Full Dump Broadcast";
   }
 
-  if (event.type === SimulationEventType.RoutingTableInsert) {
+  if (event.type === EventType.RoutingTableInsert) {
     return "DSDV Route Added";
   }
 
-  if (event.type === SimulationEventType.RoutingTableUpdate) {
+  if (event.type === EventType.RoutingTableUpdate) {
     return "DSDV Route Updated";
   }
 
-  if (event.type === SimulationEventType.RoutingTableRemove) {
+  if (event.type === EventType.RoutingTableRemove) {
     return "DSDV Route Removed";
   }
 
-  if (event.type === SimulationEventType.SystemMessageDropped) {
+  if (event.type === EventType.SystemMessageDropped) {
     return "DSDV Update Dropped";
   }
 
-  if (event.type === SimulationEventType.SystemRouteSelected) {
+  if (event.type === EventType.SystemRouteSelected) {
     return "Route Selected";
   }
 
   return "Simulation Event";
 };
 
-export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UUID, string>) => {
+export const getEventDescription = (event: Event, peerNameById: Map<UUID, string>) => {
   const message = getEventMessage(event);
   const protocol = detectEventProtocol(event, message);
 
@@ -351,36 +351,36 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
       const routeChange = getRouteChange(event);
       if (routeChange && routeChange.protocol === RoutingProtocol.AODV) {
         const namedReason = replacePeerIdsWithNames(routeChange.reason, peerNameById);
-        if (event.type === SimulationEventType.RoutingTableInsert) {
+        if (event.type === EventType.RoutingTableInsert) {
           return `Node inserted a new AODV route after route discovery or neighbour sensing. ${namedReason}`;
         }
 
-        if (event.type === SimulationEventType.RoutingTableUpdate) {
+        if (event.type === EventType.RoutingTableUpdate) {
           return `Node updated an existing AODV route using sequence-number and hop-count comparison. ${namedReason}`;
         }
 
         return `Node removed or invalidated an AODV route after timeout or link-break processing. ${namedReason}`;
       }
 
-      if (event.type === SimulationEventType.SystemMessageBroadcast) {
+      if (event.type === EventType.SystemMessageBroadcast) {
         const details = event.details as BroadcastEventDetails;
         const namedNote = replacePeerIdsWithNames(details.note ?? "", peerNameById);
         return `Node processed AODV control traffic. ${namedNote}`;
       }
 
-      if (event.type === SimulationEventType.SystemMessageDropped) {
+      if (event.type === EventType.SystemMessageDropped) {
         const details = event.details as DroppedEventDetails;
         return `The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${details.reason}.`;
       }
 
-      if (event.type === SimulationEventType.SystemRouteSelected) {
+      if (event.type === EventType.SystemRouteSelected) {
         const details = event.details as RouteSelectedEventDetails;
         if ("nextHopPeerId" in details.selectedRoute) {
           return `Selected AODV route to ${getPeerNameForDescription(details.destinationPeerId, peerNameById)} via ${getPeerNameForDescription(details.selectedRoute.nextHopPeerId, peerNameById)} with hop count ${details.selectedRoute.metric} and destination sequence ${details.selectedRoute.sequenceNumber}.`;
         }
       }
 
-      if (event.type === SimulationEventType.SystemThroughputCalculated) {
+      if (event.type === EventType.SystemThroughputCalculated) {
         const details = event.details as ThroughputCalculationEventDetails;
         return replacePeerIdsWithNames(details.reason, peerNameById);
       }
@@ -392,29 +392,29 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
       const routeChange = getRouteChange(event);
       if (routeChange && routeChange.protocol === RoutingProtocol.DSR) {
         const namedReason = replacePeerIdsWithNames(routeChange.reason, peerNameById);
-        if (event.type === SimulationEventType.RoutingTableInsert) {
+        if (event.type === EventType.RoutingTableInsert) {
           return `Node inserted a DSR Route Cache entry from a discovered source route. ${namedReason}`;
         }
 
-        if (event.type === SimulationEventType.RoutingTableUpdate) {
+        if (event.type === EventType.RoutingTableUpdate) {
           return `Node updated a DSR Route Cache entry after receiving fresher route knowledge. ${namedReason}`;
         }
 
         return `Node removed a DSR Route Cache entry after link failure or expiration. ${namedReason}`;
       }
 
-      if (event.type === SimulationEventType.SystemMessageBroadcast) {
+      if (event.type === EventType.SystemMessageBroadcast) {
         const details = event.details as BroadcastEventDetails;
         const namedNote = replacePeerIdsWithNames(details.note ?? "", peerNameById);
         return `Node flooded a DSR Route Request. ${namedNote}`;
       }
 
-      if (event.type === SimulationEventType.SystemMessageDropped) {
+      if (event.type === EventType.SystemMessageDropped) {
         const details = event.details as DroppedEventDetails;
         return `The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${details.reason}.`;
       }
 
-      if (event.type === SimulationEventType.SystemRouteSelected) {
+      if (event.type === EventType.SystemRouteSelected) {
         const details = event.details as RouteSelectedEventDetails;
         if ("pathPeerIds" in details.selectedRoute) {
           return `Selected DSR source route to ${getPeerNameForDescription(details.destinationPeerId, peerNameById)} via ${getPeerNameForDescription(details.selectedRoute.nextHopPeerId, peerNameById)} (${details.selectedRoute.metric} hops). Full path: ${details.selectedRoute.pathPeerIds
@@ -423,7 +423,7 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
         }
       }
 
-      if (event.type === SimulationEventType.SystemThroughputCalculated) {
+      if (event.type === EventType.SystemThroughputCalculated) {
         const details = event.details as ThroughputCalculationEventDetails;
         return replacePeerIdsWithNames(details.reason, peerNameById);
       }
@@ -433,35 +433,35 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
 
     const routeChange = getRouteChange(event);
     if (routeChange && routeChange.protocol === RoutingProtocol.OLSR) {
-      if (event.type === SimulationEventType.RoutingTableInsert) {
+      if (event.type === EventType.RoutingTableInsert) {
         return `Node inserted a new OLSR route after recalculating routes from the Neighbor Set, 2-Hop Neighbor Set, and Topology Table. ${routeChange.reason}`;
       }
 
-      if (event.type === SimulationEventType.RoutingTableUpdate) {
+      if (event.type === EventType.RoutingTableUpdate) {
         return `Node updated an OLSR route after recalculating routes from learned OLSR topology state. ${routeChange.reason}`;
       }
 
       return `Node removed an OLSR route after neighbour or topology information changed. ${routeChange.reason}`;
     }
 
-    if (event.type === SimulationEventType.SystemMessageBroadcast) {
+    if (event.type === EventType.SystemMessageBroadcast) {
       const details = event.details as BroadcastEventDetails;
       return `OLSR control-message handling executed for this node. ${details.note ?? ""}`;
     }
 
-    if (event.type === SimulationEventType.SystemMessageDropped) {
+    if (event.type === EventType.SystemMessageDropped) {
       const details = event.details as DroppedEventDetails;
       return `The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${details.reason}.`;
     }
 
-    if (event.type === SimulationEventType.SystemRouteSelected) {
+    if (event.type === EventType.SystemRouteSelected) {
       const details = event.details as RouteSelectedEventDetails;
       if ("nextHopPeerId" in details.selectedRoute) {
         return `Selected OLSR route to ${getPeerNameForDescription(details.destinationPeerId, peerNameById)} via ${getPeerNameForDescription(details.selectedRoute.nextHopPeerId, peerNameById)} with hop metric ${details.selectedRoute.metric}.`;
       }
     }
 
-    if (event.type === SimulationEventType.SystemThroughputCalculated) {
+    if (event.type === EventType.SystemThroughputCalculated) {
       const details = event.details as ThroughputCalculationEventDetails;
       return details.reason;
     }
@@ -471,18 +471,18 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
 
   const routeChange = getRouteChange(event);
   if (routeChange && routeChange.protocol === RoutingProtocol.DSDV) {
-    if (event.type === SimulationEventType.RoutingTableInsert) {
+    if (event.type === EventType.RoutingTableInsert) {
       return `Node inserted a new DSDV route after accepting an incoming update. ${routeChange.reason}`;
     }
 
-    if (event.type === SimulationEventType.RoutingTableUpdate) {
+    if (event.type === EventType.RoutingTableUpdate) {
       return `Node updated an existing DSDV route using the DSDV acceptance rule. ${routeChange.reason}`;
     }
 
     return `Node removed a DSDV route after timeout-based garbage collection. ${routeChange.reason}`;
   }
 
-  if (event.type === SimulationEventType.SystemMessageBroadcast && isDsdvMessage(message)) {
+  if (event.type === EventType.SystemMessageBroadcast && isDsdvMessage(message)) {
     const details = event.details as BroadcastEventDetails;
     const fallbackNote =
       message.updateType === DsdvUpdateType.Incremental
@@ -491,12 +491,12 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
     return `Node broadcast a DSDV routing update. ${details.note ?? fallbackNote}`;
   }
 
-  if (event.type === SimulationEventType.SystemMessageDropped) {
+  if (event.type === EventType.SystemMessageDropped) {
     const details = event.details as DroppedEventDetails;
     return `The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${details.reason}.`;
   }
 
-  if (event.type === SimulationEventType.SystemRouteSelected) {
+  if (event.type === EventType.SystemRouteSelected) {
     const details = event.details as RouteSelectedEventDetails;
     if ("nextHopPeerId" in details.selectedRoute) {
       return `Selected DSDV route to ${getPeerLabel(details.destinationPeerId, peerNameById)} via ${getPeerLabel(details.selectedRoute.nextHopPeerId, peerNameById)} with metric ${details.selectedRoute.metric} and sequence ${details.selectedRoute.sequenceNumber}.`;
@@ -507,7 +507,7 @@ export const getEventDescription = (event: SimulationEvent, peerNameById: Map<UU
 };
 
 export const getSimulationReadMorePath = (
-  event: SimulationEvent,
+  event: Event,
   message: SimulationMessage | null,
   hasRouteChange: boolean,
   hasThroughputBreakdown: boolean,
@@ -527,14 +527,14 @@ export const getSimulationReadMorePath = (
 
   if (protocol === RoutingProtocol.DSDV) {
     if (
-      event.type === SimulationEventType.RoutingTableInsert ||
-      event.type === SimulationEventType.RoutingTableUpdate ||
-      event.type === SimulationEventType.RoutingTableRemove
+      event.type === EventType.RoutingTableInsert ||
+      event.type === EventType.RoutingTableUpdate ||
+      event.type === EventType.RoutingTableRemove
     ) {
       return "/docs/dsdv#routing-maintenance";
     }
 
-    if (event.type === SimulationEventType.SystemRouteSelected) {
+    if (event.type === EventType.SystemRouteSelected) {
       return "/docs/dsdv#route-selection";
     }
 
@@ -547,14 +547,14 @@ export const getSimulationReadMorePath = (
 
   if (protocol === RoutingProtocol.DSR) {
     if (
-      event.type === SimulationEventType.RoutingTableInsert ||
-      event.type === SimulationEventType.RoutingTableUpdate ||
-      event.type === SimulationEventType.RoutingTableRemove
+      event.type === EventType.RoutingTableInsert ||
+      event.type === EventType.RoutingTableUpdate ||
+      event.type === EventType.RoutingTableRemove
     ) {
       return "/docs/dsr#route-cache";
     }
 
-    if (event.type === SimulationEventType.SystemRouteSelected) {
+    if (event.type === EventType.SystemRouteSelected) {
       return "/docs/dsr#route-selection";
     }
 
@@ -575,14 +575,14 @@ export const getSimulationReadMorePath = (
 
   if (protocol === RoutingProtocol.AODV) {
     if (
-      event.type === SimulationEventType.RoutingTableInsert ||
-      event.type === SimulationEventType.RoutingTableUpdate ||
-      event.type === SimulationEventType.RoutingTableRemove
+      event.type === EventType.RoutingTableInsert ||
+      event.type === EventType.RoutingTableUpdate ||
+      event.type === EventType.RoutingTableRemove
     ) {
       return "/docs/aodv#routing-table";
     }
 
-    if (event.type === SimulationEventType.SystemRouteSelected) {
+    if (event.type === EventType.SystemRouteSelected) {
       return "/docs/aodv#route-selection";
     }
 
@@ -599,15 +599,15 @@ export const getSimulationReadMorePath = (
 
   if (protocol === RoutingProtocol.OLSR) {
     if (
-      event.type === SimulationEventType.RoutingTableInsert ||
-      event.type === SimulationEventType.RoutingTableUpdate ||
-      event.type === SimulationEventType.RoutingTableRemove ||
-      event.type === SimulationEventType.SystemRouteSelected
+      event.type === EventType.RoutingTableInsert ||
+      event.type === EventType.RoutingTableUpdate ||
+      event.type === EventType.RoutingTableRemove ||
+      event.type === EventType.SystemRouteSelected
     ) {
       return "/docs/olsr#route-selection";
     }
 
-    if (event.type === SimulationEventType.SystemThroughputCalculated) {
+    if (event.type === EventType.SystemThroughputCalculated) {
       if (isOlsrTcMessage(message)) {
         return "/docs/olsr#topology-discovery";
       }
@@ -634,7 +634,7 @@ export const getSimulationReadMorePath = (
 };
 
 export const getMessageSummary = (
-  event: SimulationEvent,
+  event: Event,
   peerNameById: Map<UUID, string>,
   onPeerHoverChange: (peerId: UUID | null) => void,
 ) => {
@@ -655,7 +655,7 @@ export const getMessageSummary = (
     }
 
     if (protocol === RoutingProtocol.AODV) {
-      if (event.type !== SimulationEventType.SystemRouteSelected) {
+      if (event.type !== EventType.SystemRouteSelected) {
         return null;
       }
 
@@ -696,7 +696,7 @@ export const getMessageSummary = (
       return null;
     }
 
-    if (event.type === SimulationEventType.SystemRouteSelected) {
+    if (event.type === EventType.SystemRouteSelected) {
       const details = event.details as RouteSelectedEventDetails;
       if (!("nextHopPeerId" in details.selectedRoute)) {
         return null;
@@ -733,7 +733,7 @@ export const getMessageSummary = (
     return null;
   }
 
-  if (event.type === SimulationEventType.SystemRouteSelected) {
+  if (event.type === EventType.SystemRouteSelected) {
     const details = event.details as RouteSelectedEventDetails;
     if (!("nextHopPeerId" in details.selectedRoute)) {
       return null;
@@ -794,8 +794,8 @@ export {
   renderPeerName,
 };
 
-export const getSelectedRoute = (event: SimulationEvent) => {
-  if (event.type !== SimulationEventType.SystemRouteSelected) {
+export const getSelectedRoute = (event: Event) => {
+  if (event.type !== EventType.SystemRouteSelected) {
     return null;
   }
 

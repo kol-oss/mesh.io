@@ -1,18 +1,18 @@
-import { ExternalLink, X } from "lucide-react";
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import {
   DsdvUpdateType,
   SimulationMessageKind,
+  type Event,
   type OlsrHelloMessage,
   type OlsrTcMessage,
-  type SimulationEvent,
   type SimulationMessage,
   type SimulationStepResult,
 } from "@/shared/types/model/simulation";
+import { ExternalLink, X } from "lucide-react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
 type PacketStructureWindowProps = {
   isOpen: boolean;
-  currentEvent: SimulationEvent | null;
+  currentEvent: Event | null;
   currentStepResult: SimulationStepResult | null;
   onClose: () => void;
 };
@@ -1297,7 +1297,7 @@ const getBatmanElpStructureRows = (
   ];
 };
 
-const getEventMessage = (event: SimulationEvent): SimulationMessage | null => {
+const getEventMessage = (event: Event): SimulationMessage | null => {
   if (!("message" in event.details)) {
     return null;
   }

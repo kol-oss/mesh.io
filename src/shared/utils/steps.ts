@@ -1,4 +1,4 @@
-import { MIN_STEP_TICK } from "../constants/steps";
+import { MIN_TICK } from "../constants/tick";
 import {
   StepType,
   type MessageStep,
@@ -70,7 +70,7 @@ export const updateStep = (step: Step, changes: Partial<UserStep>) => {
 };
 
 export const updateTickAndReorder = (step: Step, tick: number, steps: Step[]): Step[] => {
-  const normalizedTick = Math.max(MIN_STEP_TICK, tick);
+  const normalizedTick = Math.max(MIN_TICK, tick);
   const stepIndex = steps.findIndex((s) => s.id === step.id);
   if (stepIndex === -1) {
     return steps;

@@ -6,10 +6,13 @@ import {
   AODV_PATH_DISCOVERY_TTL,
   AODV_SEQUENCE_INITIAL,
 } from "@/shared/constants/aodv";
-import { getAodvConfiguration } from "@/shared/types/model/peers";
+import { EventRecorder } from "@/shared/processor/core/EventRecorder";
+import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
+import { getAodvConfiguration } from "@/shared/types/model/peers";
 import {
-  SimulationEventType,
+  EventType,
   SimulationMessageKind,
   type AodvHelloMessage,
   type AodvRouteErrorMessage,
@@ -19,9 +22,6 @@ import {
   type AodvUnreachableDestination,
   type SimulationPacket,
 } from "@/shared/types/model/simulation";
-import type { UUID } from "@/shared/types/common/uuid";
-import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
 import { cloneAodvMessage, isAodvSimulationMessage } from "./aodvMessage";
 
 type AodvRouteEntry = AodvRouteRecord & {
@@ -50,7 +50,7 @@ const clampRouteTimeout = (value: number) => {
 export class AodvModule implements PacketCapableModule {
   private readonly routingPeer: SimulationPeerNode;
 
-  private readonly eventRecorder: SimulationEventRecorder;
+  private readonly eventRecorder: EventRecorder;
 
   private readonly routingTable = new Map<UUID, AodvRouteEntry>();
 
@@ -60,7 +60,7 @@ export class AodvModule implements PacketCapableModule {
 
   private requestSequence = 0;
 
-  constructor(routingPeer: SimulationPeerNode, eventRecorder: SimulationEventRecorder) {
+  constructor(routingPeer: SimulationPeerNode, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
 
@@ -128,7 +128,7 @@ export class AodvModule implements PacketCapableModule {
       interval: this.getHelloInterval(),
     };
 
-    this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageBroadcast, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageBroadcast, {
       neighbourPeerIds: neighbours.map((peer) => peer.id),
       retransmit: false,
       message: cloneAodvMessage(helloMessage),
@@ -174,7 +174,7 @@ export class AodvModule implements PacketCapableModule {
 
   send(packet: SimulationPacket): boolean {
     if (!this.routingPeer.isActive()) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneAodvMessage(packet),
         reason: "Source peer is disabled",
       });
@@ -209,7 +209,7 @@ export class AodvModule implements PacketCapableModule {
 
   private routeAndWrite(packet: SimulationPacket): boolean {
     if (packet.timeToLive <= 0) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneAodvMessage(packet),
         reason: "Packet TTL reached zero",
       });
@@ -222,7 +222,7 @@ export class AodvModule implements PacketCapableModule {
     }
 
     if (!route) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneAodvMessage(packet),
         reason: "No AODV route is available for the destination",
         reasonCode: "NO_ROUTE",
@@ -231,7 +231,7 @@ export class AodvModule implements PacketCapableModule {
     }
 
     this.touchRoute(packet.destinationPeerId);
-    this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemRouteSelected, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.SystemRouteSelected, {
       protocol: RoutingProtocol.AODV,
       destinationPeerId: packet.destinationPeerId,
       selectedRoute: {
@@ -312,7 +312,7 @@ export class AodvModule implements PacketCapableModule {
         .getNeighbours()
         .filter((peer) => peer.supports(RoutingProtocol.AODV) && peer.isActive());
 
-      this.eventRecorder.save(current.peer.id, SimulationEventType.SystemMessageBroadcast, {
+      this.eventRecorder.record(current.peer.id, EventType.SystemMessageBroadcast, {
         neighbourPeerIds: neighbours.map((peer) => peer.id),
         retransmit: current.peer.id !== this.routingPeer.id,
         message: cloneAodvMessage(requestMessage),
@@ -436,7 +436,7 @@ export class AodvModule implements PacketCapableModule {
         gratuitous: candidate.repliedFromIntermediate,
       };
 
-      this.eventRecorder.save(senderPeer.id, SimulationEventType.SystemThroughputCalculated, {
+      this.eventRecorder.record(senderPeer.id, EventType.SystemThroughputCalculated, {
         message: cloneAodvMessage(replyMessage),
         reason: `AODV Route Reply ${requestId} unicast to ${recipientPeer.id} for destination ${destinationPeerId} with hop count ${senderDistanceToDestination}.`,
       });
@@ -458,7 +458,7 @@ export class AodvModule implements PacketCapableModule {
   private processHelloMessage(message: AodvHelloMessage) {
     const sender = this.routingPeer.getNeighbour(message.senderPeerId);
     if (!sender || !sender.supports(RoutingProtocol.AODV)) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneAodvMessage(message),
         reason: "Selected next hop does not support AODV",
       });
@@ -483,7 +483,7 @@ export class AodvModule implements PacketCapableModule {
   private processRouteErrorMessage(message: AodvRouteErrorMessage) {
     const sender = this.routingPeer.getNeighbour(message.senderPeerId);
     if (!sender || !sender.supports(RoutingProtocol.AODV)) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneAodvMessage(message),
         reason: "Selected next hop does not support AODV",
       });
@@ -534,7 +534,7 @@ export class AodvModule implements PacketCapableModule {
   private writePacket(packet: SimulationPacket, hopPeerId: UUID) {
     const hop = this.routingPeer.getNeighbour(hopPeerId);
     if (!hop) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneAodvMessage(packet),
         reason: "Selected next hop is not a current neighbour",
       });
@@ -546,7 +546,7 @@ export class AodvModule implements PacketCapableModule {
     }
 
     if (!hop.supports(RoutingProtocol.AODV)) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneAodvMessage(packet),
         reason: "Selected next hop does not support AODV",
       });
@@ -638,14 +638,14 @@ export class AodvModule implements PacketCapableModule {
     };
 
     if (recipientPeerIds.length > 1) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageBroadcast, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageBroadcast, {
         neighbourPeerIds: recipientPeerIds,
         retransmit: true,
         message: cloneAodvMessage(errorMessage),
         note: reason,
       });
     } else {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemThroughputCalculated, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemThroughputCalculated, {
         message: cloneAodvMessage(errorMessage),
         reason,
       });
@@ -698,7 +698,7 @@ export class AodvModule implements PacketCapableModule {
     this.routingTable.set(destinationPeerId, nextRoute);
 
     if (!previousRoute) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableInsert, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableInsert, {
         protocol: RoutingProtocol.AODV,
         destinationPeerId,
         nextHopPeerId,
@@ -710,7 +710,7 @@ export class AodvModule implements PacketCapableModule {
       return;
     }
 
-    this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableUpdate, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableUpdate, {
       protocol: RoutingProtocol.AODV,
       destinationPeerId,
       nextHopPeerId,
@@ -732,7 +732,7 @@ export class AodvModule implements PacketCapableModule {
     }
 
     this.routingTable.delete(destinationPeerId);
-    this.eventRecorder.save(this.routingPeer.id, SimulationEventType.RoutingTableRemove, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableRemove, {
       protocol: RoutingProtocol.AODV,
       destinationPeerId,
       nextHopPeerId: previousRoute.nextHopPeerId,

@@ -1,25 +1,25 @@
-import { RoutingProtocol } from "@/shared/types/common/protocols";
-import type { DsdvConfiguration } from "@/shared/types/model/configurations";
-import { getDsdvConfiguration } from "@/shared/types/model/peers";
-import {
-  DsdvUpdateType,
-  SimulationEventType,
-  SimulationMessageKind,
-  type DsdvRouteEntryMessage,
-  type DsdvRouteUpdateMessage,
-  type SimulationPacket,
-} from "@/shared/types/model/simulation";
-import type { UUID } from "@/shared/types/common/uuid";
-import { SimulationEventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
-import { DsdvRoutingTable } from "./DsdvRoutingTable";
-import { cloneDsdvMessage, isDsdvSimulationMessage } from "./dsdvMessage";
 import {
   DSDV_METRIC_INFINITY,
   DSDV_MIN_INTERVAL,
   DSDV_MIN_TIMEOUT,
   DSDV_SEQUENCE_INITIAL,
 } from "@/shared/constants/dsdv";
+import { EventRecorder } from "@/shared/processor/core/EventRecorder";
+import type { PacketCapableModule, SimulationPeerNode } from "@/shared/processor/core/runtimeTypes";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { DsdvConfiguration } from "@/shared/types/model/configurations";
+import { getDsdvConfiguration } from "@/shared/types/model/peers";
+import {
+  DsdvUpdateType,
+  EventType,
+  SimulationMessageKind,
+  type DsdvRouteEntryMessage,
+  type DsdvRouteUpdateMessage,
+  type SimulationPacket,
+} from "@/shared/types/model/simulation";
+import { DsdvRoutingTable } from "./DsdvRoutingTable";
+import { cloneDsdvMessage, isDsdvSimulationMessage } from "./dsdvMessage";
 
 const clampInterval = (value: number) => {
   const normalized = Math.floor(value);
@@ -34,7 +34,7 @@ const clampTimeout = (value: number) => {
 export class DsdvModule implements PacketCapableModule {
   private readonly routingPeer: SimulationPeerNode;
 
-  private readonly eventRecorder: SimulationEventRecorder;
+  private readonly eventRecorder: EventRecorder;
 
   private readonly routingTable: DsdvRoutingTable;
 
@@ -59,7 +59,7 @@ export class DsdvModule implements PacketCapableModule {
     return configuration;
   }
 
-  constructor(routingPeer: SimulationPeerNode, eventRecorder: SimulationEventRecorder) {
+  constructor(routingPeer: SimulationPeerNode, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
     this.routingTable = new DsdvRoutingTable({
@@ -157,7 +157,7 @@ export class DsdvModule implements PacketCapableModule {
 
   send(packet: SimulationPacket) {
     if (!this.routingPeer.isActive()) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneDsdvMessage(packet),
         reason: "Source peer is disabled",
       });
@@ -178,7 +178,7 @@ export class DsdvModule implements PacketCapableModule {
 
     const sender = this.routingPeer.getNeighbour(message.senderPeerId);
     if (!sender || !sender.supports(RoutingProtocol.DSDV)) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneDsdvMessage(message),
         reason: "Selected next hop does not support DSDV",
       });
@@ -246,7 +246,7 @@ export class DsdvModule implements PacketCapableModule {
 
   private routeAndWrite(packet: SimulationPacket) {
     if (packet.timeToLive <= 0) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneDsdvMessage(packet),
         reason: "Packet TTL reached zero",
       });
@@ -255,14 +255,14 @@ export class DsdvModule implements PacketCapableModule {
 
     const selectedRoute = this.routingTable.getBestRoute(packet.destinationPeerId);
     if (!selectedRoute) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         reason: "No DSDV route is available for the destination",
         reasonCode: "NO_ROUTE",
       });
       return false;
     }
 
-    this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemRouteSelected, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.SystemRouteSelected, {
       protocol: RoutingProtocol.DSDV,
       destinationPeerId: packet.destinationPeerId,
       selectedRoute,
@@ -275,7 +275,7 @@ export class DsdvModule implements PacketCapableModule {
   private write(message: SimulationPacket | DsdvRouteUpdateMessage, hopPeerId: UUID) {
     const hop = this.routingPeer.getNeighbour(hopPeerId);
     if (!hop) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneDsdvMessage(message),
         reason: "Selected next hop is not a current neighbour",
       });
@@ -283,7 +283,7 @@ export class DsdvModule implements PacketCapableModule {
     }
 
     if (!hop.supports(RoutingProtocol.DSDV)) {
-      this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
         message: cloneDsdvMessage(message),
         reason: "Selected next hop does not support DSDV",
       });
@@ -338,7 +338,7 @@ export class DsdvModule implements PacketCapableModule {
           entries: [],
         };
 
-        this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageBroadcast, {
+        this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageBroadcast, {
           neighbourPeerIds: [],
           retransmit: false,
           message: cloneDsdvMessage(emptyIncrementalMessage),
@@ -363,7 +363,7 @@ export class DsdvModule implements PacketCapableModule {
       entries: routes,
     };
 
-    this.eventRecorder.save(this.routingPeer.id, SimulationEventType.SystemMessageBroadcast, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageBroadcast, {
       neighbourPeerIds: neighbours.map((peer) => peer.id),
       retransmit: params.retransmit,
       message: cloneDsdvMessage(message),
