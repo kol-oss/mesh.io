@@ -1,14 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ACTIONS, MODE_GROUPS } from "@/features/tools/constants/toolbar";
+import { useToolbarRedux } from "@/features/tools/hooks/useToolbarRedux";
+import type { ActionToolMode, ToolbarPlacementMode } from "@/shared/types/action";
 import {
   ActionMode as PlacementMode,
-  ActionMode as ToolbarMode,
   ActionGroup as ToolbarGroup,
+  ActionMode as ToolbarMode,
 } from "@/shared/types/action";
-import type { ActionToolMode, ToolbarPlacementMode } from "@/shared/types/action";
-import { useToolbarRedux } from "@/features/tools/hooks/useToolbarRedux";
-import { MODE_GROUPS } from "@/features/tools/constants/toolbar";
-import ToolbarModeGroup from "../ToolbarModeGroup/ToolbarModeGroup";
-import ToolbarActionGroup from "../ToolbarActionGroup/ToolbarActionGroup";
+import { isGroupDisabled } from "@/shared/utils/action";
+import { useCallback, useEffect, useRef, useState } from "react";
+import ActionButton from "../ActionButton/ActionButton";
+import ModeButton from "../ModeButton/ModeButton";
 
 type ToolbarProps = {
   onPlacementModeChange: (mode: ToolbarPlacementMode) => void;
@@ -124,21 +125,15 @@ export default function Toolbar({
     <div className="toolbar" role="toolbar" aria-label={"Workspace toolbar"} ref={toolbarRef}>
       <div className="toolbar__cluster">
         {MODE_GROUPS.map((group) => {
-          const groupIsDisabled =
-            isSimulationActive &&
-            (group.id === ToolbarGroup.Entities || group.id === ToolbarGroup.Steps);
-
           return (
-            <ToolbarModeGroup
-              key={group.id}
+            <ModeButton
               group={group}
-              activeItem={activeItemsByGroup[group.id]}
-              isSelected={effectiveSelectedGroupId === group.id}
-              isDisabled={groupIsDisabled}
-              isSimulationActive={isSimulationActive}
-              isMenuOpen={openedMenuGroup === group.id}
+              mode={activeItemsByGroup[group.id]}
+              isActive={effectiveSelectedGroupId === group.id}
+              isDisabled={isGroupDisabled(group.id, isSimulationActive)}
+              isOpened={openedMenuGroup === group.id}
               onSelect={handleGroupSelect}
-              onMenuToggle={handleMenuToggle}
+              onToggle={handleMenuToggle}
             />
           );
         })}
@@ -146,15 +141,20 @@ export default function Toolbar({
 
       <span className="toolbar__delimiter" aria-hidden="true" />
 
-      <ToolbarActionGroup
-        isSimulationActive={isSimulationActive}
-        canGoPrevStep={canGoPrevStep}
-        canGoNextStep={canGoNextStep}
-        onRun={onRun}
-        onStop={onStop}
-        onPrevStep={onPrevStep}
-        onNextStep={onNextStep}
-      />
+      <div className="toolbar__group">
+        {ACTIONS.map((item) => (
+          <ActionButton
+            item={item}
+            isRuntime={isSimulationActive}
+            prevExist={canGoPrevStep}
+            nextExist={canGoNextStep}
+            onRun={onRun}
+            onStop={onStop}
+            onPrevStep={onPrevStep}
+            onNextStep={onNextStep}
+          />
+        ))}
+      </div>
     </div>
   );
 }

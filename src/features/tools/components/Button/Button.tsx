@@ -3,38 +3,35 @@ import Tooltip from "@/shared/components/Tooltip/Tooltip";
 import { TooltipPlacement } from "@/shared/types/view/view";
 import type { LucideIcon } from "lucide-react";
 
-type ToolbarButtonProps = {
+type ButtonProps = {
+  name: string;
   icon: LucideIcon;
-  label: string;
-  isActive?: boolean;
-  isDisabled?: boolean;
   className?: string;
   iconClassName?: string;
   iconFill?: string;
-  ariaPressed?: boolean;
+  isActive?: boolean;
+  isDisabled?: boolean;
   onClick?: () => void;
 };
 
-export default function ToolbarButton({
+export default function Button({
+  name,
   icon: Icon,
-  label,
   isActive = false,
   isDisabled = false,
   className,
   iconClassName,
   iconFill,
-  ariaPressed,
   onClick,
-}: ToolbarButtonProps) {
+}: ButtonProps) {
   const buttonClass = `toolbar__button${isActive ? " toolbar__button--active" : ""}${className ? ` ${className}` : ""}`;
 
   return (
-    <Tooltip content={label} placement={TooltipPlacement.Top}>
+    <Tooltip content={name} placement={TooltipPlacement.Top}>
       <button
         className={buttonClass}
         type="button"
-        aria-label={label}
-        aria-pressed={ariaPressed}
+        aria-label={name}
         disabled={isDisabled}
         onClick={onClick}
       >

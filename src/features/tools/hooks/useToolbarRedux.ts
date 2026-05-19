@@ -1,13 +1,13 @@
-import { useCallback, useMemo } from "react";
+import type { Mode, ModeGroup } from "@/features/tools/constants/toolbar";
+import { MODE_GROUPS } from "@/features/tools/constants/toolbar";
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
 import {
   DEFAULT_SELECTED_TOOLBAR_GROUP,
   setSelectedToolbarGroup,
   setToolbarModeForGroup,
 } from "@/shared/store/slices/displaySlice";
-import { MODE_GROUPS } from "@/features/tools/constants/toolbar";
-import type { ModeButton, ModeGroup } from "@/features/tools/constants/toolbar";
 import type { ActionToolMode } from "@/shared/types/action";
+import { useCallback, useMemo } from "react";
 
 export const useToolbarRedux = () => {
   const dispatch = useAppDispatch();
@@ -20,7 +20,7 @@ export const useToolbarRedux = () => {
     : DEFAULT_SELECTED_TOOLBAR_GROUP;
 
   const activeItemsByGroup = useMemo(() => {
-    return MODE_GROUPS.reduce<Record<ModeGroup["id"], ModeButton>>(
+    return MODE_GROUPS.reduce<Record<ModeGroup["id"], Mode>>(
       (acc, group) => {
         const selected = group.items.find((item) => item.key === selectedModesByGroup[group.id]);
         const fallback =
@@ -29,7 +29,7 @@ export const useToolbarRedux = () => {
         acc[group.id] = selected ?? fallback;
         return acc;
       },
-      {} as Record<ModeGroup["id"], ModeButton>,
+      {} as Record<ModeGroup["id"], Mode>,
     );
   }, [selectedModesByGroup]);
 

@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import {
   Activity,
   ArrowLeftCircle,
@@ -13,19 +14,18 @@ import {
   TableProperties,
   Type,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
+import type { ActionToolMode } from "@/shared/types/action";
 import {
   ActionMode as PlacementMode,
-  ActionMode as ToolbarMode,
-  ActionGroup as ToolbarGroup,
   ActionCommand as ToolbarActionKey,
+  ActionGroup as ToolbarGroup,
+  ActionMode as ToolbarMode,
 } from "@/shared/types/action";
-import type { ActionToolMode } from "@/shared/types/action";
 
 export type ToolMode = ActionToolMode;
 
-export type ModeButton = {
+export type Mode = {
   key: ToolMode;
   label: string;
   icon: LucideIcon;
@@ -34,12 +34,12 @@ export type ModeButton = {
 
 export type ModeGroup = {
   id: ToolbarGroup;
-  items: ModeButton[];
+  items: Mode[];
   defaultKey: ToolMode;
   hasMenu: boolean;
 };
 
-export type ActionButton = {
+export type Action = {
   key: ToolbarActionKey;
   label: string;
   icon: LucideIcon;
@@ -102,7 +102,7 @@ export const MODE_GROUPS: ModeGroup[] = [
   },
 ];
 
-export const ACTIONS: ActionButton[] = [
+export const ACTIONS: Action[] = [
   { key: ToolbarActionKey.Run, label: "Run", icon: Play },
   { key: ToolbarActionKey.Prev, label: "Previous step", icon: ArrowLeftCircle, locked: true },
   { key: ToolbarActionKey.Next, label: "Next step", icon: ArrowRightCircle, locked: true },
