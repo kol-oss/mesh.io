@@ -156,7 +156,7 @@ export class OlsrModule implements RoutingModule {
         advertisedNeighbours: [],
       };
 
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageBroadcast, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Broadcast, {
         neighbourPeerIds: [],
         retransmit: false,
         message: cloneOlsrMessage(tcMessage),
@@ -236,7 +236,7 @@ export class OlsrModule implements RoutingModule {
 
   send(packet: Packet): boolean {
     if (!this.routingPeer.isActive()) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         message: cloneOlsrMessage(packet),
         reason: "Source peer is disabled",
       });
@@ -307,7 +307,7 @@ export class OlsrModule implements RoutingModule {
 
     const sender = this.routingPeer.getNeighbour(message.senderPeerId);
     if (!sender || !sender.supports(RoutingProtocol.OLSR)) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         message: cloneOlsrMessage(message),
         reason: "Selected next hop does not support OLSR",
       });
@@ -367,7 +367,7 @@ export class OlsrModule implements RoutingModule {
 
     const sender = this.routingPeer.getNeighbour(message.senderPeerId);
     if (!sender || !sender.supports(RoutingProtocol.OLSR)) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         message: cloneOlsrMessage(message),
         reason: "Selected next hop does not support OLSR",
       });
@@ -515,7 +515,7 @@ export class OlsrModule implements RoutingModule {
         continue;
       }
 
-      this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableRemove, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.DeleteRoute, {
         protocol: RoutingProtocol.OLSR,
         destinationPeerId,
         nextHopPeerId: previousRoute.nextHopPeerId,
@@ -529,7 +529,7 @@ export class OlsrModule implements RoutingModule {
     for (const [destinationPeerId, nextRoute] of nextRoutes.entries()) {
       const previousRoute = previousRoutes.get(destinationPeerId) ?? null;
       if (!previousRoute) {
-        this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableInsert, {
+        this.eventRecorder.record(this.routingPeer.id, EventType.AddRoute, {
           protocol: RoutingProtocol.OLSR,
           destinationPeerId,
           nextHopPeerId: nextRoute.nextHopPeerId,
@@ -546,7 +546,7 @@ export class OlsrModule implements RoutingModule {
         previousRoute.metric !== nextRoute.metric ||
         previousRoute.sequenceNumber !== nextRoute.sequenceNumber
       ) {
-        this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableUpdate, {
+        this.eventRecorder.record(this.routingPeer.id, EventType.UpdateRoute, {
           protocol: RoutingProtocol.OLSR,
           destinationPeerId,
           nextHopPeerId: nextRoute.nextHopPeerId,
@@ -564,7 +564,7 @@ export class OlsrModule implements RoutingModule {
     }
 
     if (message) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemThroughputCalculated, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Calculation, {
         message: cloneOlsrMessage(message),
         reason: computation.explanation,
       });
@@ -696,7 +696,7 @@ export class OlsrModule implements RoutingModule {
 
   private routeAndWrite(packet: Packet) {
     if (packet.timeToLive <= 0) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         message: cloneOlsrMessage(packet),
         reason: "Packet TTL reached zero",
       });
@@ -705,14 +705,14 @@ export class OlsrModule implements RoutingModule {
 
     const selectedRoute = this.routingTable.get(packet.destinationPeerId) ?? null;
     if (!selectedRoute) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         reason: "No OLSR route is available for the destination",
         reasonCode: "NO_ROUTE",
       });
       return false;
     }
 
-    this.eventRecorder.record(this.routingPeer.id, EventType.SystemRouteSelected, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.Routing, {
       protocol: RoutingProtocol.OLSR,
       destinationPeerId: packet.destinationPeerId,
       selectedRoute,
@@ -725,7 +725,7 @@ export class OlsrModule implements RoutingModule {
   private write(message: Packet | OlsrHelloMessage | OlsrTcMessage, hopPeerId: UUID) {
     const hop = this.routingPeer.getNeighbour(hopPeerId);
     if (!hop) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         message: cloneOlsrMessage(message),
         reason: "Selected next hop is not a current neighbour",
       });
@@ -733,7 +733,7 @@ export class OlsrModule implements RoutingModule {
     }
 
     if (!hop.supports(RoutingProtocol.OLSR)) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         message: cloneOlsrMessage(message),
         reason: "Selected next hop does not support OLSR",
       });
@@ -759,7 +759,7 @@ export class OlsrModule implements RoutingModule {
       (peer) => peer.id !== excludedPeerId,
     );
 
-    this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageBroadcast, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.Broadcast, {
       neighbourPeerIds: neighbours.map((peer) => peer.id),
       retransmit,
       message: cloneOlsrMessage(message),

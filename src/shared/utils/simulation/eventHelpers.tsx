@@ -1,3 +1,4 @@
+import { EventTitle } from "@/features/simulation/constants/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import { EntityType } from "@/shared/types/model/entities";
@@ -28,23 +29,23 @@ export const getEventTitle = (event: Event) => {
   const routeChange = getRouteChange(event);
 
   switch (event.type) {
-    case EventType.RoutingTableInsert:
+    case EventType.AddRoute:
       return getRouteInsertTitle(message, routeChange);
-    case EventType.RoutingTableUpdate:
+    case EventType.UpdateRoute:
       return getRouteUpdateTitle(message, routeChange);
-    case EventType.RoutingTableRemove:
+    case EventType.DeleteRoute:
       return getRouteRemoveTitle(message, routeChange);
-    case EventType.SystemMessageBroadcast:
+    case EventType.Broadcast:
       return getBroadcastTitle(event, message);
-    case EventType.SystemRouteSelected:
+    case EventType.Routing:
       return "Route Selected";
-    case EventType.SystemThroughputCalculated:
-      return "Throughput Estimation";
-    case EventType.SystemMessageDropped:
+    case EventType.Calculation:
+      return EventTitle.ThroughputChange;
+    case EventType.Drop:
       return getDroppedTitle(event, message);
-    case EventType.SystemPeerMoved:
+    case EventType.Move:
       return "Peer Moved";
-    case EventType.SystemEntityStatusChanged:
+    case EventType.StatusChange:
       return "Entity Status Changed";
     default:
       return "Simulation Event";
@@ -76,10 +77,10 @@ export const getSimulationReadMorePath = (
 
   if (
     hasRouteChange ||
-    event.type === EventType.SystemRouteSelected ||
-    event.type === EventType.RoutingTableInsert ||
-    event.type === EventType.RoutingTableUpdate ||
-    event.type === EventType.RoutingTableRemove
+    event.type === EventType.Routing ||
+    event.type === EventType.AddRoute ||
+    event.type === EventType.UpdateRoute ||
+    event.type === EventType.DeleteRoute
   ) {
     return "/docs/batman#route-selection";
   }
@@ -93,11 +94,11 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
   const message = getEventMessage(event);
 
   if (routeChange) {
-    if (event.type === EventType.RoutingTableInsert) {
+    if (event.type === EventType.AddRoute) {
       return getRouteInsertDescription();
     }
 
-    if (event.type === EventType.RoutingTableUpdate) {
+    if (event.type === EventType.UpdateRoute) {
       return getRouteUpdateDescription();
     }
 
@@ -105,24 +106,24 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
   }
 
   switch (event.type) {
-    case EventType.SystemMessageBroadcast:
+    case EventType.Broadcast:
       return getBroadcastDescription(event, message);
-    case EventType.SystemRouteSelected: {
+    case EventType.Routing: {
       const details = event.details as RouteSelectedEventDetails;
       if (!isBatmanRoute(details.selectedRoute)) {
         return `${actor} emitted a simulation event.`;
       }
       return `Selected route to ${getPeerDisplayName(details.selectedRoute.originatorPeerId, peerNameById)} via ${getPeerDisplayName(details.selectedRoute.hopPeerId, peerNameById)} with throughput ${details.selectedRoute.quality}.`;
     }
-    case EventType.SystemThroughputCalculated:
+    case EventType.Calculation:
       return getThroughputCalculatedDescription(actor, event);
-    case EventType.SystemMessageDropped:
+    case EventType.Drop:
       return getDroppedDescription(actor, event, message);
-    case EventType.SystemPeerMoved: {
+    case EventType.Move: {
       const details = event.details as PeerMovedEventDetails;
       return `Peer is moved to point (${details.toX}, ${details.toY}).`;
     }
-    case EventType.SystemEntityStatusChanged: {
+    case EventType.StatusChange: {
       const details = event.details as EntityStatusChangedEventDetails;
       const entityLabel = details.entityType === EntityType.Link ? "Link" : "Peer";
       return `${entityLabel} is now ${details.nextEnabled ? "(details.nextEnabled)" : "disabled"}.`;
@@ -134,9 +135,9 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
 
 export const getRouteChange = (event: Event): RoutingTableChangeDetails | null => {
   if (
-    event.type !== EventType.RoutingTableInsert &&
-    event.type !== EventType.RoutingTableUpdate &&
-    event.type !== EventType.RoutingTableRemove
+    event.type !== EventType.AddRoute &&
+    event.type !== EventType.UpdateRoute &&
+    event.type !== EventType.DeleteRoute
   ) {
     return null;
   }
@@ -154,7 +155,7 @@ export const getRouteRows = (details: BatmanRoutingTableChangeDetails): BatmanRo
 };
 
 export const getSelectedRoute = (event: Event): BatmanRouteRecord | null => {
-  if (event.type !== EventType.SystemRouteSelected) {
+  if (event.type !== EventType.Routing) {
     return null;
   }
 
@@ -172,7 +173,7 @@ export const getMessageSummary = (
     return null;
   }
 
-  if (event.type === EventType.SystemRouteSelected) {
+  if (event.type === EventType.Routing) {
     const details = event.details as RouteSelectedEventDetails;
     if (!isBatmanRoute(details.selectedRoute)) {
       return null;
@@ -236,7 +237,7 @@ export const getMessageSummary = (
     ];
   }
 
-  if (event.type === EventType.SystemPeerMoved) {
+  if (event.type === EventType.Move) {
     const details = event.details as PeerMovedEventDetails;
     return [
       {
@@ -254,7 +255,7 @@ export const getMessageSummary = (
     ];
   }
 
-  if (event.type === EventType.SystemEntityStatusChanged) {
+  if (event.type === EventType.StatusChange) {
     const details = event.details as EntityStatusChangedEventDetails;
     return [
       {
@@ -402,7 +403,7 @@ const getThroughputCalculatedDescription = (actor: string, event: Event) => {
 };
 
 export const getThroughputBreakdown = (event: Event) => {
-  if (event.type !== EventType.SystemThroughputCalculated) {
+  if (event.type !== EventType.Calculation) {
     return null;
   }
 
@@ -415,7 +416,7 @@ export const getThroughputBreakdown = (event: Event) => {
 };
 
 export const getOgmBroadcastThroughputExplanation = (event: Event, message: Message | null) => {
-  if (event.type !== EventType.SystemMessageBroadcast) {
+  if (event.type !== EventType.Broadcast) {
     return null;
   }
 
@@ -431,7 +432,7 @@ export const getOgmBroadcastThroughputExplanation = (event: Event, message: Mess
 };
 
 export const getOgmThroughputSelectionExplanation = (event: Event) => {
-  if (event.type !== EventType.SystemThroughputCalculated) {
+  if (event.type !== EventType.Calculation) {
     return null;
   }
 
@@ -532,7 +533,7 @@ const getRouteUpdateDescription = () => {
 };
 
 export const getRouteSequenceWindowExplanation = (event: Event) => {
-  if (event.type !== EventType.RoutingTableInsert && event.type !== EventType.RoutingTableUpdate) {
+  if (event.type !== EventType.AddRoute && event.type !== EventType.UpdateRoute) {
     return null;
   }
 
@@ -583,7 +584,7 @@ const getPeerDisplayName = (peerId: UUID, peerNameById: Map<UUID, string>) => {
 };
 
 const isSourcePacketSendFailure = (event: Event, message: Message | null) => {
-  if (event.type !== EventType.SystemMessageDropped) {
+  if (event.type !== EventType.Drop) {
     return false;
   }
 

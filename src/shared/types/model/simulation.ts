@@ -4,18 +4,16 @@ import type { NetworkEntity, PeerEntity } from "./entities";
 import type { Step } from "./steps";
 
 export const EventType = {
-  SystemMessageBroadcast: "SYSTEM_MESSAGE_BROADCAST",
-  SystemRouteSelected: "SYSTEM_ROUTE_SELECTED",
-  SystemThroughputCalculated: "SYSTEM_THROUGHPUT_CALCULATED",
-  SystemMessageDropped: "SYSTEM_MESSAGE_DROPPED",
-  SystemPeerMoved: "SYSTEM_PEER_MOVED",
-  SystemEntityStatusChanged: "SYSTEM_ENTITY_STATUS_CHANGED",
-  RoutingTableGet: "ROUTING_TABLE_GET",
-  RoutingTableInsert: "ROUTING_TABLE_INSERT",
-  RoutingTableUpdate: "ROUTING_TABLE_UPDATE",
-  RoutingTableRemove: "ROUTING_TABLE_REMOVE",
-  SimulationStepStart: "SIMULATION_STEP_START",
-  SimulationStepEnd: "SIMULATION_STEP_END",
+  Broadcast: "BROADCAST",
+  Routing: "ROUTING",
+  Calculation: "CALCULATION",
+  Drop: "DROP",
+  Move: "MOVE",
+  StatusChange: "STATUS_CHANGE",
+  GetRoute: "GET_ROUTE",
+  AddRoute: "ADD_ROUTE",
+  UpdateRoute: "UPDATE_ROUTE",
+  DeleteRoute: "DELETE_ROUTE",
 } as const;
 
 export type EventType = (typeof EventType)[keyof typeof EventType];

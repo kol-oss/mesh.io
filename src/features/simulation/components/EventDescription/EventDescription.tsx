@@ -1,21 +1,17 @@
 import type { UUID } from "@/shared/types/common/uuid";
 import { QualityWindowBit, type Event, type StepResult } from "@/shared/types/model/simulation";
 import {
-  formatFixed,
   getEventDescription,
   getEventMessage,
   getEventTitle,
   getMessageSummary,
-  getOgmThroughputSelectionExplanation,
   getPeerLabel,
   getRouteChange,
   getRouteRows,
   getRouteSequenceWindowExplanation,
   getSelectedRoute,
   getSimulationReadMorePath,
-  getThroughputBaseExplanation,
   getThroughputBreakdown,
-  getThroughputEwmaExplanation,
   isBatmanRouteRecord,
   renderPeerName,
 } from "@/shared/utils/simulation/eventPresentation";
@@ -51,12 +47,10 @@ export default function EventDescription({
   currentEventIndex,
   currentEventsTotal,
   currentStepResult,
-  isTqDisclosureOpen,
   isSequenceDisclosureOpen,
   onPeerHoverChange,
   onNextEvent,
   onPrevEvent,
-  onTqDisclosureToggle,
   onSequenceDisclosureToggle,
 }: SimulationPanelProps) {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -122,7 +116,6 @@ export default function EventDescription({
     : currentEvent.peerId;
   const routeRows = routeChange ? getRouteRows(routeChange) : selectedRoute ? [selectedRoute] : [];
 
-  const ogmThroughputSelectionExplanation = getOgmThroughputSelectionExplanation(currentEvent);
   const throughputBreakdown = getThroughputBreakdown(currentEvent);
   const routeSequenceWindowExplanation = routeChange
     ? getRouteSequenceWindowExplanation(currentEvent)
@@ -155,10 +148,6 @@ export default function EventDescription({
     setIsDragging(true);
     event.stopPropagation();
     event.preventDefault();
-  };
-
-  const handleTqDisclosureToggle = () => {
-    onTqDisclosureToggle(currentEvent.id);
   };
 
   const handleSequenceDisclosureToggle = () => {
@@ -320,68 +309,6 @@ export default function EventDescription({
                 ))}
               </tbody>
             </table>
-          </div>
-        ) : null}
-        {throughputBreakdown ? (
-          <div className="simulation-panel__tq-disclosure">
-            <button
-              className="simulation-panel__tq-toggle"
-              type="button"
-              onClick={handleTqDisclosureToggle}
-              aria-expanded={isTqDisclosureOpen}
-            >
-              <ChevronRight
-                size={12}
-                className={`simulation-panel__tq-toggle-icon${isTqDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
-              />
-              <span className="simulation-panel__tq-toggle-label">
-                {"How is throughput calculated?"}
-              </span>
-            </button>
-            {isTqDisclosureOpen ? (
-              <div className="simulation-panel__table-block">
-                <p className="simulation-panel__description simulation-panel__description--secondary">
-                  {
-                    "Throughput is derived by combining the measured base transmission rate with the link's reception ratio. In formula form:"
-                  }
-                </p>
-                <p className="simulation-panel__description simulation-panel__description--secondary simulation-panel__formula">
-                  Throughput = Base Throughput x Reception Ratio
-                </p>
-                <p className="simulation-panel__description simulation-panel__description--secondary">
-                  {getThroughputBaseExplanation(throughputBreakdown)}
-                </p>
-                <p className="simulation-panel__description simulation-panel__description--secondary simulation-panel__formula">
-                  {`${formatFixed(throughputBreakdown.baseThroughput)} x ${formatFixed(throughputBreakdown.receptionRatio)} = ${formatFixed(throughputBreakdown.rawThroughput)}`}
-                </p>
-                <p className="simulation-panel__description simulation-panel__description--secondary">
-                  {getThroughputEwmaExplanation(throughputBreakdown)}
-                </p>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-        {ogmThroughputSelectionExplanation ? (
-          <div className="simulation-panel__tq-disclosure">
-            <button
-              className="simulation-panel__tq-toggle"
-              type="button"
-              onClick={handleTqDisclosureToggle}
-              aria-expanded={isTqDisclosureOpen}
-            >
-              <ChevronRight
-                size={12}
-                className={`simulation-panel__tq-toggle-icon${isTqDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
-              />
-              <span className="simulation-panel__tq-toggle-label">
-                {"What throughput value was selected?"}
-              </span>
-            </button>
-            {isTqDisclosureOpen ? (
-              <p className="simulation-panel__description simulation-panel__description--secondary">
-                {ogmThroughputSelectionExplanation}
-              </p>
-            ) : null}
           </div>
         ) : null}
       </section>

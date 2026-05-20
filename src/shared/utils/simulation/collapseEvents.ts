@@ -13,10 +13,7 @@ export function collapseOriginatorInsertUpdateEvents(events: Event[]): Event[] {
     const current = events[index];
     const next = events[index + 1];
 
-    if (
-      current.type !== EventType.RoutingTableInsert ||
-      next.type !== EventType.RoutingTableUpdate
-    ) {
+    if (current.type !== EventType.AddRoute || next.type !== EventType.UpdateRoute) {
       continue;
     }
 

@@ -68,7 +68,7 @@ export const buildSimulationMessageAnimations = (
     };
   };
 
-  if (currentEvent.type === EventType.SystemMessageBroadcast) {
+  if (currentEvent.type === EventType.Broadcast) {
     const details = currentEvent.details as BroadcastEventDetails;
     return details.neighbourPeerIds
       .map((peerId, index) =>
@@ -77,7 +77,7 @@ export const buildSimulationMessageAnimations = (
       .filter((animation): animation is MessageAnimation => animation !== null);
   }
 
-  if (currentEvent.type === EventType.SystemRouteSelected) {
+  if (currentEvent.type === EventType.Routing) {
     const details = currentEvent.details as RouteSelectedEventDetails;
     const hopPeerId =
       "hopPeerId" in details.selectedRoute
@@ -89,7 +89,7 @@ export const buildSimulationMessageAnimations = (
     ]);
   }
 
-  if (currentEvent.type === EventType.SystemMessageDropped) {
+  if (currentEvent.type === EventType.Drop) {
     const details = currentEvent.details as DroppedEventDetails;
     if (!details.message) {
       return [];
@@ -106,7 +106,7 @@ export const buildSimulationMessageAnimations = (
     ]);
   }
 
-  if (currentEvent.type === EventType.SystemThroughputCalculated) {
+  if (currentEvent.type === EventType.Calculation) {
     const details = currentEvent.details as ThroughputCalculationEventDetails;
     if (details.message.kind === MessageType.BatmanOriginatorMessage) {
       return toMessageAnimations([
@@ -218,10 +218,7 @@ export const buildSimulationMessageAnimations = (
     return [];
   }
 
-  if (
-    currentEvent.type === EventType.RoutingTableInsert ||
-    currentEvent.type === EventType.RoutingTableUpdate
-  ) {
+  if (currentEvent.type === EventType.AddRoute || currentEvent.type === EventType.UpdateRoute) {
     const details = currentEvent.details as { hopPeerId?: UUID; nextHopPeerId?: UUID };
     const nextHopPeerId = details.hopPeerId ?? details.nextHopPeerId ?? null;
     if (!nextHopPeerId) {
@@ -239,7 +236,7 @@ export const buildSimulationMessageAnimations = (
 export const buildMoveStepAnimation = (
   currentEvent: Event | null,
 ): Omit<MoveStepAnimation, "progress"> | null => {
-  if (!currentEvent || currentEvent.type !== EventType.SystemPeerMoved) {
+  if (!currentEvent || currentEvent.type !== EventType.Move) {
     return null;
   }
 
@@ -256,7 +253,7 @@ export const buildMoveStepAnimation = (
 export const buildToggleStepAnimation = (
   currentEvent: Event | null,
 ): ToggleStepAnimation | null => {
-  if (!currentEvent || currentEvent.type !== EventType.SystemEntityStatusChanged) {
+  if (!currentEvent || currentEvent.type !== EventType.StatusChange) {
     return null;
   }
 

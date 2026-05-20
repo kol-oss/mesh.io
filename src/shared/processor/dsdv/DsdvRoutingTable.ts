@@ -61,7 +61,7 @@ export class DsdvRoutingTable {
     this.routes.set(this.routingPeer.id, nextState);
 
     if (!previous) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableInsert, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.AddRoute, {
         protocol: RoutingProtocol.DSDV,
         destinationPeerId: this.routingPeer.id,
         nextHopPeerId: this.routingPeer.id,
@@ -72,7 +72,7 @@ export class DsdvRoutingTable {
       return;
     }
 
-    this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableUpdate, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.UpdateRoute, {
       protocol: RoutingProtocol.DSDV,
       destinationPeerId: this.routingPeer.id,
       nextHopPeerId: this.routingPeer.id,
@@ -138,7 +138,7 @@ export class DsdvRoutingTable {
 
     this.eventRecorder.record(
       this.routingPeer.id,
-      current ? EventType.RoutingTableUpdate : EventType.RoutingTableInsert,
+      current ? EventType.UpdateRoute : EventType.AddRoute,
       {
         protocol: RoutingProtocol.DSDV,
         destinationPeerId: params.destinationPeerId,
@@ -182,7 +182,7 @@ export class DsdvRoutingTable {
         });
         changed = true;
 
-        this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableRemove, {
+        this.eventRecorder.record(this.routingPeer.id, EventType.DeleteRoute, {
           protocol: RoutingProtocol.DSDV,
           destinationPeerId: previousRoute.destinationPeerId,
           nextHopPeerId: previousRoute.nextHopPeerId,
@@ -203,7 +203,7 @@ export class DsdvRoutingTable {
         this.routes.delete(destinationPeerId);
         changed = true;
 
-        this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableRemove, {
+        this.eventRecorder.record(this.routingPeer.id, EventType.DeleteRoute, {
           protocol: RoutingProtocol.DSDV,
           destinationPeerId: previousRoute.destinationPeerId,
           nextHopPeerId: previousRoute.nextHopPeerId,

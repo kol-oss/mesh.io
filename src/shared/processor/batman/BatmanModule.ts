@@ -130,7 +130,7 @@ export class BatmanModule implements RoutingModule {
 
   send(packet: Packet) {
     if (!this.routingPeer.isActive()) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         message: cloneMessage(packet),
         reason: "Source peer is disabled",
       });

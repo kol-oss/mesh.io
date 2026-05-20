@@ -65,7 +65,7 @@ export class BatmanOriginatorTable {
         const previousRoute = this.toRouteRecord(originatorPeerId, route);
         if (tick - route.lastTick > this.purgeTimeout) {
           routes.delete(hopPeerId);
-          this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableRemove, {
+          this.eventRecorder.record(this.routingPeer.id, EventType.DeleteRoute, {
             protocol: RoutingProtocol.BATMAN,
             originatorPeerId,
             hopPeerId,
@@ -153,7 +153,7 @@ export class BatmanOriginatorTable {
     routes.set(hopPeerId, route);
     this.originators.set(originatorPeerId, routes);
 
-    this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableInsert, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.AddRoute, {
       protocol: RoutingProtocol.BATMAN,
       originatorPeerId,
       hopPeerId,
@@ -181,7 +181,7 @@ export class BatmanOriginatorTable {
     const processed = route.sequenceWindow.process(message.sequence);
     if (processed) {
       route.throughput = throughput;
-      this.eventRecorder.record(this.routingPeer.id, EventType.RoutingTableUpdate, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.UpdateRoute, {
         protocol: RoutingProtocol.BATMAN,
         originatorPeerId,
         hopPeerId,

@@ -157,7 +157,7 @@ export class DsdvModule implements RoutingModule {
 
   send(packet: Packet) {
     if (!this.routingPeer.isActive()) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         message: cloneDsdvMessage(packet),
         reason: "Source peer is disabled",
       });
@@ -178,7 +178,7 @@ export class DsdvModule implements RoutingModule {
 
     const sender = this.routingPeer.getNeighbour(message.senderPeerId);
     if (!sender || !sender.supports(RoutingProtocol.DSDV)) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         message: cloneDsdvMessage(message),
         reason: "Selected next hop does not support DSDV",
       });
@@ -246,7 +246,7 @@ export class DsdvModule implements RoutingModule {
 
   private routeAndWrite(packet: Packet) {
     if (packet.timeToLive <= 0) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         message: cloneDsdvMessage(packet),
         reason: "Packet TTL reached zero",
       });
@@ -255,14 +255,14 @@ export class DsdvModule implements RoutingModule {
 
     const selectedRoute = this.routingTable.getBestRoute(packet.destinationPeerId);
     if (!selectedRoute) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         reason: "No DSDV route is available for the destination",
         reasonCode: "NO_ROUTE",
       });
       return false;
     }
 
-    this.eventRecorder.record(this.routingPeer.id, EventType.SystemRouteSelected, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.Routing, {
       protocol: RoutingProtocol.DSDV,
       destinationPeerId: packet.destinationPeerId,
       selectedRoute,
@@ -275,7 +275,7 @@ export class DsdvModule implements RoutingModule {
   private write(message: Packet | DsdvRouteUpdateMessage, hopPeerId: UUID) {
     const hop = this.routingPeer.getNeighbour(hopPeerId);
     if (!hop) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         message: cloneDsdvMessage(message),
         reason: "Selected next hop is not a current neighbour",
       });
@@ -283,7 +283,7 @@ export class DsdvModule implements RoutingModule {
     }
 
     if (!hop.supports(RoutingProtocol.DSDV)) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageDropped, {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         message: cloneDsdvMessage(message),
         reason: "Selected next hop does not support DSDV",
       });
@@ -338,7 +338,7 @@ export class DsdvModule implements RoutingModule {
           entries: [],
         };
 
-        this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageBroadcast, {
+        this.eventRecorder.record(this.routingPeer.id, EventType.Broadcast, {
           neighbourPeerIds: [],
           retransmit: false,
           message: cloneDsdvMessage(emptyIncrementalMessage),
@@ -363,7 +363,7 @@ export class DsdvModule implements RoutingModule {
       entries: routes,
     };
 
-    this.eventRecorder.record(this.routingPeer.id, EventType.SystemMessageBroadcast, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.Broadcast, {
       neighbourPeerIds: neighbours.map((peer) => peer.id),
       retransmit: params.retransmit,
       message: cloneDsdvMessage(message),

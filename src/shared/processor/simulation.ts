@@ -97,7 +97,7 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
 
     network.updatePeerPosition(step.entityId, step.x, step.y);
     network.refreshConnectivity();
-    eventRecorder.record(step.entityId, EventType.SystemPeerMoved, moveDetails);
+    eventRecorder.record(step.entityId, EventType.Move, moveDetails);
     return;
   }
 
@@ -120,7 +120,7 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
       nextEnabled: toggleResult.nextEnabled,
     };
 
-    eventRecorder.record(step.entityId, EventType.SystemEntityStatusChanged, statusDetails);
+    eventRecorder.record(step.entityId, EventType.StatusChange, statusDetails);
     return;
   }
 
@@ -212,7 +212,7 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
   const sourceProtocol = sourcePeer?.getPrimaryProtocol() ?? null;
   const sourceModule = sourceProtocol ? sourcePeer?.getModule(sourceProtocol) : null;
   if (!sourceModule || !isPacketCapableModule(sourceModule)) {
-    eventRecorder.record(step.sourceId, EventType.SystemMessageDropped, {
+    eventRecorder.record(step.sourceId, EventType.Drop, {
       reason: sourcePeer
         ? `Source peer does not have a ${sourceProtocol ?? "Unknown"} module`
         : "Source peer does not exist",
