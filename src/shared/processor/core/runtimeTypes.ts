@@ -23,6 +23,36 @@ export interface RoutingModule {
   tick(): void;
 }
 
+export const RoutingStructure = {
+  BatmanRoutingTable: "batmanRoutingTable",
+  BatmanNeighboursTable: "batmanNeighboursTable",
+  DsdvRoutingTable: "dsdvRoutingTable",
+  AodvRoutingTable: "aodvRoutingTable",
+  DsrRoutingTable: "dsrRoutingTable",
+  OlsrNeighbourTable: "olsrNeighbourTable",
+  OlsrTwoHopTable: "olsrTwoHopTable",
+  OlsrSelectorTable: "olsrSelectorTable",
+  OlsrTopologyTable: "olsrTopologyTable",
+  OlsrRoutingTable: "olsrRoutingTable",
+} as const;
+
+export type RoutingStructure = (typeof RoutingStructure)[keyof typeof RoutingStructure];
+
+export type RoutingStructureRecordsByType = {
+  [RoutingStructure.BatmanRoutingTable]: BatmanRouteRecord[];
+  [RoutingStructure.BatmanNeighboursTable]: BatmanNeighbourRecord[];
+  [RoutingStructure.DsdvRoutingTable]: DsdvRouteRecord[];
+  [RoutingStructure.AodvRoutingTable]: AodvRouteRecord[];
+  [RoutingStructure.DsrRoutingTable]: DsrRouteRecord[];
+  [RoutingStructure.OlsrNeighbourTable]: OlsrNeighbourRecord[];
+  [RoutingStructure.OlsrTwoHopTable]: OlsrTwoHopRecord[];
+  [RoutingStructure.OlsrSelectorTable]: OlsrSelectorRecord[];
+  [RoutingStructure.OlsrTopologyTable]: OlsrTopologyRecord[];
+  [RoutingStructure.OlsrRoutingTable]: OlsrRouteRecord[];
+};
+
+export type RoutingStructuresMap = Partial<RoutingStructureRecordsByType>;
+
 export interface PeerNode {
   readonly id: UUID;
   readonly name: string;
@@ -35,24 +65,12 @@ export interface PeerNode {
   isLinkedNeighbour(peerId: UUID): boolean;
   isRangedNeighbour(peerId: UUID): boolean;
   getEntity(): PeerEntity;
-}
-
-export interface SnapshotCapablePeerNode extends PeerNode {
-  getBatmanRoutingTable(): BatmanRouteRecord[];
-  getBatmanNeighboursTable(): BatmanNeighbourRecord[];
-  getDsdvRoutingTable(): DsdvRouteRecord[];
-  getAodvRoutingTable(): AodvRouteRecord[];
-  getDsrRoutingTable(): DsrRouteRecord[];
-  getOlsrNeighbourTable(): OlsrNeighbourRecord[];
-  getOlsrTwoHopTable(): OlsrTwoHopRecord[];
-  getOlsrSelectorTable(): OlsrSelectorRecord[];
-  getOlsrTopologyTable(): OlsrTopologyRecord[];
-  getOlsrRoutingTable(): OlsrRouteRecord[];
+  getRoutingStructures(): Readonly<RoutingStructuresMap>;
 }
 
 export interface Network {
-  getPeer(peerId: UUID): SnapshotCapablePeerNode | null;
-  getPeers(): SnapshotCapablePeerNode[];
+  getPeer(peerId: UUID): PeerNode | null;
+  getPeers(): PeerNode[];
   refreshConnectivity(): void;
   tickModules(): void;
   snapshot(tick: number): Snapshot;

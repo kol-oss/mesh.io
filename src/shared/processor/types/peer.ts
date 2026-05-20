@@ -1,7 +1,12 @@
 import { AodvModule } from "@/shared/processor/aodv/AodvModule";
 import { BatmanModule } from "@/shared/processor/batman/BatmanModule";
 import type { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { RoutingModule, SnapshotCapablePeerNode } from "@/shared/processor/core/runtimeTypes";
+import {
+  RoutingStructure,
+  type PeerNode,
+  type RoutingModule,
+  type RoutingStructuresMap,
+} from "@/shared/processor/core/runtimeTypes";
 import { DsdvModule } from "@/shared/processor/dsdv/DsdvModule";
 import { DsrModule } from "@/shared/processor/dsr/DsrModule";
 import { OlsrModule } from "@/shared/processor/olsr/OlsrModule";
@@ -10,8 +15,8 @@ import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import type { RuntimeNetwork } from "./network";
 
-export class RuntimePeer implements SnapshotCapablePeerNode {
-  private readonly modules = new Map<RoutingProtocol, RoutingModule>();
+export class RuntimePeer implements PeerNode {
+  private readonly module: RoutingModule | null;
   private readonly rangedPeerIds = new Set<UUID>();
   private readonly linkedPeerIds = new Set<UUID>();
   private readonly entity: PeerEntity;
@@ -20,30 +25,33 @@ export class RuntimePeer implements SnapshotCapablePeerNode {
   constructor(entity: PeerEntity, network: RuntimeNetwork, eventRecorder: EventRecorder) {
     this.entity = entity;
     this.network = network;
+    this.module = this.createModule(eventRecorder);
+  }
 
-    if (entity.protocol === RoutingProtocol.BATMAN) {
-      this.modules.set(entity.protocol, new BatmanModule(this, eventRecorder));
-      return;
+  private createModule(eventRecorder: EventRecorder): RoutingModule | null {
+    const protocol = this.entity.protocol;
+
+    if (protocol === RoutingProtocol.BATMAN) {
+      return new BatmanModule(this, eventRecorder);
     }
 
-    if (entity.protocol === RoutingProtocol.DSDV) {
-      this.modules.set(entity.protocol, new DsdvModule(this, eventRecorder));
-      return;
+    if (protocol === RoutingProtocol.DSDV) {
+      return new DsdvModule(this, eventRecorder);
     }
 
-    if (entity.protocol === RoutingProtocol.AODV) {
-      this.modules.set(entity.protocol, new AodvModule(this, eventRecorder));
-      return;
+    if (protocol === RoutingProtocol.AODV) {
+      return new AodvModule(this, eventRecorder);
     }
 
-    if (entity.protocol === RoutingProtocol.DSR) {
-      this.modules.set(entity.protocol, new DsrModule(this, eventRecorder));
-      return;
+    if (protocol === RoutingProtocol.DSR) {
+      return new DsrModule(this, eventRecorder);
     }
 
-    if (entity.protocol === RoutingProtocol.OLSR) {
-      this.modules.set(entity.protocol, new OlsrModule(this, eventRecorder));
+    if (protocol === RoutingProtocol.OLSR) {
+      return new OlsrModule(this, eventRecorder);
     }
+
+    return null;
   }
 
   get id() {
@@ -59,11 +67,15 @@ export class RuntimePeer implements SnapshotCapablePeerNode {
   }
 
   supports(protocol: RoutingProtocol) {
-    return this.modules.has(protocol);
+    return this.module !== null && this.entity.protocol === protocol;
   }
 
   getModule(protocol: RoutingProtocol) {
-    return this.modules.get(protocol) ?? null;
+    if (this.entity.protocol !== protocol) {
+      return null;
+    }
+
+    return this.module;
   }
 
   getEntity() {
@@ -107,7 +119,7 @@ export class RuntimePeer implements SnapshotCapablePeerNode {
 
   getNeighbours() {
     const neighbourIds = new Set([...this.rangedPeerIds, ...this.linkedPeerIds]);
-    const neighbours: RuntimePeer[] = [];
+    const neighbours: PeerNode[] = [];
 
     for (const peerId of neighbourIds) {
       const peer = this.network.getPeer(peerId);
@@ -120,7 +132,7 @@ export class RuntimePeer implements SnapshotCapablePeerNode {
   }
 
   getRangedNeighbours() {
-    const neighbours: RuntimePeer[] = [];
+    const neighbours: PeerNode[] = [];
 
     for (const peerId of this.rangedPeerIds) {
       const peer = this.network.getPeer(peerId);
@@ -140,97 +152,46 @@ export class RuntimePeer implements SnapshotCapablePeerNode {
     return this.linkedPeerIds.has(peerId);
   }
 
-  getBatmanRoutingTable() {
-    const batmanModule = this.modules.get(RoutingProtocol.BATMAN);
-    if (!(batmanModule instanceof BatmanModule)) {
-      return [];
+  getRoutingStructures(): Readonly<RoutingStructuresMap> {
+    const routingStructures: RoutingStructuresMap = {};
+    const module = this.module;
+    if (!module) {
+      return routingStructures;
     }
 
-    return batmanModule.getRoutes();
-  }
-
-  getBatmanNeighboursTable() {
-    const batmanModule = this.modules.get(RoutingProtocol.BATMAN);
-    if (!(batmanModule instanceof BatmanModule)) {
-      return [];
+    if (module instanceof BatmanModule) {
+      routingStructures[RoutingStructure.BatmanRoutingTable] = module.getRoutes();
+      routingStructures[RoutingStructure.BatmanNeighboursTable] = module.getNeighboursTable();
+      return routingStructures;
     }
 
-    return batmanModule.getNeighboursTable();
-  }
-
-  getDsdvRoutingTable() {
-    const dsdvModule = this.modules.get(RoutingProtocol.DSDV);
-    if (!(dsdvModule instanceof DsdvModule)) {
-      return [];
+    if (module instanceof DsdvModule) {
+      routingStructures[RoutingStructure.DsdvRoutingTable] = module.getRoutes();
+      return routingStructures;
     }
 
-    return dsdvModule.getRoutes();
-  }
-
-  getAodvRoutingTable() {
-    const aodvModule = this.modules.get(RoutingProtocol.AODV);
-    if (!(aodvModule instanceof AodvModule)) {
-      return [];
+    if (module instanceof AodvModule) {
+      routingStructures[RoutingStructure.AodvRoutingTable] = module.getRoutes();
+      return routingStructures;
     }
 
-    return aodvModule.getRoutes();
+    if (module instanceof OlsrModule) {
+      routingStructures[RoutingStructure.OlsrNeighbourTable] = module.getNeighbourTable();
+      routingStructures[RoutingStructure.OlsrTopologyTable] = module.getTopologyTable();
+      routingStructures[RoutingStructure.OlsrTwoHopTable] = module.getTwoHopTable();
+      routingStructures[RoutingStructure.OlsrSelectorTable] = module.getSelectorTable();
+      routingStructures[RoutingStructure.OlsrRoutingTable] = module.getRoutes();
+      return routingStructures;
+    }
+
+    if (module instanceof DsrModule) {
+      routingStructures[RoutingStructure.DsrRoutingTable] = module.getRoutes();
+    }
+
+    return routingStructures;
   }
 
   getPrimaryProtocol() {
     return this.entity.protocol;
-  }
-
-  getOlsrNeighbourTable() {
-    const olsrModule = this.modules.get(RoutingProtocol.OLSR);
-    if (!(olsrModule instanceof OlsrModule)) {
-      return [];
-    }
-
-    return olsrModule.getNeighbourTable();
-  }
-
-  getOlsrTopologyTable() {
-    const olsrModule = this.modules.get(RoutingProtocol.OLSR);
-    if (!(olsrModule instanceof OlsrModule)) {
-      return [];
-    }
-
-    return olsrModule.getTopologyTable();
-  }
-
-  getOlsrTwoHopTable() {
-    const olsrModule = this.modules.get(RoutingProtocol.OLSR);
-    if (!(olsrModule instanceof OlsrModule)) {
-      return [];
-    }
-
-    return olsrModule.getTwoHopTable();
-  }
-
-  getOlsrSelectorTable() {
-    const olsrModule = this.modules.get(RoutingProtocol.OLSR);
-    if (!(olsrModule instanceof OlsrModule)) {
-      return [];
-    }
-
-    return olsrModule.getSelectorTable();
-  }
-
-  getOlsrRoutingTable() {
-    const olsrModule = this.modules.get(RoutingProtocol.OLSR);
-    if (!(olsrModule instanceof OlsrModule)) {
-      return [];
-    }
-
-    return olsrModule.getRoutes();
-  }
-
-  getDsrRoutingTable() {
-    const dsrModule = this.modules.get(RoutingProtocol.DSR);
-    if (!(dsrModule instanceof DsrModule)) {
-      return [];
-    }
-
-    return dsrModule.getRoutes();
   }
 }

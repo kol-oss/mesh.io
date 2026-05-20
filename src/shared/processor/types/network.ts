@@ -4,7 +4,7 @@ import {
   shouldCreateLinkedConnection,
 } from "@/shared/processor/connectivity";
 import type { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { Network } from "@/shared/processor/core/runtimeTypes";
+import { RoutingStructure, type Network } from "@/shared/processor/core/runtimeTypes";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { NetworkEntity, ObstacleEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
@@ -171,19 +171,23 @@ export class RuntimeNetwork implements Network {
     return {
       tick,
       entities: this.exportEntities(),
-      peers: this.getPeers().map((peer) => ({
-        ...peer.getEntity(),
-        batmanRoutingTable: peer.getBatmanRoutingTable(),
-        batmanNeighboursTable: peer.getBatmanNeighboursTable(),
-        dsdvRoutingTable: peer.getDsdvRoutingTable(),
-        aodvRoutingTable: peer.getAodvRoutingTable(),
-        dsrRoutingTable: peer.getDsrRoutingTable(),
-        olsrNeighbourTable: peer.getOlsrNeighbourTable(),
-        olsrTwoHopTable: peer.getOlsrTwoHopTable(),
-        olsrSelectorTable: peer.getOlsrSelectorTable(),
-        olsrTopologyTable: peer.getOlsrTopologyTable(),
-        olsrRoutingTable: peer.getOlsrRoutingTable(),
-      })),
+      peers: this.getPeers().map((peer) => {
+        const structures = peer.getRoutingStructures();
+
+        return {
+          ...peer.getEntity(),
+          batmanRoutingTable: structures[RoutingStructure.BatmanRoutingTable] ?? [],
+          batmanNeighboursTable: structures[RoutingStructure.BatmanNeighboursTable] ?? [],
+          dsdvRoutingTable: structures[RoutingStructure.DsdvRoutingTable] ?? [],
+          aodvRoutingTable: structures[RoutingStructure.AodvRoutingTable] ?? [],
+          dsrRoutingTable: structures[RoutingStructure.DsrRoutingTable] ?? [],
+          olsrNeighbourTable: structures[RoutingStructure.OlsrNeighbourTable] ?? [],
+          olsrTwoHopTable: structures[RoutingStructure.OlsrTwoHopTable] ?? [],
+          olsrSelectorTable: structures[RoutingStructure.OlsrSelectorTable] ?? [],
+          olsrTopologyTable: structures[RoutingStructure.OlsrTopologyTable] ?? [],
+          olsrRoutingTable: structures[RoutingStructure.OlsrRoutingTable] ?? [],
+        };
+      }),
     };
   }
 }
