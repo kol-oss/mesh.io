@@ -4,16 +4,19 @@ import type { NetworkEntity, PeerEntity } from "./entities";
 import type { Step } from "./steps";
 
 export const EventType = {
+  // internal events
   Broadcast: "BROADCAST",
-  Routing: "ROUTING",
   Calculation: "CALCULATION",
   Drop: "DROP",
-  Move: "MOVE",
-  StatusChange: "STATUS_CHANGE",
+  // routing events
   GetRoute: "GET_ROUTE",
   AddRoute: "ADD_ROUTE",
   UpdateRoute: "UPDATE_ROUTE",
   DeleteRoute: "DELETE_ROUTE",
+  // step events
+  Routing: "ROUTING",
+  Move: "MOVE",
+  StatusChange: "STATUS_CHANGE",
 } as const;
 
 export type EventType = (typeof EventType)[keyof typeof EventType];

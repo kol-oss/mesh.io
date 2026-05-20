@@ -41,11 +41,13 @@ export class BatmanOriginatorTable {
   ) {
     const previousBestRoute = this.getBestRoute(originatorPeerId);
     const routes = this.originators.get(originatorPeerId);
+
+    let accepted = true;
     if (!routes || !routes.has(hopPeerId)) {
       this.insert(originatorPeerId, hopPeerId, message, throughput, reason);
+    } else {
+      accepted = this.update(originatorPeerId, hopPeerId, message, throughput, reason);
     }
-
-    const accepted = this.update(originatorPeerId, hopPeerId, message, throughput, reason);
     const nextBestRoute = this.getBestRoute(originatorPeerId);
 
     return {
@@ -152,6 +154,7 @@ export class BatmanOriginatorTable {
     const routes = this.originators.get(originatorPeerId) ?? new Map<UUID, BatmanRoute>();
     routes.set(hopPeerId, route);
     this.originators.set(originatorPeerId, routes);
+    route.sequenceWindow.process(message.sequence);
 
     this.eventRecorder.record(this.routingPeer.id, EventType.AddRoute, {
       protocol: RoutingProtocol.BATMAN,

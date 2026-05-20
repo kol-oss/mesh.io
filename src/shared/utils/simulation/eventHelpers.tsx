@@ -482,7 +482,7 @@ const getRouteInsertTitle = (
   routeChange: RoutingTableChangeDetails | null,
 ) => {
   if (message?.kind === MessageType.BatmanOriginatorMessage || routeChange) {
-    return "Update Originators";
+    return EventTitle.OriginatorAdded;
   }
 
   return "Route Added";
@@ -493,7 +493,7 @@ const getRouteUpdateTitle = (
   routeChange: RoutingTableChangeDetails | null,
 ) => {
   if (message?.kind === MessageType.BatmanOriginatorMessage || routeChange) {
-    return "Update Originators";
+    return EventTitle.OriginatorUpdated;
   }
 
   return "Route Updated";

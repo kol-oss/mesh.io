@@ -26,7 +26,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
   const { type, details } = event;
 
   if (type === EventType.Broadcast) {
-    const { message } = details as BroadcastEventDetails;
+    const { message, retransmit: isRetransmission } = details as BroadcastEventDetails;
     const { kind: messageType } = message;
 
     // Echo Location Protocol (ELP) broadcast
@@ -51,22 +51,26 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
     if (messageType === MessageType.BatmanOriginatorMessage) {
       return (
         <>
+          {!isRetransmission && (
+            <TextDescription>
+              Every <VariableDescription value={1}>OGM interval</VariableDescription>, an{" "}
+              <i>Originator Message version 2 (OGMv2)</i> message is broadcasted to announce the
+              node's presence and distribute throughput-related routing metrics called{" "}
+              <i>throughput</i> across the mesh network.
+            </TextDescription>
+          )}
           <TextDescription>
-            Every <VariableDescription value={1}>OGM interval</VariableDescription>, an{" "}
-            <i>Originator Message version 2 (OGMv2)</i> message is broadcasted to announce the
-            node's presence and distribute throughput-related routing metrics called{" "}
-            <i>throughput</i> across the mesh network.
+            Neighboring nodes rebroadcast received OGMv2 message if the throughput value is the best
+            across all available paths.
           </TextDescription>
-          <TextDescription>
-            Neighboring nodes rebroadcast received OGMv2 messages if the throughput value is the
-            best across all available paths.
-          </TextDescription>
-          <SecondaryDescription title="Why is the starting throughput value 2^32?">
-            Starting OGMv2 message has the maximum possible integer value, so that each hop can
-            compare it against the local throughput value. Each subsequent peer combines the
-            received value with the one received from ELP using a min() operation, and then forwards
-            the resulting value.
-          </SecondaryDescription>
+          {!isRetransmission && (
+            <SecondaryDescription title="Why is the starting throughput value 2^32?">
+              Starting OGMv2 message has the maximum possible integer value, so that each hop can
+              compare it against the local throughput value. Each subsequent peer combines the
+              received value with the one received from ELP using a min() operation, and then
+              forwards the resulting value.
+            </SecondaryDescription>
+          )}
         </>
       );
     }
@@ -190,9 +194,9 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
     return (
       <>
         <TextDescription>
-          After receiving OGMv2 messages, the node evaluates if the new path offers better
-          throughput than the existing one. If so, it updates its routing table with the new route
-          and throughput value, which will be used for forwarding packets to that destination.
+          After receiving OGMv2 message, the node evaluates if the new path offers better throughput
+          than the existing one. If so, it updates its routing table with the new route and
+          throughput value, which will be used for forwarding packets to that destination.
         </TextDescription>
         <TableDescription
           headers={["Destination", "Next Hop", "Throughput", "Last Seen"]}

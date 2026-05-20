@@ -187,7 +187,7 @@ export default function EventDescription({
           </button>
 
           <span className="simulation-panel__pager-label">
-            {currentEventsTotal === 0 ? "0/0" : `${currentEventIndex + 1}/${currentEventsTotal}`}
+            {`${currentEventIndex + (currentEventsTotal !== 0 ? 1 : 0)}/${currentEventsTotal}`}
           </span>
 
           <button
