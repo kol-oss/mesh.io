@@ -10,7 +10,7 @@ import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
 import {
   BatmanPacketType,
   EventType,
-  SimulationMessageKind,
+  MessageType,
   type BatmanEchoLocationMessage,
   type BatmanEchoLocationNeighbour,
   type BatmanNeighbourRecord,
@@ -69,7 +69,7 @@ export class BatmanModule implements RoutingModule {
       return false;
     }
 
-    if (message.kind === SimulationMessageKind.Packet) {
+    if (message.kind === MessageType.Packet) {
       if (message.destinationPeerId === this.routingPeer.id) {
         return true;
       }
@@ -81,11 +81,11 @@ export class BatmanModule implements RoutingModule {
       return this.operations.routeAndWrite(forwardedPacket);
     }
 
-    if (message.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+    if (message.kind === MessageType.BatmanEchoLocationMessage) {
       return this.operations.processEchoLocation(message);
     }
 
-    if (message.kind !== SimulationMessageKind.BatmanOriginatorMessage) {
+    if (message.kind !== MessageType.BatmanOriginatorMessage) {
       return false;
     }
 
@@ -112,7 +112,7 @@ export class BatmanModule implements RoutingModule {
 
     this.ogmSequence += 1;
     const message: BatmanOriginatorMessage = {
-      kind: SimulationMessageKind.BatmanOriginatorMessage,
+      kind: MessageType.BatmanOriginatorMessage,
       version: BATMAN_VERSION,
       sourcePeerId: this.routingPeer.id,
       senderPeerId: this.routingPeer.id,
@@ -176,7 +176,7 @@ export class BatmanModule implements RoutingModule {
       .sort((left, right) => left.address.localeCompare(right.address));
 
     const elpMessage: BatmanEchoLocationMessage = {
-      kind: SimulationMessageKind.BatmanEchoLocationMessage,
+      kind: MessageType.BatmanEchoLocationMessage,
       packetType: BatmanPacketType.EchoLocationProtocol,
       version: BATMAN_VERSION,
       sourcePeerId: this.routingPeer.id,

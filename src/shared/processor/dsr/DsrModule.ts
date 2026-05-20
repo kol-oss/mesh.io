@@ -10,7 +10,7 @@ import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import {
   EventType,
-  SimulationMessageKind,
+  MessageType,
   type DsrRouteErrorMessage,
   type DsrRouteRecord,
   type DsrRouteReplyMessage,
@@ -45,7 +45,7 @@ export class DsrModule implements RoutingModule {
       return false;
     }
 
-    if (message.kind === SimulationMessageKind.Packet) {
+    if (message.kind === MessageType.Packet) {
       if (message.destinationPeerId === this.routingPeer.id) {
         return true;
       }
@@ -171,7 +171,7 @@ export class DsrModule implements RoutingModule {
         .filter((peer) => peer.supports(RoutingProtocol.DSR) && peer.isActive());
 
       const requestMessage: DsrRouteRequestMessage = {
-        kind: SimulationMessageKind.DsrRouteRequestMessage,
+        kind: MessageType.DsrRouteRequestMessage,
         sourcePeerId: this.routingPeer.id,
         senderPeerId: current.peer.id,
         targetPeerId: destinationPeerId,
@@ -241,7 +241,7 @@ export class DsrModule implements RoutingModule {
       }
 
       const replyMessage: DsrRouteReplyMessage = {
-        kind: SimulationMessageKind.DsrRouteReplyMessage,
+        kind: MessageType.DsrRouteReplyMessage,
         sourcePeerId: pathPeerIds[0],
         senderPeerId,
         targetPeerId: pathPeerIds[pathPeerIds.length - 1],
@@ -269,7 +269,7 @@ export class DsrModule implements RoutingModule {
       const reversePath = [...pathPeerIds.slice(0, index + 1)].reverse();
 
       const discoveryMessage: DsrRouteReplyMessage = {
-        kind: SimulationMessageKind.DsrRouteReplyMessage,
+        kind: MessageType.DsrRouteReplyMessage,
         sourcePeerId: pathPeerIds[0],
         senderPeerId: pathPeerIds[pathPeerIds.length - 1],
         targetPeerId: pathPeerIds[pathPeerIds.length - 1],
@@ -476,7 +476,7 @@ export class DsrModule implements RoutingModule {
     salvageCount: number,
   ): DsrRouteErrorMessage {
     return {
-      kind: SimulationMessageKind.DsrRouteErrorMessage,
+      kind: MessageType.DsrRouteErrorMessage,
       sourcePeerId: packet.sourcePeerId ?? this.routingPeer.id,
       senderPeerId: brokenFromPeerId,
       destinationPeerId: packet.destinationPeerId,

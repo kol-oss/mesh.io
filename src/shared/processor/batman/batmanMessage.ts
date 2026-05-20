@@ -1,4 +1,4 @@
-import { SimulationMessageKind, type Message } from "@/shared/types/model/simulation";
+import { MessageType, type Message } from "@/shared/types/model/simulation";
 
 export const cloneMessage = <T extends Message>(message: T): T => {
   return { ...message };
@@ -11,8 +11,8 @@ export const isSimulationMessage = (value: unknown): value is Message => {
 
   const candidate = value as Partial<Message>;
   return (
-    candidate.kind === SimulationMessageKind.Packet ||
-    candidate.kind === SimulationMessageKind.BatmanOriginatorMessage ||
-    candidate.kind === SimulationMessageKind.BatmanEchoLocationMessage
+    candidate.kind === MessageType.Packet ||
+    candidate.kind === MessageType.BatmanOriginatorMessage ||
+    candidate.kind === MessageType.BatmanEchoLocationMessage
   );
 };

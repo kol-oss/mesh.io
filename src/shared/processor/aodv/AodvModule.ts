@@ -13,7 +13,7 @@ import type { UUID } from "@/shared/types/common/uuid";
 import { getAodvConfiguration } from "@/shared/types/model/peers";
 import {
   EventType,
-  SimulationMessageKind,
+  MessageType,
   type AodvHelloMessage,
   type AodvRouteErrorMessage,
   type AodvRouteRecord,
@@ -83,7 +83,7 @@ export class AodvModule implements RoutingModule {
       return false;
     }
 
-    if (message.kind === SimulationMessageKind.Packet) {
+    if (message.kind === MessageType.Packet) {
       if (message.destinationPeerId === this.routingPeer.id) {
         return true;
       }
@@ -95,11 +95,11 @@ export class AodvModule implements RoutingModule {
       return this.routeAndWrite(forwardedPacket);
     }
 
-    if (message.kind === SimulationMessageKind.AodvHelloMessage) {
+    if (message.kind === MessageType.AodvHelloMessage) {
       return this.processHelloMessage(message);
     }
 
-    if (message.kind === SimulationMessageKind.AodvRouteErrorMessage) {
+    if (message.kind === MessageType.AodvRouteErrorMessage) {
       return this.processRouteErrorMessage(message);
     }
 
@@ -120,7 +120,7 @@ export class AodvModule implements RoutingModule {
       .filter((peer) => peer.supports(RoutingProtocol.AODV));
 
     const helloMessage: AodvHelloMessage = {
-      kind: SimulationMessageKind.AodvHelloMessage,
+      kind: MessageType.AodvHelloMessage,
       sourcePeerId: this.routingPeer.id,
       senderPeerId: this.routingPeer.id,
       destinationSequenceNumber: this.ownSequenceNumber,
@@ -285,7 +285,7 @@ export class AodvModule implements RoutingModule {
       }
 
       const requestMessage: AodvRouteRequestMessage = {
-        kind: SimulationMessageKind.AodvRouteRequestMessage,
+        kind: MessageType.AodvRouteRequestMessage,
         sourcePeerId: this.routingPeer.id,
         senderPeerId: current.peer.id,
         destinationPeerId,
@@ -424,7 +424,7 @@ export class AodvModule implements RoutingModule {
       const senderDistanceToDestination =
         candidate.replierDistanceToDestination + (peersAlongPath.length - 1 - index);
       const replyMessage: AodvRouteReplyMessage = {
-        kind: SimulationMessageKind.AodvRouteReplyMessage,
+        kind: MessageType.AodvRouteReplyMessage,
         sourcePeerId: this.routingPeer.id,
         senderPeerId: senderPeer.id,
         targetPeerId: recipientPeer.id,
@@ -629,7 +629,7 @@ export class AodvModule implements RoutingModule {
     }
 
     const errorMessage: AodvRouteErrorMessage = {
-      kind: SimulationMessageKind.AodvRouteErrorMessage,
+      kind: MessageType.AodvRouteErrorMessage,
       sourcePeerId,
       senderPeerId: this.routingPeer.id,
       targetPeerId: recipientPeerIds.length === 1 ? recipientPeerIds[0] : null,

@@ -6,7 +6,6 @@ import {
   getEventMessage,
   getEventTitle,
   getMessageSummary,
-  getOgmBroadcastThroughputExplanation,
   getOgmThroughputSelectionExplanation,
   getPeerLabel,
   getRouteChange,
@@ -23,6 +22,7 @@ import {
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Link } from "react-router-dom";
+import BatmanDescription from "./BatmanDescription";
 
 type SimulationPanelProps = {
   anchorX: number;
@@ -42,7 +42,7 @@ type SimulationPanelProps = {
   onSequenceDisclosureToggle: (eventId: UUID) => void;
 };
 
-export default function SimulationPanel({
+export default function EventDescription({
   anchorX,
   anchorY,
   canGoNextEvent,
@@ -121,10 +121,7 @@ export default function SimulationPanel({
       )
     : currentEvent.peerId;
   const routeRows = routeChange ? getRouteRows(routeChange) : selectedRoute ? [selectedRoute] : [];
-  const ogmBroadcastThroughputExplanation = getOgmBroadcastThroughputExplanation(
-    currentEvent,
-    currentMessage,
-  );
+
   const ogmThroughputSelectionExplanation = getOgmThroughputSelectionExplanation(currentEvent);
   const throughputBreakdown = getThroughputBreakdown(currentEvent);
   const routeSequenceWindowExplanation = routeChange
@@ -176,13 +173,16 @@ export default function SimulationPanel({
       onMouseLeave={() => onPeerHoverChange(null)}
       style={{ left: `${anchorX + dragOffset.x}px`, top: `${anchorY + dragOffset.y}px` }}
     >
+      {/* Header */}
       <header className="simulation-panel__header" onPointerDown={handleHeaderPointerDown}>
         <h2 className="simulation-panel__title">{title}</h2>
         <span className="simulation-panel__tick">{eventOwner}</span>
       </header>
 
+      {/* Body */}
       <section className="simulation-panel__section">
-        <p className="simulation-panel__description">{description}</p>
+        <BatmanDescription event={currentEvent} />
+
         {routeRows.length > 0 ? (
           <div className="simulation-panel__table-block">
             <table className="simulation-panel__table-view">
@@ -384,31 +384,9 @@ export default function SimulationPanel({
             ) : null}
           </div>
         ) : null}
-        {ogmBroadcastThroughputExplanation ? (
-          <div className="simulation-panel__tq-disclosure">
-            <button
-              className="simulation-panel__tq-toggle"
-              type="button"
-              onClick={handleTqDisclosureToggle}
-              aria-expanded={isTqDisclosureOpen}
-            >
-              <ChevronRight
-                size={12}
-                className={`simulation-panel__tq-toggle-icon${isTqDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
-              />
-              <span className="simulation-panel__tq-toggle-label">
-                {"What is throughput value in OGMv2?"}
-              </span>
-            </button>
-            {isTqDisclosureOpen ? (
-              <p className="simulation-panel__description simulation-panel__description--secondary">
-                {ogmBroadcastThroughputExplanation}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
       </section>
 
+      {/* Footer */}
       <footer className="simulation-panel__footer">
         <Link
           className="simulation-panel__read-more"
@@ -419,6 +397,7 @@ export default function SimulationPanel({
           <ExternalLink size={12} />
           {"Read more"}
         </Link>
+
         <div className="simulation-panel__pager simulation-panel__pager--footer">
           <button
             className="simulation-panel__pager-button"
@@ -429,9 +408,11 @@ export default function SimulationPanel({
           >
             <ChevronLeft size={18} />
           </button>
+
           <span className="simulation-panel__pager-label">
             {currentEventsTotal === 0 ? "0/0" : `${currentEventIndex + 1}/${currentEventsTotal}`}
           </span>
+
           <button
             className="simulation-panel__pager-button"
             type="button"

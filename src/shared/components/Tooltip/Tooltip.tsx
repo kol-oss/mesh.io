@@ -1,11 +1,12 @@
+import { TooltipPlacement } from "@/shared/types/view/view";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { TooltipPlacement } from "@/shared/types/view/view";
 
 type TooltipProps = {
   content: string;
   children: ReactNode;
   placement?: TooltipPlacement;
+  anchorClassName?: string;
 };
 
 type TooltipPosition = {
@@ -20,6 +21,7 @@ export default function Tooltip({
   content,
   children,
   placement = TooltipPlacement.Top,
+  anchorClassName,
 }: TooltipProps) {
   const anchorRef = useRef<HTMLSpanElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
@@ -119,7 +121,7 @@ export default function Tooltip({
         ref={(node) => {
           setAnchorRef(node);
         }}
-        className="tooltip__anchor"
+        className={`tooltip__anchor${anchorClassName ? ` ${anchorClassName}` : ""}`}
         onMouseEnter={showTooltip}
         onMouseLeave={hideTooltip}
         onFocus={showTooltip}

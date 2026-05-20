@@ -1,4 +1,4 @@
-import { SimulationMessageKind, type Message } from "@/shared/types/model/simulation";
+import { MessageType, type Message } from "@/shared/types/model/simulation";
 
 export const cloneDsdvMessage = <T extends Message>(message: T): T => {
   return { ...message };
@@ -11,7 +11,6 @@ export const isDsdvSimulationMessage = (value: unknown): value is Message => {
 
   const candidate = value as Partial<Message>;
   return (
-    candidate.kind === SimulationMessageKind.Packet ||
-    candidate.kind === SimulationMessageKind.DsdvRouteUpdateMessage
+    candidate.kind === MessageType.Packet || candidate.kind === MessageType.DsdvRouteUpdateMessage
   );
 };

@@ -8,7 +8,7 @@ import { RuntimeNetwork } from "@/shared/processor/types/network";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import {
   EventType,
-  SimulationMessageKind,
+  MessageType,
   type EntityStatusChangedEventDetails,
   type Packet,
   type PeerMovedEventDetails,
@@ -222,7 +222,7 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
   }
 
   const packet: Packet = {
-    kind: SimulationMessageKind.Packet,
+    kind: MessageType.Packet,
     sourcePeerId: null,
     destinationPeerId: step.destinationId,
     timeToLive: 50,

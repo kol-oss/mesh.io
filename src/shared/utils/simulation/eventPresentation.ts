@@ -3,7 +3,7 @@ import type { UUID } from "@/shared/types/common/uuid";
 import {
   DsdvUpdateType,
   EventType,
-  SimulationMessageKind,
+  MessageType,
   type AodvHelloMessage,
   type AodvRouteErrorMessage,
   type AodvRouteReplyMessage,
@@ -42,49 +42,49 @@ import {
 
 const isBatmanMessage = (message: Message | null) => {
   return (
-    message?.kind === SimulationMessageKind.BatmanOriginatorMessage ||
-    message?.kind === SimulationMessageKind.BatmanEchoLocationMessage
+    message?.kind === MessageType.BatmanOriginatorMessage ||
+    message?.kind === MessageType.BatmanEchoLocationMessage
   );
 };
 
 const isDsdvMessage = (message: Message | null): message is DsdvRouteUpdateMessage => {
-  return message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage;
+  return message?.kind === MessageType.DsdvRouteUpdateMessage;
 };
 
 const isAodvRouteRequestMessage = (message: Message | null): message is AodvRouteRequestMessage => {
-  return message?.kind === SimulationMessageKind.AodvRouteRequestMessage;
+  return message?.kind === MessageType.AodvRouteRequestMessage;
 };
 
 const isAodvRouteReplyMessage = (message: Message | null): message is AodvRouteReplyMessage => {
-  return message?.kind === SimulationMessageKind.AodvRouteReplyMessage;
+  return message?.kind === MessageType.AodvRouteReplyMessage;
 };
 
 const isAodvRouteErrorMessage = (message: Message | null): message is AodvRouteErrorMessage => {
-  return message?.kind === SimulationMessageKind.AodvRouteErrorMessage;
+  return message?.kind === MessageType.AodvRouteErrorMessage;
 };
 
 const isAodvHelloMessage = (message: Message | null): message is AodvHelloMessage => {
-  return message?.kind === SimulationMessageKind.AodvHelloMessage;
+  return message?.kind === MessageType.AodvHelloMessage;
 };
 
 const isOlsrHelloMessage = (message: Message | null): message is OlsrHelloMessage => {
-  return message?.kind === SimulationMessageKind.OlsrHelloMessage;
+  return message?.kind === MessageType.OlsrHelloMessage;
 };
 
 const isOlsrTcMessage = (message: Message | null): message is OlsrTcMessage => {
-  return message?.kind === SimulationMessageKind.OlsrTcMessage;
+  return message?.kind === MessageType.OlsrTcMessage;
 };
 
 const isDsrRouteRequestMessage = (message: Message | null): message is DsrRouteRequestMessage => {
-  return message?.kind === SimulationMessageKind.DsrRouteRequestMessage;
+  return message?.kind === MessageType.DsrRouteRequestMessage;
 };
 
 const isDsrRouteReplyMessage = (message: Message | null): message is DsrRouteReplyMessage => {
-  return message?.kind === SimulationMessageKind.DsrRouteReplyMessage;
+  return message?.kind === MessageType.DsrRouteReplyMessage;
 };
 
 const isDsrRouteErrorMessage = (message: Message | null): message is DsrRouteErrorMessage => {
-  return message?.kind === SimulationMessageKind.DsrRouteErrorMessage;
+  return message?.kind === MessageType.DsrRouteErrorMessage;
 };
 
 const getRouteChange = (event: Event): RoutingTableChangeDetails | null => {

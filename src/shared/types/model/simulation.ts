@@ -20,7 +20,7 @@ export const EventType = {
 
 export type EventType = (typeof EventType)[keyof typeof EventType];
 
-export const SimulationMessageKind = {
+export const MessageType = {
   Packet: "PACKET",
   BatmanOriginatorMessage: "BATMAN_ORIGINATOR_MESSAGE",
   BatmanEchoLocationMessage: "BATMAN_ECHO_LOCATION_MESSAGE",
@@ -36,18 +36,17 @@ export const SimulationMessageKind = {
   DsrRouteErrorMessage: "DSR_ROUTE_ERROR_MESSAGE",
 } as const;
 
-export type SimulationMessageKind =
-  (typeof SimulationMessageKind)[keyof typeof SimulationMessageKind];
+export type MessageType = (typeof MessageType)[keyof typeof MessageType];
 
 export type Packet = {
-  kind: typeof SimulationMessageKind.Packet;
+  kind: typeof MessageType.Packet;
   sourcePeerId: UUID | null;
   destinationPeerId: UUID;
   timeToLive: number;
 };
 
 export type BatmanOriginatorMessage = {
-  kind: typeof SimulationMessageKind.BatmanOriginatorMessage;
+  kind: typeof MessageType.BatmanOriginatorMessage;
   version: number;
   sourcePeerId: UUID;
   senderPeerId: UUID;
@@ -74,7 +73,7 @@ export const QualityWindowBit = {
 export type QualityWindowBit = (typeof QualityWindowBit)[keyof typeof QualityWindowBit];
 
 export type BatmanEchoLocationMessage = {
-  kind: typeof SimulationMessageKind.BatmanEchoLocationMessage;
+  kind: typeof MessageType.BatmanEchoLocationMessage;
   packetType: typeof BatmanPacketType.EchoLocationProtocol;
   version: number;
   sourcePeerId: UUID;
@@ -101,7 +100,7 @@ export type DsdvRouteEntryMessage = {
 };
 
 export type DsdvRouteUpdateMessage = {
-  kind: typeof SimulationMessageKind.DsdvRouteUpdateMessage;
+  kind: typeof MessageType.DsdvRouteUpdateMessage;
   updateType: DsdvUpdateType;
   sourcePeerId: UUID;
   senderPeerId: UUID;
@@ -110,7 +109,7 @@ export type DsdvRouteUpdateMessage = {
 };
 
 export type AodvRouteRequestMessage = {
-  kind: typeof SimulationMessageKind.AodvRouteRequestMessage;
+  kind: typeof MessageType.AodvRouteRequestMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   destinationPeerId: UUID;
@@ -121,7 +120,7 @@ export type AodvRouteRequestMessage = {
 };
 
 export type AodvRouteReplyMessage = {
-  kind: typeof SimulationMessageKind.AodvRouteReplyMessage;
+  kind: typeof MessageType.AodvRouteReplyMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   targetPeerId: UUID;
@@ -139,7 +138,7 @@ export type AodvUnreachableDestination = {
 };
 
 export type AodvRouteErrorMessage = {
-  kind: typeof SimulationMessageKind.AodvRouteErrorMessage;
+  kind: typeof MessageType.AodvRouteErrorMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   targetPeerId: UUID | null;
@@ -148,7 +147,7 @@ export type AodvRouteErrorMessage = {
 };
 
 export type AodvHelloMessage = {
-  kind: typeof SimulationMessageKind.AodvHelloMessage;
+  kind: typeof MessageType.AodvHelloMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   destinationSequenceNumber: number;
@@ -157,7 +156,7 @@ export type AodvHelloMessage = {
 };
 
 export type OlsrHelloMessage = {
-  kind: typeof SimulationMessageKind.OlsrHelloMessage;
+  kind: typeof MessageType.OlsrHelloMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   interval: number;
@@ -166,7 +165,7 @@ export type OlsrHelloMessage = {
 };
 
 export type OlsrTcMessage = {
-  kind: typeof SimulationMessageKind.OlsrTcMessage;
+  kind: typeof MessageType.OlsrTcMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   ansn: number;
@@ -175,7 +174,7 @@ export type OlsrTcMessage = {
 };
 
 export type DsrRouteRequestMessage = {
-  kind: typeof SimulationMessageKind.DsrRouteRequestMessage;
+  kind: typeof MessageType.DsrRouteRequestMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   targetPeerId: UUID;
@@ -185,7 +184,7 @@ export type DsrRouteRequestMessage = {
 };
 
 export type DsrRouteReplyMessage = {
-  kind: typeof SimulationMessageKind.DsrRouteReplyMessage;
+  kind: typeof MessageType.DsrRouteReplyMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   targetPeerId: UUID;
@@ -195,7 +194,7 @@ export type DsrRouteReplyMessage = {
 };
 
 export type DsrRouteErrorMessage = {
-  kind: typeof SimulationMessageKind.DsrRouteErrorMessage;
+  kind: typeof MessageType.DsrRouteErrorMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   destinationPeerId: UUID;

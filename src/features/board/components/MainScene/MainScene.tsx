@@ -1,5 +1,5 @@
 import Scene from "@/features/board/components/Scene/Scene";
-import SimulationPanel from "@/features/simulation/components/SimulationPanel/SimulationPanel";
+import EventDescription from "@/features/simulation/components/EventDescription/EventDescription";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as PlacementMode } from "@/shared/types/action";
 import type { Event, StepResult } from "@/shared/types/model/simulation";
@@ -73,7 +73,7 @@ export default function MainScene({
         style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)` }}
       >
         {currentSimulationStepResult && currentSimulationEvent && simulationAnchorPosition ? (
-          <SimulationPanel
+          <EventDescription
             key={`${currentSimulationStepResult.step.id}-${currentSimulationEvent.id}`}
             anchorX={simulationAnchorPosition.x}
             anchorY={simulationAnchorPosition.y}

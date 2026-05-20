@@ -1,6 +1,6 @@
 import {
   DsdvUpdateType,
-  SimulationMessageKind,
+  MessageType,
   type Event,
   type Message,
   type OlsrHelloMessage,
@@ -125,7 +125,7 @@ export default function PacketStructureWindow({
         </button>
       </header>
       <section className="simulation-panel__section">
-        {eventMessage?.kind === SimulationMessageKind.BatmanOriginatorMessage ? (
+        {eventMessage?.kind === MessageType.BatmanOriginatorMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getBatmanOgmStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-${rowIndex}`}>
@@ -155,7 +155,7 @@ export default function PacketStructureWindow({
               </div>
             ))}
           </div>
-        ) : eventMessage?.kind === SimulationMessageKind.BatmanEchoLocationMessage ? (
+        ) : eventMessage?.kind === MessageType.BatmanEchoLocationMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getBatmanElpStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-elp-${rowIndex}`}>
@@ -185,7 +185,7 @@ export default function PacketStructureWindow({
               </div>
             ))}
           </div>
-        ) : eventMessage?.kind === SimulationMessageKind.DsdvRouteUpdateMessage ? (
+        ) : eventMessage?.kind === MessageType.DsdvRouteUpdateMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getDsdvStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-dsdv-${rowIndex}`}>
@@ -215,10 +215,10 @@ export default function PacketStructureWindow({
               </div>
             ))}
           </div>
-        ) : eventMessage?.kind === SimulationMessageKind.AodvRouteRequestMessage ||
-          eventMessage?.kind === SimulationMessageKind.AodvRouteReplyMessage ||
-          eventMessage?.kind === SimulationMessageKind.AodvRouteErrorMessage ||
-          eventMessage?.kind === SimulationMessageKind.AodvHelloMessage ? (
+        ) : eventMessage?.kind === MessageType.AodvRouteRequestMessage ||
+          eventMessage?.kind === MessageType.AodvRouteReplyMessage ||
+          eventMessage?.kind === MessageType.AodvRouteErrorMessage ||
+          eventMessage?.kind === MessageType.AodvHelloMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getAodvStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-aodv-${rowIndex}`}>
@@ -248,7 +248,7 @@ export default function PacketStructureWindow({
               </div>
             ))}
           </div>
-        ) : eventMessage?.kind === SimulationMessageKind.OlsrHelloMessage ? (
+        ) : eventMessage?.kind === MessageType.OlsrHelloMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getOlsrHelloStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div
@@ -281,7 +281,7 @@ export default function PacketStructureWindow({
               </div>
             ))}
           </div>
-        ) : eventMessage?.kind === SimulationMessageKind.OlsrTcMessage ? (
+        ) : eventMessage?.kind === MessageType.OlsrTcMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getOlsrTcStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-olsr-tc-${rowIndex}`}>
@@ -306,9 +306,9 @@ export default function PacketStructureWindow({
               </div>
             ))}
           </div>
-        ) : eventMessage?.kind === SimulationMessageKind.DsrRouteRequestMessage ||
-          eventMessage?.kind === SimulationMessageKind.DsrRouteReplyMessage ||
-          eventMessage?.kind === SimulationMessageKind.DsrRouteErrorMessage ? (
+        ) : eventMessage?.kind === MessageType.DsrRouteRequestMessage ||
+          eventMessage?.kind === MessageType.DsrRouteReplyMessage ||
+          eventMessage?.kind === MessageType.DsrRouteErrorMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getDsrStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-dsr-${rowIndex}`}>
@@ -360,47 +360,47 @@ export default function PacketStructureWindow({
 }
 
 const getPacketInspectorTitle = (message: Message | null) => {
-  if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+  if (message?.kind === MessageType.BatmanEchoLocationMessage) {
     return "Echo Location Message (ELP)";
   }
 
-  if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
+  if (message?.kind === MessageType.DsdvRouteUpdateMessage) {
     return "DSDV Update Message";
   }
 
-  if (message?.kind === SimulationMessageKind.AodvRouteRequestMessage) {
+  if (message?.kind === MessageType.AodvRouteRequestMessage) {
     return "AODV Route Request (RREQ)";
   }
 
-  if (message?.kind === SimulationMessageKind.AodvRouteReplyMessage) {
+  if (message?.kind === MessageType.AodvRouteReplyMessage) {
     return "AODV Route Reply (RREP)";
   }
 
-  if (message?.kind === SimulationMessageKind.AodvRouteErrorMessage) {
+  if (message?.kind === MessageType.AodvRouteErrorMessage) {
     return "AODV Route Error (RERR)";
   }
 
-  if (message?.kind === SimulationMessageKind.AodvHelloMessage) {
+  if (message?.kind === MessageType.AodvHelloMessage) {
     return "AODV HELLO Message";
   }
 
-  if (message?.kind === SimulationMessageKind.OlsrHelloMessage) {
+  if (message?.kind === MessageType.OlsrHelloMessage) {
     return "OLSR HELLO Message";
   }
 
-  if (message?.kind === SimulationMessageKind.OlsrTcMessage) {
+  if (message?.kind === MessageType.OlsrTcMessage) {
     return "OLSR TC Message";
   }
 
-  if (message?.kind === SimulationMessageKind.DsrRouteRequestMessage) {
+  if (message?.kind === MessageType.DsrRouteRequestMessage) {
     return "DSR Route Request (RREQ)";
   }
 
-  if (message?.kind === SimulationMessageKind.DsrRouteReplyMessage) {
+  if (message?.kind === MessageType.DsrRouteReplyMessage) {
     return "DSR Route Reply (RREP)";
   }
 
-  if (message?.kind === SimulationMessageKind.DsrRouteErrorMessage) {
+  if (message?.kind === MessageType.DsrRouteErrorMessage) {
     return "DSR Route Error (RERR)";
   }
 
@@ -408,47 +408,47 @@ const getPacketInspectorTitle = (message: Message | null) => {
 };
 
 const getPacketInspectorStructureAria = (message: Message | null) => {
-  if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+  if (message?.kind === MessageType.BatmanEchoLocationMessage) {
     return "Echo Location Message structure";
   }
 
-  if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
+  if (message?.kind === MessageType.DsdvRouteUpdateMessage) {
     return "DSDV route update structure";
   }
 
-  if (message?.kind === SimulationMessageKind.AodvRouteRequestMessage) {
+  if (message?.kind === MessageType.AodvRouteRequestMessage) {
     return "AODV Route Request structure";
   }
 
-  if (message?.kind === SimulationMessageKind.AodvRouteReplyMessage) {
+  if (message?.kind === MessageType.AodvRouteReplyMessage) {
     return "AODV Route Reply structure";
   }
 
-  if (message?.kind === SimulationMessageKind.AodvRouteErrorMessage) {
+  if (message?.kind === MessageType.AodvRouteErrorMessage) {
     return "AODV Route Error structure";
   }
 
-  if (message?.kind === SimulationMessageKind.AodvHelloMessage) {
+  if (message?.kind === MessageType.AodvHelloMessage) {
     return "AODV HELLO structure";
   }
 
-  if (message?.kind === SimulationMessageKind.OlsrHelloMessage) {
+  if (message?.kind === MessageType.OlsrHelloMessage) {
     return "OLSR HELLO message structure";
   }
 
-  if (message?.kind === SimulationMessageKind.OlsrTcMessage) {
+  if (message?.kind === MessageType.OlsrTcMessage) {
     return "OLSR TC message structure";
   }
 
-  if (message?.kind === SimulationMessageKind.DsrRouteRequestMessage) {
+  if (message?.kind === MessageType.DsrRouteRequestMessage) {
     return "DSR Route Request message structure";
   }
 
-  if (message?.kind === SimulationMessageKind.DsrRouteReplyMessage) {
+  if (message?.kind === MessageType.DsrRouteReplyMessage) {
     return "DSR Route Reply message structure";
   }
 
-  if (message?.kind === SimulationMessageKind.DsrRouteErrorMessage) {
+  if (message?.kind === MessageType.DsrRouteErrorMessage) {
     return "DSR Route Error message structure";
   }
 
@@ -456,51 +456,51 @@ const getPacketInspectorStructureAria = (message: Message | null) => {
 };
 
 const getPacketReadMorePath = (message: Message | null) => {
-  if (message?.kind === SimulationMessageKind.BatmanEchoLocationMessage) {
+  if (message?.kind === MessageType.BatmanEchoLocationMessage) {
     return "/docs/batman#echo-location-protocol";
   }
 
-  if (message?.kind === SimulationMessageKind.BatmanOriginatorMessage) {
+  if (message?.kind === MessageType.BatmanOriginatorMessage) {
     return "/docs/batman#originator-message";
   }
 
-  if (message?.kind === SimulationMessageKind.DsdvRouteUpdateMessage) {
+  if (message?.kind === MessageType.DsdvRouteUpdateMessage) {
     return "/docs/dsdv#full-and-incremental-updates";
   }
 
-  if (message?.kind === SimulationMessageKind.AodvRouteRequestMessage) {
+  if (message?.kind === MessageType.AodvRouteRequestMessage) {
     return "/docs/aodv#route-discovery";
   }
 
-  if (message?.kind === SimulationMessageKind.AodvRouteReplyMessage) {
+  if (message?.kind === MessageType.AodvRouteReplyMessage) {
     return "/docs/aodv#route-discovery";
   }
 
-  if (message?.kind === SimulationMessageKind.AodvRouteErrorMessage) {
+  if (message?.kind === MessageType.AodvRouteErrorMessage) {
     return "/docs/aodv#route-maintenance";
   }
 
-  if (message?.kind === SimulationMessageKind.AodvHelloMessage) {
+  if (message?.kind === MessageType.AodvHelloMessage) {
     return "/docs/aodv#route-maintenance";
   }
 
-  if (message?.kind === SimulationMessageKind.OlsrHelloMessage) {
+  if (message?.kind === MessageType.OlsrHelloMessage) {
     return "/docs/olsr#neighbor-sensing";
   }
 
-  if (message?.kind === SimulationMessageKind.OlsrTcMessage) {
+  if (message?.kind === MessageType.OlsrTcMessage) {
     return "/docs/olsr#topology-discovery";
   }
 
-  if (message?.kind === SimulationMessageKind.DsrRouteRequestMessage) {
+  if (message?.kind === MessageType.DsrRouteRequestMessage) {
     return "/docs/dsr#route-discovery";
   }
 
-  if (message?.kind === SimulationMessageKind.DsrRouteReplyMessage) {
+  if (message?.kind === MessageType.DsrRouteReplyMessage) {
     return "/docs/dsr#route-discovery";
   }
 
-  if (message?.kind === SimulationMessageKind.DsrRouteErrorMessage) {
+  if (message?.kind === MessageType.DsrRouteErrorMessage) {
     return "/docs/dsr#route-maintenance";
   }
 
@@ -511,7 +511,7 @@ const getDsrStructureRows = (
   message: Message,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
-  if (message.kind === SimulationMessageKind.DsrRouteRequestMessage) {
+  if (message.kind === MessageType.DsrRouteRequestMessage) {
     const hopRows =
       message.routePeerIds.length > 0
         ? message.routePeerIds.map((peerId) => [
@@ -562,7 +562,7 @@ const getDsrStructureRows = (
     ];
   }
 
-  if (message.kind === SimulationMessageKind.DsrRouteReplyMessage) {
+  if (message.kind === MessageType.DsrRouteReplyMessage) {
     const pathRows = message.routePeerIds.map((peerId) => [
       {
         label: "Address [1...n]",
@@ -601,7 +601,7 @@ const getDsrStructureRows = (
     ];
   }
 
-  if (message.kind === SimulationMessageKind.DsrRouteErrorMessage) {
+  if (message.kind === MessageType.DsrRouteErrorMessage) {
     return [
       [
         {
@@ -670,7 +670,7 @@ const getAodvStructureRows = (
   message: Message,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
-  if (message.kind === SimulationMessageKind.AodvRouteRequestMessage) {
+  if (message.kind === MessageType.AodvRouteRequestMessage) {
     return [
       [
         {
@@ -747,7 +747,7 @@ const getAodvStructureRows = (
     ];
   }
 
-  if (message.kind === SimulationMessageKind.AodvRouteReplyMessage) {
+  if (message.kind === MessageType.AodvRouteReplyMessage) {
     return [
       [
         {
@@ -811,7 +811,7 @@ const getAodvStructureRows = (
     ];
   }
 
-  if (message.kind === SimulationMessageKind.AodvRouteErrorMessage) {
+  if (message.kind === MessageType.AodvRouteErrorMessage) {
     const unreachableRows = message.unreachableDestinations.flatMap((entry) => [
       [
         {
@@ -861,7 +861,7 @@ const getAodvStructureRows = (
     ];
   }
 
-  if (message.kind === SimulationMessageKind.AodvHelloMessage) {
+  if (message.kind === MessageType.AodvHelloMessage) {
     return [
       [
         {
@@ -1080,7 +1080,7 @@ const getDsdvStructureRows = (
   message: Message,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
-  if (message.kind !== SimulationMessageKind.DsdvRouteUpdateMessage) {
+  if (message.kind !== MessageType.DsdvRouteUpdateMessage) {
     return [];
   }
 
@@ -1143,7 +1143,7 @@ const getBatmanOgmStructureRows = (
   message: Message,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
-  if (message.kind !== SimulationMessageKind.BatmanOriginatorMessage) {
+  if (message.kind !== MessageType.BatmanOriginatorMessage) {
     return [];
   }
 
@@ -1221,7 +1221,7 @@ const getBatmanElpStructureRows = (
   message: Message,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
-  if (message.kind !== SimulationMessageKind.BatmanEchoLocationMessage) {
+  if (message.kind !== MessageType.BatmanEchoLocationMessage) {
     return [];
   }
 

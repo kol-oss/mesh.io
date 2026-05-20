@@ -114,6 +114,28 @@
   color: inherit;
 }
 
+.simulation-panel__variable-description {
+  color: $black-800;
+  font-size: 13px;
+  line-height: 1.3;
+  transition: color 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: #0f7fd0;
+  }
+}
+
+.tooltip__anchor.simulation-panel__variable-description-anchor {
+  display: inline;
+  vertical-align: baseline;
+}
+
+.tooltip__anchor.simulation-panel__peer-name-anchor {
+  display: inline;
+  vertical-align: baseline;
+}
+
 .simulation-panel__title {
   font-size: 16px;
   font-weight: 500;

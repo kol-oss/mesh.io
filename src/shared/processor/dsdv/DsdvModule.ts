@@ -13,7 +13,7 @@ import { getDsdvConfiguration } from "@/shared/types/model/peers";
 import {
   DsdvUpdateType,
   EventType,
-  SimulationMessageKind,
+  MessageType,
   type DsdvRouteEntryMessage,
   type DsdvRouteUpdateMessage,
   type Packet,
@@ -87,7 +87,7 @@ export class DsdvModule implements RoutingModule {
       return false;
     }
 
-    if (message.kind === SimulationMessageKind.Packet) {
+    if (message.kind === MessageType.Packet) {
       if (message.destinationPeerId === this.routingPeer.id) {
         return true;
       }
@@ -99,7 +99,7 @@ export class DsdvModule implements RoutingModule {
       return this.routeAndWrite(forwardedPacket);
     }
 
-    if (message.kind !== SimulationMessageKind.DsdvRouteUpdateMessage) {
+    if (message.kind !== MessageType.DsdvRouteUpdateMessage) {
       return false;
     }
 
@@ -291,7 +291,7 @@ export class DsdvModule implements RoutingModule {
     }
 
     const forwardedMessage =
-      message.kind === SimulationMessageKind.Packet && message.sourcePeerId === null
+      message.kind === MessageType.Packet && message.sourcePeerId === null
         ? { ...message, sourcePeerId: this.routingPeer.id }
         : cloneDsdvMessage(message);
 
@@ -330,7 +330,7 @@ export class DsdvModule implements RoutingModule {
     if (routes.length === 0) {
       if (params.updateType === DsdvUpdateType.Incremental && !params.retransmit) {
         const emptyIncrementalMessage: DsdvRouteUpdateMessage = {
-          kind: SimulationMessageKind.DsdvRouteUpdateMessage,
+          kind: MessageType.DsdvRouteUpdateMessage,
           updateType: DsdvUpdateType.Incremental,
           sourcePeerId: this.routingPeer.id,
           senderPeerId: this.routingPeer.id,
@@ -355,7 +355,7 @@ export class DsdvModule implements RoutingModule {
       .filter((peer) => peer.supports(RoutingProtocol.DSDV));
 
     const message: DsdvRouteUpdateMessage = {
-      kind: SimulationMessageKind.DsdvRouteUpdateMessage,
+      kind: MessageType.DsdvRouteUpdateMessage,
       updateType: params.updateType,
       sourcePeerId: params.sourcePeerId ?? this.routingPeer.id,
       senderPeerId: this.routingPeer.id,

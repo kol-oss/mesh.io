@@ -7,7 +7,7 @@ import type { OlsrConfiguration } from "@/shared/types/model/configurations";
 import { getOlsrConfiguration } from "@/shared/types/model/peers";
 import {
   EventType,
-  SimulationMessageKind,
+  MessageType,
   type Message,
   type OlsrHelloMessage,
   type OlsrNeighbourRecord,
@@ -86,7 +86,7 @@ export class OlsrModule implements RoutingModule {
       return false;
     }
 
-    if (message.kind === SimulationMessageKind.Packet) {
+    if (message.kind === MessageType.Packet) {
       if (message.destinationPeerId === this.routingPeer.id) {
         return true;
       }
@@ -98,11 +98,11 @@ export class OlsrModule implements RoutingModule {
       return this.routeAndWrite(forwardedPacket);
     }
 
-    if (message.kind === SimulationMessageKind.OlsrHelloMessage) {
+    if (message.kind === MessageType.OlsrHelloMessage) {
       return this.processHello(message);
     }
 
-    if (message.kind === SimulationMessageKind.OlsrTcMessage) {
+    if (message.kind === MessageType.OlsrTcMessage) {
       return this.processTc(message);
     }
 
@@ -122,7 +122,7 @@ export class OlsrModule implements RoutingModule {
     this.recomputeMprSet();
 
     const helloMessage: OlsrHelloMessage = {
-      kind: SimulationMessageKind.OlsrHelloMessage,
+      kind: MessageType.OlsrHelloMessage,
       sourcePeerId: this.routingPeer.id,
       senderPeerId: this.routingPeer.id,
       interval: clampInterval(this.getConfiguration().helloInterval),
@@ -148,7 +148,7 @@ export class OlsrModule implements RoutingModule {
 
     if (this.selectorPeerIds.size === 0) {
       const tcMessage: OlsrTcMessage = {
-        kind: SimulationMessageKind.OlsrTcMessage,
+        kind: MessageType.OlsrTcMessage,
         sourcePeerId: this.routingPeer.id,
         senderPeerId: this.routingPeer.id,
         ansn: this.ansn,
@@ -167,7 +167,7 @@ export class OlsrModule implements RoutingModule {
 
     this.ansn += 1;
     const tcMessage: OlsrTcMessage = {
-      kind: SimulationMessageKind.OlsrTcMessage,
+      kind: MessageType.OlsrTcMessage,
       sourcePeerId: this.routingPeer.id,
       senderPeerId: this.routingPeer.id,
       ansn: this.ansn,
@@ -741,7 +741,7 @@ export class OlsrModule implements RoutingModule {
     }
 
     const forwardedMessage =
-      message.kind === SimulationMessageKind.Packet && message.sourcePeerId === null
+      message.kind === MessageType.Packet && message.sourcePeerId === null
         ? { ...message, sourcePeerId: this.routingPeer.id }
         : cloneOlsrMessage(message);
 

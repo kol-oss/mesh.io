@@ -1,15 +1,15 @@
-import { SimulationMessageKind, type Message } from "@/shared/types/model/simulation";
+import { MessageType, type Message } from "@/shared/types/model/simulation";
 
 export const cloneDsrMessage = <T extends Message>(message: T): T => {
   return {
     ...message,
-    ...(message.kind === SimulationMessageKind.DsrRouteRequestMessage
+    ...(message.kind === MessageType.DsrRouteRequestMessage
       ? { routePeerIds: [...message.routePeerIds] }
       : {}),
-    ...(message.kind === SimulationMessageKind.DsrRouteReplyMessage
+    ...(message.kind === MessageType.DsrRouteReplyMessage
       ? { routePeerIds: [...message.routePeerIds] }
       : {}),
-    ...(message.kind === SimulationMessageKind.DsrRouteErrorMessage
+    ...(message.kind === MessageType.DsrRouteErrorMessage
       ? { routePeerIds: [...message.routePeerIds] }
       : {}),
   };
@@ -22,9 +22,9 @@ export const isDsrSimulationMessage = (value: unknown): value is Message => {
 
   const candidate = value as Partial<Message>;
   return (
-    candidate.kind === SimulationMessageKind.Packet ||
-    candidate.kind === SimulationMessageKind.DsrRouteRequestMessage ||
-    candidate.kind === SimulationMessageKind.DsrRouteReplyMessage ||
-    candidate.kind === SimulationMessageKind.DsrRouteErrorMessage
+    candidate.kind === MessageType.Packet ||
+    candidate.kind === MessageType.DsrRouteRequestMessage ||
+    candidate.kind === MessageType.DsrRouteReplyMessage ||
+    candidate.kind === MessageType.DsrRouteErrorMessage
   );
 };

@@ -12,7 +12,7 @@ import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
 import {
   EventType,
-  SimulationMessageKind,
+  MessageType,
   type BatmanEchoLocationMessage,
   type BatmanNeighbourRecord,
   type BatmanOriginatorMessage,
@@ -193,7 +193,7 @@ export class BatmanOperations {
     }
 
     const forwardedMessage =
-      message.kind === SimulationMessageKind.Packet && message.sourcePeerId === null
+      message.kind === MessageType.Packet && message.sourcePeerId === null
         ? { ...message, sourcePeerId: this.routingPeer.id }
         : cloneMessage(message);
 
