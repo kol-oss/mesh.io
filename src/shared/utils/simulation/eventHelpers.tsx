@@ -40,7 +40,7 @@ export const getEventTitle = (event: Event) => {
     case EventType.Routing:
       return "Route Selected";
     case EventType.Calculation:
-      return EventTitle.ThroughputChange;
+      return EventTitle.ThroughputCalculation;
     case EventType.Drop:
       return getDroppedTitle(event, message);
     case EventType.Move:

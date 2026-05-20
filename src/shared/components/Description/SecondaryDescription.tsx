@@ -22,9 +22,9 @@ export default function SecondaryDescription({ title, children }: SecondaryDescr
           <span className="simulation-panel__tq-toggle-label">{title}</span>
         </button>
         {isOpened ? (
-          <p className="simulation-panel__description simulation-panel__description--secondary">
+          <div className="simulation-panel__description simulation-panel__description--secondary">
             {children}
-          </p>
+          </div>
         ) : null}
       </div>
     </>

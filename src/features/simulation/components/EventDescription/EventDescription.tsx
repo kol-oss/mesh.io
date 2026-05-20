@@ -1,18 +1,14 @@
 import type { UUID } from "@/shared/types/common/uuid";
-import { QualityWindowBit, type Event, type StepResult } from "@/shared/types/model/simulation";
+import { type Event, type StepResult } from "@/shared/types/model/simulation";
 import {
-  getEventDescription,
   getEventMessage,
   getEventTitle,
-  getMessageSummary,
   getPeerLabel,
   getRouteChange,
-  getRouteRows,
   getRouteSequenceWindowExplanation,
   getSelectedRoute,
   getSimulationReadMorePath,
   getThroughputBreakdown,
-  isBatmanRouteRecord,
   renderPeerName,
 } from "@/shared/utils/simulation/eventPresentation";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
@@ -47,11 +43,9 @@ export default function EventDescription({
   currentEventIndex,
   currentEventsTotal,
   currentStepResult,
-  isSequenceDisclosureOpen,
   onPeerHoverChange,
   onNextEvent,
   onPrevEvent,
-  onSequenceDisclosureToggle,
 }: SimulationPanelProps) {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -106,7 +100,6 @@ export default function EventDescription({
   const selectedRoute = getSelectedRoute(currentEvent);
   const currentMessage = getEventMessage(currentEvent);
   const title = getEventTitle(currentEvent);
-  const description = getEventDescription(currentEvent, peerNameById);
   const eventOwner = peerNameById.has(currentEvent.peerId)
     ? renderPeerName(
         currentEvent.peerId,
@@ -114,14 +107,11 @@ export default function EventDescription({
         onPeerHoverChange,
       )
     : currentEvent.peerId;
-  const routeRows = routeChange ? getRouteRows(routeChange) : selectedRoute ? [selectedRoute] : [];
 
   const throughputBreakdown = getThroughputBreakdown(currentEvent);
   const routeSequenceWindowExplanation = routeChange
     ? getRouteSequenceWindowExplanation(currentEvent)
     : null;
-  const messageSummary =
-    routeRows.length > 0 ? null : getMessageSummary(currentEvent, peerNameById, onPeerHoverChange);
   const readMorePath = getSimulationReadMorePath(
     currentEvent,
     currentMessage,
@@ -150,10 +140,6 @@ export default function EventDescription({
     event.preventDefault();
   };
 
-  const handleSequenceDisclosureToggle = () => {
-    onSequenceDisclosureToggle(currentEvent.id);
-  };
-
   return (
     <aside
       className={`simulation-panel simulation-panel--tooltip${isDragging ? " simulation-panel--dragging" : ""}`}
@@ -170,147 +156,11 @@ export default function EventDescription({
 
       {/* Body */}
       <section className="simulation-panel__section">
-        <BatmanDescription event={currentEvent} />
-
-        {routeRows.length > 0 ? (
-          <div className="simulation-panel__table-block">
-            <table className="simulation-panel__table-view">
-              <thead>
-                {isBatmanRouteRecord(routeRows[0]) ? (
-                  <tr>
-                    <th>{"Originator"}</th>
-                    <th>{"Next Hop"}</th>
-                    <th>{"Throughput"}</th>
-                    <th>{"Last Seen"}</th>
-                  </tr>
-                ) : (
-                  <tr>
-                    <th>{"Destination"}</th>
-                    <th>{"Next Hop"}</th>
-                    <th>{"Metric"}</th>
-                    <th>{"Sequence Number"}</th>
-                    {"pathPeerIds" in routeRows[0] ? <th>{"Path"}</th> : null}
-                    <th>{"Last Update"}</th>
-                  </tr>
-                )}
-              </thead>
-              <tbody>
-                {routeRows.map((row, index) =>
-                  isBatmanRouteRecord(row) ? (
-                    <tr key={`${row.originatorPeerId}-${row.hopPeerId}-${index}`}>
-                      <td>
-                        {renderPeerName(
-                          row.originatorPeerId,
-                          getPeerLabel(row.originatorPeerId, peerNameById),
-                          onPeerHoverChange,
-                        )}
-                      </td>
-                      <td>
-                        {renderPeerName(
-                          row.hopPeerId,
-                          getPeerLabel(row.hopPeerId, peerNameById),
-                          onPeerHoverChange,
-                        )}
-                      </td>
-                      <td>{row.quality}</td>
-                      <td>{row.lastTick}</td>
-                    </tr>
-                  ) : (
-                    <tr key={`${row.destinationPeerId}-${row.nextHopPeerId}-${index}`}>
-                      <td>
-                        {renderPeerName(
-                          row.destinationPeerId,
-                          getPeerLabel(row.destinationPeerId, peerNameById),
-                          onPeerHoverChange,
-                        )}
-                      </td>
-                      <td>
-                        {renderPeerName(
-                          row.nextHopPeerId,
-                          getPeerLabel(row.nextHopPeerId, peerNameById),
-                          onPeerHoverChange,
-                        )}
-                      </td>
-                      <td>{row.metric}</td>
-                      <td>{row.sequenceNumber}</td>
-                      {"pathPeerIds" in row && Array.isArray(row.pathPeerIds) ? (
-                        <td>
-                          {(row.pathPeerIds as UUID[])
-                            .map((peerId) => getPeerLabel(peerId, peerNameById))
-                            .join(" -> ")}
-                        </td>
-                      ) : null}
-                      <td>{row.lastUpdateTick}</td>
-                    </tr>
-                  ),
-                )}
-              </tbody>
-            </table>
-            {routeSequenceWindowExplanation ? (
-              <div className="simulation-panel__tq-disclosure">
-                <button
-                  className="simulation-panel__tq-toggle"
-                  type="button"
-                  onClick={handleSequenceDisclosureToggle}
-                  aria-expanded={isSequenceDisclosureOpen}
-                >
-                  <ChevronRight
-                    size={12}
-                    className={`simulation-panel__tq-toggle-icon${isSequenceDisclosureOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
-                  />
-                  <span className="simulation-panel__tq-toggle-label">
-                    {"What is Sequence Protection Window?"}
-                  </span>
-                </button>
-                {isSequenceDisclosureOpen ? (
-                  <p className="simulation-panel__description simulation-panel__description--secondary">
-                    {routeSequenceWindowExplanation}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-            {isSequenceDisclosureOpen &&
-            routeSequenceWindowExplanation &&
-            isBatmanRouteRecord(routeRows[0])
-              ? routeRows.filter(isBatmanRouteRecord).map((row, index) => (
-                  <div
-                    className="simulation-panel__quality-window"
-                    key={`window-${row.originatorPeerId}-${row.hopPeerId}-${index}`}
-                  >
-                    <p className="simulation-panel__quality-window-label">
-                      {"Sequence Protection Window"}
-                    </p>
-                    <div
-                      className="simulation-panel__quality-window-bits"
-                      aria-label={"Sequence protection window bits"}
-                    >
-                      {row.qualityWindow.split("").map((bit, bitIndex) => (
-                        <span
-                          className={`simulation-panel__quality-window-bit${bit === QualityWindowBit.Active ? " simulation-panel__quality-window-bit--active" : ""}`}
-                          key={`${row.originatorPeerId}-${row.hopPeerId}-${bitIndex}`}
-                        >
-                          {bit}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              : null}
-          </div>
-        ) : messageSummary ? (
-          <div className="simulation-panel__table-block">
-            <table className="simulation-panel__table-view simulation-panel__table-view--message">
-              <tbody>
-                {messageSummary.map((item) => (
-                  <tr key={item.label}>
-                    <th scope="row">{item.label}</th>
-                    <td>{item.value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : null}
+        <BatmanDescription
+          event={currentEvent}
+          peers={currentStepResult.snapshot.peers}
+          onPeerHover={onPeerHoverChange}
+        />
       </section>
 
       {/* Footer */}

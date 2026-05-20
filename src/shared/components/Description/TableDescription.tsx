@@ -1,15 +1,16 @@
 type TableDescriptionProps = {
-  headers: string[];
+  fontSize?: number;
+  headers?: string[];
   rows: React.ReactNode[][];
 };
 
-export default function TableDescription({ headers, rows }: TableDescriptionProps) {
+export default function TableDescription({ fontSize, headers, rows }: TableDescriptionProps) {
   return (
     <>
-      <table className="simulation-panel__table-view">
+      <table className="simulation-panel__table-view" style={{ fontSize }}>
         <thead>
           <tr>
-            {headers.map((header, index) => (
+            {headers?.map((header, index) => (
               <th key={index}>{header}</th>
             ))}
           </tr>

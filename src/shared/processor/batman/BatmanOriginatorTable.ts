@@ -200,7 +200,7 @@ export class BatmanOriginatorTable {
       originatorPeerId,
       hopPeerId: route.hopPeerId,
       quality: route.throughput,
-      qualityWindow: route.sequenceWindow.toString(),
+      qualityWindow: route.sequenceWindow.toArray(),
       lastTick: route.lastTick,
     };
   }

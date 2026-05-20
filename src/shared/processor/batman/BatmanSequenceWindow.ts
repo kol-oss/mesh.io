@@ -1,4 +1,3 @@
-import { QualityWindowBit } from "@/shared/types/model/simulation.ts";
 import { BATMAN_PROTECTION_WINDOW_SIZE } from "@/shared/constants/batman.ts";
 
 export class BatmanSequenceWindow {
@@ -44,9 +43,7 @@ export class BatmanSequenceWindow {
     return true;
   }
 
-  toString() {
-    return this.bits
-      .map((bit) => (bit ? QualityWindowBit.Active : QualityWindowBit.Inactive))
-      .join("");
+  toArray(): boolean[] {
+    return [...this.bits];
   }
 }

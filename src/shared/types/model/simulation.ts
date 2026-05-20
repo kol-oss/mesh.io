@@ -63,13 +63,6 @@ export const BatmanPacketType = {
 
 export type BatmanPacketType = (typeof BatmanPacketType)[keyof typeof BatmanPacketType];
 
-export const QualityWindowBit = {
-  Active: "1",
-  Inactive: "0",
-} as const;
-
-export type QualityWindowBit = (typeof QualityWindowBit)[keyof typeof QualityWindowBit];
-
 export type BatmanEchoLocationMessage = {
   kind: typeof MessageType.BatmanEchoLocationMessage;
   packetType: typeof BatmanPacketType.EchoLocationProtocol;
@@ -221,7 +214,7 @@ export type BatmanRouteRecord = {
   originatorPeerId: UUID;
   hopPeerId: UUID;
   quality: number;
-  qualityWindow: string;
+  qualityWindow: boolean[];
   lastTick: number;
 };
 

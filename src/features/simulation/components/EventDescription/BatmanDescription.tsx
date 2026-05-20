@@ -1,20 +1,28 @@
+import PeerDescription from "@/shared/components/Description/PeerDescription";
 import SecondaryDescription from "@/shared/components/Description/SecondaryDescription";
+import TableDescription from "@/shared/components/Description/TableDescription";
 import VariableDescription from "@/shared/components/Description/VariableDescription";
 import { BATMAN_EWMA_ALPHA, BATMAN_WIRELESS_BASE_THROUGHPUT } from "@/shared/constants/batman";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { PeerEntity } from "@/shared/types/model/entities";
 import {
   EventType,
   MessageType,
+  type BatmanRoutingTableChangeDetails,
   type BroadcastEventDetails,
   type Event,
   type ThroughputCalculationEventDetails,
 } from "@/shared/types/model/simulation";
+import { findById } from "@/shared/utils/peers";
 import TextDescription from "../../../../shared/components/Description/TextDescription";
 
 type BatmanDescriptionProps = {
+  peers: PeerEntity[];
   event: Event;
+  onPeerHover: (peerId: UUID) => void;
 };
 
-export default function BatmanDescription({ event }: BatmanDescriptionProps) {
+export default function BatmanDescription({ peers, event, onPeerHover }: BatmanDescriptionProps) {
   const { type, details } = event;
 
   if (type === EventType.Broadcast) {
@@ -137,7 +145,10 @@ export default function BatmanDescription({ event }: BatmanDescriptionProps) {
           </SecondaryDescription>
         </>
       );
-    } else if (ogmSelection) {
+    }
+
+    // OGMv2 throughput calculation
+    if (ogmSelection) {
       const {
         receivedThroughput,
         neighbourThroughput,
@@ -171,6 +182,50 @@ export default function BatmanDescription({ event }: BatmanDescriptionProps) {
         </>
       );
     }
+  }
+
+  if (type === EventType.AddRoute || type === EventType.UpdateRoute) {
+    const { nextRoute } = details as BatmanRoutingTableChangeDetails;
+
+    return (
+      <>
+        <TextDescription>
+          After receiving OGMv2 messages, the node evaluates if the new path offers better
+          throughput than the existing one. If so, it updates its routing table with the new route
+          and throughput value, which will be used for forwarding packets to that destination.
+        </TextDescription>
+        <TableDescription
+          headers={["Destination", "Next Hop", "Throughput", "Last Seen"]}
+          rows={[
+            [
+              <PeerDescription
+                peer={findById(nextRoute?.originatorPeerId as UUID, peers)}
+                onHover={onPeerHover}
+              />,
+              <PeerDescription
+                peer={findById(nextRoute?.hopPeerId as UUID, peers)}
+                onHover={onPeerHover}
+              />,
+              nextRoute?.quality,
+              nextRoute?.lastTick,
+            ],
+          ]}
+        />
+        <SecondaryDescription title="How the duplicates are handled?">
+          <p>
+            The duplicate suppression mechanism is designed to prevent the processing of duplicate
+            or out-of-range messages by maintaining a Sequence Protection Window. This window tracks
+            the accepted sequence numbers for each originator peer, and when a new OGM is received,
+            its sequence number is compared against the other entries.
+          </p>
+          <br />
+          <TableDescription
+            rows={[(nextRoute?.qualityWindow ?? []).slice(0, 16).map((bit) => (bit ? "1" : "0"))]}
+            fontSize={8}
+          />
+        </SecondaryDescription>
+      </>
+    );
   }
 
   return (
