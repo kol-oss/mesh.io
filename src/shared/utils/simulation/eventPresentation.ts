@@ -105,7 +105,7 @@ const detectEventProtocol = (event: Event, message: Message | null) => {
     return routeChange.protocol;
   }
 
-  if (event.type === EventType.Routing) {
+  if (event.type === EventType.GetRoute) {
     return (event.details as RouteSelectedEventDetails).protocol;
   }
 
@@ -203,7 +203,7 @@ export const getEventTitle = (event: Event) => {
         return "Packet Send Failed";
       }
 
-      if (event.type === EventType.Routing) {
+      if (event.type === EventType.GetRoute) {
         return "Route Selected";
       }
 
@@ -243,7 +243,7 @@ export const getEventTitle = (event: Event) => {
         return "Packet Send Failed";
       }
 
-      if (event.type === EventType.Routing) {
+      if (event.type === EventType.GetRoute) {
         return "Route Selected";
       }
 
@@ -282,7 +282,7 @@ export const getEventTitle = (event: Event) => {
       return "Packet Send Failed";
     }
 
-    if (event.type === EventType.Routing) {
+    if (event.type === EventType.GetRoute) {
       return "Route Selected";
     }
 
@@ -311,7 +311,7 @@ export const getEventTitle = (event: Event) => {
     return "DSDV Update Dropped";
   }
 
-  if (event.type === EventType.Routing) {
+  if (event.type === EventType.GetRoute) {
     return "Route Selected";
   }
 
@@ -361,7 +361,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
         return `The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${details.reason}.`;
       }
 
-      if (event.type === EventType.Routing) {
+      if (event.type === EventType.GetRoute) {
         const details = event.details as RouteSelectedEventDetails;
         if ("nextHopPeerId" in details.selectedRoute) {
           return `Selected AODV route to ${getPeerNameForDescription(details.destinationPeerId, peerNameById)} via ${getPeerNameForDescription(details.selectedRoute.nextHopPeerId, peerNameById)} with hop count ${details.selectedRoute.metric} and destination sequence ${details.selectedRoute.sequenceNumber}.`;
@@ -402,7 +402,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
         return `The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${details.reason}.`;
       }
 
-      if (event.type === EventType.Routing) {
+      if (event.type === EventType.GetRoute) {
         const details = event.details as RouteSelectedEventDetails;
         if ("pathPeerIds" in details.selectedRoute) {
           return `Selected DSR source route to ${getPeerNameForDescription(details.destinationPeerId, peerNameById)} via ${getPeerNameForDescription(details.selectedRoute.nextHopPeerId, peerNameById)} (${details.selectedRoute.metric} hops). Full path: ${details.selectedRoute.pathPeerIds
@@ -442,7 +442,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
       return `The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${details.reason}.`;
     }
 
-    if (event.type === EventType.Routing) {
+    if (event.type === EventType.GetRoute) {
       const details = event.details as RouteSelectedEventDetails;
       if ("nextHopPeerId" in details.selectedRoute) {
         return `Selected OLSR route to ${getPeerNameForDescription(details.destinationPeerId, peerNameById)} via ${getPeerNameForDescription(details.selectedRoute.nextHopPeerId, peerNameById)} with hop metric ${details.selectedRoute.metric}.`;
@@ -484,7 +484,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
     return `The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${details.reason}.`;
   }
 
-  if (event.type === EventType.Routing) {
+  if (event.type === EventType.GetRoute) {
     const details = event.details as RouteSelectedEventDetails;
     if ("nextHopPeerId" in details.selectedRoute) {
       return `Selected DSDV route to ${getPeerLabel(details.destinationPeerId, peerNameById)} via ${getPeerLabel(details.selectedRoute.nextHopPeerId, peerNameById)} with metric ${details.selectedRoute.metric} and sequence ${details.selectedRoute.sequenceNumber}.`;
@@ -522,7 +522,7 @@ export const getSimulationReadMorePath = (
       return "/docs/dsdv#routing-maintenance";
     }
 
-    if (event.type === EventType.Routing) {
+    if (event.type === EventType.GetRoute) {
       return "/docs/dsdv#route-selection";
     }
 
@@ -542,7 +542,7 @@ export const getSimulationReadMorePath = (
       return "/docs/dsr#route-cache";
     }
 
-    if (event.type === EventType.Routing) {
+    if (event.type === EventType.GetRoute) {
       return "/docs/dsr#route-selection";
     }
 
@@ -570,7 +570,7 @@ export const getSimulationReadMorePath = (
       return "/docs/aodv#routing-table";
     }
 
-    if (event.type === EventType.Routing) {
+    if (event.type === EventType.GetRoute) {
       return "/docs/aodv#route-selection";
     }
 
@@ -590,7 +590,7 @@ export const getSimulationReadMorePath = (
       event.type === EventType.AddRoute ||
       event.type === EventType.UpdateRoute ||
       event.type === EventType.DeleteRoute ||
-      event.type === EventType.Routing
+      event.type === EventType.GetRoute
     ) {
       return "/docs/olsr#route-selection";
     }
@@ -643,7 +643,7 @@ export const getMessageSummary = (
     }
 
     if (protocol === RoutingProtocol.AODV) {
-      if (event.type !== EventType.Routing) {
+      if (event.type !== EventType.GetRoute) {
         return null;
       }
 
@@ -684,7 +684,7 @@ export const getMessageSummary = (
       return null;
     }
 
-    if (event.type === EventType.Routing) {
+    if (event.type === EventType.GetRoute) {
       const details = event.details as RouteSelectedEventDetails;
       if (!("nextHopPeerId" in details.selectedRoute)) {
         return null;
@@ -721,7 +721,7 @@ export const getMessageSummary = (
     return null;
   }
 
-  if (event.type === EventType.Routing) {
+  if (event.type === EventType.GetRoute) {
     const details = event.details as RouteSelectedEventDetails;
     if (!("nextHopPeerId" in details.selectedRoute)) {
       return null;
@@ -783,7 +783,7 @@ export {
 };
 
 export const getSelectedRoute = (event: Event) => {
-  if (event.type !== EventType.Routing) {
+  if (event.type !== EventType.GetRoute) {
     return null;
   }
 

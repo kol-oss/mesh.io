@@ -335,7 +335,7 @@ export class DsrModule implements RoutingModule {
         pathPeerIds: routePeerIds.slice(index),
       };
 
-      this.eventRecorder.record(currentPeer.id, EventType.Routing, {
+      this.eventRecorder.record(currentPeer.id, EventType.GetRoute, {
         protocol: RoutingProtocol.DSR,
         destinationPeerId: packet.destinationPeerId,
         selectedRoute,

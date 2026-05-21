@@ -77,7 +77,7 @@ export const buildSimulationMessageAnimations = (
       .filter((animation): animation is MessageAnimation => animation !== null);
   }
 
-  if (currentEvent.type === EventType.Routing) {
+  if (currentEvent.type === EventType.GetRoute) {
     const details = currentEvent.details as RouteSelectedEventDetails;
     const hopPeerId =
       "hopPeerId" in details.selectedRoute

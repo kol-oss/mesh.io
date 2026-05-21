@@ -55,6 +55,9 @@ export class BatmanModule implements RoutingModule {
       routingPeer,
       eventRecorder,
       Math.max(1, configuration.purgeTimeout),
+      (hopPeerId) => {
+        this.neighbourTable.delete(hopPeerId);
+      },
     );
     this.operations = new BatmanOperations({
       routingPeer,

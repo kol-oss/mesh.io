@@ -14,7 +14,6 @@ export const EventType = {
   UpdateRoute: "UPDATE_ROUTE",
   DeleteRoute: "DELETE_ROUTE",
   // step events
-  Routing: "ROUTING",
   Move: "MOVE",
   StatusChange: "STATUS_CHANGE",
 } as const;

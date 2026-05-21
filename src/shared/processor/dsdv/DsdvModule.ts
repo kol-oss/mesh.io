@@ -262,7 +262,7 @@ export class DsdvModule implements RoutingModule {
       return false;
     }
 
-    this.eventRecorder.record(this.routingPeer.id, EventType.Routing, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.GetRoute, {
       protocol: RoutingProtocol.DSDV,
       destinationPeerId: packet.destinationPeerId,
       selectedRoute,

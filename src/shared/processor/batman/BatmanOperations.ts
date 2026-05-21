@@ -164,7 +164,7 @@ export class BatmanOperations {
       return false;
     }
 
-    this.eventRecorder.record(this.routingPeer.id, EventType.Routing, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.GetRoute, {
       protocol: RoutingProtocol.BATMAN,
       destinationPeerId: packet.destinationPeerId,
       selectedRoute,

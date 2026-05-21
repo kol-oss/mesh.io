@@ -712,7 +712,7 @@ export class OlsrModule implements RoutingModule {
       return false;
     }
 
-    this.eventRecorder.record(this.routingPeer.id, EventType.Routing, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.GetRoute, {
       protocol: RoutingProtocol.OLSR,
       destinationPeerId: packet.destinationPeerId,
       selectedRoute,

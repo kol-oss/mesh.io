@@ -8,9 +8,11 @@ import type { PeerEntity } from "@/shared/types/model/entities";
 import {
   EventType,
   MessageType,
+  type BatmanRouteRecord,
   type BatmanRoutingTableChangeDetails,
   type BroadcastEventDetails,
   type Event,
+  type RouteSelectedEventDetails,
   type ThroughputCalculationEventDetails,
 } from "@/shared/types/model/simulation";
 import { findById } from "@/shared/utils/peers";
@@ -188,6 +190,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
     }
   }
 
+  // Originator addition or update
   if (type === EventType.AddRoute || type === EventType.UpdateRoute) {
     const { nextRoute } = details as BatmanRoutingTableChangeDetails;
 
@@ -232,9 +235,77 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
     );
   }
 
-  return (
-    <>
-      <TextDescription>{"Not my type"}</TextDescription>
-    </>
-  );
+  // Purge Timeout
+  if (type === EventType.DeleteRoute) {
+    const { previousRoute } = details as BatmanRoutingTableChangeDetails;
+    return (
+      <>
+        <TextDescription>
+          If the node detects that a route is no longer accessible during Purge Timeout, it removes
+          the corresponding entries from the <i>Neighbours List</i> and <i>Originators Table</i>.
+        </TextDescription>
+        <TableDescription
+          headers={["Destination", "Next Hop", "Throughput", "Last Seen"]}
+          rows={[
+            [
+              <PeerDescription
+                peer={findById(previousRoute?.originatorPeerId as UUID, peers)}
+                onHover={onPeerHover}
+              />,
+              <PeerDescription
+                peer={findById(previousRoute?.hopPeerId as UUID, peers)}
+                onHover={onPeerHover}
+              />,
+              previousRoute?.quality,
+              previousRoute?.lastTick,
+            ],
+          ]}
+        />
+      </>
+    );
+  }
+
+  // OGMv2 retransmission cancellation
+  if (type === EventType.Drop) {
+    return (
+      <>
+        <TextDescription>
+          There are already record in the <i>Originators Table</i> to the specified destination with
+          better throughput, so the OGMv2 message will not be retransmitted.
+        </TextDescription>
+      </>
+    );
+  }
+
+  // Get originator route
+  if (type === EventType.GetRoute) {
+    const { selectedRoute } = details as RouteSelectedEventDetails;
+    const route = selectedRoute as BatmanRouteRecord;
+
+    return (
+      <>
+        <TextDescription>
+          The node selected the route to the destination peer based on the best throughput value in
+          the <i>Originators Table</i>.
+        </TextDescription>
+        <TableDescription
+          headers={["Destination", "Next Hop", "Throughput", "Last Seen"]}
+          rows={[
+            [
+              <PeerDescription
+                peer={findById(route?.originatorPeerId as UUID, peers)}
+                onHover={onPeerHover}
+              />,
+              <PeerDescription
+                peer={findById(route?.hopPeerId as UUID, peers)}
+                onHover={onPeerHover}
+              />,
+              route?.quality,
+              route?.lastTick,
+            ],
+          ]}
+        />
+      </>
+    );
+  }
 }

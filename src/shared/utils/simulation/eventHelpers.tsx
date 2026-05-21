@@ -37,7 +37,7 @@ export const getEventTitle = (event: Event) => {
       return getRouteRemoveTitle(message, routeChange);
     case EventType.Broadcast:
       return getBroadcastTitle(event, message);
-    case EventType.Routing:
+    case EventType.GetRoute:
       return "Route Selected";
     case EventType.Calculation:
       return EventTitle.ThroughputCalculation;
@@ -77,7 +77,7 @@ export const getSimulationReadMorePath = (
 
   if (
     hasRouteChange ||
-    event.type === EventType.Routing ||
+    event.type === EventType.GetRoute ||
     event.type === EventType.AddRoute ||
     event.type === EventType.UpdateRoute ||
     event.type === EventType.DeleteRoute
@@ -108,7 +108,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
   switch (event.type) {
     case EventType.Broadcast:
       return getBroadcastDescription(event, message);
-    case EventType.Routing: {
+    case EventType.GetRoute: {
       const details = event.details as RouteSelectedEventDetails;
       if (!isBatmanRoute(details.selectedRoute)) {
         return `${actor} emitted a simulation event.`;
@@ -155,7 +155,7 @@ export const getRouteRows = (details: BatmanRoutingTableChangeDetails): BatmanRo
 };
 
 export const getSelectedRoute = (event: Event): BatmanRouteRecord | null => {
-  if (event.type !== EventType.Routing) {
+  if (event.type !== EventType.GetRoute) {
     return null;
   }
 
@@ -173,7 +173,7 @@ export const getMessageSummary = (
     return null;
   }
 
-  if (event.type === EventType.Routing) {
+  if (event.type === EventType.GetRoute) {
     const details = event.details as RouteSelectedEventDetails;
     if (!isBatmanRoute(details.selectedRoute)) {
       return null;
@@ -308,7 +308,7 @@ const getDroppedTitle = (event: Event, message: Message | null) => {
   }
 
   if (message?.kind === MessageType.BatmanOriginatorMessage) {
-    return "OGMv2 Retransmission Cancelled";
+    return EventTitle.OgmDropped;
   }
 
   if (message?.kind === MessageType.Packet) {

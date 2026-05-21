@@ -231,7 +231,7 @@ export class AodvModule implements RoutingModule {
     }
 
     this.touchRoute(packet.destinationPeerId);
-    this.eventRecorder.record(this.routingPeer.id, EventType.Routing, {
+    this.eventRecorder.record(this.routingPeer.id, EventType.GetRoute, {
       protocol: RoutingProtocol.AODV,
       destinationPeerId: packet.destinationPeerId,
       selectedRoute: {

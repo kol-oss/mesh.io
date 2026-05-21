@@ -26,10 +26,18 @@ export class BatmanOriginatorTable {
 
   private readonly purgeTimeout: number;
 
-  constructor(routingPeer: PeerNode, eventRecorder: EventRecorder, purgeTimeout: number) {
+  private readonly onRouteDeleted?: (hopPeerId: UUID) => void;
+
+  constructor(
+    routingPeer: PeerNode,
+    eventRecorder: EventRecorder,
+    purgeTimeout: number,
+    onRouteDeleted?: (hopPeerId: UUID) => void,
+  ) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
     this.purgeTimeout = purgeTimeout;
+    this.onRouteDeleted = onRouteDeleted;
   }
 
   process(
@@ -67,6 +75,9 @@ export class BatmanOriginatorTable {
         const previousRoute = this.toRouteRecord(originatorPeerId, route);
         if (tick - route.lastTick > this.purgeTimeout) {
           routes.delete(hopPeerId);
+          if (!this.hasRouteViaHop(hopPeerId)) {
+            this.onRouteDeleted?.(hopPeerId);
+          }
           this.eventRecorder.record(this.routingPeer.id, EventType.DeleteRoute, {
             protocol: RoutingProtocol.BATMAN,
             originatorPeerId,
@@ -135,6 +146,16 @@ export class BatmanOriginatorTable {
     }
 
     return selected;
+  }
+
+  private hasRouteViaHop(hopPeerId: UUID) {
+    for (const routes of this.originators.values()) {
+      if (routes.has(hopPeerId)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private insert(
