@@ -1,4 +1,7 @@
-import { BATMAN_MAX_THROUGHPUT, BATMAN_OGM_HOP_PENALTY_PERCENT } from "@/shared/constants/batman.ts";
+import {
+  BATMAN_MAX_THROUGHPUT,
+  BATMAN_OGM_HOP_PENALTY_PERCENT,
+} from "@/shared/constants/batman.ts";
 
 export const clampThroughput = (throughput: number) => {
   if (!Number.isFinite(throughput)) {
@@ -25,12 +28,14 @@ export const applyDistancePenalty = (
     return throughput;
   }
 
-  const normalizedDistance = Math.max(1, distancePenaltyDistance);
-  const excessDistance = Math.max(0, distance - normalizedDistance);
-  const multiplier = excessDistance / normalizedDistance;
-  const effectivePenalty = distancePenaltyPercent * multiplier;
-  const penalized = throughput * ((100 - effectivePenalty) / 100);
-  return Math.max(0, Math.floor(penalized));
+  if (distance <= distancePenaltyDistance) {
+    return throughput;
+  }
+
+  const penalizedUnits = Math.floor(distance / distancePenaltyDistance);
+  const penalty = penalizedUnits * distancePenaltyPercent;
+
+  return throughput * ((100 - penalty) / 100);
 };
 
 export const applyFixedHopPenalty = (throughput: number) => {
