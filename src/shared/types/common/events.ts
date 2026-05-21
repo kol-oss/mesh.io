@@ -1,16 +1,28 @@
-import type { RoutingProtocol } from "../common/protocols";
-import type { UUID } from "../common/uuid";
-import type { EntityType } from "../model/entities";
-import type { AodvRouteChangeEventDetails, AodvRouteRecord } from "./aodv";
+import type {
+  AodvRouteChangeEventDetails,
+  AodvRouteRecord,
+} from "../../../features/processor/types/aodv";
 import type {
   BatmanCalculationEventDetails,
   BatmanRouteRecord,
   BatmanRouteUpdateEventDetails,
-} from "./batman";
-import type { DsdvRouteChangeEventDetails, DsdvRouteRecord } from "./dsdv";
-import type { DsrRouteChangeEventDetails, DsrRouteRecord } from "./dsr";
+} from "../../../features/processor/types/batman";
+import type {
+  DsdvRouteChangeEventDetails,
+  DsdvRouteRecord,
+} from "../../../features/processor/types/dsdv";
+import type {
+  DsrRouteChangeEventDetails,
+  DsrRouteRecord,
+} from "../../../features/processor/types/dsr";
+import type {
+  OlsrRouteChangeEventDetails,
+  OlsrRouteRecord,
+} from "../../../features/processor/types/olsr";
+import type { EntityType } from "../model/entities";
 import type { Message, Packet } from "./messages";
-import type { OlsrRouteChangeEventDetails, OlsrRouteRecord } from "./olsr";
+import type { RoutingProtocol } from "./protocols";
+import type { UUID } from "./uuid";
 
 export enum EventType {
   // internal events

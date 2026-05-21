@@ -1,22 +1,22 @@
+import {
+  type BatmanCalculationEventDetails,
+  type BatmanRouteRecord,
+  type BatmanRouteUpdateEventDetails,
+} from "@/features/processor/types/batman";
 import PeerDescription from "@/shared/components/Description/PeerDescription";
 import SecondaryDescription from "@/shared/components/Description/SecondaryDescription";
 import TableDescription from "@/shared/components/Description/TableDescription";
 import VariableDescription from "@/shared/components/Description/VariableDescription";
 import { BATMAN_EWMA_ALPHA, BATMAN_WIRELESS_BASE_THROUGHPUT } from "@/shared/constants/batman";
-import type { UUID } from "@/shared/types/common/uuid";
-import type { PeerEntity } from "@/shared/types/model/entities";
-import {
-  type BatmanCalculationEventDetails,
-  type BatmanRouteRecord,
-  type BatmanRouteUpdateEventDetails,
-} from "@/shared/types/processor/batman";
 import {
   EventType,
   type BroadcastEventDetails,
   type Event,
   type GetRouteEventDetails,
-} from "@/shared/types/processor/events";
-import { MessageType } from "@/shared/types/processor/messages";
+} from "@/shared/types/common/events";
+import { MessageType } from "@/shared/types/common/messages";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
 import TextDescription from "../../../../shared/components/Description/TextDescription";
 

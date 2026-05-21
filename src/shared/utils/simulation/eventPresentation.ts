@@ -1,22 +1,20 @@
-import { RoutingProtocol } from "@/shared/types/common/protocols";
-import type { UUID } from "@/shared/types/common/uuid";
-import { EntityType } from "@/shared/types/model/entities";
 import {
   type AodvHelloMessage,
   type AodvRouteErrorMessage,
   type AodvRouteReplyMessage,
   type AodvRouteRequestMessage,
-} from "@/shared/types/processor/aodv";
+} from "@/features/processor/types/aodv";
 import {
   type BatmanCalculationEventDetails,
   type BatmanRouteRecord,
-} from "@/shared/types/processor/batman";
-import { DsdvUpdateType, type DsdvRouteUpdateMessage } from "@/shared/types/processor/dsdv";
+} from "@/features/processor/types/batman";
+import { DsdvUpdateType, type DsdvRouteUpdateMessage } from "@/features/processor/types/dsdv";
 import {
   type DsrRouteErrorMessage,
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,
-} from "@/shared/types/processor/dsr";
+} from "@/features/processor/types/dsr";
+import { type OlsrHelloMessage, type OlsrTcMessage } from "@/features/processor/types/olsr";
 import {
   EventType,
   type BroadcastEventDetails,
@@ -27,9 +25,11 @@ import {
   type RouteChangeEventDetails,
   type StatusChangeEventDetails,
   type TransferEventDetails,
-} from "@/shared/types/processor/events";
-import { MessageType, type Message } from "@/shared/types/processor/messages";
-import { type OlsrHelloMessage, type OlsrTcMessage } from "@/shared/types/processor/olsr";
+} from "@/shared/types/common/events";
+import { MessageType, type Message } from "@/shared/types/common/messages";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
+import { EntityType } from "@/shared/types/model/entities";
 import {
   formatFixed,
   getEventDescription as getBatmanEventDescription,

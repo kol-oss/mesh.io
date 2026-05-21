@@ -1,6 +1,6 @@
+import type { Event } from "@/shared/types/common/events";
+import type { StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
-import type { Event } from "@/shared/types/processor/events";
-import type { StepResult } from "@/shared/types/processor/simulation";
 import MessageStructure from "../MessageStructure/MessageStructure";
 import TableStructure from "../TableStructure/TableStructure";
 

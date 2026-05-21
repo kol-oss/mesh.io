@@ -2,8 +2,8 @@ import Scene from "@/features/board/components/Scene/Scene";
 import EventDescription from "@/features/event/components/EventDescription/EventDescription";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as PlacementMode } from "@/shared/types/action";
-import type { Event } from "@/shared/types/processor/events";
-import type { StepResult } from "@/shared/types/processor/simulation";
+import type { Event } from "@/shared/types/common/events";
+import type { StepResult } from "@/shared/types/common/simulation";
 import type { WorkspaceSceneProps } from "@/shared/types/workspace/scene";
 
 type Props = {

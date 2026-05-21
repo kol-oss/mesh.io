@@ -1,8 +1,8 @@
 import type { EventListener } from "@/features/processor/types/events";
 import { START_TICK } from "@/shared/constants/tick";
+import type { Event, EventDetails, EventType } from "@/shared/types/common/events";
 import type { RoutingProtocol } from "@/shared/types/common/protocols";
 import { generateUUID, type UUID } from "@/shared/types/common/uuid";
-import type { Event, EventDetails, EventType } from "@/shared/types/processor/events";
 
 export class EventRecorder {
   private readonly events: Event[] = [];

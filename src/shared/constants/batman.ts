@@ -1,6 +1,9 @@
+import type {
+  BatmanEchoLocationMessage,
+  BatmanOriginatorMessage,
+} from "../../features/processor/types/batman";
 import type { FieldStructure } from "../types/common/field";
 import type { PeerEntity } from "../types/model/entities";
-import type { BatmanEchoLocationMessage, BatmanOriginatorMessage } from "../types/processor/batman";
 import { getNameById } from "../utils/peers";
 
 // validation

@@ -1,4 +1,10 @@
 import { EventRecorder } from "@/features/processor/EventRecorder.ts";
+import {
+  type BatmanCalculationEventDetails,
+  type BatmanEchoLocationMessage,
+  type BatmanNeighbourRecord,
+  type BatmanOriginatorMessage,
+} from "@/features/processor/types/batman.ts";
 import type { PeerNode } from "@/features/processor/types/runtime.ts";
 import {
   BATMAN_EWMA_ALPHA,
@@ -7,17 +13,11 @@ import {
   BATMAN_VERSION,
   BATMAN_WIRELESS_BASE_THROUGHPUT,
 } from "@/shared/constants/batman.ts";
+import { EventType } from "@/shared/types/common/events.ts";
+import { MessageType, type Message, type Packet } from "@/shared/types/common/messages.ts";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
-import {
-  type BatmanCalculationEventDetails,
-  type BatmanEchoLocationMessage,
-  type BatmanNeighbourRecord,
-  type BatmanOriginatorMessage,
-} from "@/shared/types/processor/batman.ts";
-import { EventType } from "@/shared/types/processor/events.ts";
-import { MessageType, type Message, type Packet } from "@/shared/types/processor/messages.ts";
 import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";
 import {
   applyDistancePenalty,

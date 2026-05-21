@@ -1,17 +1,20 @@
-import type { NetworkEntity, PeerEntity } from "../model/entities";
-import type { Step } from "../model/steps";
-import type { AodvRouteRecord } from "./aodv";
-import type { BatmanNeighbourRecord, BatmanRouteRecord } from "./batman";
-import type { DsdvRouteRecord } from "./dsdv";
-import type { DsrRouteRecord } from "./dsr";
-import type { Event } from "./events";
+import type { AodvRouteRecord } from "../../../features/processor/types/aodv";
+import type {
+  BatmanNeighbourRecord,
+  BatmanRouteRecord,
+} from "../../../features/processor/types/batman";
+import type { DsdvRouteRecord } from "../../../features/processor/types/dsdv";
+import type { DsrRouteRecord } from "../../../features/processor/types/dsr";
 import type {
   OlsrNeighbourRecord,
   OlsrRouteRecord,
   OlsrSelectorRecord,
   OlsrTopologyRecord,
   OlsrTwoHopRecord,
-} from "./olsr";
+} from "../../../features/processor/types/olsr";
+import type { NetworkEntity, PeerEntity } from "../model/entities";
+import type { Step } from "../model/steps";
+import type { Event } from "./events";
 
 export type PeerSnapshot = PeerEntity & {
   batmanRoutingTable: BatmanRouteRecord[];

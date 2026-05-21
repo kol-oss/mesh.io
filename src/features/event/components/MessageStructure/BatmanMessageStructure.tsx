@@ -6,8 +6,8 @@ import {
   getOriginatorMessageStructure,
 } from "@/shared/constants/batman";
 import type { FieldStructure } from "@/shared/types/common/field";
+import { MessageType, type Message } from "@/shared/types/common/messages";
 import type { PeerEntity } from "@/shared/types/model/entities";
-import { MessageType, type Message } from "@/shared/types/processor/messages";
 
 type MessageStructureProps = {
   message: Message;

@@ -1,19 +1,19 @@
 import { EventRecorder } from "@/features/processor/EventRecorder.ts";
+import {
+  type BatmanEchoLocationMessage,
+  type BatmanNeighbourRecord,
+  type BatmanOriginatorMessage,
+} from "@/features/processor/types/batman.ts";
 import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime.ts";
 import {
   BATMAN_MAX_THROUGHPUT,
   BATMAN_TIME_TO_LIVE,
   BATMAN_VERSION,
 } from "@/shared/constants/batman.ts";
+import { EventType } from "@/shared/types/common/events.ts";
+import { MessageType, type Packet } from "@/shared/types/common/messages.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
-import {
-  type BatmanEchoLocationMessage,
-  type BatmanNeighbourRecord,
-  type BatmanOriginatorMessage,
-} from "@/shared/types/processor/batman.ts";
-import { EventType } from "@/shared/types/processor/events.ts";
-import { MessageType, type Packet } from "@/shared/types/processor/messages.ts";
 import { cloneMessage, isSimulationMessage } from "./batmanMessage.ts";
 import { BatmanOperations } from "./BatmanOperations.ts";
 import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";

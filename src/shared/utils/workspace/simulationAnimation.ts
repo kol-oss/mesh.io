@@ -1,6 +1,4 @@
-import type { UUID } from "@/shared/types/common/uuid";
-import type { PeerEntity } from "@/shared/types/model/entities";
-import type { BatmanCalculationEventDetails } from "@/shared/types/processor/batman";
+import type { BatmanCalculationEventDetails } from "@/features/processor/types/batman";
 import type {
   BroadcastEventDetails,
   DropEventDetails,
@@ -8,11 +6,13 @@ import type {
   MoveEventDetails,
   StatusChangeEventDetails,
   TransferEventDetails,
-} from "@/shared/types/processor/events";
-import { EventType } from "@/shared/types/processor/events";
-import type { Message } from "@/shared/types/processor/messages";
-import { MessageType } from "@/shared/types/processor/messages";
-import type { PeerSnapshot } from "@/shared/types/processor/simulation";
+} from "@/shared/types/common/events";
+import { EventType } from "@/shared/types/common/events";
+import type { Message } from "@/shared/types/common/messages";
+import { MessageType } from "@/shared/types/common/messages";
+import type { PeerSnapshot } from "@/shared/types/common/simulation";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { PeerEntity } from "@/shared/types/model/entities";
 import type {
   MessageAnimation,
   MoveStepAnimation,

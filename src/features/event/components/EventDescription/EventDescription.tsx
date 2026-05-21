@@ -1,12 +1,8 @@
+import { EventType, type Event, type StatusChangeEventDetails } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
+import { type StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import { EntityType } from "@/shared/types/model/entities";
-import {
-  EventType,
-  type Event,
-  type StatusChangeEventDetails,
-} from "@/shared/types/processor/events";
-import { type StepResult } from "@/shared/types/processor/simulation";
 import {
   getEventMessage,
   getPeerLabel,

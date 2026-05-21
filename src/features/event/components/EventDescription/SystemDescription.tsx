@@ -1,15 +1,15 @@
 import PeerDescription from "@/shared/components/Description/PeerDescription";
 import TextDescription from "@/shared/components/Description/TextDescription";
-import type { UUID } from "@/shared/types/common/uuid";
-import { EntityType } from "@/shared/types/model/entities";
-import type { PeerEntity } from "@/shared/types/model/peers";
 import {
   EventType,
   type Event,
   type MoveEventDetails,
   type StatusChangeEventDetails,
   type TransferEventDetails,
-} from "@/shared/types/processor/events";
+} from "@/shared/types/common/events";
+import type { UUID } from "@/shared/types/common/uuid";
+import { EntityType } from "@/shared/types/model/entities";
+import type { PeerEntity } from "@/shared/types/model/peers";
 import { findById } from "@/shared/utils/peers";
 
 type SystemDescriptionProps = {

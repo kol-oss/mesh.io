@@ -1,6 +1,6 @@
+import type { Event, RouteChangeEventDetails } from "@/shared/types/common/events";
+import { EventType } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
-import type { Event, RouteChangeEventDetails } from "@/shared/types/processor/events";
-import { EventType } from "@/shared/types/processor/events";
 
 /**
  * Collapses consecutive BATMAN originator RoutingTableInsert+Update event pairs into just the

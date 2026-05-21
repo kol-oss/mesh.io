@@ -1,4 +1,10 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
+import {
+  type DsrRouteErrorMessage,
+  type DsrRouteRecord,
+  type DsrRouteReplyMessage,
+  type DsrRouteRequestMessage,
+} from "@/features/processor/types/dsr";
 import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime";
 import {
   DSR_DEFAULT_HOP_LIMIT,
@@ -6,16 +12,10 @@ import {
   DSR_MAX_SALVAGE_COUNT,
   DSR_ROUTE_CACHE_TIMEOUT,
 } from "@/shared/constants/dsr";
+import { EventType } from "@/shared/types/common/events";
+import { MessageType, type Packet } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import {
-  type DsrRouteErrorMessage,
-  type DsrRouteRecord,
-  type DsrRouteReplyMessage,
-  type DsrRouteRequestMessage,
-} from "@/shared/types/processor/dsr";
-import { EventType } from "@/shared/types/processor/events";
-import { MessageType, type Packet } from "@/shared/types/processor/messages";
 import { cloneDsrMessage, isDsrSimulationMessage } from "./dsrMessage";
 
 type RouteCacheEntry = DsrRouteRecord;

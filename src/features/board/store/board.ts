@@ -40,6 +40,7 @@ import { clearTexts, replaceTexts } from "@/shared/store/slices/textSlice";
 import { useToast } from "@/shared/toast/useToast";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as PlacementMode, ActionMode as ToolbarMode } from "@/shared/types/action";
+import type { SimulationResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import type {
   LinkEntity,
@@ -49,7 +50,6 @@ import type {
 } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
 import type { Step } from "@/shared/types/model/steps";
-import type { SimulationResult } from "@/shared/types/processor/simulation";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
 import {

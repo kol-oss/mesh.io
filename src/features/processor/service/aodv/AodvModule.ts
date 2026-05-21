@@ -1,4 +1,12 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
+import {
+  type AodvHelloMessage,
+  type AodvRouteErrorMessage,
+  type AodvRouteRecord,
+  type AodvRouteReplyMessage,
+  type AodvRouteRequestMessage,
+  type AodvUnreachableDestination,
+} from "@/features/processor/types/aodv";
 import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime";
 import {
   AODV_ACTIVE_ROUTE_TIMEOUT,
@@ -8,19 +16,11 @@ import {
   AODV_PATH_DISCOVERY_TTL,
   AODV_SEQUENCE_INITIAL,
 } from "@/shared/constants/aodv";
+import { EventType } from "@/shared/types/common/events";
+import { MessageType, type Packet } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import { getAodvConfiguration } from "@/shared/types/model/peers";
-import {
-  type AodvHelloMessage,
-  type AodvRouteErrorMessage,
-  type AodvRouteRecord,
-  type AodvRouteReplyMessage,
-  type AodvRouteRequestMessage,
-  type AodvUnreachableDestination,
-} from "@/shared/types/processor/aodv";
-import { EventType } from "@/shared/types/processor/events";
-import { MessageType, type Packet } from "@/shared/types/processor/messages";
 import { cloneAodvMessage, isAodvSimulationMessage } from "./aodvMessage";
 
 type AodvRouteEntry = AodvRouteRecord & {

@@ -1,19 +1,19 @@
-import type { RoutingProtocol } from "@/shared/types/common/protocols";
-import type { UUID } from "@/shared/types/common/uuid";
-import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
-import type { AodvRouteRecord } from "@/shared/types/processor/aodv";
-import type { BatmanNeighbourRecord, BatmanRouteRecord } from "@/shared/types/processor/batman";
-import type { DsdvRouteRecord } from "@/shared/types/processor/dsdv";
-import type { DsrRouteRecord } from "@/shared/types/processor/dsr";
-import type { Packet } from "@/shared/types/processor/messages";
+import type { AodvRouteRecord } from "@/features/processor/types/aodv";
+import type { BatmanNeighbourRecord, BatmanRouteRecord } from "@/features/processor/types/batman";
+import type { DsdvRouteRecord } from "@/features/processor/types/dsdv";
+import type { DsrRouteRecord } from "@/features/processor/types/dsr";
 import type {
   OlsrNeighbourRecord,
   OlsrRouteRecord,
   OlsrSelectorRecord,
   OlsrTopologyRecord,
   OlsrTwoHopRecord,
-} from "@/shared/types/processor/olsr";
-import type { Snapshot } from "@/shared/types/processor/simulation";
+} from "@/features/processor/types/olsr";
+import type { Packet } from "@/shared/types/common/messages";
+import type { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { Snapshot } from "@/shared/types/common/simulation";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
 
 export interface RoutingModule {
   read(message: unknown): boolean;

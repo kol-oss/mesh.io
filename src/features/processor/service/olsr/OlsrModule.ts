@@ -1,12 +1,4 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
-import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime";
-import { OLSR_DEFAULT_TC_TTL, OLSR_MIN_INTERVAL } from "@/shared/constants/olsr";
-import { RoutingProtocol } from "@/shared/types/common/protocols";
-import type { UUID } from "@/shared/types/common/uuid";
-import type { OlsrConfiguration } from "@/shared/types/model/configurations";
-import { getOlsrConfiguration } from "@/shared/types/model/peers";
-import { EventType } from "@/shared/types/processor/events";
-import { MessageType, type Message, type Packet } from "@/shared/types/processor/messages";
 import {
   type OlsrHelloMessage,
   type OlsrNeighbourRecord,
@@ -15,7 +7,15 @@ import {
   type OlsrTcMessage,
   type OlsrTopologyRecord,
   type OlsrTwoHopRecord,
-} from "@/shared/types/processor/olsr";
+} from "@/features/processor/types/olsr";
+import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime";
+import { OLSR_DEFAULT_TC_TTL, OLSR_MIN_INTERVAL } from "@/shared/constants/olsr";
+import { EventType } from "@/shared/types/common/events";
+import { MessageType, type Message, type Packet } from "@/shared/types/common/messages";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { OlsrConfiguration } from "@/shared/types/model/configurations";
+import { getOlsrConfiguration } from "@/shared/types/model/peers";
 import { cloneOlsrMessage, isOlsrSimulationMessage } from "./olsrMessage";
 
 type OlsrTopologyEntry = {

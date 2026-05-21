@@ -1,4 +1,9 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
+import {
+  DsdvUpdateType,
+  type DsdvRouteRecordMessage,
+  type DsdvRouteUpdateMessage,
+} from "@/features/processor/types/dsdv";
 import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime";
 import {
   DSDV_METRIC_INFINITY,
@@ -6,17 +11,12 @@ import {
   DSDV_MIN_TIMEOUT,
   DSDV_SEQUENCE_INITIAL,
 } from "@/shared/constants/dsdv";
+import { EventType } from "@/shared/types/common/events";
+import { MessageType, type Packet } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { DsdvConfiguration } from "@/shared/types/model/configurations";
 import { getDsdvConfiguration } from "@/shared/types/model/peers";
-import {
-  DsdvUpdateType,
-  type DsdvRouteRecordMessage,
-  type DsdvRouteUpdateMessage,
-} from "@/shared/types/processor/dsdv";
-import { EventType } from "@/shared/types/processor/events";
-import { MessageType, type Packet } from "@/shared/types/processor/messages";
 import { DsdvRoutingTable } from "./DsdvRoutingTable";
 import { cloneDsdvMessage, isDsdvSimulationMessage } from "./dsdvMessage";
 

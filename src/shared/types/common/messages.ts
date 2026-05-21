@@ -1,14 +1,21 @@
-import type { UUID } from "../common/uuid";
 import type {
   AodvHelloMessage,
   AodvRouteErrorMessage,
   AodvRouteReplyMessage,
   AodvRouteRequestMessage,
-} from "./aodv";
-import type { BatmanEchoLocationMessage, BatmanOriginatorMessage } from "./batman";
-import type { DsdvRouteUpdateMessage } from "./dsdv";
-import type { DsrRouteErrorMessage, DsrRouteReplyMessage, DsrRouteRequestMessage } from "./dsr";
-import type { OlsrHelloMessage, OlsrTcMessage } from "./olsr";
+} from "../../../features/processor/types/aodv";
+import type {
+  BatmanEchoLocationMessage,
+  BatmanOriginatorMessage,
+} from "../../../features/processor/types/batman";
+import type { DsdvRouteUpdateMessage } from "../../../features/processor/types/dsdv";
+import type {
+  DsrRouteErrorMessage,
+  DsrRouteReplyMessage,
+  DsrRouteRequestMessage,
+} from "../../../features/processor/types/dsr";
+import type { OlsrHelloMessage, OlsrTcMessage } from "../../../features/processor/types/olsr";
+import type { UUID } from "./uuid";
 
 export enum MessageType {
   Packet = "PACKET",

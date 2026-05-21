@@ -5,19 +5,19 @@ import { OlsrModule } from "@/features/processor/service/olsr/OlsrModule";
 import { RuntimeNetwork } from "@/features/processor/types/network";
 import type { RoutingModule } from "@/features/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
-import { RefreshAction, StepType, type Step } from "@/shared/types/model/steps";
 import {
   type SimulationInput,
   type SimulationResult,
   type Snapshot,
   type StepResult,
-} from "@/shared/types/processor/simulation";
+} from "@/shared/types/common/simulation";
+import { RefreshAction, StepType, type Step } from "@/shared/types/model/steps";
 import {
   EventType,
   type MoveEventDetails,
   type StatusChangeEventDetails,
-} from "../../shared/types/processor/events";
-import { MessageType, type Packet } from "../../shared/types/processor/messages";
+} from "../../shared/types/common/events";
+import { MessageType, type Packet } from "../../shared/types/common/messages";
 import { BatmanModule } from "./service/batman/BatmanModule";
 import { sortStepsByTick } from "./utils/steps";
 

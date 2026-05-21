@@ -1,6 +1,6 @@
+import { EventType, type BroadcastEventDetails, type Event } from "@/shared/types/common/events";
+import { MessageType } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
-import { EventType, type BroadcastEventDetails, type Event } from "@/shared/types/processor/events";
-import { MessageType } from "@/shared/types/processor/messages";
 
 const UNKNOWN_EVENT_TITLE = "Unknown Event";
 

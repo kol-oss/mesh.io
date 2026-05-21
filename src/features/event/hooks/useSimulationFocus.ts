@@ -5,15 +5,11 @@ import type {
   TableInspectionWindow,
 } from "@/shared/store/slices/simulationSlice";
 import { ActionMode as ToolbarMode } from "@/shared/types/action";
+import { EventType, type Event, type StatusChangeEventDetails } from "@/shared/types/common/events";
+import type { StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
-import {
-  EventType,
-  type Event,
-  type StatusChangeEventDetails,
-} from "@/shared/types/processor/events";
-import type { StepResult } from "@/shared/types/processor/simulation";
 import { clamp } from "@/shared/utils/math/clamp";
 
 type Params = {

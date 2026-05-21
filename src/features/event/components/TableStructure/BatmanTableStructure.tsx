@@ -1,8 +1,8 @@
 import PeerDescription from "@/shared/components/Description/PeerDescription";
 import TableDescription from "@/shared/components/Description/TableDescription";
+import type { PeerSnapshot } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
-import type { PeerSnapshot } from "@/shared/types/processor/simulation";
 import { findById } from "@/shared/utils/peers";
 import { useState } from "react";
 import TableGroup from "./TableGroup";

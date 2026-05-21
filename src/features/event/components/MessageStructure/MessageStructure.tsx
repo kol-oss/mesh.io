@@ -1,9 +1,9 @@
+import { DsdvUpdateType } from "@/features/processor/types/dsdv";
+import { type OlsrHelloMessage, type OlsrTcMessage } from "@/features/processor/types/olsr";
+import { type Event } from "@/shared/types/common/events";
+import { MessageType, type Message } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
-import { DsdvUpdateType } from "@/shared/types/processor/dsdv";
-import { type Event } from "@/shared/types/processor/events";
-import { MessageType, type Message } from "@/shared/types/processor/messages";
-import { type OlsrHelloMessage, type OlsrTcMessage } from "@/shared/types/processor/olsr";
-import { type StepResult } from "@/shared/types/processor/simulation";
+import { type StepResult } from "@/shared/types/common/simulation";
 import { ExternalLink, X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import BatmanMessageStructure from "./BatmanMessageStructure";

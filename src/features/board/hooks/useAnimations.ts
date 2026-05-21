@@ -1,7 +1,7 @@
 import { MOVE_STEP_ANIMATION_DURATION } from "@/shared/constants/animation";
+import type { Event } from "@/shared/types/common/events";
+import type { StepResult } from "@/shared/types/common/simulation";
 import type { NetworkEntity } from "@/shared/types/model/entities";
-import type { Event } from "@/shared/types/processor/events";
-import type { StepResult } from "@/shared/types/processor/simulation";
 import type {
   MessageAnimation,
   MoveStepAnimation,

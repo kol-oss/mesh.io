@@ -1,11 +1,8 @@
-import { RoutingProtocol } from "@/shared/types/common/protocols";
-import type { UUID } from "@/shared/types/common/uuid";
-import { EntityType } from "@/shared/types/model/entities";
 import {
   type BatmanCalculationEventDetails,
   type BatmanRouteRecord,
   type BatmanRouteUpdateEventDetails,
-} from "@/shared/types/processor/batman";
+} from "@/features/processor/types/batman";
 import {
   EventType,
   type DropEventDetails,
@@ -14,8 +11,11 @@ import {
   type MoveEventDetails,
   type RouteChangeEventDetails,
   type StatusChangeEventDetails,
-} from "@/shared/types/processor/events";
-import { MessageType, type Message } from "@/shared/types/processor/messages";
+} from "@/shared/types/common/events";
+import { MessageType, type Message } from "@/shared/types/common/messages";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
+import { EntityType } from "@/shared/types/model/entities";
 import type { ReactNode } from "react";
 
 const isBatmanRoute = (
