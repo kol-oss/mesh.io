@@ -1,6 +1,12 @@
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import {
+  type AodvHelloMessage,
+  type AodvRouteErrorMessage,
+  type AodvRouteReplyMessage,
+  type AodvRouteRequestMessage,
+} from "@/shared/types/processor/aodv";
+import {
   type BatmanCalculationEventDetails,
   type BatmanRouteRecord,
 } from "@/shared/types/processor/batman";
@@ -15,10 +21,6 @@ import {
 } from "@/shared/types/processor/events";
 import { MessageType, type Message } from "@/shared/types/processor/messages";
 import {
-  type AodvHelloMessage,
-  type AodvRouteErrorMessage,
-  type AodvRouteReplyMessage,
-  type AodvRouteRequestMessage,
   type DsrRouteErrorMessage,
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,

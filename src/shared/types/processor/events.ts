@@ -1,6 +1,7 @@
 import type { RoutingProtocol } from "../common/protocols";
 import type { UUID } from "../common/uuid";
 import type { EntityType } from "../model/entities";
+import type { AodvRouteChangeEventDetails, AodvRouteRecord } from "./aodv";
 import type {
   BatmanCalculationEventDetails,
   BatmanRouteRecord,
@@ -9,8 +10,6 @@ import type {
 import type { DsdvRouteChangeEventDetails, DsdvRouteRecord } from "./dsdv";
 import type { Message, Packet } from "./messages";
 import type {
-  AodvRouteRecord,
-  AodvRoutingTableChangeDetails,
   DsrRouteRecord,
   DsrRoutingTableChangeDetails,
   OlsrRouteRecord,
@@ -75,7 +74,7 @@ export type GetRouteEventDetails = {
 export type RouteChangeEventDetails =
   | BatmanRouteUpdateEventDetails
   | DsdvRouteChangeEventDetails
-  | AodvRoutingTableChangeDetails
+  | AodvRouteChangeEventDetails
   | OlsrRoutingTableChangeDetails
   | DsrRoutingTableChangeDetails;
 

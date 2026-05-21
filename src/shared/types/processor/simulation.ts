@@ -2,56 +2,10 @@ import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { NetworkEntity, PeerEntity } from "../model/entities";
 import type { Step } from "../model/steps";
+import type { AodvRouteRecord } from "./aodv";
 import type { BatmanNeighbourRecord, BatmanRouteRecord } from "./batman";
 import type { DsdvRouteRecord } from "./dsdv";
 import type { Message, MessageType } from "./messages";
-
-export type AodvRouteRequestMessage = {
-  kind: MessageType.AodvRouteRequestMessage;
-  sourcePeerId: UUID;
-  senderPeerId: UUID;
-  destinationPeerId: UUID;
-  requestId: number;
-  hopCount: number;
-  destinationSequenceNumber: number | null;
-  originatorSequenceNumber: number;
-};
-
-export type AodvRouteReplyMessage = {
-  kind: MessageType.AodvRouteReplyMessage;
-  sourcePeerId: UUID;
-  senderPeerId: UUID;
-  targetPeerId: UUID;
-  destinationPeerId: UUID;
-  destinationSequenceNumber: number;
-  originatorPeerId: UUID;
-  hopCount: number;
-  lifetime: number;
-  gratuitous: boolean;
-};
-
-export type AodvUnreachableDestination = {
-  destinationPeerId: UUID;
-  sequenceNumber: number;
-};
-
-export type AodvRouteErrorMessage = {
-  kind: MessageType.AodvRouteErrorMessage;
-  sourcePeerId: UUID;
-  senderPeerId: UUID;
-  targetPeerId: UUID | null;
-  unreachableDestinations: AodvUnreachableDestination[];
-  noDelete: boolean;
-};
-
-export type AodvHelloMessage = {
-  kind: MessageType.AodvHelloMessage;
-  sourcePeerId: UUID;
-  senderPeerId: UUID;
-  destinationSequenceNumber: number;
-  lifetime: number;
-  interval: number;
-};
 
 export type OlsrHelloMessage = {
   kind: MessageType.OlsrHelloMessage;
@@ -102,17 +56,6 @@ export type DsrRouteErrorMessage = {
   routePeerIds: UUID[];
 };
 
-export type AodvRouteRecord = {
-  destinationPeerId: UUID;
-  nextHopPeerId: UUID;
-  metric: number;
-  sequenceNumber: number;
-  lastUpdateTick: number;
-  validSequenceNumber: boolean;
-  valid: boolean;
-  precursors: UUID[];
-};
-
 export type OlsrRouteRecord = {
   destinationPeerId: UUID;
   nextHopPeerId: UUID;
@@ -152,16 +95,6 @@ export type OlsrTopologyRecord = {
   lastHopPeerId: UUID;
   sequenceNumber: number;
   lastUpdateTick: number;
-};
-
-export type AodvRoutingTableChangeDetails = {
-  protocol: typeof RoutingProtocol.AODV;
-  destinationPeerId: UUID;
-  nextHopPeerId: UUID;
-  previousRoute: AodvRouteRecord | null;
-  nextRoute: AodvRouteRecord | null;
-  message?: Message;
-  reason: string;
 };
 
 export type OlsrRoutingTableChangeDetails = {

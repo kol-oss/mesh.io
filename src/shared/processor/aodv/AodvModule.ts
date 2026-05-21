@@ -11,8 +11,6 @@ import type { PeerNode, RoutingModule } from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import { getAodvConfiguration } from "@/shared/types/model/peers";
-import { EventType } from "@/shared/types/processor/events";
-import { MessageType, type Packet } from "@/shared/types/processor/messages";
 import {
   type AodvHelloMessage,
   type AodvRouteErrorMessage,
@@ -20,7 +18,9 @@ import {
   type AodvRouteReplyMessage,
   type AodvRouteRequestMessage,
   type AodvUnreachableDestination,
-} from "@/shared/types/processor/simulation";
+} from "@/shared/types/processor/aodv";
+import { EventType } from "@/shared/types/processor/events";
+import { MessageType, type Packet } from "@/shared/types/processor/messages";
 import { cloneAodvMessage, isAodvSimulationMessage } from "./aodvMessage";
 
 type AodvRouteEntry = AodvRouteRecord & {
