@@ -343,6 +343,7 @@ export default function Canvas({
     currentStepId,
     currentSimulationEvent,
     currentSimulationStepResult,
+    entities: renderedEntities,
     peers,
     simulationInspectionMode,
     hoveredSimulationPeerState,

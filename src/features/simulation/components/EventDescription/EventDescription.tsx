@@ -1,6 +1,11 @@
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import { type Event } from "@/shared/types/processor/events";
+import { EntityType } from "@/shared/types/model/entities";
+import {
+  EventType,
+  type Event,
+  type StatusChangeEventDetails,
+} from "@/shared/types/processor/events";
 import { type StepResult } from "@/shared/types/processor/simulation";
 import {
   getEventMessage,
@@ -101,13 +106,30 @@ export default function EventDescription({
   const routeChange = getRouteChange(currentEvent);
   const currentMessage = getEventMessage(currentEvent);
   const title = getEventTitle(currentEvent);
-  const eventOwner = peerNameById.has(currentEvent.peerId)
-    ? renderPeerName(
-        currentEvent.peerId,
-        getPeerLabel(currentEvent.peerId, peerNameById),
-        onPeerHoverChange,
-      )
-    : currentEvent.peerId;
+  const eventOwner = (() => {
+    if (currentEvent.type === EventType.StatusChange) {
+      const details = currentEvent.details as StatusChangeEventDetails;
+      if (details.entityType === EntityType.Link) {
+        return "Link";
+      }
+
+      if (peerNameById.has(details.entityId)) {
+        return renderPeerName(
+          details.entityId,
+          getPeerLabel(details.entityId, peerNameById),
+          onPeerHoverChange,
+        );
+      }
+    }
+
+    return peerNameById.has(currentEvent.peerId)
+      ? renderPeerName(
+          currentEvent.peerId,
+          getPeerLabel(currentEvent.peerId, peerNameById),
+          onPeerHoverChange,
+        )
+      : currentEvent.peerId;
+  })();
 
   const throughputBreakdown = getThroughputBreakdown(currentEvent);
   const routeSequenceWindowExplanation = routeChange

@@ -1,5 +1,6 @@
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
+import { EntityType } from "@/shared/types/model/entities";
 import {
   type AodvHelloMessage,
   type AodvRouteErrorMessage,
@@ -22,7 +23,9 @@ import {
   type DropEventDetails,
   type Event,
   type GetRouteEventDetails,
+  type MoveEventDetails,
   type RouteChangeEventDetails,
+  type StatusChangeEventDetails,
   type TransferEventDetails,
 } from "@/shared/types/processor/events";
 import { MessageType, type Message } from "@/shared/types/processor/messages";
@@ -154,11 +157,23 @@ export const getEventMessage = (event: Event): Message | null => {
 };
 
 export const getEventTitle = (event: Event) => {
+  if (event.type === EventType.Move) {
+    return "Peer Moved";
+  }
+
+  if (event.type === EventType.StatusChange) {
+    return "Status Changed";
+  }
+
   const message = getEventMessage(event);
   const protocol = detectEventProtocol(event, message);
 
   if (protocol === RoutingProtocol.BATMAN) {
     return getBatmanEventTitle(event);
+  }
+
+  if (protocol === null) {
+    if (event.type === EventType.Drop) return "Message Transfer Failed";
   }
 
   if (protocol !== RoutingProtocol.DSDV) {
@@ -343,6 +358,17 @@ export const getEventTitle = (event: Event) => {
 };
 
 export const getEventDescription = (event: Event, peerNameById: Map<UUID, string>) => {
+  if (event.type === EventType.Move) {
+    const details = event.details as MoveEventDetails;
+    return `Peer is moved to the position (${details.toX}, ${details.toY}).`;
+  }
+
+  if (event.type === EventType.StatusChange) {
+    const details = event.details as StatusChangeEventDetails;
+    const entityLabel = details.entityType === EntityType.Link ? "Link" : "Peer";
+    return `${entityLabel} status changed to ${details.nextEnabled ? "enabled" : "disabled"}.`;
+  }
+
   const message = getEventMessage(event);
   const protocol = detectEventProtocol(event, message);
 

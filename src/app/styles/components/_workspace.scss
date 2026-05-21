@@ -289,12 +289,6 @@ button.workspace__text {
   }
 }
 
-.workspace__static-link--status-transition {
-  line:not(.workspace__static-link-hit) {
-    animation: workspace-static-link-toggle 0.8s ease;
-  }
-}
-
 .workspace__static-link--enabled {
   line:not(.workspace__static-link-hit) {
     stroke: rgba(26, 26, 26, 1);
@@ -597,22 +591,5 @@ button.workspace__text {
   100% {
     filter: drop-shadow(0 0 0 rgba(15, 127, 208, 0));
     transform: scale(1);
-  }
-}
-
-@keyframes workspace-static-link-toggle {
-  0% {
-    opacity: 1;
-    stroke-dasharray: 0;
-  }
-
-  40% {
-    opacity: 0.56;
-    stroke-dasharray: 4 3;
-  }
-
-  100% {
-    opacity: 1;
-    stroke-dasharray: 0;
   }
 }

@@ -6,8 +6,13 @@ import type {
 } from "@/shared/store/slices/simulationSlice";
 import { ActionMode as ToolbarMode } from "@/shared/types/action";
 import type { UUID } from "@/shared/types/common/uuid";
-import type { PeerEntity } from "@/shared/types/model/entities";
-import type { Event } from "@/shared/types/processor/events";
+import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
+import { EntityType } from "@/shared/types/model/entities";
+import {
+  EventType,
+  type Event,
+  type StatusChangeEventDetails,
+} from "@/shared/types/processor/events";
 import type { StepResult } from "@/shared/types/processor/simulation";
 import { clamp } from "@/shared/utils/math/clamp";
 
@@ -16,6 +21,7 @@ type Params = {
   currentStepId: UUID | null;
   currentSimulationEvent: Event | null;
   currentSimulationStepResult: StepResult | null;
+  entities: NetworkEntity[];
   peers: PeerEntity[];
   simulationInspectionMode: ToolbarMode;
   hoveredSimulationPeerState: SimulationPeerHoverState;
@@ -30,6 +36,7 @@ export function useSimulationFocus({
   currentStepId,
   currentSimulationEvent,
   currentSimulationStepResult,
+  entities,
   peers,
   simulationInspectionMode,
   hoveredSimulationPeerState,
@@ -42,20 +49,64 @@ export function useSimulationFocus({
     const inspectedTablePeerId =
       tableInspectionWindows.find((w) => w.isOpen && (w.pinned || w.stepId === currentStepId))
         ?.peerId ?? null;
-    const simulationAnchorPeerId = currentSimulationEvent?.peerId ?? null;
+    const simulationEntities = currentSimulationStepResult?.snapshot.entities ?? entities;
+    const simulationPeers = currentSimulationStepResult?.snapshot.peers ?? peers;
+    const peerById = new Map(simulationPeers.map((peer) => [peer.id, peer]));
 
-    const simulationAnchorPeer = simulationAnchorPeerId
-      ? (currentSimulationStepResult?.snapshot.peers.find(
-          (peer) => peer.id === simulationAnchorPeerId,
-        ) ??
-        peers.find((peer) => peer.id === simulationAnchorPeerId) ??
-        null)
-      : null;
+    const getLinkAnchorPosition = (linkId: UUID): { x: number; y: number } | null => {
+      const link = simulationEntities.find(
+        (entity) => entity.type === EntityType.Link && entity.id === linkId,
+      );
 
-    const simulationAnchorViewportPosition = simulationAnchorPeer
+      if (!link || !link.sourcePeerId || !link.destinationPeerId) {
+        return null;
+      }
+
+      const sourcePeer =
+        peerById.get(link.sourcePeerId) ?? peers.find((peer) => peer.id === link.sourcePeerId);
+      const destinationPeer =
+        peerById.get(link.destinationPeerId) ??
+        peers.find((peer) => peer.id === link.destinationPeerId);
+
+      if (!sourcePeer || !destinationPeer) {
+        return null;
+      }
+
+      return {
+        x: (sourcePeer.x + destinationPeer.x) / 2,
+        y: (sourcePeer.y + destinationPeer.y) / 2,
+      };
+    };
+
+    const getSimulationAnchorModelPosition = (): { x: number; y: number } | null => {
+      if (!currentSimulationEvent) {
+        return null;
+      }
+
+      if (currentSimulationEvent.type === EventType.StatusChange) {
+        const details = currentSimulationEvent.details as StatusChangeEventDetails;
+        if (details.entityType === EntityType.Link) {
+          return getLinkAnchorPosition(details.entityId);
+        }
+      }
+
+      const anchorPeer = peerById.get(currentSimulationEvent.peerId) ?? null;
+      if (!anchorPeer) {
+        return null;
+      }
+
+      return {
+        x: anchorPeer.x,
+        y: anchorPeer.y,
+      };
+    };
+
+    const simulationAnchorModelPosition = getSimulationAnchorModelPosition();
+
+    const simulationAnchorViewportPosition = simulationAnchorModelPosition
       ? {
-          x: centerX + simulationAnchorPeer.x + panOffset.x,
-          y: centerY + simulationAnchorPeer.y + panOffset.y,
+          x: centerX + simulationAnchorModelPosition.x + panOffset.x,
+          y: centerY + simulationAnchorModelPosition.y + panOffset.y,
         }
       : null;
 
@@ -67,7 +118,7 @@ export function useSimulationFocus({
       : false;
 
     const simulationAnchorPosition =
-      simulationAnchorPeer && simulationAnchorViewportPosition && isSimulationAnchorVisible
+      simulationAnchorModelPosition && simulationAnchorViewportPosition && isSimulationAnchorVisible
         ? {
             x:
               clamp(
@@ -100,6 +151,7 @@ export function useSimulationFocus({
   }, [
     centerX,
     centerY,
+    entities,
     currentSimulationEvent,
     currentSimulationStepResult,
     currentStepId,

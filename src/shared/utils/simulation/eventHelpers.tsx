@@ -49,7 +49,7 @@ export const getEventTitle = (event: Event) => {
     case EventType.Move:
       return "Peer Moved";
     case EventType.StatusChange:
-      return "Entity Status Changed";
+      return "Status Changed";
     default:
       return "Simulation Event";
   }
@@ -132,7 +132,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
     case EventType.StatusChange: {
       const details = event.details as StatusChangeEventDetails;
       const entityLabel = details.entityType === EntityType.Link ? "Link" : "Peer";
-      return `${entityLabel} is now ${details.nextEnabled ? "(details.nextEnabled)" : "disabled"}.`;
+      return `${entityLabel} is now ${details.nextEnabled ? "enabled" : "disabled"}.`;
     }
     default:
       return `${actor} emitted a simulation event.`;

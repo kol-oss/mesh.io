@@ -216,15 +216,10 @@ export class BatmanOperations {
   write(message: Message, hopPeerId: UUID) {
     const hop = this.routingPeer.getNeighbour(hopPeerId);
     if (!hop) {
-      this.eventRecorder.record(
-        this.routingPeer.id,
-        EventType.Drop,
-        {
-          message: cloneMessage(message),
-          reason: "Selected next hop is not a current neighbour",
-        },
-        RoutingProtocol.BATMAN,
-      );
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
+        message: cloneMessage(message),
+        reason: "Selected next hop is not a current neighbour",
+      });
       return false;
     }
 
