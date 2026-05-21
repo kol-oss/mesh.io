@@ -4,6 +4,7 @@ import type { AodvRouteRecord } from "./aodv";
 import type { BatmanNeighbourRecord, BatmanRouteRecord } from "./batman";
 import type { DsdvRouteRecord } from "./dsdv";
 import type { DsrRouteRecord } from "./dsr";
+import type { Event } from "./events";
 import type {
   OlsrNeighbourRecord,
   OlsrRouteRecord,

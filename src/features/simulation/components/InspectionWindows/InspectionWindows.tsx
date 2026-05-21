@@ -1,4 +1,4 @@
-import PacketStructureWindow from "@/features/simulation/components/PacketStructureWindow/PacketStructureWindow";
+import MessageStructure from "@/features/simulation/components/MessageStructure/MessageStructure";
 import TableInspectionWindow from "@/features/simulation/components/TableInspectionWindow/TableInspectionWindow";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { Event } from "@/shared/types/processor/events";
@@ -54,7 +54,7 @@ export default function InspectionWindows({
 
         return (
           shouldRender && (
-            <PacketStructureWindow
+            <MessageStructure
               key={`packet-window-${windowState.eventId}`}
               isOpen={true}
               currentEvent={event}

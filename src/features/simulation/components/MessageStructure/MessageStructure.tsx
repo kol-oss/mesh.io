@@ -1,3 +1,4 @@
+import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { DsdvUpdateType } from "@/shared/types/processor/dsdv";
 import { type Event } from "@/shared/types/processor/events";
 import { MessageType, type Message } from "@/shared/types/processor/messages";
@@ -5,8 +6,9 @@ import { type OlsrHelloMessage, type OlsrTcMessage } from "@/shared/types/proces
 import { type StepResult } from "@/shared/types/processor/simulation";
 import { ExternalLink, X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import BatmanMessageStructure from "./BatmanMessageStructure";
 
-type PacketStructureWindowProps = {
+type MessageStructureProps = {
   isOpen: boolean;
   currentEvent: Event | null;
   currentStepResult: StepResult | null;
@@ -21,12 +23,12 @@ type PacketStructureField = {
   blocked: boolean;
 };
 
-export default function PacketStructureWindow({
+export default function MessageStructure({
   isOpen,
   currentEvent,
   currentStepResult,
   onClose,
-}: PacketStructureWindowProps) {
+}: MessageStructureProps) {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStateRef = useRef<{
@@ -101,6 +103,7 @@ export default function PacketStructureWindow({
   const packetStructureAria = getPacketInspectorStructureAria(eventMessage);
   const readMorePath = getPacketReadMorePath(eventMessage);
 
+  const { protocol } = currentEvent;
   return (
     <aside
       className={`simulation-panel simulation-panel--inspector${isDragging ? " simulation-panel--dragging" : ""}`}
@@ -121,67 +124,14 @@ export default function PacketStructureWindow({
         </button>
       </header>
       <section className="simulation-panel__section">
-        {eventMessage?.kind === MessageType.BatmanOriginatorMessage ? (
-          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
-            {getBatmanOgmStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
-              <div className="simulation-panel__packet-row" key={`packet-row-${rowIndex}`}>
-                {row.map((field) => (
-                  <div
-                    key={`${rowIndex}-${field.label}`}
-                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
-                    style={{ flex: field.bits }}
-                  >
-                    <span className="simulation-panel__packet-field-label">{field.label}</span>
-                    <span className="simulation-panel__packet-field-value">{field.value}</span>
-                    <span className="simulation-panel__packet-tooltip" role="tooltip">
-                      <span className="simulation-panel__packet-tooltip-description">
-                        {field.description}
-                      </span>
-                      <span className="simulation-panel__packet-tooltip-bits">
-                        {field.bits} {"bits"}
-                      </span>
-                      {field.blocked ? (
-                        <span className="simulation-panel__packet-tooltip-note">
-                          {"Not modeled"}
-                        </span>
-                      ) : null}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        ) : eventMessage?.kind === MessageType.BatmanEchoLocationMessage ? (
-          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
-            {getBatmanElpStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
-              <div className="simulation-panel__packet-row" key={`packet-row-elp-${rowIndex}`}>
-                {row.map((field) => (
-                  <div
-                    key={`elp-${rowIndex}-${field.label}`}
-                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
-                    style={{ flex: field.bits }}
-                  >
-                    <span className="simulation-panel__packet-field-label">{field.label}</span>
-                    <span className="simulation-panel__packet-field-value">{field.value}</span>
-                    <span className="simulation-panel__packet-tooltip" role="tooltip">
-                      <span className="simulation-panel__packet-tooltip-description">
-                        {field.description}
-                      </span>
-                      <span className="simulation-panel__packet-tooltip-bits">
-                        {field.bits} {"bits"}
-                      </span>
-                      {field.blocked ? (
-                        <span className="simulation-panel__packet-tooltip-note">
-                          {"Not modeled"}
-                        </span>
-                      ) : null}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        ) : eventMessage?.kind === MessageType.DsdvRouteUpdateMessage ? (
+        {protocol == RoutingProtocol.BATMAN && (
+          <BatmanMessageStructure
+            message={eventMessage!}
+            peers={currentStepResult.snapshot.peers}
+          />
+        )}
+
+        {eventMessage?.kind === MessageType.DsdvRouteUpdateMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getDsdvStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-dsdv-${rowIndex}`}>
@@ -1132,164 +1082,6 @@ const getDsdvStructureRows = (
       },
     ],
     ...routeRows,
-  ];
-};
-
-const getBatmanOgmStructureRows = (
-  message: Message,
-  peerNameById: Map<string, string>,
-): PacketStructureField[][] => {
-  if (message.kind !== MessageType.BatmanOriginatorMessage) {
-    return [];
-  }
-
-  return [
-    [
-      {
-        label: "Packet Type",
-        value: "0x06",
-        bits: 8,
-        description: "Identifies this packet as an OGM message.",
-        blocked: false,
-      },
-      {
-        label: "Version",
-        value: String(message.version),
-        bits: 8,
-        description: "OGM protocol version field.",
-        blocked: false,
-      },
-      {
-        label: "Flags",
-        value: "N/A",
-        bits: 8,
-        description: "Control flags for additional OGM semantics.",
-        blocked: true,
-      },
-      {
-        label: "TTL",
-        value: String(message.timeToLive),
-        bits: 8,
-        description: "Maximum forwarding depth still allowed.",
-        blocked: false,
-      },
-    ],
-    [
-      {
-        label: "Sequence Number",
-        value: String(message.sequence),
-        bits: 32,
-        description: "Sequence protection value to identify new OGMs.",
-        blocked: false,
-      },
-    ],
-    [
-      {
-        label: "Originator Address",
-        value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
-        bits: 48,
-        description: "MAC address of the source node that originated the route advertisement.",
-        blocked: false,
-      },
-    ],
-    [
-      {
-        label: "Throughput",
-        value: String(message.throughput),
-        bits: 32,
-        description: "Current path throughput estimate carried with the OGM.",
-        blocked: false,
-      },
-    ],
-    [
-      {
-        label: "Sender Address",
-        value: peerNameById.get(message.senderPeerId) ?? message.senderPeerId,
-        bits: 48,
-        description: "MAC address of the last-hop node that forwarded this OGM.",
-        blocked: false,
-      },
-    ],
-  ];
-};
-
-const getBatmanElpStructureRows = (
-  message: Message,
-  peerNameById: Map<string, string>,
-): PacketStructureField[][] => {
-  if (message.kind !== MessageType.BatmanEchoLocationMessage) {
-    return [];
-  }
-
-  const neighbourRows: PacketStructureField[][] = message.neighbours.map((neighbour) => [
-    {
-      label: "Neighbour Address",
-      value: peerNameById.get(neighbour.address) ?? neighbour.address,
-      bits: 48,
-      description: "MAC address of a neighbour listed in this ELP message.",
-      blocked: false,
-    },
-  ]);
-
-  return [
-    [
-      {
-        label: "Packet Type",
-        value: "0x03",
-        bits: 8,
-        description: "Identifies this packet as an ELP message.",
-        blocked: false,
-      },
-      {
-        label: "Version",
-        value: String(message.version),
-        bits: 8,
-        description: "Protocol version used by the sender.",
-        blocked: false,
-      },
-      {
-        label: "TTL",
-        value: String(message.timeToLive),
-        bits: 8,
-        description: "Remaining relay limit before the packet is discarded. Actually not used.",
-        blocked: false,
-      },
-      {
-        label: "Num Neigh",
-        value: String(message.numNeighbours),
-        bits: 8,
-        description: "Number of neighbour entries included in this packet.",
-        blocked: false,
-      },
-    ],
-    [
-      {
-        label: "Sequence Number",
-        value: String(message.sequence),
-        bits: 32,
-        description: "Monotonic packet number used to detect stale or repeated updates.",
-        blocked: false,
-      },
-    ],
-    [
-      {
-        label: "Interval",
-        value: String(message.interval),
-        bits: 32,
-        description: "ELP transmission interval announced by the sender.",
-        blocked: false,
-      },
-    ],
-    [
-      {
-        label: "Originator Address",
-        value: peerNameById.get(message.sourcePeerId) ?? message.sourcePeerId,
-        bits: 48,
-        description: "MAC address of the node that generated this ELP packet.",
-        blocked: false,
-      },
-    ],
-    ...neighbourRows,
   ];
 };
 
