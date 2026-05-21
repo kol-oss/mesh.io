@@ -20,12 +20,11 @@ import {
   type RouteChangeEventDetails,
 } from "@/shared/types/processor/events";
 import { MessageType, type Message } from "@/shared/types/processor/messages";
+import { type OlsrHelloMessage, type OlsrTcMessage } from "@/shared/types/processor/olsr";
 import {
   type DsrRouteErrorMessage,
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,
-  type OlsrHelloMessage,
-  type OlsrTcMessage,
 } from "@/shared/types/processor/simulation";
 import {
   formatFixed,

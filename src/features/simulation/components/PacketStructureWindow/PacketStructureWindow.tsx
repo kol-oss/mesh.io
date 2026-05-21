@@ -1,11 +1,8 @@
 import { DsdvUpdateType } from "@/shared/types/processor/dsdv";
 import { type Event } from "@/shared/types/processor/events";
 import { MessageType, type Message } from "@/shared/types/processor/messages";
-import {
-  type OlsrHelloMessage,
-  type OlsrTcMessage,
-  type StepResult,
-} from "@/shared/types/processor/simulation";
+import { type OlsrHelloMessage, type OlsrTcMessage } from "@/shared/types/processor/olsr";
+import { type StepResult } from "@/shared/types/processor/simulation";
 import { ExternalLink, X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 

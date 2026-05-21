@@ -9,12 +9,8 @@ import type {
 } from "./batman";
 import type { DsdvRouteChangeEventDetails, DsdvRouteRecord } from "./dsdv";
 import type { Message, Packet } from "./messages";
-import type {
-  DsrRouteRecord,
-  DsrRoutingTableChangeDetails,
-  OlsrRouteRecord,
-  OlsrRoutingTableChangeDetails,
-} from "./simulation";
+import type { OlsrRouteRecord, OlsrRoutingTableChangeDetails } from "./olsr";
+import type { DsrRouteRecord, DsrRoutingTableChangeDetails } from "./simulation";
 
 export enum EventType {
   // internal events

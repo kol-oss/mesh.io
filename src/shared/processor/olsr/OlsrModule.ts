@@ -15,7 +15,7 @@ import {
   type OlsrTcMessage,
   type OlsrTopologyRecord,
   type OlsrTwoHopRecord,
-} from "@/shared/types/processor/simulation";
+} from "@/shared/types/processor/olsr";
 import { cloneOlsrMessage, isOlsrSimulationMessage } from "./olsrMessage";
 
 type OlsrTopologyEntry = {

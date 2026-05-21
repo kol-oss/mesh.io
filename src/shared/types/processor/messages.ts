@@ -7,12 +7,11 @@ import type {
 } from "./aodv";
 import type { BatmanEchoLocationMessage, BatmanOriginatorMessage } from "./batman";
 import type { DsdvRouteUpdateMessage } from "./dsdv";
+import type { OlsrHelloMessage, OlsrTcMessage } from "./olsr";
 import type {
   DsrRouteErrorMessage,
   DsrRouteReplyMessage,
   DsrRouteRequestMessage,
-  OlsrHelloMessage,
-  OlsrTcMessage,
 } from "./simulation";
 
 export enum MessageType {

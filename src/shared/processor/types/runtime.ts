@@ -6,14 +6,13 @@ import type { BatmanNeighbourRecord, BatmanRouteRecord } from "@/shared/types/pr
 import type { DsdvRouteRecord } from "@/shared/types/processor/dsdv";
 import type { Packet } from "@/shared/types/processor/messages";
 import type {
-  DsrRouteRecord,
   OlsrNeighbourRecord,
   OlsrRouteRecord,
   OlsrSelectorRecord,
   OlsrTopologyRecord,
   OlsrTwoHopRecord,
-  Snapshot,
-} from "@/shared/types/processor/simulation";
+} from "@/shared/types/processor/olsr";
+import type { DsrRouteRecord, Snapshot } from "@/shared/types/processor/simulation";
 
 export interface RoutingModule {
   read(message: unknown): boolean;

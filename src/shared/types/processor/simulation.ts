@@ -6,24 +6,13 @@ import type { AodvRouteRecord } from "./aodv";
 import type { BatmanNeighbourRecord, BatmanRouteRecord } from "./batman";
 import type { DsdvRouteRecord } from "./dsdv";
 import type { Message, MessageType } from "./messages";
-
-export type OlsrHelloMessage = {
-  kind: MessageType.OlsrHelloMessage;
-  sourcePeerId: UUID;
-  senderPeerId: UUID;
-  interval: number;
-  neighbours: UUID[];
-  mprPeerIds: UUID[];
-};
-
-export type OlsrTcMessage = {
-  kind: MessageType.OlsrTcMessage;
-  sourcePeerId: UUID;
-  senderPeerId: UUID;
-  ansn: number;
-  timeToLive: number;
-  advertisedNeighbours: UUID[];
-};
+import type {
+  OlsrNeighbourRecord,
+  OlsrRouteRecord,
+  OlsrSelectorRecord,
+  OlsrTopologyRecord,
+  OlsrTwoHopRecord,
+} from "./olsr";
 
 export type DsrRouteRequestMessage = {
   kind: MessageType.DsrRouteRequestMessage;
@@ -56,14 +45,6 @@ export type DsrRouteErrorMessage = {
   routePeerIds: UUID[];
 };
 
-export type OlsrRouteRecord = {
-  destinationPeerId: UUID;
-  nextHopPeerId: UUID;
-  metric: number;
-  sequenceNumber: number;
-  lastUpdateTick: number;
-};
-
 export type DsrRouteRecord = {
   destinationPeerId: UUID;
   nextHopPeerId: UUID;
@@ -71,40 +52,6 @@ export type DsrRouteRecord = {
   sequenceNumber: number;
   lastUpdateTick: number;
   pathPeerIds: UUID[];
-};
-
-export type OlsrNeighbourRecord = {
-  neighbourPeerId: UUID;
-  status: "SYMMETRIC" | "MPR";
-  lastUpdateTick: number;
-};
-
-export type OlsrTwoHopRecord = {
-  destinationPeerId: UUID;
-  viaPeerId: UUID;
-  lastUpdateTick: number;
-};
-
-export type OlsrSelectorRecord = {
-  selectorPeerId: UUID;
-  lastUpdateTick: number;
-};
-
-export type OlsrTopologyRecord = {
-  destinationPeerId: UUID;
-  lastHopPeerId: UUID;
-  sequenceNumber: number;
-  lastUpdateTick: number;
-};
-
-export type OlsrRoutingTableChangeDetails = {
-  protocol: typeof RoutingProtocol.OLSR;
-  destinationPeerId: UUID;
-  nextHopPeerId: UUID;
-  previousRoute: OlsrRouteRecord | null;
-  nextRoute: OlsrRouteRecord | null;
-  message?: Message;
-  reason: string;
 };
 
 export type DsrRoutingTableChangeDetails = {
