@@ -19,7 +19,7 @@ import {
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Link } from "react-router-dom";
-import { getEventTitle } from "../../constants/events";
+import { getEventTitle } from "../../constants/titles";
 import BatmanDescription from "./BatmanDescription";
 import SystemDescription from "./SystemDescription";
 
