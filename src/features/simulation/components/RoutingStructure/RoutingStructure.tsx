@@ -1,5 +1,5 @@
 import MessageStructure from "@/features/simulation/components/MessageStructure/MessageStructure";
-import TableInspectionWindow from "@/features/simulation/components/TableInspectionWindow/TableInspectionWindow";
+import TableStructure from "@/features/simulation/components/TableStructure/TableStructure";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { Event } from "@/shared/types/processor/events";
 import type { StepResult } from "@/shared/types/processor/simulation";
@@ -17,7 +17,7 @@ type TableInspectionWindowState = {
   stepId: UUID | null;
 };
 
-type Props = {
+type RoutingStructureProps = {
   packetInspectorWindows: PacketInspectorWindowState[];
   tableInspectionWindows: TableInspectionWindowState[];
   simulationMessageHoverState: { eventId: UUID | null; isHovered: boolean };
@@ -29,7 +29,7 @@ type Props = {
   onSimulationPeerHoverChange: (peerId: UUID | null) => void;
 };
 
-export default function InspectionWindows({
+export default function RoutingStructure({
   packetInspectorWindows,
   tableInspectionWindows,
   simulationMessageHoverState,
@@ -39,18 +39,18 @@ export default function InspectionWindows({
   onPacketInspectorClose,
   onTableInspectionClose,
   onSimulationPeerHoverChange,
-}: Props) {
+}: RoutingStructureProps) {
   return (
     <>
       {packetInspectorWindows.map((windowState) => {
         const event =
           currentSimulationStepResult?.events.find((e) => e.id === windowState.eventId) ?? null;
+        const isHoveredWindow =
+          simulationMessageHoverState.eventId === windowState.eventId &&
+          simulationMessageHoverState.isHovered;
+
         const shouldRender =
-          !!event &&
-          windowState.isOpen &&
-          (windowState.pinned ||
-            (simulationMessageHoverState.eventId === windowState.eventId &&
-              simulationMessageHoverState.isHovered));
+          !!event && windowState.isOpen && (windowState.pinned || isHoveredWindow);
 
         return (
           shouldRender && (
@@ -66,12 +66,12 @@ export default function InspectionWindows({
       })}
 
       {tableInspectionWindows.map((windowState) => {
-        const shouldRender =
-          windowState.isOpen && (windowState.pinned || windowState.stepId === currentStepId);
+        const isCurrentStep = windowState.stepId === currentStepId;
+        const shouldRender = windowState.isOpen && (windowState.pinned || isCurrentStep);
 
         return (
           shouldRender && (
-            <TableInspectionWindow
+            <TableStructure
               key={`table-window-${windowState.peerId}`}
               isOpen={true}
               currentStepResult={currentSimulationStepResult}

@@ -1,17 +1,17 @@
 import { useCallback, useRef } from "react";
 
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
-import {
-  setMessageAnimationHover,
-  openPacketInspectorPinned,
-  closePacketInspectorWindow,
-  toggleTqDisclosure,
-  toggleSequenceDisclosure,
-  setHoveredSimulationPeer,
-  tableInspectionPeerHoverChange,
-  closeTableInspectionWindow,
-} from "@/shared/store/slices/simulationSlice";
 import { selectCurrentSimulationEvent } from "@/shared/store/selectors";
+import {
+  closePacketInspectorWindow,
+  closeTableInspectionWindow,
+  openPacketInspectorPinned,
+  setHoveredSimulationPeer,
+  setMessageAnimationHover,
+  tableInspectionPeerHoverChange,
+  toggleSequenceDisclosure,
+  toggleTqDisclosure,
+} from "@/shared/store/slices/simulationSlice";
 import type { UUID } from "@/shared/types/common/uuid";
 
 export const useWindowStates = () => {

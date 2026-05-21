@@ -397,11 +397,16 @@ export class BatmanOperations {
     breakdown?: BatmanCalculationEventDetails["breakdown"],
     ogmSelection?: BatmanCalculationEventDetails["ogmSelection"],
   ) {
-    this.eventRecorder.record(this.routingPeer.id, EventType.Calculation, {
-      message: cloneMessage(message),
-      reason,
-      breakdown,
-      ogmSelection,
-    });
+    this.eventRecorder.record(
+      this.routingPeer.id,
+      EventType.Calculation,
+      {
+        message: cloneMessage(message),
+        reason,
+        breakdown,
+        ogmSelection,
+      },
+      RoutingProtocol.BATMAN,
+    );
   }
 }

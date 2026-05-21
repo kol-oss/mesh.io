@@ -9,8 +9,9 @@ import {
   type ReactNode,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import BatmanTableStructure from "./BatmanTableStructure";
 
-type TableInspectionWindowProps = {
+type TableStructureProps = {
   isOpen: boolean;
   currentStepResult: StepResult | null;
   currentEventId: UUID | null;
@@ -19,14 +20,14 @@ type TableInspectionWindowProps = {
   onPeerHoverChange: (peerId: UUID | null) => void;
 };
 
-export default function TableInspectionWindow({
+export default function TableStructure({
   isOpen,
   currentStepResult,
   currentEventId,
   inspectedPeerId,
   onClose,
   onPeerHoverChange,
-}: TableInspectionWindowProps) {
+}: TableStructureProps) {
   // Drag state
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -180,87 +181,11 @@ export default function TableInspectionWindow({
 
       <section className="simulation-panel__section" onMouseLeave={() => onPeerHoverChange(null)}>
         {selectedProtocol === RoutingProtocol.BATMAN ? (
-          <>
-            {renderCollapsibleBlock(
-              "batmanNeighbours",
-              "Neighbours Table",
-              <table className="simulation-panel__table-view">
-                <thead>
-                  <tr>
-                    <th>{"Neighbour"}</th>
-                    <th>{"Throughput"}</th>
-                    <th>{"Last Seen"}</th>
-                    <th>{"Interval"}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {inspectedPeer.batmanNeighboursTable.length === 0 ? (
-                    <tr>
-                      <td colSpan={4}>{"No records"}</td>
-                    </tr>
-                  ) : (
-                    inspectedPeer.batmanNeighboursTable.map((row, index) => (
-                      <tr key={`${row.neighbourPeerId}-${index}`}>
-                        <td>
-                          {renderPeerName(
-                            row.neighbourPeerId,
-                            getPeerLabel(row.neighbourPeerId, peerNameById),
-                            onPeerHoverChange,
-                          )}
-                        </td>
-                        <td>{row.quality}</td>
-                        <td>{row.lastTick}</td>
-                        <td>{row.interval}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>,
-            )}
-
-            {renderCollapsibleBlock(
-              "batmanOriginators",
-              "Originators Table",
-              <table className="simulation-panel__table-view">
-                <thead>
-                  <tr>
-                    <th>{"Originator"}</th>
-                    <th>{"Next Hop"}</th>
-                    <th>{"Throughput"}</th>
-                    <th>{"Last Seen"}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {inspectedPeer.batmanRoutingTable.length === 0 ? (
-                    <tr>
-                      <td colSpan={4}>{"No records"}</td>
-                    </tr>
-                  ) : (
-                    inspectedPeer.batmanRoutingTable.map((row, index) => (
-                      <tr key={`${row.originatorPeerId}-${row.hopPeerId}-${index}`}>
-                        <td>
-                          {renderPeerName(
-                            row.originatorPeerId,
-                            getPeerLabel(row.originatorPeerId, peerNameById),
-                            onPeerHoverChange,
-                          )}
-                        </td>
-                        <td>
-                          {renderPeerName(
-                            row.hopPeerId,
-                            getPeerLabel(row.hopPeerId, peerNameById),
-                            onPeerHoverChange,
-                          )}
-                        </td>
-                        <td>{row.quality}</td>
-                        <td>{row.lastTick}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>,
-            )}
-          </>
+          <BatmanTableStructure
+            peer={inspectedPeer}
+            peers={inspectedSnapshot.peers}
+            onPeerNameHover={onPeerHoverChange}
+          />
         ) : selectedProtocol === RoutingProtocol.DSDV ? (
           renderCollapsibleBlock(
             "dsdvRoutes",

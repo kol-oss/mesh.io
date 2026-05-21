@@ -12,7 +12,7 @@ import { usePlacement } from "@/features/board/hooks/usePlacement";
 import { useSize } from "@/features/board/hooks/useSize";
 import { useTextDelete } from "@/features/board/hooks/useTextDelete";
 import { useTextEdit } from "@/features/board/hooks/useTextEdit";
-import InspectionWindows from "@/features/simulation/components/InspectionWindows/InspectionWindows";
+import RoutingStructure from "@/features/simulation/components/RoutingStructure/RoutingStructure";
 import { useSimulationEventHandlers } from "@/features/simulation/hooks/useSimulationEventHandlers";
 import { useSimulationFocus } from "@/features/simulation/hooks/useSimulationFocus";
 import { useWindowStates } from "@/features/simulation/hooks/useWindowStates";
@@ -417,7 +417,7 @@ export default function Canvas({
         }}
       />
 
-      <InspectionWindows
+      <RoutingStructure
         packetInspectorWindows={packetInspectorWindows}
         tableInspectionWindows={tableInspectionWindows}
         simulationMessageHoverState={simulationMessageHoverState}

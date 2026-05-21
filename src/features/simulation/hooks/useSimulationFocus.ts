@@ -90,7 +90,7 @@ export function useSimulationFocus({
         : null;
     const highlightedSimulationPeerId =
       simulationInspectionMode === ToolbarMode.RoutingTable
-        ? inspectedTablePeerId
+        ? (hoveredSimulationPeerId ?? inspectedTablePeerId)
         : hoveredSimulationPeerId;
 
     return {
