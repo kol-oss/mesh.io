@@ -8,9 +8,9 @@ import {
   type GetRouteEventDetails,
   type RouteChangeEventDetails,
 } from "@/shared/types/processor/events";
+import { MessageType, type Message } from "@/shared/types/processor/messages";
 import {
   DsdvUpdateType,
-  MessageType,
   type AodvHelloMessage,
   type AodvRouteErrorMessage,
   type AodvRouteReplyMessage,
@@ -20,7 +20,6 @@ import {
   type DsrRouteErrorMessage,
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,
-  type Message,
   type OlsrHelloMessage,
   type OlsrTcMessage,
   type ThroughputCalculationEventDetails,

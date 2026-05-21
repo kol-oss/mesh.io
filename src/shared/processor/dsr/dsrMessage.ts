@@ -1,4 +1,4 @@
-import { MessageType, type Message } from "@/shared/types/processor/simulation";
+import { MessageType, type Message } from "@/shared/types/processor/messages";
 
 export const cloneDsrMessage = <T extends Message>(message: T): T => {
   return {

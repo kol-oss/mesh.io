@@ -1,6 +1,7 @@
 import type { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
+import type { Packet } from "@/shared/types/processor/messages";
 import type {
   AodvRouteRecord,
   BatmanNeighbourRecord,
@@ -12,7 +13,6 @@ import type {
   OlsrSelectorRecord,
   OlsrTopologyRecord,
   OlsrTwoHopRecord,
-  Packet,
   Snapshot,
 } from "@/shared/types/processor/simulation";
 

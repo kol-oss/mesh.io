@@ -9,12 +9,12 @@ import type {
   StatusChangeEventDetails,
 } from "@/shared/types/processor/events";
 import { EventType } from "@/shared/types/processor/events";
+import type { Message } from "@/shared/types/processor/messages";
+import { MessageType } from "@/shared/types/processor/messages";
 import type {
-  Message,
   PeerSnapshot,
   ThroughputCalculationEventDetails,
 } from "@/shared/types/processor/simulation";
-import { MessageType } from "@/shared/types/processor/simulation";
 import type {
   MessageAnimation,
   MoveStepAnimation,

@@ -9,13 +9,12 @@ import type { PeerNode, RoutingModule } from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import { EventType } from "@/shared/types/processor/events";
+import { MessageType, type Packet } from "@/shared/types/processor/messages";
 import {
-  MessageType,
   type DsrRouteErrorMessage,
   type DsrRouteRecord,
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,
-  type Packet,
 } from "@/shared/types/processor/simulation";
 import { cloneDsrMessage, isDsrSimulationMessage } from "./dsrMessage";
 

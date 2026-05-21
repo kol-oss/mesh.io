@@ -11,8 +11,8 @@ import {
   type Event,
   type GetRouteEventDetails,
 } from "@/shared/types/processor/events";
+import { MessageType } from "@/shared/types/processor/messages";
 import {
-  MessageType,
   type BatmanRouteRecord,
   type BatmanRoutingTableChangeDetails,
   type ThroughputCalculationEventDetails,

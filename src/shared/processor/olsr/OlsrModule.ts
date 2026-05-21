@@ -6,9 +6,8 @@ import type { UUID } from "@/shared/types/common/uuid";
 import type { OlsrConfiguration } from "@/shared/types/model/configurations";
 import { getOlsrConfiguration } from "@/shared/types/model/peers";
 import { EventType } from "@/shared/types/processor/events";
+import { MessageType, type Message, type Packet } from "@/shared/types/processor/messages";
 import {
-  MessageType,
-  type Message,
   type OlsrHelloMessage,
   type OlsrNeighbourRecord,
   type OlsrRouteRecord,
@@ -16,7 +15,6 @@ import {
   type OlsrTcMessage,
   type OlsrTopologyRecord,
   type OlsrTwoHopRecord,
-  type Packet,
 } from "@/shared/types/processor/simulation";
 import { cloneOlsrMessage, isOlsrSimulationMessage } from "./olsrMessage";
 

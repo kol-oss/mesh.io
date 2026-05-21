@@ -6,39 +6,14 @@ import type {
   BroadcastEventDetails,
   DropEventDetails,
   GetRouteEventDetails,
-  MessageEventDetails,
   MoveEventDetails,
   RouteChangeEventDetails,
   StatusChangeEventDetails,
 } from "./events";
-
-export const MessageType = {
-  Packet: "PACKET",
-  BatmanOriginatorMessage: "BATMAN_ORIGINATOR_MESSAGE",
-  BatmanEchoLocationMessage: "BATMAN_ECHO_LOCATION_MESSAGE",
-  DsdvRouteUpdateMessage: "DSDV_ROUTE_UPDATE_MESSAGE",
-  AodvRouteRequestMessage: "AODV_ROUTE_REQUEST_MESSAGE",
-  AodvRouteReplyMessage: "AODV_ROUTE_REPLY_MESSAGE",
-  AodvRouteErrorMessage: "AODV_ROUTE_ERROR_MESSAGE",
-  AodvHelloMessage: "AODV_HELLO_MESSAGE",
-  OlsrHelloMessage: "OLSR_HELLO_MESSAGE",
-  OlsrTcMessage: "OLSR_TC_MESSAGE",
-  DsrRouteRequestMessage: "DSR_ROUTE_REQUEST_MESSAGE",
-  DsrRouteReplyMessage: "DSR_ROUTE_REPLY_MESSAGE",
-  DsrRouteErrorMessage: "DSR_ROUTE_ERROR_MESSAGE",
-} as const;
-
-export type MessageType = (typeof MessageType)[keyof typeof MessageType];
-
-export type Packet = {
-  kind: typeof MessageType.Packet;
-  sourcePeerId: UUID | null;
-  destinationPeerId: UUID;
-  timeToLive: number;
-};
+import type { Message, MessageType } from "./messages";
 
 export type BatmanOriginatorMessage = {
-  kind: typeof MessageType.BatmanOriginatorMessage;
+  kind: MessageType.BatmanOriginatorMessage;
   version: number;
   sourcePeerId: UUID;
   senderPeerId: UUID;
@@ -58,7 +33,7 @@ export const BatmanPacketType = {
 export type BatmanPacketType = (typeof BatmanPacketType)[keyof typeof BatmanPacketType];
 
 export type BatmanEchoLocationMessage = {
-  kind: typeof MessageType.BatmanEchoLocationMessage;
+  kind: MessageType.BatmanEchoLocationMessage;
   packetType: typeof BatmanPacketType.EchoLocationProtocol;
   version: number;
   sourcePeerId: UUID;
@@ -85,7 +60,7 @@ export type DsdvRouteEntryMessage = {
 };
 
 export type DsdvRouteUpdateMessage = {
-  kind: typeof MessageType.DsdvRouteUpdateMessage;
+  kind: MessageType.DsdvRouteUpdateMessage;
   updateType: DsdvUpdateType;
   sourcePeerId: UUID;
   senderPeerId: UUID;
@@ -94,7 +69,7 @@ export type DsdvRouteUpdateMessage = {
 };
 
 export type AodvRouteRequestMessage = {
-  kind: typeof MessageType.AodvRouteRequestMessage;
+  kind: MessageType.AodvRouteRequestMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   destinationPeerId: UUID;
@@ -105,7 +80,7 @@ export type AodvRouteRequestMessage = {
 };
 
 export type AodvRouteReplyMessage = {
-  kind: typeof MessageType.AodvRouteReplyMessage;
+  kind: MessageType.AodvRouteReplyMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   targetPeerId: UUID;
@@ -123,7 +98,7 @@ export type AodvUnreachableDestination = {
 };
 
 export type AodvRouteErrorMessage = {
-  kind: typeof MessageType.AodvRouteErrorMessage;
+  kind: MessageType.AodvRouteErrorMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   targetPeerId: UUID | null;
@@ -132,7 +107,7 @@ export type AodvRouteErrorMessage = {
 };
 
 export type AodvHelloMessage = {
-  kind: typeof MessageType.AodvHelloMessage;
+  kind: MessageType.AodvHelloMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   destinationSequenceNumber: number;
@@ -141,7 +116,7 @@ export type AodvHelloMessage = {
 };
 
 export type OlsrHelloMessage = {
-  kind: typeof MessageType.OlsrHelloMessage;
+  kind: MessageType.OlsrHelloMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   interval: number;
@@ -150,7 +125,7 @@ export type OlsrHelloMessage = {
 };
 
 export type OlsrTcMessage = {
-  kind: typeof MessageType.OlsrTcMessage;
+  kind: MessageType.OlsrTcMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   ansn: number;
@@ -159,7 +134,7 @@ export type OlsrTcMessage = {
 };
 
 export type DsrRouteRequestMessage = {
-  kind: typeof MessageType.DsrRouteRequestMessage;
+  kind: MessageType.DsrRouteRequestMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   targetPeerId: UUID;
@@ -169,7 +144,7 @@ export type DsrRouteRequestMessage = {
 };
 
 export type DsrRouteReplyMessage = {
-  kind: typeof MessageType.DsrRouteReplyMessage;
+  kind: MessageType.DsrRouteReplyMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   targetPeerId: UUID;
@@ -179,7 +154,7 @@ export type DsrRouteReplyMessage = {
 };
 
 export type DsrRouteErrorMessage = {
-  kind: typeof MessageType.DsrRouteErrorMessage;
+  kind: MessageType.DsrRouteErrorMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   destinationPeerId: UUID;
@@ -188,21 +163,6 @@ export type DsrRouteErrorMessage = {
   salvageCount: number;
   routePeerIds: UUID[];
 };
-
-export type Message =
-  | Packet
-  | BatmanOriginatorMessage
-  | BatmanEchoLocationMessage
-  | DsdvRouteUpdateMessage
-  | AodvRouteRequestMessage
-  | AodvRouteReplyMessage
-  | AodvRouteErrorMessage
-  | AodvHelloMessage
-  | OlsrHelloMessage
-  | OlsrTcMessage
-  | DsrRouteRequestMessage
-  | DsrRouteReplyMessage
-  | DsrRouteErrorMessage;
 
 export type BatmanRouteRecord = {
   originatorPeerId: UUID;
@@ -353,22 +313,14 @@ export type ThroughputCalculationEventDetails = {
   };
 };
 
-export type StepBoundaryDetails = {
-  stepId: UUID;
-  stepTitle: string;
-  stepType: Step["type"];
-};
-
 export type EventDetails =
   | BroadcastEventDetails
-  | MessageEventDetails
   | GetRouteEventDetails
   | DropEventDetails
   | ThroughputCalculationEventDetails
   | MoveEventDetails
   | StatusChangeEventDetails
-  | RouteChangeEventDetails
-  | StepBoundaryDetails;
+  | RouteChangeEventDetails;
 
 export type PeerSnapshot = PeerEntity & {
   batmanRoutingTable: BatmanRouteRecord[];

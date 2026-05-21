@@ -8,14 +8,13 @@ import type { PeerNode, RoutingModule } from "@/shared/processor/types/runtime.t
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
 import { EventType } from "@/shared/types/processor/events.ts";
+import { MessageType, type Packet } from "@/shared/types/processor/messages.ts";
 import {
   BatmanPacketType,
-  MessageType,
   type BatmanEchoLocationMessage,
   type BatmanEchoLocationNeighbour,
   type BatmanNeighbourRecord,
   type BatmanOriginatorMessage,
-  type Packet,
 } from "@/shared/types/processor/simulation.ts";
 import { cloneMessage, isSimulationMessage } from "./batmanMessage.ts";
 import { BatmanOperations } from "./BatmanOperations.ts";

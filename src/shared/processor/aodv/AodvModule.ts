@@ -12,15 +12,14 @@ import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import { getAodvConfiguration } from "@/shared/types/model/peers";
 import { EventType } from "@/shared/types/processor/events";
+import { MessageType, type Packet } from "@/shared/types/processor/messages";
 import {
-  MessageType,
   type AodvHelloMessage,
   type AodvRouteErrorMessage,
   type AodvRouteRecord,
   type AodvRouteReplyMessage,
   type AodvRouteRequestMessage,
   type AodvUnreachableDestination,
-  type Packet,
 } from "@/shared/types/processor/simulation";
 import { cloneAodvMessage, isAodvSimulationMessage } from "./aodvMessage";
 

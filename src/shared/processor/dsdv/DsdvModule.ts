@@ -11,12 +11,11 @@ import type { UUID } from "@/shared/types/common/uuid";
 import type { DsdvConfiguration } from "@/shared/types/model/configurations";
 import { getDsdvConfiguration } from "@/shared/types/model/peers";
 import { EventType } from "@/shared/types/processor/events";
+import { MessageType, type Packet } from "@/shared/types/processor/messages";
 import {
   DsdvUpdateType,
-  MessageType,
   type DsdvRouteEntryMessage,
   type DsdvRouteUpdateMessage,
-  type Packet,
 } from "@/shared/types/processor/simulation";
 import { DsdvRoutingTable } from "./DsdvRoutingTable";
 import { cloneDsdvMessage, isDsdvSimulationMessage } from "./dsdvMessage";

@@ -11,11 +11,10 @@ import {
   type RouteChangeEventDetails,
   type StatusChangeEventDetails,
 } from "@/shared/types/processor/events";
+import { MessageType, type Message } from "@/shared/types/processor/messages";
 import {
-  MessageType,
   type BatmanRouteRecord,
   type BatmanRoutingTableChangeDetails,
-  type Message,
   type ThroughputCalculationEventDetails,
 } from "@/shared/types/processor/simulation";
 import type { ReactNode } from "react";

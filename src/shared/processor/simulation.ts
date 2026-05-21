@@ -8,8 +8,6 @@ import type { RoutingModule } from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { RefreshAction, StepType, type Step } from "@/shared/types/model/steps";
 import {
-  MessageType,
-  type Packet,
   type SimulationInput,
   type SimulationResult,
   type Snapshot,
@@ -20,6 +18,7 @@ import {
   type MoveEventDetails,
   type StatusChangeEventDetails,
 } from "../types/processor/events";
+import { MessageType, type Packet } from "../types/processor/messages";
 import { sortStepsByTick } from "./steps";
 
 export function runSimulation(input: SimulationInput): SimulationResult {

@@ -1,6 +1,7 @@
 import type { RoutingProtocol } from "../common/protocols";
 import type { UUID } from "../common/uuid";
-import type { NetworkEntity } from "../model/entities";
+import type { EntityType } from "../model/entities";
+import type { Message, Packet } from "./messages";
 import type {
   AodvRouteRecord,
   AodvRoutingTableChangeDetails,
@@ -11,10 +12,8 @@ import type {
   DsrRouteRecord,
   DsrRoutingTableChangeDetails,
   EventDetails,
-  Message,
   OlsrRouteRecord,
   OlsrRoutingTableChangeDetails,
-  Packet,
 } from "./simulation";
 
 export enum EventType {
@@ -48,33 +47,16 @@ export type BroadcastEventDetails = {
   note?: string;
 };
 
+// for Calculation event
+export type CalculationEventDetails = {
+  message: Message;
+};
+
 // for Drop event
 export type DropEventDetails = {
   message?: Message;
   reason: string;
   reasonCode?: "NO_ROUTE" | "SOURCE_UNAVAILABLE";
-};
-
-export type MessageEventDetails = {
-  hopPeerId: UUID;
-  message: Message;
-};
-
-// for Move event
-export type MoveEventDetails = {
-  peerId: UUID;
-  fromX: number;
-  fromY: number;
-  toX: number;
-  toY: number;
-};
-
-// for StatusChange event
-export type StatusChangeEventDetails = {
-  entityId: UUID;
-  entityType: NetworkEntity["type"];
-  previousEnabled: boolean;
-  nextEnabled: boolean;
 };
 
 // for GetRoute event
@@ -97,3 +79,20 @@ export type RouteChangeEventDetails =
   | AodvRoutingTableChangeDetails
   | OlsrRoutingTableChangeDetails
   | DsrRoutingTableChangeDetails;
+
+// for Move event
+export type MoveEventDetails = {
+  peerId: UUID;
+  fromX: number;
+  fromY: number;
+  toX: number;
+  toY: number;
+};
+
+// for StatusChange event
+export type StatusChangeEventDetails = {
+  entityId: UUID;
+  entityType: EntityType;
+  previousEnabled: boolean;
+  nextEnabled: boolean;
+};

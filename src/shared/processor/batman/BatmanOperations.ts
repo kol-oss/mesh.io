@@ -11,13 +11,11 @@ import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
 import { EventType } from "@/shared/types/processor/events.ts";
+import { MessageType, type Message, type Packet } from "@/shared/types/processor/messages.ts";
 import {
-  MessageType,
   type BatmanEchoLocationMessage,
   type BatmanNeighbourRecord,
   type BatmanOriginatorMessage,
-  type Message,
-  type Packet,
   type ThroughputCalculationEventDetails,
 } from "@/shared/types/processor/simulation.ts";
 import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";
