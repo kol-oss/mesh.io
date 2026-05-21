@@ -7,7 +7,7 @@ import type { PeerNode } from "@/features/processor/types/runtime";
 import { EventType } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import { cloneMessage } from "./batmanMessage";
+import { clone } from "../../utils/messages";
 import { BatmanSequenceWindow } from "./BatmanSequenceWindow";
 
 type BatmanRoute = {
@@ -191,7 +191,7 @@ export class BatmanOriginatorTable {
         hopPeerId,
         previousRoute: null,
         nextRoute: this.toRouteRecord(originatorPeerId, route),
-        message: cloneMessage(message),
+        message: clone(message),
         reason,
       },
       RoutingProtocol.BATMAN,
@@ -224,7 +224,7 @@ export class BatmanOriginatorTable {
           hopPeerId,
           previousRoute,
           nextRoute: this.toRouteRecord(originatorPeerId, route),
-          message: cloneMessage(message),
+          message: clone(message),
           reason,
         },
         RoutingProtocol.BATMAN,

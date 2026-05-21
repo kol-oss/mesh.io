@@ -8,6 +8,7 @@ import {
 import type { PeerNode } from "@/features/processor/types/runtime.ts";
 import {
   BATMAN_EWMA_ALPHA,
+  BATMAN_MAX_THROUGHPUT,
   BATMAN_OGM_HOP_PENALTY_PERCENT,
   BATMAN_STATIC_BASE_THROUGHPUT,
   BATMAN_VERSION,
@@ -18,14 +19,14 @@ import { MessageType, type Message, type Packet } from "@/shared/types/common/me
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
+import { clamp } from "@/shared/utils/math/clamp.ts";
+import { applyDistancePenalty, applyWirelessPenalty } from "../../utils/batman.ts";
+import { getDistance } from "../../utils/connectivity.ts";
+import { clone } from "../../utils/messages.ts";
 import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";
-import {
-  applyDistancePenalty,
-  applyFixedHopPenalty,
-  clampThroughput,
-  getDistanceBetweenPeers,
-} from "./batmanMath.ts";
-import { cloneMessage } from "./batmanMessage.ts";
+
+const clampThroughput = (throughput: number) =>
+  clamp(Math.floor(throughput), 0, BATMAN_MAX_THROUGHPUT);
 
 type BatmanNeighbourEntry = {
   neighbourId: UUID;
@@ -61,7 +62,7 @@ export class BatmanOperations {
         this.routingPeer.id,
         EventType.Drop,
         {
-          message: cloneMessage(message),
+          message: clone(message),
           reason:
             "B.A.T.M.A.N. V dropped a rebroadcast OGMv2 because the originator received its own message",
         },
@@ -75,7 +76,7 @@ export class BatmanOperations {
         this.routingPeer.id,
         EventType.Drop,
         {
-          message: cloneMessage(message),
+          message: clone(message),
           reason: `B.A.T.M.A.N. V node rejected OGM with unsupported (message.version) ${message.version}`,
         },
         RoutingProtocol.BATMAN,
@@ -89,7 +90,7 @@ export class BatmanOperations {
         this.routingPeer.id,
         EventType.Drop,
         {
-          message: cloneMessage(message),
+          message: clone(message),
           reason: "B.A.T.M.A.N. V OGMv2 TTL reached zero",
         },
         RoutingProtocol.BATMAN,
@@ -103,7 +104,7 @@ export class BatmanOperations {
         this.routingPeer.id,
         EventType.Drop,
         {
-          message: cloneMessage(message),
+          message: clone(message),
           reason: "OGM dropped because no ELP neighbour metric exists for this sender",
         },
         RoutingProtocol.BATMAN,
@@ -117,7 +118,7 @@ export class BatmanOperations {
     const isStaticHop = this.routingPeer.isLinkedNeighbour(message.senderPeerId);
     const isWirelessHop = !isStaticHop && this.routingPeer.isRangedNeighbour(message.senderPeerId);
     const nextThroughput = isWirelessHop
-      ? applyFixedHopPenalty(selectedThroughput)
+      ? applyWirelessPenalty(selectedThroughput)
       : selectedThroughput;
     const reason = isWirelessHop
       ? `ELP neighbour metric ${neighbourThroughput} and incoming OGM throughput ${receivedThroughput} were combined by min() = ${selectedThroughput}. Wireless hop penalty 5.8% then produced forwarded throughput ${nextThroughput}.`
@@ -143,7 +144,7 @@ export class BatmanOperations {
         this.routingPeer.id,
         EventType.Drop,
         {
-          message: cloneMessage(message),
+          message: clone(message),
           reason: "Duplicate B.A.T.M.A.N. V OGMv2 was ignored by the sequence protection window",
         },
         RoutingProtocol.BATMAN,
@@ -161,7 +162,7 @@ export class BatmanOperations {
         this.routingPeer.id,
         EventType.Drop,
         {
-          message: cloneMessage(message),
+          message: clone(message),
           reason:
             "B.A.T.M.A.N. V did not rebroadcast this OGMv2 because it did not arrive from the best or a better-throughput neighbour",
         },
@@ -185,7 +186,7 @@ export class BatmanOperations {
         this.routingPeer.id,
         EventType.Drop,
         {
-          message: cloneMessage(packet),
+          message: clone(packet),
           reason: "Packet TTL reached zero",
         },
         RoutingProtocol.BATMAN,
@@ -199,7 +200,7 @@ export class BatmanOperations {
         this.routingPeer.id,
         EventType.Drop,
         {
-          message: cloneMessage(packet),
+          message: clone(packet),
           reason: "No B.A.T.M.A.N. V route is available for the destination",
           reasonCode: "NO_ROUTE",
         },
@@ -215,7 +216,7 @@ export class BatmanOperations {
         protocol: RoutingProtocol.BATMAN,
         destinationPeerId: packet.destinationPeerId,
         selectedRoute,
-        message: cloneMessage(packet),
+        message: clone(packet),
       },
       RoutingProtocol.BATMAN,
     );
@@ -227,7 +228,7 @@ export class BatmanOperations {
     const hop = this.routingPeer.getNeighbour(hopPeerId);
     if (!hop) {
       this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneMessage(message),
+        message: clone(message),
         reason: "Selected next hop is not a current neighbour",
       });
       return false;
@@ -238,7 +239,7 @@ export class BatmanOperations {
         this.routingPeer.id,
         EventType.Drop,
         {
-          message: cloneMessage(message),
+          message: clone(message),
           reason: "Selected next hop does not support B.A.T.M.A.N. V",
         },
         RoutingProtocol.BATMAN,
@@ -249,7 +250,7 @@ export class BatmanOperations {
     const forwardedMessage =
       message.kind === MessageType.Packet && message.sourcePeerId === null
         ? { ...message, sourcePeerId: this.routingPeer.id }
-        : cloneMessage(message);
+        : clone(message);
 
     if (forwardedMessage.kind === MessageType.Packet) {
       this.eventRecorder.record(
@@ -259,7 +260,7 @@ export class BatmanOperations {
           protocol: RoutingProtocol.BATMAN,
           sourcePeerId: this.routingPeer.id,
           targetPeerId: hopPeerId,
-          message: cloneMessage(forwardedMessage),
+          message: clone(forwardedMessage),
         },
         RoutingProtocol.BATMAN,
       );
@@ -280,7 +281,7 @@ export class BatmanOperations {
       {
         neighbourPeerIds: neighbours.map((peer) => peer.id),
         retransmit: message.sourcePeerId !== this.routingPeer.id,
-        message: cloneMessage(message),
+        message: clone(message),
       },
       RoutingProtocol.BATMAN,
     );
@@ -304,7 +305,7 @@ export class BatmanOperations {
         this.routingPeer.id,
         EventType.Drop,
         {
-          message: cloneMessage(message),
+          message: clone(message),
           reason: `ELP rejected packet with unsupported (message.version) ${message.version}`,
         },
         RoutingProtocol.BATMAN,
@@ -317,7 +318,7 @@ export class BatmanOperations {
         this.routingPeer.id,
         EventType.Drop,
         {
-          message: cloneMessage(message),
+          message: clone(message),
           reason: "ELP TTL reached zero",
         },
         RoutingProtocol.BATMAN,
@@ -331,7 +332,7 @@ export class BatmanOperations {
         this.routingPeer.id,
         EventType.Drop,
         {
-          message: cloneMessage(message),
+          message: clone(message),
           reason: "Selected next hop is not a current neighbour",
         },
         RoutingProtocol.BATMAN,
@@ -348,7 +349,7 @@ export class BatmanOperations {
     const isStaticLink = this.routingPeer.isLinkedNeighbour(message.senderPeerId);
     const isWirelessLink =
       !isStaticLink && this.routingPeer.isRangedNeighbour(message.senderPeerId);
-    const distance = getDistanceBetweenPeers(routingPeerEntity, senderPeerEntity);
+    const distance = getDistance(routingPeerEntity, senderPeerEntity);
     const baseReferenceThroughput = isWirelessLink
       ? BATMAN_WIRELESS_BASE_THROUGHPUT
       : BATMAN_STATIC_BASE_THROUGHPUT;
@@ -421,7 +422,7 @@ export class BatmanOperations {
       this.routingPeer.id,
       EventType.Calculation,
       {
-        message: cloneMessage(message),
+        message: clone(message),
         reason,
         breakdown,
         ogmSelection,

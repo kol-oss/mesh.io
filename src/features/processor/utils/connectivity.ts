@@ -5,6 +5,13 @@ import type { ObstacleBounds } from "@/shared/types/workspace/interaction";
 
 export const toInt = (value: number) => Math.round(value);
 
+export const getDistance = (
+  source: { x: number; y: number },
+  destination: { x: number; y: number },
+) => {
+  return Math.hypot(destination.x - source.x, destination.y - source.y);
+};
+
 export const shortenLine = (x1: number, y1: number, x2: number, y2: number, amount: number) => {
   const length = Math.hypot(x2 - x1, y2 - y1);
   if (length <= amount * 2) {

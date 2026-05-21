@@ -11,10 +11,10 @@ import {
   BATMAN_VERSION,
 } from "@/shared/constants/batman.ts";
 import { EventType } from "@/shared/types/common/events.ts";
-import { MessageType, type Packet } from "@/shared/types/common/messages.ts";
+import { MessageType, type Message, type Packet } from "@/shared/types/common/messages.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
-import { cloneMessage, isSimulationMessage } from "./batmanMessage.ts";
+import { clone } from "../../utils/messages.ts";
 import { BatmanOperations } from "./BatmanOperations.ts";
 import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";
 type BatmanNeighbourEntry = {
@@ -64,12 +64,17 @@ export class BatmanModule implements RoutingModule {
     });
   }
 
-  read(message: unknown): boolean {
-    if (!isSimulationMessage(message)) {
+  read(message: Message): boolean {
+    const { kind: messageType } = message;
+    if (
+      messageType !== MessageType.Packet &&
+      messageType !== MessageType.BatmanOriginatorMessage &&
+      messageType !== MessageType.BatmanEchoLocationMessage
+    ) {
       return false;
     }
 
-    if (message.kind === MessageType.Packet) {
+    if (messageType === MessageType.Packet) {
       if (message.destinationPeerId === this.routingPeer.id) {
         return true;
       }
@@ -81,11 +86,11 @@ export class BatmanModule implements RoutingModule {
       return this.operations.routeAndWrite(forwardedPacket);
     }
 
-    if (message.kind === MessageType.BatmanEchoLocationMessage) {
+    if (messageType === MessageType.BatmanEchoLocationMessage) {
       return this.operations.processEchoLocation(message);
     }
 
-    if (message.kind !== MessageType.BatmanOriginatorMessage) {
+    if (messageType !== MessageType.BatmanOriginatorMessage) {
       return false;
     }
 
@@ -134,7 +139,7 @@ export class BatmanModule implements RoutingModule {
 
     if (!this.routingPeer.isActive()) {
       this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneMessage(sourcePacket),
+        message: clone(sourcePacket),
         reason: "Source peer is disabled",
       });
       return false;
