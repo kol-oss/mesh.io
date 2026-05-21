@@ -78,14 +78,19 @@ export class BatmanOriginatorTable {
           if (!this.hasRouteViaHop(hopPeerId)) {
             this.onRouteDeleted?.(hopPeerId);
           }
-          this.eventRecorder.record(this.routingPeer.id, EventType.DeleteRoute, {
-            protocol: RoutingProtocol.BATMAN,
-            originatorPeerId,
-            hopPeerId,
-            previousRoute,
-            nextRoute: null,
-            reason: `Route expired after ${this.purgeTimeout} (this.purgeTimeout) without updates`,
-          });
+          this.eventRecorder.record(
+            this.routingPeer.id,
+            EventType.DeleteRoute,
+            {
+              protocol: RoutingProtocol.BATMAN,
+              originatorPeerId,
+              hopPeerId,
+              previousRoute,
+              nextRoute: null,
+              reason: `Route expired after ${this.purgeTimeout} (this.purgeTimeout) without updates`,
+            },
+            RoutingProtocol.BATMAN,
+          );
           continue;
         }
 
@@ -177,15 +182,20 @@ export class BatmanOriginatorTable {
     this.originators.set(originatorPeerId, routes);
     route.sequenceWindow.process(message.sequence);
 
-    this.eventRecorder.record(this.routingPeer.id, EventType.AddRoute, {
-      protocol: RoutingProtocol.BATMAN,
-      originatorPeerId,
-      hopPeerId,
-      previousRoute: null,
-      nextRoute: this.toRouteRecord(originatorPeerId, route),
-      message: cloneMessage(message),
-      reason,
-    });
+    this.eventRecorder.record(
+      this.routingPeer.id,
+      EventType.AddRoute,
+      {
+        protocol: RoutingProtocol.BATMAN,
+        originatorPeerId,
+        hopPeerId,
+        previousRoute: null,
+        nextRoute: this.toRouteRecord(originatorPeerId, route),
+        message: cloneMessage(message),
+        reason,
+      },
+      RoutingProtocol.BATMAN,
+    );
   }
 
   private update(
@@ -205,15 +215,20 @@ export class BatmanOriginatorTable {
     const processed = route.sequenceWindow.process(message.sequence);
     if (processed) {
       route.throughput = throughput;
-      this.eventRecorder.record(this.routingPeer.id, EventType.UpdateRoute, {
-        protocol: RoutingProtocol.BATMAN,
-        originatorPeerId,
-        hopPeerId,
-        previousRoute,
-        nextRoute: this.toRouteRecord(originatorPeerId, route),
-        message: cloneMessage(message),
-        reason,
-      });
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.UpdateRoute,
+        {
+          protocol: RoutingProtocol.BATMAN,
+          originatorPeerId,
+          hopPeerId,
+          previousRoute,
+          nextRoute: this.toRouteRecord(originatorPeerId, route),
+          message: cloneMessage(message),
+          reason,
+        },
+        RoutingProtocol.BATMAN,
+      );
     }
 
     return processed;

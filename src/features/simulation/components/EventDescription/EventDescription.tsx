@@ -1,3 +1,4 @@
+import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import { type Event } from "@/shared/types/processor/events";
 import { type StepResult } from "@/shared/types/processor/simulation";
@@ -16,7 +17,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { Link } from "react-router-dom";
 import BatmanDescription from "./BatmanDescription";
 
-type SimulationPanelProps = {
+type EventDescriptionProps = {
   anchorX: number;
   anchorY: number;
   canGoNextEvent: boolean;
@@ -46,7 +47,7 @@ export default function EventDescription({
   onPeerHoverChange,
   onNextEvent,
   onPrevEvent,
-}: SimulationPanelProps) {
+}: EventDescriptionProps) {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStateRef = useRef<{
@@ -139,6 +140,8 @@ export default function EventDescription({
     event.preventDefault();
   };
 
+  const { protocol } = currentEvent;
+
   return (
     <aside
       className={`simulation-panel simulation-panel--tooltip${isDragging ? " simulation-panel--dragging" : ""}`}
@@ -155,13 +158,13 @@ export default function EventDescription({
 
       {/* Body */}
       <section className="simulation-panel__section">
-        {
+        {protocol === RoutingProtocol.BATMAN && (
           <BatmanDescription
             event={currentEvent}
             peers={currentStepResult.snapshot.peers}
             onPeerHover={onPeerHoverChange}
           />
-        }
+        )}
       </section>
 
       {/* Footer */}

@@ -1,6 +1,7 @@
 import { START_TICK } from "@/shared/constants/tick";
 import { generateUUID, type UUID } from "@/shared/types/common/uuid";
-import type { Event, EventDetails } from "../types/processor/events";
+import type { RoutingProtocol } from "../types/common/protocols";
+import type { Event, EventDetails, EventType } from "../types/processor/events";
 import type { EventListener } from "./types/events";
 
 export class EventRecorder {
@@ -14,13 +15,14 @@ export class EventRecorder {
     this.currentStepId = stepId;
   }
 
-  record(peerId: UUID, type: EventType, details: EventDetails) {
+  record(peerId: UUID, type: EventType, details: EventDetails, protocol?: RoutingProtocol) {
     const event: Event = {
       id: generateUUID(),
       tick: this.currentTick,
       stepId: this.currentStepId,
       peerId,
       type,
+      protocol,
       details,
     };
 

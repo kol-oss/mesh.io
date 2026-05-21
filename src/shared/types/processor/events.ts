@@ -33,6 +33,7 @@ export type Event = {
   peerId: UUID;
   type: EventType;
   details: EventDetails;
+  protocol?: RoutingProtocol;
 };
 
 // for Broadcast event

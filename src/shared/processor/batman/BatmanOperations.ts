@@ -61,28 +61,43 @@ export class BatmanOperations {
     }
 
     if (message.version !== BATMAN_VERSION) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneMessage(message),
-        reason: `B.A.T.M.A.N. V node rejected OGM with unsupported (message.version) ${message.version}`,
-      });
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.Drop,
+        {
+          message: cloneMessage(message),
+          reason: `B.A.T.M.A.N. V node rejected OGM with unsupported (message.version) ${message.version}`,
+        },
+        RoutingProtocol.BATMAN,
+      );
       return false;
     }
 
     const nextTimeToLive = message.timeToLive - 1;
     if (nextTimeToLive <= 0) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneMessage(message),
-        reason: "B.A.T.M.A.N. V OGMv2 TTL reached zero",
-      });
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.Drop,
+        {
+          message: cloneMessage(message),
+          reason: "B.A.T.M.A.N. V OGMv2 TTL reached zero",
+        },
+        RoutingProtocol.BATMAN,
+      );
       return false;
     }
 
     const neighbourEntry = this.neighbourTable.get(message.senderPeerId);
     if (!neighbourEntry) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneMessage(message),
-        reason: "OGM dropped because no ELP neighbour metric exists for this sender",
-      });
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.Drop,
+        {
+          message: cloneMessage(message),
+          reason: "OGM dropped because no ELP neighbour metric exists for this sender",
+        },
+        RoutingProtocol.BATMAN,
+      );
       return false;
     }
 
@@ -114,10 +129,15 @@ export class BatmanOperations {
       reason,
     );
     if (!processed.accepted) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneMessage(message),
-        reason: "Duplicate B.A.T.M.A.N. V OGMv2 was ignored by the sequence protection window",
-      });
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.Drop,
+        {
+          message: cloneMessage(message),
+          reason: "Duplicate B.A.T.M.A.N. V OGMv2 was ignored by the sequence protection window",
+        },
+        RoutingProtocol.BATMAN,
+      );
       return true;
     }
 
@@ -127,11 +147,16 @@ export class BatmanOperations {
       nextThroughput > processed.previousBestThroughput;
 
     if (!rebroadcastAllowedByBestPath) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneMessage(message),
-        reason:
-          "B.A.T.M.A.N. V did not rebroadcast this OGMv2 because it did not arrive from the best or a better-throughput neighbour",
-      });
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.Drop,
+        {
+          message: cloneMessage(message),
+          reason:
+            "B.A.T.M.A.N. V did not rebroadcast this OGMv2 because it did not arrive from the best or a better-throughput neighbour",
+        },
+        RoutingProtocol.BATMAN,
+      );
       return true;
     }
 
@@ -146,28 +171,43 @@ export class BatmanOperations {
 
   routeAndWrite(packet: Packet) {
     if (packet.timeToLive <= 0) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneMessage(packet),
-        reason: "Packet TTL reached zero",
-      });
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.Drop,
+        {
+          message: cloneMessage(packet),
+          reason: "Packet TTL reached zero",
+        },
+        RoutingProtocol.BATMAN,
+      );
       return false;
     }
 
     const selectedRoute = this.originatorTable.getBestRouteRecord(packet.destinationPeerId);
     if (!selectedRoute) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        reason: "No B.A.T.M.A.N. V route is available for the destination",
-        reasonCode: "NO_ROUTE",
-      });
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.Drop,
+        {
+          reason: "No B.A.T.M.A.N. V route is available for the destination",
+          reasonCode: "NO_ROUTE",
+        },
+        RoutingProtocol.BATMAN,
+      );
       return false;
     }
 
-    this.eventRecorder.record(this.routingPeer.id, EventType.GetRoute, {
-      protocol: RoutingProtocol.BATMAN,
-      destinationPeerId: packet.destinationPeerId,
-      selectedRoute,
-      message: cloneMessage(packet),
-    });
+    this.eventRecorder.record(
+      this.routingPeer.id,
+      EventType.GetRoute,
+      {
+        protocol: RoutingProtocol.BATMAN,
+        destinationPeerId: packet.destinationPeerId,
+        selectedRoute,
+        message: cloneMessage(packet),
+      },
+      RoutingProtocol.BATMAN,
+    );
 
     return this.write(packet, selectedRoute.hopPeerId);
   }
@@ -175,18 +215,28 @@ export class BatmanOperations {
   write(message: Message, hopPeerId: UUID) {
     const hop = this.routingPeer.getNeighbour(hopPeerId);
     if (!hop) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneMessage(message),
-        reason: "Selected next hop is not a current neighbour",
-      });
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.Drop,
+        {
+          message: cloneMessage(message),
+          reason: "Selected next hop is not a current neighbour",
+        },
+        RoutingProtocol.BATMAN,
+      );
       return false;
     }
 
     if (!hop.supports(RoutingProtocol.BATMAN)) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneMessage(message),
-        reason: "Selected next hop does not support B.A.T.M.A.N. V",
-      });
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.Drop,
+        {
+          message: cloneMessage(message),
+          reason: "Selected next hop does not support B.A.T.M.A.N. V",
+        },
+        RoutingProtocol.BATMAN,
+      );
       return false;
     }
 
@@ -204,11 +254,16 @@ export class BatmanOperations {
       .getNeighbours()
       .filter((peer) => peer.supports(RoutingProtocol.BATMAN));
 
-    this.eventRecorder.record(this.routingPeer.id, EventType.Broadcast, {
-      neighbourPeerIds: neighbours.map((peer) => peer.id),
-      retransmit: message.sourcePeerId !== this.routingPeer.id,
-      message: cloneMessage(message),
-    });
+    this.eventRecorder.record(
+      this.routingPeer.id,
+      EventType.Broadcast,
+      {
+        neighbourPeerIds: neighbours.map((peer) => peer.id),
+        retransmit: message.sourcePeerId !== this.routingPeer.id,
+        message: cloneMessage(message),
+      },
+      RoutingProtocol.BATMAN,
+    );
 
     let broadcastResult = true;
     for (const neighbour of neighbours) {
@@ -225,27 +280,42 @@ export class BatmanOperations {
     }
 
     if (message.version !== BATMAN_VERSION) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneMessage(message),
-        reason: `ELP rejected packet with unsupported (message.version) ${message.version}`,
-      });
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.Drop,
+        {
+          message: cloneMessage(message),
+          reason: `ELP rejected packet with unsupported (message.version) ${message.version}`,
+        },
+        RoutingProtocol.BATMAN,
+      );
       return false;
     }
 
     if (message.timeToLive <= 0) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneMessage(message),
-        reason: "ELP TTL reached zero",
-      });
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.Drop,
+        {
+          message: cloneMessage(message),
+          reason: "ELP TTL reached zero",
+        },
+        RoutingProtocol.BATMAN,
+      );
       return false;
     }
 
     const senderPeer = this.routingPeer.getNeighbour(message.senderPeerId);
     if (!senderPeer) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneMessage(message),
-        reason: "Selected next hop is not a current neighbour",
-      });
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.Drop,
+        {
+          message: cloneMessage(message),
+          reason: "Selected next hop is not a current neighbour",
+        },
+        RoutingProtocol.BATMAN,
+      );
       return false;
     }
 
