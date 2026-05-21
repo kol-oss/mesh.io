@@ -4,6 +4,7 @@ import {
   type BatmanCalculationEventDetails,
   type BatmanRouteRecord,
 } from "@/shared/types/processor/batman";
+import { DsdvUpdateType, type DsdvRouteUpdateMessage } from "@/shared/types/processor/dsdv";
 import {
   EventType,
   type BroadcastEventDetails,
@@ -14,12 +15,10 @@ import {
 } from "@/shared/types/processor/events";
 import { MessageType, type Message } from "@/shared/types/processor/messages";
 import {
-  DsdvUpdateType,
   type AodvHelloMessage,
   type AodvRouteErrorMessage,
   type AodvRouteReplyMessage,
   type AodvRouteRequestMessage,
-  type DsdvRouteUpdateMessage,
   type DsrRouteErrorMessage,
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,

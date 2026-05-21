@@ -3,30 +3,8 @@ import type { UUID } from "@/shared/types/common/uuid";
 import type { NetworkEntity, PeerEntity } from "../model/entities";
 import type { Step } from "../model/steps";
 import type { BatmanNeighbourRecord, BatmanRouteRecord } from "./batman";
+import type { DsdvRouteRecord } from "./dsdv";
 import type { Message, MessageType } from "./messages";
-
-export const DsdvUpdateType = {
-  FullDump: "FULL_DUMP",
-  Incremental: "INCREMENTAL",
-} as const;
-
-export type DsdvUpdateType = (typeof DsdvUpdateType)[keyof typeof DsdvUpdateType];
-
-export type DsdvRouteEntryMessage = {
-  destinationPeerId: UUID;
-  nextHopPeerId: UUID;
-  sequenceNumber: number;
-  metric: number;
-};
-
-export type DsdvRouteUpdateMessage = {
-  kind: MessageType.DsdvRouteUpdateMessage;
-  updateType: DsdvUpdateType;
-  sourcePeerId: UUID;
-  senderPeerId: UUID;
-  hopCount: number;
-  entries: DsdvRouteEntryMessage[];
-};
 
 export type AodvRouteRequestMessage = {
   kind: MessageType.AodvRouteRequestMessage;
@@ -124,14 +102,6 @@ export type DsrRouteErrorMessage = {
   routePeerIds: UUID[];
 };
 
-export type DsdvRouteRecord = {
-  destinationPeerId: UUID;
-  nextHopPeerId: UUID;
-  metric: number;
-  sequenceNumber: number;
-  lastUpdateTick: number;
-};
-
 export type AodvRouteRecord = {
   destinationPeerId: UUID;
   nextHopPeerId: UUID;
@@ -182,16 +152,6 @@ export type OlsrTopologyRecord = {
   lastHopPeerId: UUID;
   sequenceNumber: number;
   lastUpdateTick: number;
-};
-
-export type DsdvRoutingTableChangeDetails = {
-  protocol: typeof RoutingProtocol.DSDV;
-  destinationPeerId: UUID;
-  nextHopPeerId: UUID;
-  previousRoute: DsdvRouteRecord | null;
-  nextRoute: DsdvRouteRecord | null;
-  message?: Message;
-  reason: string;
 };
 
 export type AodvRoutingTableChangeDetails = {

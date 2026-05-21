@@ -1,7 +1,7 @@
+import { DsdvUpdateType } from "@/shared/types/processor/dsdv";
 import { type Event } from "@/shared/types/processor/events";
 import { MessageType, type Message } from "@/shared/types/processor/messages";
 import {
-  DsdvUpdateType,
   type OlsrHelloMessage,
   type OlsrTcMessage,
   type StepResult,

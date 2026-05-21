@@ -6,12 +6,11 @@ import type {
   BatmanRouteRecord,
   BatmanRouteUpdateEventDetails,
 } from "./batman";
+import type { DsdvRouteChangeEventDetails, DsdvRouteRecord } from "./dsdv";
 import type { Message, Packet } from "./messages";
 import type {
   AodvRouteRecord,
   AodvRoutingTableChangeDetails,
-  DsdvRouteRecord,
-  DsdvRoutingTableChangeDetails,
   DsrRouteRecord,
   DsrRoutingTableChangeDetails,
   OlsrRouteRecord,
@@ -75,7 +74,7 @@ export type GetRouteEventDetails = {
 // for AddRoute, UpdateRoute, DeleteRoute events
 export type RouteChangeEventDetails =
   | BatmanRouteUpdateEventDetails
-  | DsdvRoutingTableChangeDetails
+  | DsdvRouteChangeEventDetails
   | AodvRoutingTableChangeDetails
   | OlsrRoutingTableChangeDetails
   | DsrRoutingTableChangeDetails;

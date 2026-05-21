@@ -10,13 +10,13 @@ import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { DsdvConfiguration } from "@/shared/types/model/configurations";
 import { getDsdvConfiguration } from "@/shared/types/model/peers";
-import { EventType } from "@/shared/types/processor/events";
-import { MessageType, type Packet } from "@/shared/types/processor/messages";
 import {
   DsdvUpdateType,
-  type DsdvRouteEntryMessage,
+  type DsdvRouteRecordMessage,
   type DsdvRouteUpdateMessage,
-} from "@/shared/types/processor/simulation";
+} from "@/shared/types/processor/dsdv";
+import { EventType } from "@/shared/types/processor/events";
+import { MessageType, type Packet } from "@/shared/types/processor/messages";
 import { DsdvRoutingTable } from "./DsdvRoutingTable";
 import { cloneDsdvMessage, isDsdvSimulationMessage } from "./dsdvMessage";
 
@@ -221,7 +221,7 @@ export class DsdvModule implements RoutingModule {
       .getRoutes()
       .filter((route) => acceptedSet.has(route.destinationPeerId))
       .map(
-        (route): DsdvRouteEntryMessage => ({
+        (route): DsdvRouteRecordMessage => ({
           destinationPeerId: route.destinationPeerId,
           nextHopPeerId: route.nextHopPeerId,
           sequenceNumber: route.sequenceNumber,
@@ -303,14 +303,14 @@ export class DsdvModule implements RoutingModule {
     retransmit: boolean;
     sourcePeerId?: UUID;
     hopCount?: number;
-    entries?: DsdvRouteEntryMessage[];
+    entries?: DsdvRouteRecordMessage[];
     note: string;
   }) {
     const routes =
       params.entries ??
       (params.updateType === DsdvUpdateType.FullDump
         ? this.routingTable.getRoutes().map(
-            (route): DsdvRouteEntryMessage => ({
+            (route): DsdvRouteRecordMessage => ({
               destinationPeerId: route.destinationPeerId,
               nextHopPeerId: route.nextHopPeerId,
               sequenceNumber: route.sequenceNumber,
@@ -318,7 +318,7 @@ export class DsdvModule implements RoutingModule {
             }),
           )
         : this.routingTable.getChangedRoutes().map(
-            (route): DsdvRouteEntryMessage => ({
+            (route): DsdvRouteRecordMessage => ({
               destinationPeerId: route.destinationPeerId,
               nextHopPeerId: route.nextHopPeerId,
               sequenceNumber: route.sequenceNumber,

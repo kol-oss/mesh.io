@@ -3,11 +3,8 @@ import { EventRecorder } from "@/shared/processor/EventRecorder";
 import type { PeerNode } from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
+import { type DsdvRouteRecord, type DsdvRouteUpdateMessage } from "@/shared/types/processor/dsdv";
 import { EventType } from "@/shared/types/processor/events";
-import {
-  type DsdvRouteRecord,
-  type DsdvRouteUpdateMessage,
-} from "@/shared/types/processor/simulation";
 import { cloneDsdvMessage } from "./dsdvMessage";
 
 type DsdvRouteState = {
