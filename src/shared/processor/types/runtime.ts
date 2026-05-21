@@ -4,6 +4,7 @@ import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
 import type { AodvRouteRecord } from "@/shared/types/processor/aodv";
 import type { BatmanNeighbourRecord, BatmanRouteRecord } from "@/shared/types/processor/batman";
 import type { DsdvRouteRecord } from "@/shared/types/processor/dsdv";
+import type { DsrRouteRecord } from "@/shared/types/processor/dsr";
 import type { Packet } from "@/shared/types/processor/messages";
 import type {
   OlsrNeighbourRecord,
@@ -12,7 +13,7 @@ import type {
   OlsrTopologyRecord,
   OlsrTwoHopRecord,
 } from "@/shared/types/processor/olsr";
-import type { DsrRouteRecord, Snapshot } from "@/shared/types/processor/simulation";
+import type { Snapshot } from "@/shared/types/processor/simulation";
 
 export interface RoutingModule {
   read(message: unknown): boolean;

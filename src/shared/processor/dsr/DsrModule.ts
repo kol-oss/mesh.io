@@ -8,14 +8,14 @@ import { EventRecorder } from "@/shared/processor/EventRecorder";
 import type { PeerNode, RoutingModule } from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import { EventType } from "@/shared/types/processor/events";
-import { MessageType, type Packet } from "@/shared/types/processor/messages";
 import {
   type DsrRouteErrorMessage,
   type DsrRouteRecord,
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,
-} from "@/shared/types/processor/simulation";
+} from "@/shared/types/processor/dsr";
+import { EventType } from "@/shared/types/processor/events";
+import { MessageType, type Packet } from "@/shared/types/processor/messages";
 import { cloneDsrMessage, isDsrSimulationMessage } from "./dsrMessage";
 
 type RouteCacheEntry = DsrRouteRecord;

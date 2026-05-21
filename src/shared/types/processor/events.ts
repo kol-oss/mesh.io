@@ -8,9 +8,9 @@ import type {
   BatmanRouteUpdateEventDetails,
 } from "./batman";
 import type { DsdvRouteChangeEventDetails, DsdvRouteRecord } from "./dsdv";
+import type { DsrRouteChangeEventDetails, DsrRouteRecord } from "./dsr";
 import type { Message, Packet } from "./messages";
-import type { OlsrRouteRecord, OlsrRoutingTableChangeDetails } from "./olsr";
-import type { DsrRouteRecord, DsrRoutingTableChangeDetails } from "./simulation";
+import type { OlsrRouteChangeEventDetails, OlsrRouteRecord } from "./olsr";
 
 export enum EventType {
   // internal events
@@ -71,8 +71,8 @@ export type RouteChangeEventDetails =
   | BatmanRouteUpdateEventDetails
   | DsdvRouteChangeEventDetails
   | AodvRouteChangeEventDetails
-  | OlsrRoutingTableChangeDetails
-  | DsrRoutingTableChangeDetails;
+  | OlsrRouteChangeEventDetails
+  | DsrRouteChangeEventDetails;
 
 // for Move event
 export type MoveEventDetails = {

@@ -59,7 +59,8 @@ export type OlsrRouteRecord = {
   lastUpdateTick: number;
 };
 
-export type OlsrRoutingTableChangeDetails = {
+// AddRoute, UpdateRoute, and DeleteRoute details
+export type OlsrRouteChangeEventDetails = {
   protocol: typeof RoutingProtocol.OLSR;
   destinationPeerId: UUID;
   nextHopPeerId: UUID;

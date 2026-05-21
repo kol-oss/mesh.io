@@ -12,6 +12,11 @@ import {
 } from "@/shared/types/processor/batman";
 import { DsdvUpdateType, type DsdvRouteUpdateMessage } from "@/shared/types/processor/dsdv";
 import {
+  type DsrRouteErrorMessage,
+  type DsrRouteReplyMessage,
+  type DsrRouteRequestMessage,
+} from "@/shared/types/processor/dsr";
+import {
   EventType,
   type BroadcastEventDetails,
   type DropEventDetails,
@@ -21,11 +26,6 @@ import {
 } from "@/shared/types/processor/events";
 import { MessageType, type Message } from "@/shared/types/processor/messages";
 import { type OlsrHelloMessage, type OlsrTcMessage } from "@/shared/types/processor/olsr";
-import {
-  type DsrRouteErrorMessage,
-  type DsrRouteReplyMessage,
-  type DsrRouteRequestMessage,
-} from "@/shared/types/processor/simulation";
 import {
   formatFixed,
   getEventDescription as getBatmanEventDescription,
