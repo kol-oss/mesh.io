@@ -189,6 +189,7 @@ export class BatmanOperations {
         this.routingPeer.id,
         EventType.Drop,
         {
+          message: cloneMessage(packet),
           reason: "No B.A.T.M.A.N. V route is available for the destination",
           reasonCode: "NO_ROUTE",
         },
@@ -244,6 +245,20 @@ export class BatmanOperations {
       message.kind === MessageType.Packet && message.sourcePeerId === null
         ? { ...message, sourcePeerId: this.routingPeer.id }
         : cloneMessage(message);
+
+    if (forwardedMessage.kind === MessageType.Packet) {
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.Transfer,
+        {
+          protocol: RoutingProtocol.BATMAN,
+          sourcePeerId: this.routingPeer.id,
+          targetPeerId: hopPeerId,
+          message: cloneMessage(forwardedMessage),
+        },
+        RoutingProtocol.BATMAN,
+      );
+    }
 
     const targetModule = hop.getModule(RoutingProtocol.BATMAN);
     return targetModule?.read(forwardedMessage) ?? false;

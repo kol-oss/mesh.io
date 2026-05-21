@@ -23,6 +23,7 @@ import {
   type Event,
   type GetRouteEventDetails,
   type RouteChangeEventDetails,
+  type TransferEventDetails,
 } from "@/shared/types/processor/events";
 import { MessageType, type Message } from "@/shared/types/processor/messages";
 import { type OlsrHelloMessage, type OlsrTcMessage } from "@/shared/types/processor/olsr";
@@ -110,6 +111,10 @@ const detectEventProtocol = (event: Event, message: Message | null) => {
 
   if (event.type === EventType.GetRoute) {
     return (event.details as GetRouteEventDetails).protocol;
+  }
+
+  if (event.type === EventType.Transfer) {
+    return (event.details as TransferEventDetails).protocol;
   }
 
   if (isDsdvMessage(message)) {
@@ -210,6 +215,10 @@ export const getEventTitle = (event: Event) => {
         return "Route Selected";
       }
 
+      if (event.type === EventType.Transfer) {
+        return "Packet Transfer";
+      }
+
       return "Simulation Event";
     }
 
@@ -248,6 +257,10 @@ export const getEventTitle = (event: Event) => {
 
       if (event.type === EventType.GetRoute) {
         return "Route Selected";
+      }
+
+      if (event.type === EventType.Transfer) {
+        return "Packet Transfer";
       }
 
       return "Simulation Event";
@@ -289,6 +302,10 @@ export const getEventTitle = (event: Event) => {
       return "Route Selected";
     }
 
+    if (event.type === EventType.Transfer) {
+      return "Packet Transfer";
+    }
+
     return "Simulation Event";
   }
 
@@ -316,6 +333,10 @@ export const getEventTitle = (event: Event) => {
 
   if (event.type === EventType.GetRoute) {
     return "Route Selected";
+  }
+
+  if (event.type === EventType.Transfer) {
+    return "Packet Transfer";
   }
 
   return "Simulation Event";

@@ -5,7 +5,6 @@ import {
 } from "@/shared/constants/batman.ts";
 import { EventRecorder } from "@/shared/processor/EventRecorder.ts";
 import type { PeerNode, RoutingModule } from "@/shared/processor/types/runtime.ts";
-import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
 import {
@@ -130,16 +129,14 @@ export class BatmanModule implements RoutingModule {
   }
 
   send(packet: Packet) {
+    const sourcePacket: Packet =
+      packet.sourcePeerId === null ? { ...packet, sourcePeerId: this.routingPeer.id } : packet;
+
     if (!this.routingPeer.isActive()) {
-      this.eventRecorder.record(
-        this.routingPeer.id,
-        EventType.Drop,
-        {
-          message: cloneMessage(packet),
-          reason: "Source peer is disabled",
-        },
-        RoutingProtocol.BATMAN,
-      );
+      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
+        message: cloneMessage(sourcePacket),
+        reason: "Source peer is disabled",
+      });
       return false;
     }
 
@@ -147,7 +144,7 @@ export class BatmanModule implements RoutingModule {
     let result = false;
 
     while (!result && remainingRetries-- > 0) {
-      result = this.operations.routeAndWrite(packet);
+      result = this.operations.routeAndWrite(sourcePacket);
     }
 
     return result;

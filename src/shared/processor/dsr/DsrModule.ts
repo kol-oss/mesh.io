@@ -312,6 +312,10 @@ export class DsrModule implements RoutingModule {
       if (currentPeer.id !== currentPeerId) {
         const alignedPeer = currentPeer.getNeighbour(currentPeerId);
         if (!alignedPeer) {
+          this.eventRecorder.record(currentPeer.id, EventType.Drop, {
+            message: cloneDsrMessage(currentPacket),
+            reason: `Cannot continue DSR route because ${currentPeerId} is not a current neighbour of ${currentPeer.id}`,
+          });
           return false;
         }
         currentPeer = alignedPeer;
@@ -346,7 +350,9 @@ export class DsrModule implements RoutingModule {
         const routeError = this.createRouteError(packet, currentPeerId, nextPeerId, salvageCount);
         this.eventRecorder.record(currentPeer.id, EventType.Drop, {
           message: cloneDsrMessage(routeError),
-          reason: "Selected next hop does not support DSR",
+          reason: !nextPeer
+            ? "Selected next hop is not a current neighbour"
+            : "Selected next hop does not support DSR",
         });
 
         this.invalidateRoutesAcrossPath(routePeerIds, currentPeerId, nextPeerId, routeError);
@@ -370,11 +376,20 @@ export class DsrModule implements RoutingModule {
         return false;
       }
 
-      currentPacket = {
+      const forwardedPacket = {
         ...currentPacket,
         sourcePeerId: currentPacket.sourcePeerId ?? routePeerIds[0],
         timeToLive: currentPacket.timeToLive - 1,
       };
+
+      this.eventRecorder.record(currentPeer.id, EventType.Transfer, {
+        protocol: RoutingProtocol.DSR,
+        sourcePeerId: currentPeer.id,
+        targetPeerId: nextPeerId,
+        message: cloneDsrMessage(forwardedPacket),
+      });
+
+      currentPacket = forwardedPacket;
       currentPeer = nextPeer;
     }
 

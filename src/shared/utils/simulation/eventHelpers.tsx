@@ -40,6 +40,8 @@ export const getEventTitle = (event: Event) => {
       return getBroadcastTitle(event, message);
     case EventType.GetRoute:
       return "Route Selected";
+    case EventType.Transfer:
+      return "Message Transferred";
     case EventType.Calculation:
       return EventTitle.ThroughputCalculation;
     case EventType.Drop:
@@ -79,6 +81,7 @@ export const getSimulationReadMorePath = (
   if (
     hasRouteChange ||
     event.type === EventType.GetRoute ||
+    event.type === EventType.Transfer ||
     event.type === EventType.AddRoute ||
     event.type === EventType.UpdateRoute ||
     event.type === EventType.DeleteRoute
@@ -116,6 +119,8 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
       }
       return `Selected route to ${getPeerDisplayName(details.selectedRoute.originatorPeerId, peerNameById)} via ${getPeerDisplayName(details.selectedRoute.hopPeerId, peerNameById)} with throughput ${details.selectedRoute.quality}.`;
     }
+    case EventType.Transfer:
+      return `${actor} forwarded a packet to the selected next hop.`;
     case EventType.Calculation:
       return getThroughputCalculatedDescription(actor, event);
     case EventType.Drop:

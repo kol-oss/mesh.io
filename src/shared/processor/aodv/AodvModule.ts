@@ -561,6 +561,13 @@ export class AodvModule implements RoutingModule {
         ? { ...packet, sourcePeerId: this.routingPeer.id }
         : cloneAodvMessage(packet);
 
+    this.eventRecorder.record(this.routingPeer.id, EventType.Transfer, {
+      protocol: RoutingProtocol.AODV,
+      sourcePeerId: this.routingPeer.id,
+      targetPeerId: hopPeerId,
+      message: cloneAodvMessage(forwardedPacket),
+    });
+
     this.addPrecursor(packet.destinationPeerId, this.routingPeer.id);
 
     const targetModule = hop.getModule(RoutingProtocol.AODV);

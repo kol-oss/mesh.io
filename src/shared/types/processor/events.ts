@@ -23,6 +23,7 @@ export enum EventType {
   UpdateRoute = "UPDATE_ROUTE",
   DeleteRoute = "DELETE_ROUTE",
   // step events
+  Transfer = "TRANSFER",
   Move = "MOVE",
   StatusChange = "STATUS_CHANGE",
 }
@@ -67,6 +68,14 @@ export type GetRouteEventDetails = {
   message: Packet;
 };
 
+// for Transfer event
+export type TransferEventDetails = {
+  protocol: RoutingProtocol;
+  sourcePeerId: UUID;
+  targetPeerId: UUID;
+  message: Packet;
+};
+
 // for AddRoute, UpdateRoute, DeleteRoute events
 export type RouteChangeEventDetails =
   | BatmanRouteUpdateEventDetails
@@ -95,6 +104,7 @@ export type StatusChangeEventDetails = {
 export type EventDetails =
   | BroadcastEventDetails
   | GetRouteEventDetails
+  | TransferEventDetails
   | DropEventDetails
   | CalculationEventDetails
   | MoveEventDetails

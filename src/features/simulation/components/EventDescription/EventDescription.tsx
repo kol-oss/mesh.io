@@ -16,6 +16,7 @@ import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Link } from "react-router-dom";
 import BatmanDescription from "./BatmanDescription";
+import SystemDescription from "./SystemDescription";
 
 type EventDescriptionProps = {
   anchorX: number;
@@ -165,6 +166,12 @@ export default function EventDescription({
             onPeerHover={onPeerHoverChange}
           />
         )}
+
+        <SystemDescription
+          event={currentEvent}
+          peers={currentStepResult.snapshot.peers}
+          onPeerHover={onPeerHoverChange}
+        />
       </section>
 
       {/* Footer */}

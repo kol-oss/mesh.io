@@ -5,9 +5,9 @@ import type {
   BroadcastEventDetails,
   DropEventDetails,
   Event,
-  GetRouteEventDetails,
   MoveEventDetails,
   StatusChangeEventDetails,
+  TransferEventDetails,
 } from "@/shared/types/processor/events";
 import { EventType } from "@/shared/types/processor/events";
 import type { Message } from "@/shared/types/processor/messages";
@@ -78,15 +78,10 @@ export const buildSimulationMessageAnimations = (
       .filter((animation): animation is MessageAnimation => animation !== null);
   }
 
-  if (currentEvent.type === EventType.GetRoute) {
-    const details = currentEvent.details as GetRouteEventDetails;
-    const hopPeerId =
-      "hopPeerId" in details.selectedRoute
-        ? details.selectedRoute.hopPeerId
-        : details.selectedRoute.nextHopPeerId;
-
+  if (currentEvent.type === EventType.Transfer) {
+    const details = currentEvent.details as TransferEventDetails;
     return toMessageAnimations([
-      createAnimation(currentEvent.peerId, hopPeerId, "route-selected", "default"),
+      createAnimation(details.sourcePeerId, details.targetPeerId, "transfer", "default"),
     ]);
   }
 

@@ -155,15 +155,18 @@ export class DsdvModule implements RoutingModule {
   }
 
   send(packet: Packet) {
+    const sourcePacket: Packet =
+      packet.sourcePeerId === null ? { ...packet, sourcePeerId: this.routingPeer.id } : packet;
+
     if (!this.routingPeer.isActive()) {
       this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneDsdvMessage(packet),
+        message: cloneDsdvMessage(sourcePacket),
         reason: "Source peer is disabled",
       });
       return false;
     }
 
-    return this.routeAndWrite(packet);
+    return this.routeAndWrite(sourcePacket);
   }
 
   getRoutes() {
@@ -255,6 +258,7 @@ export class DsdvModule implements RoutingModule {
     const selectedRoute = this.routingTable.getBestRoute(packet.destinationPeerId);
     if (!selectedRoute) {
       this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
+        message: cloneDsdvMessage(packet),
         reason: "No DSDV route is available for the destination",
         reasonCode: "NO_ROUTE",
       });
@@ -293,6 +297,15 @@ export class DsdvModule implements RoutingModule {
       message.kind === MessageType.Packet && message.sourcePeerId === null
         ? { ...message, sourcePeerId: this.routingPeer.id }
         : cloneDsdvMessage(message);
+
+    if (forwardedMessage.kind === MessageType.Packet) {
+      this.eventRecorder.record(this.routingPeer.id, EventType.Transfer, {
+        protocol: RoutingProtocol.DSDV,
+        sourcePeerId: this.routingPeer.id,
+        targetPeerId: hopPeerId,
+        message: cloneDsdvMessage(forwardedMessage),
+      });
+    }
 
     const targetModule = hop.getModule(RoutingProtocol.DSDV);
     return targetModule?.read(forwardedMessage) ?? false;
