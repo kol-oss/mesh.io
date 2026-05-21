@@ -6,10 +6,9 @@ import {
 import type { EventRecorder } from "@/shared/processor/core/EventRecorder";
 import { RoutingStructure, type Network } from "@/shared/processor/core/runtimeTypes";
 import type { UUID } from "@/shared/types/common/uuid";
-import type { NetworkEntity, ObstacleEntity } from "@/shared/types/model/entities";
+import type { LinkEntity, NetworkEntity, ObstacleEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
 import type { Snapshot } from "@/shared/types/model/simulation";
-import type { RuntimeLink } from "./link";
 import { RuntimePeer } from "./peer";
 
 const cloneEntity = <T extends NetworkEntity>(entity: T): T => ({ ...entity });
@@ -17,7 +16,7 @@ const cloneEntity = <T extends NetworkEntity>(entity: T): T => ({ ...entity });
 export class RuntimeNetwork implements Network {
   private readonly peers = new Map<UUID, RuntimePeer>();
 
-  private readonly links = new Map<UUID, RuntimeLink>();
+  private readonly links = new Map<UUID, LinkEntity>();
 
   private readonly entityOrder: Array<{ type: NetworkEntity["type"]; id: UUID }> = [];
 

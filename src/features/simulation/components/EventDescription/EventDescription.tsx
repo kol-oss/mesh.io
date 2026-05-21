@@ -6,7 +6,6 @@ import {
   getPeerLabel,
   getRouteChange,
   getRouteSequenceWindowExplanation,
-  getSelectedRoute,
   getSimulationReadMorePath,
   getThroughputBreakdown,
   renderPeerName,
@@ -97,7 +96,6 @@ export default function EventDescription({
     currentStepResult.snapshot.peers.map((peer) => [peer.id, peer.name]),
   );
   const routeChange = getRouteChange(currentEvent);
-  const selectedRoute = getSelectedRoute(currentEvent);
   const currentMessage = getEventMessage(currentEvent);
   const title = getEventTitle(currentEvent);
   const eventOwner = peerNameById.has(currentEvent.peerId)
@@ -156,11 +154,13 @@ export default function EventDescription({
 
       {/* Body */}
       <section className="simulation-panel__section">
-        <BatmanDescription
-          event={currentEvent}
-          peers={currentStepResult.snapshot.peers}
-          onPeerHover={onPeerHoverChange}
-        />
+        {
+          <BatmanDescription
+            event={currentEvent}
+            peers={currentStepResult.snapshot.peers}
+            onPeerHover={onPeerHoverChange}
+          />
+        }
       </section>
 
       {/* Footer */}

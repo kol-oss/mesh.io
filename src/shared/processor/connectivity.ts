@@ -1,7 +1,6 @@
 import { OBSTACLE_MIN_HEIGHT, OBSTACLE_MIN_WIDTH } from "@/shared/constants/obstacle";
-import type { RuntimeLink } from "@/shared/processor/types/link";
 import type { UUID } from "@/shared/types/common/uuid";
-import type { ObstacleEntity, PeerEntity } from "@/shared/types/model/entities";
+import type { LinkEntity, ObstacleEntity, PeerEntity } from "@/shared/types/model/entities";
 import type { ObstacleBounds } from "@/shared/types/workspace/interaction";
 
 export const toInt = (value: number) => Math.round(value);
@@ -237,7 +236,7 @@ export const getRangedConnectionPairs = (
 };
 
 export const shouldCreateLinkedConnection = (
-  link: RuntimeLink,
+  link: LinkEntity,
   sourcePeer: PeerEntity | null,
   destinationPeer: PeerEntity | null,
 ) => {
