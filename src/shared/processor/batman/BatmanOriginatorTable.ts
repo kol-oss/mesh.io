@@ -1,12 +1,12 @@
-import { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { PeerNode } from "@/shared/processor/core/runtimeTypes";
+import { EventRecorder } from "@/shared/processor/EventRecorder";
+import type { PeerNode } from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
+import { EventType } from "@/shared/types/processor/events";
 import {
-  EventType,
   type BatmanOriginatorMessage,
   type BatmanRouteRecord,
-} from "@/shared/types/model/simulation";
+} from "@/shared/types/processor/simulation";
 import { cloneMessage } from "./batmanMessage";
 import { BatmanSequenceWindow } from "./BatmanSequenceWindow";
 

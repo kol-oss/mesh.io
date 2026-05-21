@@ -14,7 +14,7 @@ import type {
   OlsrTwoHopRecord,
   Packet,
   Snapshot,
-} from "@/shared/types/model/simulation";
+} from "@/shared/types/processor/simulation";
 
 export interface RoutingModule {
   read(message: unknown): boolean;

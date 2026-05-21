@@ -1,24 +1,16 @@
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import type { NetworkEntity, PeerEntity } from "./entities";
-import type { Step } from "./steps";
-
-export const EventType = {
-  // internal events
-  Broadcast: "BROADCAST",
-  Calculation: "CALCULATION",
-  Drop: "DROP",
-  // routing events
-  GetRoute: "GET_ROUTE",
-  AddRoute: "ADD_ROUTE",
-  UpdateRoute: "UPDATE_ROUTE",
-  DeleteRoute: "DELETE_ROUTE",
-  // step events
-  Move: "MOVE",
-  StatusChange: "STATUS_CHANGE",
-} as const;
-
-export type EventType = (typeof EventType)[keyof typeof EventType];
+import type { NetworkEntity, PeerEntity } from "../model/entities";
+import type { Step } from "../model/steps";
+import type {
+  BroadcastEventDetails,
+  DropEventDetails,
+  GetRouteEventDetails,
+  MessageEventDetails,
+  MoveEventDetails,
+  RouteChangeEventDetails,
+  StatusChangeEventDetails,
+} from "./events";
 
 export const MessageType = {
   Packet: "PACKET",
@@ -337,31 +329,6 @@ export type DsrRoutingTableChangeDetails = {
   reason: string;
 };
 
-export type RoutingTableChangeDetails =
-  | BatmanRoutingTableChangeDetails
-  | DsdvRoutingTableChangeDetails
-  | AodvRoutingTableChangeDetails
-  | OlsrRoutingTableChangeDetails
-  | DsrRoutingTableChangeDetails;
-
-export type BroadcastEventDetails = {
-  neighbourPeerIds: UUID[];
-  retransmit: boolean;
-  message: Message;
-  note?: string;
-};
-
-export type MessageTransferEventDetails = {
-  hopPeerId: UUID;
-  message: Message;
-};
-
-export type DroppedEventDetails = {
-  message?: Message;
-  reason: string;
-  reasonCode?: "NO_ROUTE" | "SOURCE_UNAVAILABLE";
-};
-
 export type ThroughputCalculationEventDetails = {
   message: Message;
   reason: string;
@@ -386,33 +353,6 @@ export type ThroughputCalculationEventDetails = {
   };
 };
 
-export type RouteSelectedEventDetails = {
-  protocol: RoutingProtocol;
-  destinationPeerId: UUID;
-  selectedRoute:
-    | BatmanRouteRecord
-    | DsdvRouteRecord
-    | AodvRouteRecord
-    | OlsrRouteRecord
-    | DsrRouteRecord;
-  message: Packet;
-};
-
-export type PeerMovedEventDetails = {
-  peerId: UUID;
-  fromX: number;
-  fromY: number;
-  toX: number;
-  toY: number;
-};
-
-export type EntityStatusChangedEventDetails = {
-  entityId: UUID;
-  entityType: NetworkEntity["type"];
-  previousEnabled: boolean;
-  nextEnabled: boolean;
-};
-
 export type StepBoundaryDetails = {
   stepId: UUID;
   stepTitle: string;
@@ -421,23 +361,14 @@ export type StepBoundaryDetails = {
 
 export type EventDetails =
   | BroadcastEventDetails
-  | MessageTransferEventDetails
-  | RouteSelectedEventDetails
-  | DroppedEventDetails
+  | MessageEventDetails
+  | GetRouteEventDetails
+  | DropEventDetails
   | ThroughputCalculationEventDetails
-  | PeerMovedEventDetails
-  | EntityStatusChangedEventDetails
-  | RoutingTableChangeDetails
+  | MoveEventDetails
+  | StatusChangeEventDetails
+  | RouteChangeEventDetails
   | StepBoundaryDetails;
-
-export type Event = {
-  id: UUID;
-  tick: number;
-  stepId: UUID | null;
-  peerId: UUID;
-  type: EventType;
-  details: EventDetails;
-};
 
 export type PeerSnapshot = PeerEntity & {
   batmanRoutingTable: BatmanRouteRecord[];

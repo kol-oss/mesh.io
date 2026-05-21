@@ -1,8 +1,8 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import { ActionMode } from "@/shared/types/action";
-import type { SimulationResult } from "@/shared/types/model/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
+import type { SimulationResult } from "@/shared/types/processor/simulation";
 
 export type SimulationInspectionMode = ActionMode.PacketStructure | ActionMode.RoutingTable;
 

@@ -48,8 +48,8 @@ import type {
   PeerEntity,
 } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
-import type { SimulationResult } from "@/shared/types/model/simulation";
 import type { Step } from "@/shared/types/model/steps";
+import type { SimulationResult } from "@/shared/types/processor/simulation";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
 import {

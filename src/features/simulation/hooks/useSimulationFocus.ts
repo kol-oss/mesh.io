@@ -7,7 +7,8 @@ import type {
 import { ActionMode as ToolbarMode } from "@/shared/types/action";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
-import type { Event, StepResult } from "@/shared/types/model/simulation";
+import type { Event } from "@/shared/types/processor/events";
+import type { StepResult } from "@/shared/types/processor/simulation";
 import { clamp } from "@/shared/utils/math/clamp";
 
 type Params = {

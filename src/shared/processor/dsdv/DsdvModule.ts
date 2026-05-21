@@ -4,20 +4,20 @@ import {
   DSDV_MIN_TIMEOUT,
   DSDV_SEQUENCE_INITIAL,
 } from "@/shared/constants/dsdv";
-import { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { PeerNode, RoutingModule } from "@/shared/processor/core/runtimeTypes";
+import { EventRecorder } from "@/shared/processor/EventRecorder";
+import type { PeerNode, RoutingModule } from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { DsdvConfiguration } from "@/shared/types/model/configurations";
 import { getDsdvConfiguration } from "@/shared/types/model/peers";
+import { EventType } from "@/shared/types/processor/events";
 import {
   DsdvUpdateType,
-  EventType,
   MessageType,
   type DsdvRouteEntryMessage,
   type DsdvRouteUpdateMessage,
   type Packet,
-} from "@/shared/types/model/simulation";
+} from "@/shared/types/processor/simulation";
 import { DsdvRoutingTable } from "./DsdvRoutingTable";
 import { cloneDsdvMessage, isDsdvSimulationMessage } from "./dsdvMessage";
 

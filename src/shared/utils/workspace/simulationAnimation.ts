@@ -2,16 +2,19 @@ import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import type {
   BroadcastEventDetails,
-  DroppedEventDetails,
-  EntityStatusChangedEventDetails,
+  DropEventDetails,
   Event,
+  GetRouteEventDetails,
+  MoveEventDetails,
+  StatusChangeEventDetails,
+} from "@/shared/types/processor/events";
+import { EventType } from "@/shared/types/processor/events";
+import type {
   Message,
-  PeerMovedEventDetails,
   PeerSnapshot,
-  RouteSelectedEventDetails,
   ThroughputCalculationEventDetails,
-} from "@/shared/types/model/simulation";
-import { EventType, MessageType } from "@/shared/types/model/simulation";
+} from "@/shared/types/processor/simulation";
+import { MessageType } from "@/shared/types/processor/simulation";
 import type {
   MessageAnimation,
   MoveStepAnimation,
@@ -78,7 +81,7 @@ export const buildSimulationMessageAnimations = (
   }
 
   if (currentEvent.type === EventType.GetRoute) {
-    const details = currentEvent.details as RouteSelectedEventDetails;
+    const details = currentEvent.details as GetRouteEventDetails;
     const hopPeerId =
       "hopPeerId" in details.selectedRoute
         ? details.selectedRoute.hopPeerId
@@ -90,7 +93,7 @@ export const buildSimulationMessageAnimations = (
   }
 
   if (currentEvent.type === EventType.Drop) {
-    const details = currentEvent.details as DroppedEventDetails;
+    const details = currentEvent.details as DropEventDetails;
     if (!details.message) {
       return [];
     }
@@ -240,7 +243,7 @@ export const buildMoveStepAnimation = (
     return null;
   }
 
-  const details = currentEvent.details as PeerMovedEventDetails;
+  const details = currentEvent.details as MoveEventDetails;
   return {
     peerId: details.peerId,
     fromX: details.fromX,
@@ -257,7 +260,7 @@ export const buildToggleStepAnimation = (
     return null;
   }
 
-  const details = currentEvent.details as EntityStatusChangedEventDetails;
+  const details = currentEvent.details as StatusChangeEventDetails;
   if (details.entityType !== "PEER" && details.entityType !== "LINK") {
     return null;
   }

@@ -1,6 +1,6 @@
 import { RoutingProtocol } from "@/shared/types/common/protocols";
-import type { Event, RoutingTableChangeDetails } from "@/shared/types/model/simulation";
-import { EventType } from "@/shared/types/model/simulation";
+import type { Event, RouteChangeEventDetails } from "@/shared/types/processor/events";
+import { EventType } from "@/shared/types/processor/events";
 
 /**
  * Collapses consecutive BATMAN originator RoutingTableInsert+Update event pairs into just the
@@ -21,8 +21,8 @@ export function collapseOriginatorInsertUpdateEvents(events: Event[]): Event[] {
       continue;
     }
 
-    const currentDetails = current.details as RoutingTableChangeDetails;
-    const nextDetails = next.details as RoutingTableChangeDetails;
+    const currentDetails = current.details as RouteChangeEventDetails;
+    const nextDetails = next.details as RouteChangeEventDetails;
 
     if (
       currentDetails.protocol !== RoutingProtocol.BATMAN ||

@@ -3,12 +3,12 @@ import {
   getConnectivityObstacleBounds,
   shouldCreateLinkedConnection,
 } from "@/shared/processor/connectivity";
-import type { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import { RoutingStructure, type Network } from "@/shared/processor/core/runtimeTypes";
+import type { EventRecorder } from "@/shared/processor/EventRecorder";
+import { RoutingStructure, type Network } from "@/shared/processor/types/runtime";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { LinkEntity, NetworkEntity, ObstacleEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
-import type { Snapshot } from "@/shared/types/model/simulation";
+import type { Snapshot } from "@/shared/types/processor/simulation";
 import { RuntimePeer } from "./peer";
 
 const cloneEntity = <T extends NetworkEntity>(entity: T): T => ({ ...entity });

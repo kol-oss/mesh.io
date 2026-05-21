@@ -1,5 +1,6 @@
 import type { UUID } from "@/shared/types/common/uuid";
-import { type Event, type StepResult } from "@/shared/types/model/simulation";
+import { type Event } from "@/shared/types/processor/events";
+import { type StepResult } from "@/shared/types/processor/simulation";
 import {
   getEventMessage,
   getEventTitle,

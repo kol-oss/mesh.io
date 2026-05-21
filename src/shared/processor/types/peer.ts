@@ -1,15 +1,15 @@
 import { AodvModule } from "@/shared/processor/aodv/AodvModule";
 import { BatmanModule } from "@/shared/processor/batman/BatmanModule";
-import type { EventRecorder } from "@/shared/processor/core/EventRecorder";
+import { DsdvModule } from "@/shared/processor/dsdv/DsdvModule";
+import { DsrModule } from "@/shared/processor/dsr/DsrModule";
+import type { EventRecorder } from "@/shared/processor/EventRecorder";
+import { OlsrModule } from "@/shared/processor/olsr/OlsrModule";
 import {
   RoutingStructure,
   type PeerNode,
   type RoutingModule,
   type RoutingStructuresMap,
-} from "@/shared/processor/core/runtimeTypes";
-import { DsdvModule } from "@/shared/processor/dsdv/DsdvModule";
-import { DsrModule } from "@/shared/processor/dsr/DsrModule";
-import { OlsrModule } from "@/shared/processor/olsr/OlsrModule";
+} from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";

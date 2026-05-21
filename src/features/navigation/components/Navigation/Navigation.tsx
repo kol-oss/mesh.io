@@ -5,7 +5,7 @@ import Title from "@/features/navigation/components/Title/Title";
 import { useNavigationRedux } from "@/features/navigation/hooks/useNavigationRedux";
 import Resizer from "@/shared/components/Resizer/Resizer";
 import { useSidebarResize } from "@/shared/hooks/useSidebarResize";
-import type { StepResult } from "@/shared/types/model/simulation";
+import type { StepResult } from "@/shared/types/processor/simulation";
 import CollapsedTitle from "../Title/CollapsedTitle";
 
 type NavigationProps = {

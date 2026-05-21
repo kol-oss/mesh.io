@@ -4,19 +4,19 @@ import {
   DSR_MAX_SALVAGE_COUNT,
   DSR_ROUTE_CACHE_TIMEOUT,
 } from "@/shared/constants/dsr";
-import { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { PeerNode, RoutingModule } from "@/shared/processor/core/runtimeTypes";
+import { EventRecorder } from "@/shared/processor/EventRecorder";
+import type { PeerNode, RoutingModule } from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
+import { EventType } from "@/shared/types/processor/events";
 import {
-  EventType,
   MessageType,
   type DsrRouteErrorMessage,
   type DsrRouteRecord,
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,
   type Packet,
-} from "@/shared/types/model/simulation";
+} from "@/shared/types/processor/simulation";
 import { cloneDsrMessage, isDsrSimulationMessage } from "./dsrMessage";
 
 type RouteCacheEntry = DsrRouteRecord;

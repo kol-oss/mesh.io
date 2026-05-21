@@ -1,12 +1,12 @@
+import { type Event } from "@/shared/types/processor/events";
 import {
   DsdvUpdateType,
   MessageType,
-  type Event,
   type Message,
   type OlsrHelloMessage,
   type OlsrTcMessage,
   type StepResult,
-} from "@/shared/types/model/simulation";
+} from "@/shared/types/processor/simulation";
 import { ExternalLink, X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 

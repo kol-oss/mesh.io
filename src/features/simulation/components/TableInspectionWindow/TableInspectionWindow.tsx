@@ -1,6 +1,6 @@
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import type { StepResult } from "@/shared/types/model/simulation";
+import type { StepResult } from "@/shared/types/processor/simulation";
 import { ChevronRight, ExternalLink, X } from "lucide-react";
 import {
   useEffect,

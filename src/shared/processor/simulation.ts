@@ -1,23 +1,25 @@
 import { AodvModule } from "@/shared/processor/aodv/AodvModule";
 import { BatmanModule } from "@/shared/processor/batman/BatmanModule";
-import { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { RoutingModule } from "@/shared/processor/core/runtimeTypes";
 import { DsdvModule } from "@/shared/processor/dsdv/DsdvModule";
+import { EventRecorder } from "@/shared/processor/EventRecorder";
 import { OlsrModule } from "@/shared/processor/olsr/OlsrModule";
 import { RuntimeNetwork } from "@/shared/processor/types/network";
+import type { RoutingModule } from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
+import { RefreshAction, StepType, type Step } from "@/shared/types/model/steps";
 import {
-  EventType,
   MessageType,
-  type EntityStatusChangedEventDetails,
   type Packet,
-  type PeerMovedEventDetails,
   type SimulationInput,
   type SimulationResult,
   type Snapshot,
   type StepResult,
-} from "@/shared/types/model/simulation";
-import { RefreshAction, StepType, type Step } from "@/shared/types/model/steps";
+} from "@/shared/types/processor/simulation";
+import {
+  EventType,
+  type MoveEventDetails,
+  type StatusChangeEventDetails,
+} from "../types/processor/events";
 import { sortStepsByTick } from "./steps";
 
 export function runSimulation(input: SimulationInput): SimulationResult {
@@ -87,7 +89,7 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
     }
 
     const currentPeer = peer.getEntity();
-    const moveDetails: PeerMovedEventDetails = {
+    const moveDetails: MoveEventDetails = {
       peerId: step.entityId,
       fromX: currentPeer.x,
       fromY: currentPeer.y,
@@ -113,7 +115,7 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
 
     network.refreshConnectivity();
 
-    const statusDetails: EntityStatusChangedEventDetails = {
+    const statusDetails: StatusChangeEventDetails = {
       entityId: step.entityId,
       entityType: toggleResult.entityType,
       previousEnabled: toggleResult.previousEnabled,

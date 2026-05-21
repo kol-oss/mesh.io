@@ -3,7 +3,6 @@ import Tooltip from "@/shared/components/Tooltip/Tooltip";
 import { useListReorder } from "@/shared/hooks/useListReorder";
 import { useToast } from "@/shared/toast/useToast";
 import { generateUUID } from "@/shared/types/common/uuid";
-import type { StepResult } from "@/shared/types/model/simulation";
 import type {
   MessageStep,
   MoveStep,
@@ -12,6 +11,7 @@ import type {
   ToggleStep,
 } from "@/shared/types/model/steps";
 import { StepType } from "@/shared/types/model/steps";
+import type { StepResult } from "@/shared/types/processor/simulation";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 import { migrateSteps } from "@/shared/utils/navigation/stepMigration";

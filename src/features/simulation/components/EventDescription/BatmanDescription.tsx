@@ -7,14 +7,16 @@ import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import {
   EventType,
+  type BroadcastEventDetails,
+  type Event,
+  type GetRouteEventDetails,
+} from "@/shared/types/processor/events";
+import {
   MessageType,
   type BatmanRouteRecord,
   type BatmanRoutingTableChangeDetails,
-  type BroadcastEventDetails,
-  type Event,
-  type RouteSelectedEventDetails,
   type ThroughputCalculationEventDetails,
-} from "@/shared/types/model/simulation";
+} from "@/shared/types/processor/simulation";
 import { findById } from "@/shared/utils/peers";
 import TextDescription from "../../../../shared/components/Description/TextDescription";
 
@@ -279,7 +281,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
 
   // Get originator route
   if (type === EventType.GetRoute) {
-    const { selectedRoute } = details as RouteSelectedEventDetails;
+    const { selectedRoute } = details as GetRouteEventDetails;
     const route = selectedRoute as BatmanRouteRecord;
 
     return (

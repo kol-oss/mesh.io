@@ -1,8 +1,8 @@
 import { START_TICK } from "@/shared/constants/tick";
 import { generateUUID, type UUID } from "@/shared/types/common/uuid";
-import type { Event } from "@/shared/types/processor/events";
 import type { EventDetails } from "@/shared/types/processor/simulation";
-import type { EventListener } from "../types/events";
+import type { Event } from "../types/processor/events";
+import type { EventListener } from "./types/events";
 
 export class EventRecorder {
   private readonly events: Event[] = [];

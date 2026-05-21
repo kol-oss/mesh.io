@@ -1,4 +1,4 @@
-import { MessageType, type Message } from "@/shared/types/model/simulation";
+import { MessageType, type Message } from "@/shared/types/processor/simulation";
 
 export const cloneDsdvMessage = <T extends Message>(message: T): T => {
   return { ...message };

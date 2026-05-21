@@ -6,13 +6,13 @@ import {
   AODV_PATH_DISCOVERY_TTL,
   AODV_SEQUENCE_INITIAL,
 } from "@/shared/constants/aodv";
-import { EventRecorder } from "@/shared/processor/core/EventRecorder";
-import type { PeerNode, RoutingModule } from "@/shared/processor/core/runtimeTypes";
+import { EventRecorder } from "@/shared/processor/EventRecorder";
+import type { PeerNode, RoutingModule } from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import { getAodvConfiguration } from "@/shared/types/model/peers";
+import { EventType } from "@/shared/types/processor/events";
 import {
-  EventType,
   MessageType,
   type AodvHelloMessage,
   type AodvRouteErrorMessage,
@@ -21,7 +21,7 @@ import {
   type AodvRouteRequestMessage,
   type AodvUnreachableDestination,
   type Packet,
-} from "@/shared/types/model/simulation";
+} from "@/shared/types/processor/simulation";
 import { cloneAodvMessage, isAodvSimulationMessage } from "./aodvMessage";
 
 type AodvRouteEntry = AodvRouteRecord & {

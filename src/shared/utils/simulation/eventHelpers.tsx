@@ -4,22 +4,24 @@ import type { UUID } from "@/shared/types/common/uuid";
 import { EntityType } from "@/shared/types/model/entities";
 import {
   EventType,
+  type DropEventDetails,
+  type Event,
+  type GetRouteEventDetails,
+  type MoveEventDetails,
+  type RouteChangeEventDetails,
+  type StatusChangeEventDetails,
+} from "@/shared/types/processor/events";
+import {
   MessageType,
   type BatmanRouteRecord,
   type BatmanRoutingTableChangeDetails,
-  type DroppedEventDetails,
-  type EntityStatusChangedEventDetails,
-  type Event,
   type Message,
-  type PeerMovedEventDetails,
-  type RouteSelectedEventDetails,
-  type RoutingTableChangeDetails,
   type ThroughputCalculationEventDetails,
-} from "@/shared/types/model/simulation";
+} from "@/shared/types/processor/simulation";
 import type { ReactNode } from "react";
 
 const isBatmanRoute = (
-  route: RouteSelectedEventDetails["selectedRoute"],
+  route: GetRouteEventDetails["selectedRoute"],
 ): route is BatmanRouteRecord => {
   return "originatorPeerId" in route;
 };
@@ -109,7 +111,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
     case EventType.Broadcast:
       return getBroadcastDescription(event, message);
     case EventType.GetRoute: {
-      const details = event.details as RouteSelectedEventDetails;
+      const details = event.details as GetRouteEventDetails;
       if (!isBatmanRoute(details.selectedRoute)) {
         return `${actor} emitted a simulation event.`;
       }
@@ -120,11 +122,11 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
     case EventType.Drop:
       return getDroppedDescription(actor, event, message);
     case EventType.Move: {
-      const details = event.details as PeerMovedEventDetails;
+      const details = event.details as MoveEventDetails;
       return `Peer is moved to point (${details.toX}, ${details.toY}).`;
     }
     case EventType.StatusChange: {
-      const details = event.details as EntityStatusChangedEventDetails;
+      const details = event.details as StatusChangeEventDetails;
       const entityLabel = details.entityType === EntityType.Link ? "Link" : "Peer";
       return `${entityLabel} is now ${details.nextEnabled ? "(details.nextEnabled)" : "disabled"}.`;
     }
@@ -133,7 +135,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
   }
 };
 
-export const getRouteChange = (event: Event): RoutingTableChangeDetails | null => {
+export const getRouteChange = (event: Event): RouteChangeEventDetails | null => {
   if (
     event.type !== EventType.AddRoute &&
     event.type !== EventType.UpdateRoute &&
@@ -142,7 +144,7 @@ export const getRouteChange = (event: Event): RoutingTableChangeDetails | null =
     return null;
   }
 
-  const details = event.details as RoutingTableChangeDetails;
+  const details = event.details as RouteChangeEventDetails;
   return details.protocol === RoutingProtocol.BATMAN ? details : null;
 };
 
@@ -159,7 +161,7 @@ export const getSelectedRoute = (event: Event): BatmanRouteRecord | null => {
     return null;
   }
 
-  const details = event.details as RouteSelectedEventDetails;
+  const details = event.details as GetRouteEventDetails;
   return isBatmanRoute(details.selectedRoute) ? details.selectedRoute : null;
 };
 
@@ -174,7 +176,7 @@ export const getMessageSummary = (
   }
 
   if (event.type === EventType.GetRoute) {
-    const details = event.details as RouteSelectedEventDetails;
+    const details = event.details as GetRouteEventDetails;
     if (!isBatmanRoute(details.selectedRoute)) {
       return null;
     }
@@ -238,7 +240,7 @@ export const getMessageSummary = (
   }
 
   if (event.type === EventType.Move) {
-    const details = event.details as PeerMovedEventDetails;
+    const details = event.details as MoveEventDetails;
     return [
       {
         label: "Peer",
@@ -256,7 +258,7 @@ export const getMessageSummary = (
   }
 
   if (event.type === EventType.StatusChange) {
-    const details = event.details as EntityStatusChangedEventDetails;
+    const details = event.details as StatusChangeEventDetails;
     return [
       {
         label: "Type",
@@ -354,7 +356,7 @@ const getBroadcastDescription = (event: Event, message: Message | null) => {
 
 const getDroppedDescription = (actor: string, event: Event, message: Message | null) => {
   if (isSourcePacketSendFailure(event, message)) {
-    const details = event.details as DroppedEventDetails;
+    const details = event.details as DropEventDetails;
     return (
       <>{`The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${details.reason}.`}</>
     );
@@ -479,7 +481,7 @@ export const getThroughputEwmaExplanation = (
 
 const getRouteInsertTitle = (
   message: Message | null,
-  routeChange: RoutingTableChangeDetails | null,
+  routeChange: RouteChangeEventDetails | null,
 ) => {
   if (message?.kind === MessageType.BatmanOriginatorMessage || routeChange) {
     return EventTitle.OriginatorAdded;
@@ -490,7 +492,7 @@ const getRouteInsertTitle = (
 
 const getRouteUpdateTitle = (
   message: Message | null,
-  routeChange: RoutingTableChangeDetails | null,
+  routeChange: RouteChangeEventDetails | null,
 ) => {
   if (message?.kind === MessageType.BatmanOriginatorMessage || routeChange) {
     return EventTitle.OriginatorUpdated;
@@ -501,7 +503,7 @@ const getRouteUpdateTitle = (
 
 const getRouteRemoveTitle = (
   message: Message | null,
-  routeChange: RoutingTableChangeDetails | null,
+  routeChange: RouteChangeEventDetails | null,
 ) => {
   if (message?.kind === MessageType.BatmanOriginatorMessage || routeChange) {
     return "Originator Removed";
@@ -588,7 +590,7 @@ const isSourcePacketSendFailure = (event: Event, message: Message | null) => {
     return false;
   }
 
-  const details = event.details as DroppedEventDetails;
+  const details = event.details as DropEventDetails;
   if (details.reasonCode === "NO_ROUTE" || details.reasonCode === "SOURCE_UNAVAILABLE") {
     return true;
   }
