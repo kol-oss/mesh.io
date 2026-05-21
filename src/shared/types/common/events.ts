@@ -122,3 +122,5 @@ export type EventDetails =
   | MoveEventDetails
   | StatusChangeEventDetails
   | RouteChangeEventDetails;
+
+export type EventListener = (event: Event) => void;
