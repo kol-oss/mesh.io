@@ -57,6 +57,16 @@ export class BatmanOperations {
 
   processOgmMessage(message: BatmanOriginatorMessage) {
     if (message.sourcePeerId === this.routingPeer.id) {
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.Drop,
+        {
+          message: cloneMessage(message),
+          reason:
+            "B.A.T.M.A.N. V dropped a rebroadcast OGMv2 because the originator received its own message",
+        },
+        RoutingProtocol.BATMAN,
+      );
       return true;
     }
 

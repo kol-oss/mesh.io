@@ -9,7 +9,6 @@ import {
 import { type StepResult } from "@/shared/types/processor/simulation";
 import {
   getEventMessage,
-  getEventTitle,
   getPeerLabel,
   getRouteChange,
   getRouteSequenceWindowExplanation,
@@ -20,6 +19,7 @@ import {
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Link } from "react-router-dom";
+import { getEventTitle } from "../../constants/events";
 import BatmanDescription from "./BatmanDescription";
 import SystemDescription from "./SystemDescription";
 
@@ -164,7 +164,6 @@ export default function EventDescription({
   };
 
   const { protocol } = currentEvent;
-
   return (
     <aside
       className={`simulation-panel simulation-panel--tooltip${isDragging ? " simulation-panel--dragging" : ""}`}
@@ -189,11 +188,13 @@ export default function EventDescription({
           />
         )}
 
-        <SystemDescription
-          event={currentEvent}
-          peers={currentStepResult.snapshot.peers}
-          onPeerHover={onPeerHoverChange}
-        />
+        {protocol === undefined && (
+          <SystemDescription
+            event={currentEvent}
+            peers={currentStepResult.snapshot.peers}
+            onPeerHover={onPeerHoverChange}
+          />
+        )}
       </section>
 
       {/* Footer */}

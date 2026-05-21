@@ -1,4 +1,3 @@
-import { EventTitle } from "@/features/simulation/constants/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import { EntityType } from "@/shared/types/model/entities";
@@ -43,7 +42,7 @@ export const getEventTitle = (event: Event) => {
     case EventType.Transfer:
       return "Message Transferred";
     case EventType.Calculation:
-      return EventTitle.ThroughputCalculation;
+      return "Throughput Calculation";
     case EventType.Drop:
       return getDroppedTitle(event, message);
     case EventType.Move:
@@ -314,7 +313,7 @@ const getDroppedTitle = (event: Event, message: Message | null) => {
   }
 
   if (message?.kind === MessageType.BatmanOriginatorMessage) {
-    return EventTitle.OgmDropped;
+    return "OGMv2 Dropped";
   }
 
   if (message?.kind === MessageType.Packet) {
@@ -488,7 +487,7 @@ const getRouteInsertTitle = (
   routeChange: RouteChangeEventDetails | null,
 ) => {
   if (message?.kind === MessageType.BatmanOriginatorMessage || routeChange) {
-    return EventTitle.OriginatorAdded;
+    return "Originator Added";
   }
 
   return "Route Added";
@@ -499,7 +498,7 @@ const getRouteUpdateTitle = (
   routeChange: RouteChangeEventDetails | null,
 ) => {
   if (message?.kind === MessageType.BatmanOriginatorMessage || routeChange) {
-    return EventTitle.OriginatorUpdated;
+    return "Originator Updated";
   }
 
   return "Route Updated";
