@@ -2,48 +2,8 @@ import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { NetworkEntity, PeerEntity } from "../model/entities";
 import type { Step } from "../model/steps";
-import type {
-  BroadcastEventDetails,
-  DropEventDetails,
-  GetRouteEventDetails,
-  MoveEventDetails,
-  RouteChangeEventDetails,
-  StatusChangeEventDetails,
-} from "./events";
+import type { BatmanNeighbourRecord, BatmanRouteRecord } from "./batman";
 import type { Message, MessageType } from "./messages";
-
-export type BatmanOriginatorMessage = {
-  kind: MessageType.BatmanOriginatorMessage;
-  version: number;
-  sourcePeerId: UUID;
-  senderPeerId: UUID;
-  sequence: number;
-  timeToLive: number;
-  throughput: number;
-};
-
-export type BatmanEchoLocationNeighbour = {
-  address: string;
-};
-
-export const BatmanPacketType = {
-  EchoLocationProtocol: "ELP",
-} as const;
-
-export type BatmanPacketType = (typeof BatmanPacketType)[keyof typeof BatmanPacketType];
-
-export type BatmanEchoLocationMessage = {
-  kind: MessageType.BatmanEchoLocationMessage;
-  packetType: typeof BatmanPacketType.EchoLocationProtocol;
-  version: number;
-  sourcePeerId: UUID;
-  senderPeerId: UUID;
-  timeToLive: number;
-  numNeighbours: number;
-  sequence: number;
-  interval: number;
-  neighbours: BatmanEchoLocationNeighbour[];
-};
 
 export const DsdvUpdateType = {
   FullDump: "FULL_DUMP",
@@ -164,21 +124,6 @@ export type DsrRouteErrorMessage = {
   routePeerIds: UUID[];
 };
 
-export type BatmanRouteRecord = {
-  originatorPeerId: UUID;
-  hopPeerId: UUID;
-  quality: number;
-  qualityWindow: boolean[];
-  lastTick: number;
-};
-
-export type BatmanNeighbourRecord = {
-  neighbourPeerId: UUID;
-  quality: number;
-  lastTick: number;
-  interval: number;
-};
-
 export type DsdvRouteRecord = {
   destinationPeerId: UUID;
   nextHopPeerId: UUID;
@@ -239,16 +184,6 @@ export type OlsrTopologyRecord = {
   lastUpdateTick: number;
 };
 
-export type BatmanRoutingTableChangeDetails = {
-  protocol: typeof RoutingProtocol.BATMAN;
-  originatorPeerId: UUID;
-  hopPeerId: UUID;
-  previousRoute: BatmanRouteRecord | null;
-  nextRoute: BatmanRouteRecord | null;
-  message?: Message;
-  reason: string;
-};
-
 export type DsdvRoutingTableChangeDetails = {
   protocol: typeof RoutingProtocol.DSDV;
   destinationPeerId: UUID;
@@ -288,39 +223,6 @@ export type DsrRoutingTableChangeDetails = {
   message?: Message;
   reason: string;
 };
-
-export type ThroughputCalculationEventDetails = {
-  message: Message;
-  reason: string;
-  breakdown?: {
-    baseThroughput: number;
-    baseReferenceThroughput: number;
-    receptionRatio: number;
-    rawThroughput: number;
-    previousEwma: number | null;
-    nextEwma: number;
-    distance: number;
-    distancePenaltyDistance: number;
-    distancePenaltyPercent: number;
-  };
-  ogmSelection?: {
-    receivedThroughput: number;
-    neighbourThroughput: number;
-    selectedThroughput: number;
-    isWirelessHop: boolean;
-    hopPenaltyPercent: number;
-    forwardedThroughput: number;
-  };
-};
-
-export type EventDetails =
-  | BroadcastEventDetails
-  | GetRouteEventDetails
-  | DropEventDetails
-  | ThroughputCalculationEventDetails
-  | MoveEventDetails
-  | StatusChangeEventDetails
-  | RouteChangeEventDetails;
 
 export type PeerSnapshot = PeerEntity & {
   batmanRoutingTable: BatmanRouteRecord[];

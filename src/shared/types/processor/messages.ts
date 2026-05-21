@@ -1,11 +1,10 @@
 import type { UUID } from "../common/uuid";
+import type { BatmanEchoLocationMessage, BatmanOriginatorMessage } from "./batman";
 import type {
   AodvHelloMessage,
   AodvRouteErrorMessage,
   AodvRouteReplyMessage,
   AodvRouteRequestMessage,
-  BatmanEchoLocationMessage,
-  BatmanOriginatorMessage,
   DsdvRouteUpdateMessage,
   DsrRouteErrorMessage,
   DsrRouteReplyMessage,

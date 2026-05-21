@@ -7,15 +7,13 @@ import { EventRecorder } from "@/shared/processor/EventRecorder.ts";
 import type { PeerNode, RoutingModule } from "@/shared/processor/types/runtime.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
-import { EventType } from "@/shared/types/processor/events.ts";
-import { MessageType, type Packet } from "@/shared/types/processor/messages.ts";
 import {
-  BatmanPacketType,
   type BatmanEchoLocationMessage,
-  type BatmanEchoLocationNeighbour,
   type BatmanNeighbourRecord,
   type BatmanOriginatorMessage,
-} from "@/shared/types/processor/simulation.ts";
+} from "@/shared/types/processor/batman.ts";
+import { EventType } from "@/shared/types/processor/events.ts";
+import { MessageType, type Packet } from "@/shared/types/processor/messages.ts";
 import { cloneMessage, isSimulationMessage } from "./batmanMessage.ts";
 import { BatmanOperations } from "./BatmanOperations.ts";
 import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";
@@ -171,15 +169,11 @@ export class BatmanModule implements RoutingModule {
     }
     const elpInterval = Math.max(1, Math.floor(configuration.elpInterval));
 
-    const neighbours: BatmanEchoLocationNeighbour[] = [...this.neighbourTable.values()]
-      .map((entry) => ({
-        address: entry.neighbourId,
-      }))
-      .sort((left, right) => left.address.localeCompare(right.address));
-
+    const neighbours: UUID[] = [...this.neighbourTable.values()]
+      .map((entry) => entry.neighbourId)
+      .sort((left, right) => left.localeCompare(right));
     const elpMessage: BatmanEchoLocationMessage = {
       kind: MessageType.BatmanEchoLocationMessage,
-      packetType: BatmanPacketType.EchoLocationProtocol,
       version: BATMAN_VERSION,
       sourcePeerId: this.routingPeer.id,
       senderPeerId: this.routingPeer.id,

@@ -1,17 +1,19 @@
 import type { RoutingProtocol } from "../common/protocols";
 import type { UUID } from "../common/uuid";
 import type { EntityType } from "../model/entities";
+import type {
+  BatmanCalculationEventDetails,
+  BatmanRouteRecord,
+  BatmanRouteUpdateEventDetails,
+} from "./batman";
 import type { Message, Packet } from "./messages";
 import type {
   AodvRouteRecord,
   AodvRoutingTableChangeDetails,
-  BatmanRouteRecord,
-  BatmanRoutingTableChangeDetails,
   DsdvRouteRecord,
   DsdvRoutingTableChangeDetails,
   DsrRouteRecord,
   DsrRoutingTableChangeDetails,
-  EventDetails,
   OlsrRouteRecord,
   OlsrRoutingTableChangeDetails,
 } from "./simulation";
@@ -48,9 +50,7 @@ export type BroadcastEventDetails = {
 };
 
 // for Calculation event
-export type CalculationEventDetails = {
-  message: Message;
-};
+export type CalculationEventDetails = BatmanCalculationEventDetails;
 
 // for Drop event
 export type DropEventDetails = {
@@ -74,7 +74,7 @@ export type GetRouteEventDetails = {
 
 // for AddRoute, UpdateRoute, DeleteRoute events
 export type RouteChangeEventDetails =
-  | BatmanRoutingTableChangeDetails
+  | BatmanRouteUpdateEventDetails
   | DsdvRoutingTableChangeDetails
   | AodvRoutingTableChangeDetails
   | OlsrRoutingTableChangeDetails
@@ -96,3 +96,12 @@ export type StatusChangeEventDetails = {
   previousEnabled: boolean;
   nextEnabled: boolean;
 };
+
+export type EventDetails =
+  | BroadcastEventDetails
+  | GetRouteEventDetails
+  | DropEventDetails
+  | CalculationEventDetails
+  | MoveEventDetails
+  | StatusChangeEventDetails
+  | RouteChangeEventDetails;

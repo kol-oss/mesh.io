@@ -3,6 +3,11 @@ import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import { EntityType } from "@/shared/types/model/entities";
 import {
+  type BatmanCalculationEventDetails,
+  type BatmanRouteRecord,
+  type BatmanRouteUpdateEventDetails,
+} from "@/shared/types/processor/batman";
+import {
   EventType,
   type DropEventDetails,
   type Event,
@@ -12,11 +17,6 @@ import {
   type StatusChangeEventDetails,
 } from "@/shared/types/processor/events";
 import { MessageType, type Message } from "@/shared/types/processor/messages";
-import {
-  type BatmanRouteRecord,
-  type BatmanRoutingTableChangeDetails,
-  type ThroughputCalculationEventDetails,
-} from "@/shared/types/processor/simulation";
 import type { ReactNode } from "react";
 
 const isBatmanRoute = (
@@ -147,7 +147,7 @@ export const getRouteChange = (event: Event): RouteChangeEventDetails | null => 
   return details.protocol === RoutingProtocol.BATMAN ? details : null;
 };
 
-export const getRouteRows = (details: BatmanRoutingTableChangeDetails): BatmanRouteRecord[] => {
+export const getRouteRows = (details: BatmanRouteUpdateEventDetails): BatmanRouteRecord[] => {
   if (details.nextRoute) {
     return [details.nextRoute];
   }
@@ -379,7 +379,7 @@ const getDroppedDescription = (actor: string, event: Event, message: Message | n
 };
 
 const getThroughputCalculatedDescription = (actor: string, event: Event) => {
-  const details = event.details as ThroughputCalculationEventDetails;
+  const details = event.details as BatmanCalculationEventDetails;
   if (details.message.kind === MessageType.BatmanEchoLocationMessage) {
     return (
       <>
@@ -408,7 +408,7 @@ export const getThroughputBreakdown = (event: Event) => {
     return null;
   }
 
-  const details = event.details as ThroughputCalculationEventDetails;
+  const details = event.details as BatmanCalculationEventDetails;
   if (details.message.kind !== MessageType.BatmanEchoLocationMessage) {
     return null;
   }
@@ -437,7 +437,7 @@ export const getOgmThroughputSelectionExplanation = (event: Event) => {
     return null;
   }
 
-  const details = event.details as ThroughputCalculationEventDetails;
+  const details = event.details as BatmanCalculationEventDetails;
   if (details.message.kind !== MessageType.BatmanOriginatorMessage) {
     return null;
   }
@@ -457,7 +457,7 @@ export const getOgmThroughputSelectionExplanation = (event: Event) => {
 export const formatFixed = (value: number) => value.toFixed(2);
 
 export const getThroughputBaseExplanation = (
-  breakdown: NonNullable<ThroughputCalculationEventDetails["breakdown"]>,
+  breakdown: NonNullable<BatmanCalculationEventDetails["breakdown"]>,
 ) => {
   const cutAmount = Math.max(0, breakdown.baseReferenceThroughput - breakdown.baseThroughput);
 
@@ -469,7 +469,7 @@ export const getThroughputBaseExplanation = (
 };
 
 export const getThroughputEwmaExplanation = (
-  breakdown: NonNullable<ThroughputCalculationEventDetails["breakdown"]>,
+  breakdown: NonNullable<BatmanCalculationEventDetails["breakdown"]>,
 ) => {
   if (breakdown.previousEwma == null) {
     return `This value is then used as the initial input to the EWMA (Exponentially Weighted Moving Average), resulting in an initial smoothed metric of ${formatFixed(breakdown.nextEwma)}, which will be refined over time as more measurements are collected.`;

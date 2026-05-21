@@ -1,6 +1,10 @@
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import {
+  type BatmanCalculationEventDetails,
+  type BatmanRouteRecord,
+} from "@/shared/types/processor/batman";
+import {
   EventType,
   type BroadcastEventDetails,
   type DropEventDetails,
@@ -15,14 +19,12 @@ import {
   type AodvRouteErrorMessage,
   type AodvRouteReplyMessage,
   type AodvRouteRequestMessage,
-  type BatmanRouteRecord,
   type DsdvRouteUpdateMessage,
   type DsrRouteErrorMessage,
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,
   type OlsrHelloMessage,
   type OlsrTcMessage,
-  type ThroughputCalculationEventDetails,
 } from "@/shared/types/processor/simulation";
 import {
   formatFixed,
@@ -370,7 +372,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
       }
 
       if (event.type === EventType.Calculation) {
-        const details = event.details as ThroughputCalculationEventDetails;
+        const details = event.details as BatmanCalculationEventDetails;
         return replacePeerIdsWithNames(details.reason, peerNameById);
       }
 
@@ -413,7 +415,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
       }
 
       if (event.type === EventType.Calculation) {
-        const details = event.details as ThroughputCalculationEventDetails;
+        const details = event.details as BatmanCalculationEventDetails;
         return replacePeerIdsWithNames(details.reason, peerNameById);
       }
 
@@ -451,7 +453,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
     }
 
     if (event.type === EventType.Calculation) {
-      const details = event.details as ThroughputCalculationEventDetails;
+      const details = event.details as BatmanCalculationEventDetails;
       return details.reason;
     }
 
@@ -815,4 +817,4 @@ export const isBatmanRouteRecord = (
   return "originatorPeerId" in route;
 };
 
-export type { ThroughputCalculationEventDetails };
+export type { BatmanCalculationEventDetails as ThroughputCalculationEventDetails };

@@ -1,5 +1,6 @@
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
+import type { BatmanCalculationEventDetails } from "@/shared/types/processor/batman";
 import type {
   BroadcastEventDetails,
   DropEventDetails,
@@ -11,10 +12,7 @@ import type {
 import { EventType } from "@/shared/types/processor/events";
 import type { Message } from "@/shared/types/processor/messages";
 import { MessageType } from "@/shared/types/processor/messages";
-import type {
-  PeerSnapshot,
-  ThroughputCalculationEventDetails,
-} from "@/shared/types/processor/simulation";
+import type { PeerSnapshot } from "@/shared/types/processor/simulation";
 import type {
   MessageAnimation,
   MoveStepAnimation,
@@ -110,7 +108,7 @@ export const buildSimulationMessageAnimations = (
   }
 
   if (currentEvent.type === EventType.Calculation) {
-    const details = currentEvent.details as ThroughputCalculationEventDetails;
+    const details = currentEvent.details as BatmanCalculationEventDetails;
     if (details.message.kind === MessageType.BatmanOriginatorMessage) {
       return toMessageAnimations([
         createAnimation(

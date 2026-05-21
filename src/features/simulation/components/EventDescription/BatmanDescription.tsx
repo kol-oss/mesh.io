@@ -6,17 +6,17 @@ import { BATMAN_EWMA_ALPHA, BATMAN_WIRELESS_BASE_THROUGHPUT } from "@/shared/con
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import {
+  type BatmanCalculationEventDetails,
+  type BatmanRouteRecord,
+  type BatmanRouteUpdateEventDetails,
+} from "@/shared/types/processor/batman";
+import {
   EventType,
   type BroadcastEventDetails,
   type Event,
   type GetRouteEventDetails,
 } from "@/shared/types/processor/events";
 import { MessageType } from "@/shared/types/processor/messages";
-import {
-  type BatmanRouteRecord,
-  type BatmanRoutingTableChangeDetails,
-  type ThroughputCalculationEventDetails,
-} from "@/shared/types/processor/simulation";
 import { findById } from "@/shared/utils/peers";
 import TextDescription from "../../../../shared/components/Description/TextDescription";
 
@@ -81,7 +81,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
   }
 
   if (type === EventType.Calculation) {
-    const { breakdown, ogmSelection } = details as ThroughputCalculationEventDetails;
+    const { breakdown, ogmSelection } = details as BatmanCalculationEventDetails;
 
     // ELP throughput calculation
     if (breakdown) {
@@ -194,7 +194,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
 
   // Originator addition or update
   if (type === EventType.AddRoute || type === EventType.UpdateRoute) {
-    const { nextRoute } = details as BatmanRoutingTableChangeDetails;
+    const { nextRoute } = details as BatmanRouteUpdateEventDetails;
 
     return (
       <>
@@ -239,7 +239,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
 
   // Purge Timeout
   if (type === EventType.DeleteRoute) {
-    const { previousRoute } = details as BatmanRoutingTableChangeDetails;
+    const { previousRoute } = details as BatmanRouteUpdateEventDetails;
     return (
       <>
         <TextDescription>

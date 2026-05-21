@@ -10,14 +10,14 @@ import type { PeerNode } from "@/shared/processor/types/runtime.ts";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
-import { EventType } from "@/shared/types/processor/events.ts";
-import { MessageType, type Message, type Packet } from "@/shared/types/processor/messages.ts";
 import {
+  type BatmanCalculationEventDetails,
   type BatmanEchoLocationMessage,
   type BatmanNeighbourRecord,
   type BatmanOriginatorMessage,
-  type ThroughputCalculationEventDetails,
-} from "@/shared/types/processor/simulation.ts";
+} from "@/shared/types/processor/batman.ts";
+import { EventType } from "@/shared/types/processor/events.ts";
+import { MessageType, type Message, type Packet } from "@/shared/types/processor/messages.ts";
 import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";
 import {
   applyDistancePenalty,
@@ -324,8 +324,8 @@ export class BatmanOperations {
   private recordThroughputCalculated(
     message: Message,
     reason: string,
-    breakdown?: ThroughputCalculationEventDetails["breakdown"],
-    ogmSelection?: ThroughputCalculationEventDetails["ogmSelection"],
+    breakdown?: BatmanCalculationEventDetails["breakdown"],
+    ogmSelection?: BatmanCalculationEventDetails["ogmSelection"],
   ) {
     this.eventRecorder.record(this.routingPeer.id, EventType.Calculation, {
       message: cloneMessage(message),
