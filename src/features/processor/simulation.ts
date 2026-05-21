@@ -1,10 +1,9 @@
-import { AodvModule } from "@/shared/processor/aodv/AodvModule";
-import { BatmanModule } from "@/shared/processor/batman/BatmanModule";
-import { DsdvModule } from "@/shared/processor/dsdv/DsdvModule";
-import { EventRecorder } from "@/shared/processor/EventRecorder";
-import { OlsrModule } from "@/shared/processor/olsr/OlsrModule";
-import { RuntimeNetwork } from "@/shared/processor/types/network";
-import type { RoutingModule } from "@/shared/processor/types/runtime";
+import { EventRecorder } from "@/features/processor/EventRecorder";
+import { AodvModule } from "@/features/processor/service/aodv/AodvModule";
+import { DsdvModule } from "@/features/processor/service/dsdv/DsdvModule";
+import { OlsrModule } from "@/features/processor/service/olsr/OlsrModule";
+import { RuntimeNetwork } from "@/features/processor/types/network";
+import type { RoutingModule } from "@/features/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { RefreshAction, StepType, type Step } from "@/shared/types/model/steps";
 import {
@@ -17,9 +16,10 @@ import {
   EventType,
   type MoveEventDetails,
   type StatusChangeEventDetails,
-} from "../types/processor/events";
-import { MessageType, type Packet } from "../types/processor/messages";
-import { sortStepsByTick } from "./steps";
+} from "../../shared/types/processor/events";
+import { MessageType, type Packet } from "../../shared/types/processor/messages";
+import { BatmanModule } from "./service/batman/BatmanModule";
+import { sortStepsByTick } from "./utils/steps";
 
 export function runSimulation(input: SimulationInput): SimulationResult {
   const { entities, steps } = input;

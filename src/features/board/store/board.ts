@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 
-import { runSimulation } from "@/shared/processor/simulation";
+import { runSimulation } from "@/features/processor/simulation";
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
 import {
   selectCurrentSimulationEvent,

@@ -1,6 +1,6 @@
+import { EventRecorder } from "@/features/processor/EventRecorder";
+import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime";
 import { OLSR_DEFAULT_TC_TTL, OLSR_MIN_INTERVAL } from "@/shared/constants/olsr";
-import { EventRecorder } from "@/shared/processor/EventRecorder";
-import type { PeerNode, RoutingModule } from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { OlsrConfiguration } from "@/shared/types/model/configurations";

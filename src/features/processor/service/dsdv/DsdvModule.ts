@@ -1,11 +1,11 @@
+import { EventRecorder } from "@/features/processor/EventRecorder";
+import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime";
 import {
   DSDV_METRIC_INFINITY,
   DSDV_MIN_INTERVAL,
   DSDV_MIN_TIMEOUT,
   DSDV_SEQUENCE_INITIAL,
 } from "@/shared/constants/dsdv";
-import { EventRecorder } from "@/shared/processor/EventRecorder";
-import type { PeerNode, RoutingModule } from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { DsdvConfiguration } from "@/shared/types/model/configurations";

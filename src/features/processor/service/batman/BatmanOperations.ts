@@ -1,3 +1,5 @@
+import { EventRecorder } from "@/features/processor/EventRecorder.ts";
+import type { PeerNode } from "@/features/processor/types/runtime.ts";
 import {
   BATMAN_EWMA_ALPHA,
   BATMAN_OGM_HOP_PENALTY_PERCENT,
@@ -5,8 +7,6 @@ import {
   BATMAN_VERSION,
   BATMAN_WIRELESS_BASE_THROUGHPUT,
 } from "@/shared/constants/batman.ts";
-import { EventRecorder } from "@/shared/processor/EventRecorder.ts";
-import type { PeerNode } from "@/shared/processor/types/runtime.ts";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";

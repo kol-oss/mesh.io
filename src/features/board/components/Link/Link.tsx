@@ -1,4 +1,4 @@
-import { shortenLine } from "@/shared/processor/connectivity";
+import { shortenLine } from "@/features/processor/utils/connectivity";
 import type { UUID } from "@/shared/types/common/uuid";
 
 type LinkShape = {

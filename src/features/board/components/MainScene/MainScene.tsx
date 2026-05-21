@@ -1,5 +1,5 @@
 import Scene from "@/features/board/components/Scene/Scene";
-import EventDescription from "@/features/simulation/components/EventDescription/EventDescription";
+import EventDescription from "@/features/event/components/EventDescription/EventDescription";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as PlacementMode } from "@/shared/types/action";
 import type { Event } from "@/shared/types/processor/events";

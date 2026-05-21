@@ -1,10 +1,10 @@
+import { EventRecorder } from "@/features/processor/EventRecorder.ts";
+import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime.ts";
 import {
   BATMAN_MAX_THROUGHPUT,
   BATMAN_TIME_TO_LIVE,
   BATMAN_VERSION,
 } from "@/shared/constants/batman.ts";
-import { EventRecorder } from "@/shared/processor/EventRecorder.ts";
-import type { PeerNode, RoutingModule } from "@/shared/processor/types/runtime.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
 import {

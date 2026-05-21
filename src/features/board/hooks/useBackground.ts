@@ -1,6 +1,7 @@
-import { useCallback } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import { useCallback } from "react";
 
+import { toInt } from "@/features/processor/utils/connectivity";
 import { PAN_LIMIT } from "@/shared/constants/workspace";
 import { ActionMode as PlacementMode } from "@/shared/types/action";
 import type {
@@ -11,7 +12,6 @@ import type {
   WorkspaceBackgroundState,
 } from "@/shared/types/workspace/background";
 import { clamp } from "@/shared/utils/math/clamp";
-import { toInt } from "@/shared/processor/connectivity";
 
 type UseBackgroundParams = {
   refs: WorkspaceBackgroundRefs;

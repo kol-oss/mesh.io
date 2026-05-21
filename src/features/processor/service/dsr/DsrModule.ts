@@ -1,11 +1,11 @@
+import { EventRecorder } from "@/features/processor/EventRecorder";
+import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime";
 import {
   DSR_DEFAULT_HOP_LIMIT,
   DSR_MAX_REDISCOVERY_ATTEMPTS,
   DSR_MAX_SALVAGE_COUNT,
   DSR_ROUTE_CACHE_TIMEOUT,
 } from "@/shared/constants/dsr";
-import { EventRecorder } from "@/shared/processor/EventRecorder";
-import type { PeerNode, RoutingModule } from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import {

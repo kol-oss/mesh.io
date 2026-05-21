@@ -1,3 +1,5 @@
+import { EventRecorder } from "@/features/processor/EventRecorder";
+import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime";
 import {
   AODV_ACTIVE_ROUTE_TIMEOUT,
   AODV_HELLO_LIFETIME_FACTOR,
@@ -6,8 +8,6 @@ import {
   AODV_PATH_DISCOVERY_TTL,
   AODV_SEQUENCE_INITIAL,
 } from "@/shared/constants/aodv";
-import { EventRecorder } from "@/shared/processor/EventRecorder";
-import type { PeerNode, RoutingModule } from "@/shared/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import { getAodvConfiguration } from "@/shared/types/model/peers";

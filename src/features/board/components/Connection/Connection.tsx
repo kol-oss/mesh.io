@@ -1,5 +1,5 @@
+import { shortenLine } from "@/features/processor/utils/connectivity";
 import { ConnectionType } from "@/shared/types/interaction";
-import { shortenLine } from "@/shared/processor/connectivity";
 import type { Connection } from "@/shared/types/workspace/interaction";
 
 type Props = {

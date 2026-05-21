@@ -1,14 +1,14 @@
-import { useState } from "react";
 import { Radio } from "lucide-react";
+import { useState } from "react";
 
-import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
-import type { WorkspaceSceneProps } from "@/shared/types/workspace/scene";
-import { shortenLine } from "@/shared/processor/connectivity";
 import Connection from "@/features/board/components/Connection/Connection";
 import Link from "@/features/board/components/Link/Link";
-import Peer from "@/features/board/components/Peer/Peer";
 import Obstacle from "@/features/board/components/Obstacle/Obstacle";
+import Peer from "@/features/board/components/Peer/Peer";
 import Text from "@/features/board/components/Text/Text";
+import { shortenLine } from "@/features/processor/utils/connectivity";
+import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
+import type { WorkspaceSceneProps } from "@/shared/types/workspace/scene";
 
 export default function Scene({
   centerX,

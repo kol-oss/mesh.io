@@ -1,8 +1,8 @@
-import MessageStructure from "@/features/simulation/components/MessageStructure/MessageStructure";
-import TableStructure from "@/features/simulation/components/TableStructure/TableStructure";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { Event } from "@/shared/types/processor/events";
 import type { StepResult } from "@/shared/types/processor/simulation";
+import MessageStructure from "../MessageStructure/MessageStructure";
+import TableStructure from "../TableStructure/TableStructure";
 
 type PacketInspectorWindowState = {
   eventId: UUID;

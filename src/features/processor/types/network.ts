@@ -1,10 +1,10 @@
+import type { EventRecorder } from "@/features/processor/EventRecorder";
+import { RoutingStructure, type Network } from "@/features/processor/types/runtime";
 import {
   canCreateRangedConnection,
   getConnectivityObstacleBounds,
   shouldCreateLinkedConnection,
-} from "@/shared/processor/connectivity";
-import type { EventRecorder } from "@/shared/processor/EventRecorder";
-import { RoutingStructure, type Network } from "@/shared/processor/types/runtime";
+} from "@/features/processor/utils/connectivity";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { LinkEntity, NetworkEntity, ObstacleEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";

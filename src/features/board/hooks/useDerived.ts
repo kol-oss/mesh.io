@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 
-import { RANGE_SAMPLES } from "@/shared/constants/workspace";
 import {
   getConnectivityObstacleBounds,
   getRangedConnectionPairs,
   getRayDistanceWithObstacleBlocking,
-} from "@/shared/processor/connectivity";
+} from "@/features/processor/utils/connectivity";
+import { RANGE_SAMPLES } from "@/shared/constants/workspace";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as PlacementMode } from "@/shared/types/action";
 import type { UUID } from "@/shared/types/common/uuid";

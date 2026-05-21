@@ -1,4 +1,4 @@
-import type { Step } from "../types/model/steps";
+import type { Step } from "@/shared/types/model/steps";
 
 // sorts steps by tick and input order
 export const sortStepsByTick = (steps: Step[]) => {
