@@ -1,6 +1,6 @@
-import { DSDV_MIN_INTERVAL, DSDV_MIN_TIMEOUT } from "@/shared/constants/dsdv";
 import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
 import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import { DSDV_MIN_INTERVAL, DSDV_MIN_TIMEOUT } from "@/shared/constants/protocols/dsdv";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { DsdvConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
 import { getConfiguration, type PeerEntity } from "@/shared/types/model/peers";

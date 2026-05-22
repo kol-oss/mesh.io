@@ -14,7 +14,7 @@ import {
   BATMAN_VERSION,
   BATMAN_WIRED_BASE_THROUGHPUT,
   BATMAN_WIRELESS_BASE_THROUGHPUT,
-} from "@/shared/constants/batman.ts";
+} from "@/shared/constants/protocols/batman.ts";
 import { DropReason, EventType, type GetRouteEventDetails } from "@/shared/types/common/events.ts";
 import { MessageType, type Message } from "@/shared/types/common/messages.ts";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";

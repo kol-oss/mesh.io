@@ -15,7 +15,7 @@ import {
   AODV_MIN_ROUTE_TIMEOUT,
   AODV_PATH_DISCOVERY_TTL,
   AODV_SEQUENCE_INITIAL,
-} from "@/shared/constants/aodv";
+} from "@/shared/constants/protocols/aodv";
 import { EventType } from "@/shared/types/common/events";
 import { MessageType, type Packet } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";

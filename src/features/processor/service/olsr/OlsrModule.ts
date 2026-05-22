@@ -9,7 +9,7 @@ import {
   type OlsrTopologyRecord,
   type OlsrTwoHopRecord,
 } from "@/features/processor/types/protocols/olsr";
-import { OLSR_DEFAULT_TC_TTL, OLSR_MIN_INTERVAL } from "@/shared/constants/olsr";
+import { OLSR_DEFAULT_TC_TTL, OLSR_MIN_INTERVAL } from "@/shared/constants/protocols/olsr";
 import { DropReason, EventType } from "@/shared/types/common/events";
 import { MessageType, type Message, type Packet } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";

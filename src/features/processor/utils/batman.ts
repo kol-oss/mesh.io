@@ -1,4 +1,4 @@
-import { BATMAN_OGM_HOP_PENALTY_PERCENT } from "@/shared/constants/batman";
+import { BATMAN_OGM_HOP_PENALTY_PERCENT } from "@/shared/constants/protocols/batman";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { BatmanOriginatorRecord, BatmanRouteRecord } from "../types/protocols/batman";
 

@@ -11,7 +11,7 @@ import {
   DSR_MAX_REDISCOVERY_ATTEMPTS,
   DSR_MAX_SALVAGE_COUNT,
   DSR_ROUTE_CACHE_TIMEOUT,
-} from "@/shared/constants/dsr";
+} from "@/shared/constants/protocols/dsr";
 import { EventType } from "@/shared/types/common/events";
 import { MessageType, type Packet } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";

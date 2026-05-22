@@ -1,6 +1,6 @@
-import { OLSR_MIN_INTERVAL } from "@/shared/constants/olsr";
 import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
 import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import { OLSR_MIN_INTERVAL } from "@/shared/constants/protocols/olsr";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { OlsrConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
 import { getConfiguration, type PeerEntity } from "@/shared/types/model/peers";

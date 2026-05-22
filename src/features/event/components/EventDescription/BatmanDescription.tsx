@@ -1,3 +1,4 @@
+import { EWMA_ALPHA } from "@/features/processor/constants/ewma";
 import {
   type BatmanCalculationEventDetails,
   type BatmanRouteChangeEventDetails,
@@ -7,8 +8,7 @@ import PeerDescription from "@/shared/components/Description/PeerDescription";
 import SecondaryDescription from "@/shared/components/Description/SecondaryDescription";
 import TableDescription from "@/shared/components/Description/TableDescription";
 import VariableDescription from "@/shared/components/Description/VariableDescription";
-import { BATMAN_WIRELESS_BASE_THROUGHPUT } from "@/shared/constants/batman";
-import { EWMA_ALPHA } from "@/shared/constants/ewma";
+import { BATMAN_WIRELESS_BASE_THROUGHPUT } from "@/shared/constants/protocols/batman";
 import {
   EventType,
   type BroadcastEventDetails,

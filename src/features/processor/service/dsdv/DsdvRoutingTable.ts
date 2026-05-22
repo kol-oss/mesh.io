@@ -4,7 +4,7 @@ import {
   type DsdvRouteRecord,
   type DsdvRouteUpdateMessage,
 } from "@/features/processor/types/protocols/dsdv";
-import { DSDV_METRIC_INFINITY } from "@/shared/constants/dsdv";
+import { DSDV_METRIC_INFINITY } from "@/shared/constants/protocols/dsdv";
 import { EventType } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";

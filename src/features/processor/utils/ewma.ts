@@ -1,4 +1,4 @@
-import { EWMA_ALPHA } from "@/shared/constants/ewma";
+import { EWMA_ALPHA } from "@/features/processor/constants/ewma";
 
 export const smooth = (newValue: number, previousValue: number | null) => {
   return previousValue !== null

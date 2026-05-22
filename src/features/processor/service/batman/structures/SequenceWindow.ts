@@ -1,4 +1,4 @@
-import { BATMAN_PROTECTION_WINDOW_SIZE } from "@/shared/constants/batman.ts";
+import { BATMAN_PROTECTION_WINDOW_SIZE } from "@/shared/constants/protocols/batman";
 
 export class SequenceWindow {
   private readonly bits = Array<boolean>(BATMAN_PROTECTION_WINDOW_SIZE).fill(false);

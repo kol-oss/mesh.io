@@ -1,11 +1,11 @@
 import type {
   BatmanEchoLocationMessage,
   BatmanOriginatorMessage,
-} from "../../features/processor/types/protocols/batman";
-import type { FieldStructure } from "../types/common/field";
-import type { BatmanConfiguration } from "../types/model/configurations";
-import type { PeerEntity } from "../types/model/entities";
-import { getNameById } from "../utils/peers";
+} from "../../../features/processor/types/protocols/batman";
+import type { FieldStructure } from "../../types/common/field";
+import type { BatmanConfiguration } from "../../types/model/configurations";
+import type { PeerEntity } from "../../types/model/entities";
+import { getNameById } from "../../utils/peers";
 
 // validation
 export const BATMAN_MIN_OGM_INTERVAL = 1;

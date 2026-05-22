@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import { OBSTACLE_DEFAULT_HEIGHT, OBSTACLE_DEFAULT_WIDTH } from "@/shared/constants/obstacle.ts";
-import { getDefaultPeerConfiguration } from "@/shared/constants/protocol";
+import { getDefaultPeerConfiguration } from "@/shared/constants/protocols/protocol";
 import { NEW_PEER_RANGE } from "@/shared/constants/workspace";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import { generateUUID, type UUID } from "@/shared/types/common/uuid.ts";

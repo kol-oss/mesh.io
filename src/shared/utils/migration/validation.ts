@@ -1,4 +1,4 @@
-import { peerRoutingProtocols, workflowStepTypes } from "@/shared/constants/protocol";
+import { peerRoutingProtocols, workflowStepTypes } from "@/shared/constants/protocols/protocol";
 import type { DisplayState } from "@/shared/store/slices/displaySlice";
 import { TABS } from "@/shared/store/slices/displaySlice";
 import { ActionGroup, ActionMode, type ActionModesByGroup } from "@/shared/types/action";

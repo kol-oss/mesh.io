@@ -6,7 +6,7 @@ import {
   BATMAN_MIN_OGM_INTERVAL,
   BATMAN_MIN_PENALTY_PERCENT,
   BATMAN_MIN_PURGE_TIMEOUT,
-} from "@/shared/constants/batman";
+} from "@/shared/constants/protocols/batman";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { BatmanConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
 import { getConfiguration, type PeerEntity } from "@/shared/types/model/peers";

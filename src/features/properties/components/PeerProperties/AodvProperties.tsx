@@ -1,6 +1,6 @@
-import { AODV_MIN_HELLO_INTERVAL, AODV_MIN_ROUTE_TIMEOUT } from "@/shared/constants/aodv";
 import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
 import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import { AODV_MIN_HELLO_INTERVAL, AODV_MIN_ROUTE_TIMEOUT } from "@/shared/constants/protocols/aodv";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { AodvConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
 import { getConfiguration, type PeerEntity } from "@/shared/types/model/peers";

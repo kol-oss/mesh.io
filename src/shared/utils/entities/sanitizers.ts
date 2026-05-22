@@ -1,4 +1,4 @@
-import { getDefaultPeerConfiguration } from "@/shared/constants/protocol";
+import { getDefaultPeerConfiguration } from "@/shared/constants/protocols/protocol";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type {
   AodvConfiguration,

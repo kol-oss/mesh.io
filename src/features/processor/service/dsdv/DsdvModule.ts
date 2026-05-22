@@ -10,7 +10,7 @@ import {
   DSDV_MIN_INTERVAL,
   DSDV_MIN_TIMEOUT,
   DSDV_SEQUENCE_INITIAL,
-} from "@/shared/constants/dsdv";
+} from "@/shared/constants/protocols/dsdv";
 import { EventType } from "@/shared/types/common/events";
 import { MessageType, type Packet } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";

@@ -4,7 +4,7 @@ import MessageRow from "@/shared/components/Message/MessageRow";
 import {
   getEchoLocationMessageStructure,
   getOriginatorMessageStructure,
-} from "@/shared/constants/batman";
+} from "@/shared/constants/protocols/batman";
 import type { FieldStructure } from "@/shared/types/common/field";
 import { MessageType, type Message } from "@/shared/types/common/messages";
 import type { PeerEntity } from "@/shared/types/model/entities";
