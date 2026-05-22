@@ -16,7 +16,7 @@ import { EventType } from "@/shared/types/common/events";
 import { MessageType, type Packet } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import type { RoutingModule } from "../../types/module";
+import type { RoutingModule } from "../../types/routing";
 import { cloneDsrMessage, isDsrSimulationMessage } from "./dsrMessage";
 
 type RouteCacheEntry = DsrRouteRecord;

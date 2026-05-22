@@ -3,8 +3,8 @@ import { MessageType, type Message, type Packet } from "@/shared/types/common/me
 import type { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { EventRecorder } from "../EventRecorder";
-import type { RoutingModule } from "../types/module";
 import type { NodeWrapper } from "../types/node";
+import type { RoutingModule } from "../types/routing";
 import { clone } from "../utils/messages";
 
 export abstract class BaseModule implements RoutingModule {

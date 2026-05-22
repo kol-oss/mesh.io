@@ -16,7 +16,7 @@ import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { OlsrConfiguration } from "@/shared/types/model/configurations";
 import { getOlsrConfiguration } from "@/shared/types/model/peers";
-import type { RoutingModule } from "../../types/module";
+import type { RoutingModule } from "../../types/routing";
 import { cloneOlsrMessage, isOlsrSimulationMessage } from "./olsrMessage";
 
 type OlsrTopologyEntry = {

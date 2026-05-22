@@ -19,7 +19,7 @@ import {
 } from "../../shared/types/common/events";
 import { MessageType, type Packet } from "../../shared/types/common/messages";
 import { BatmanModule } from "./service/batman/BatmanModule";
-import type { RoutingModule } from "./types/module";
+import type { RoutingModule } from "./types/routing";
 import { sortStepsByTick } from "./utils/steps";
 
 export function runSimulation(input: SimulationInput): SimulationResult {
@@ -211,7 +211,7 @@ const processStep = (step: Step, network: NetworkManager, eventRecorder: EventRe
   }
 
   const sourcePeer = network.getPeer(step.sourceId);
-  const sourceProtocol = sourcePeer?.getPrimaryProtocol() ?? null;
+  const sourceProtocol = sourcePeer?.getProtocol() ?? null;
   const sourceModule = sourceProtocol ? sourcePeer?.getModule(sourceProtocol) : null;
   if (!sourceModule || !isPacketCapableModule(sourceModule)) {
     eventRecorder.record(step.sourceId, EventType.Drop, {

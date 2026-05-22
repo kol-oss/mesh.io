@@ -1,5 +1,4 @@
 import type { EventRecorder } from "@/features/processor/EventRecorder";
-import { RoutingStructure } from "@/features/processor/types/node";
 import {
   canCreateRangedConnection,
   getConnectivityObstacleBounds,
@@ -15,6 +14,7 @@ import {
   type StateManager,
   type ToggleStatusResult,
 } from "../types/network";
+import { RoutingStructure } from "../types/routing";
 import { NetworkNode } from "./NetworkNode";
 
 const clone = <T extends NetworkEntity>(entity: T): T => ({ ...entity });
@@ -109,17 +109,22 @@ export class NetworkManager implements EntityManager, EventManager, StateManager
 
   // update peer position
   move(peerId: UUID, x: number, y: number) {
-    this.nodes.get(peerId)?.setPosition(x, y);
+    const entity = this.nodes.get(peerId)?.getEntity();
+    if (!entity) return;
+
+    entity.x = x;
+    entity.y = y;
   }
 
   // toggle peer or link enabled status
   toggleStatus(entityId: UUID): ToggleStatusResult | null {
     const peer = this.nodes.get(entityId);
     if (peer) {
-      const previousEnabled = peer.getEntity().enabled;
+      const entity = peer.getEntity();
+      const previousEnabled = entity.enabled;
       const nextEnabled = !previousEnabled;
-      peer.setEnabled(nextEnabled);
 
+      entity.enabled = nextEnabled;
       return {
         entityType: EntityType.Peer,
         previousEnabled,
@@ -184,8 +189,8 @@ export class NetworkManager implements EntityManager, EventManager, StateManager
 
         return {
           ...peer.getEntity(),
-          batmanRoutingTable: structures[RoutingStructure.BatmanRoutingTable] ?? [],
-          batmanNeighboursTable: structures[RoutingStructure.BatmanNeighboursTable] ?? [],
+          batmanRoutingTable: structures[RoutingStructure.BatmanOriginatorTable] ?? [],
+          batmanNeighboursTable: structures[RoutingStructure.BatmanNeighboursList] ?? [],
           dsdvRoutingTable: structures[RoutingStructure.DsdvRoutingTable] ?? [],
           aodvRoutingTable: structures[RoutingStructure.AodvRoutingTable] ?? [],
           dsrRoutingTable: structures[RoutingStructure.DsrRoutingTable] ?? [],

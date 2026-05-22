@@ -1,19 +1,10 @@
 import type { EventRecorder } from "@/features/processor/EventRecorder";
-import { AodvModule } from "@/features/processor/service/aodv/AodvModule";
-import { BatmanModule } from "@/features/processor/service/batman/BatmanModule";
-import { DsdvModule } from "@/features/processor/service/dsdv/DsdvModule";
-import { DsrModule } from "@/features/processor/service/dsr/DsrModule";
-import { OlsrModule } from "@/features/processor/service/olsr/OlsrModule";
-import {
-  RoutingStructure,
-  type NodeWrapper,
-  type RoutingStructuresMap,
-} from "@/features/processor/types/node";
+import { type NodeWrapper } from "@/features/processor/types/node";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
-import { type RoutingModule } from "../types/module";
-import { MODULE_FACTORY_BY_PROTOCOL } from "../utils/module";
+import { type RoutingModule, type RoutingStructureType } from "../types/routing";
+import { getStructuresByProtocol, MODULE_FACTORY_BY_PROTOCOL } from "../utils/module";
 import type { NetworkManager } from "./NetworkManager";
 
 export class NetworkNode implements NodeWrapper {
@@ -39,46 +30,20 @@ export class NetworkNode implements NodeWrapper {
     return this.entity.name;
   }
 
-  isActive() {
-    return this.entity.enabled;
-  }
-
-  supports(protocol: RoutingProtocol) {
-    return this.entity.protocol === protocol;
-  }
-
-  getModule(protocol: RoutingProtocol) {
-    if (this.entity.protocol !== protocol) {
-      return null;
-    }
-
-    return this.module;
-  }
-
   getEntity() {
     return this.entity;
   }
 
-  setPosition(x: number, y: number) {
-    this.entity.x = x;
-    this.entity.y = y;
+  getProtocol() {
+    return this.entity.protocol;
   }
 
-  setEnabled(enabled: boolean) {
-    this.entity.enabled = enabled;
+  getConfiguration() {
+    return this.entity.configuration;
   }
 
-  clear() {
-    this.ranged.clear();
-    this.linked.clear();
-  }
-
-  addRanged(peerId: UUID) {
-    this.ranged.add(peerId);
-  }
-
-  addLinked(peerId: UUID) {
-    this.linked.add(peerId);
+  isActive() {
+    return this.entity.enabled;
   }
 
   getNeighbour(peerId: UUID) {
@@ -129,50 +94,35 @@ export class NetworkNode implements NodeWrapper {
     return this.linked.has(peerId);
   }
 
-  getRoutingStructures(): Readonly<RoutingStructuresMap> {
-    const routingStructures: RoutingStructuresMap = {};
-    const module = this.module;
-    if (!module) {
-      return routingStructures;
-    }
-
-    if (module instanceof BatmanModule) {
-      routingStructures[RoutingStructure.BatmanRoutingTable] = module.getOriginatorTable();
-      routingStructures[RoutingStructure.BatmanNeighboursTable] = module.getNeighboursList();
-      return routingStructures;
-    }
-
-    if (module instanceof DsdvModule) {
-      routingStructures[RoutingStructure.DsdvRoutingTable] = module.getRoutes();
-      return routingStructures;
-    }
-
-    if (module instanceof AodvModule) {
-      routingStructures[RoutingStructure.AodvRoutingTable] = module.getRoutes();
-      return routingStructures;
-    }
-
-    if (module instanceof OlsrModule) {
-      routingStructures[RoutingStructure.OlsrNeighbourTable] = module.getNeighbourTable();
-      routingStructures[RoutingStructure.OlsrTopologyTable] = module.getTopologyTable();
-      routingStructures[RoutingStructure.OlsrTwoHopTable] = module.getTwoHopTable();
-      routingStructures[RoutingStructure.OlsrSelectorTable] = module.getSelectorTable();
-      routingStructures[RoutingStructure.OlsrRoutingTable] = module.getRoutes();
-      return routingStructures;
-    }
-
-    if (module instanceof DsrModule) {
-      routingStructures[RoutingStructure.DsrRoutingTable] = module.getRoutes();
-    }
-
-    return routingStructures;
+  clear() {
+    this.ranged.clear();
+    this.linked.clear();
   }
 
-  getPrimaryProtocol() {
-    return this.entity.protocol;
+  addRanged(peerId: UUID) {
+    this.ranged.add(peerId);
   }
 
-  getConfiguration() {
-    return this.entity.configuration;
+  addLinked(peerId: UUID) {
+    this.linked.add(peerId);
+  }
+
+  supports(protocol: RoutingProtocol) {
+    return this.entity.protocol === protocol;
+  }
+
+  getModule(protocol: RoutingProtocol) {
+    if (this.entity.protocol !== protocol) {
+      return null;
+    }
+
+    return this.module;
+  }
+
+  getRoutingStructures(): RoutingStructureType {
+    const { module, entity } = this;
+    const { protocol } = entity;
+
+    return getStructuresByProtocol(protocol, module);
   }
 }
