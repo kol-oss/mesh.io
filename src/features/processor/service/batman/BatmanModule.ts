@@ -16,7 +16,7 @@ import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
 import { clone } from "../../utils/messages.ts";
 import { BatmanOperations } from "./BatmanOperations.ts";
-import { OriginatorTable } from "./OriginatorTable.ts";
+import { OriginatorTable } from "./structures/OriginatorTable.ts";
 type BatmanNeighbourEntry = {
   neighbourId: UUID;
   lastSeen: number;

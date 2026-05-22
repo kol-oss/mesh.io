@@ -23,7 +23,7 @@ import { clamp } from "@/shared/utils/math/clamp.ts";
 import { applyDistancePenalty, applyWirelessPenalty } from "../../utils/batman.ts";
 import { getDistance } from "../../utils/connectivity.ts";
 import { clone } from "../../utils/messages.ts";
-import { OriginatorTable } from "./OriginatorTable.ts";
+import { OriginatorTable } from "./structures/OriginatorTable.ts";
 
 const clampThroughput = (throughput: number) =>
   clamp(Math.floor(throughput), 0, BATMAN_MAX_THROUGHPUT);
