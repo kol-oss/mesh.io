@@ -136,7 +136,7 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
       if (!(module instanceof BatmanModule)) {
         return;
       }
-      module.refreshElp();
+      module.refreshEchoLocation();
       return;
     }
 
@@ -146,7 +146,7 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
       }
       // Route aging and stale removals are processed on OGM refresh cadence.
       module.tick();
-      module.refreshOgm();
+      module.refreshOriginators();
       return;
     }
 

@@ -57,15 +57,15 @@ export type BatmanCalculationEventDetails = {
   message: Message;
   reason: string;
   breakdown?: {
-    baseThroughput: number;
-    baseReferenceThroughput: number;
+    newThroughput: number;
+    linkThroughput: number;
     receptionRatio: number;
-    rawThroughput: number;
-    previousEwma: number | null;
-    nextEwma: number;
+    receptionedThroughput: number;
+    previousThroughput: number | null;
+    smoothedThroughput: number;
     distance: number;
-    distancePenaltyDistance: number;
-    distancePenaltyPercent: number;
+    penaltyDistance: number;
+    penaltyPercent: number;
   };
   ogmSelection?: {
     receivedThroughput: number;

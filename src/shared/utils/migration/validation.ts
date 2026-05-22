@@ -42,10 +42,10 @@ const isValidConfiguration = (protocol: RoutingProtocol, value: unknown) => {
   switch (protocol) {
     case RoutingProtocol.BATMAN:
       return (
-        isFiniteNumber(value.distancePenaltyDistance) &&
-        value.distancePenaltyDistance > 0 &&
-        isFiniteNumber(value.distancePenaltyPercent) &&
-        value.distancePenaltyPercent >= 0 &&
+        isFiniteNumber(value.penaltyDistance) &&
+        value.penaltyDistance > 0 &&
+        isFiniteNumber(value.penaltyPercent) &&
+        value.penaltyPercent >= 0 &&
         isFiniteNumber(value.elpInterval) &&
         value.elpInterval > 0 &&
         isFiniteNumber(value.ogmInterval) &&

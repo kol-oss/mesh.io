@@ -3,32 +3,36 @@ import {
   type BatmanEchoLocationMessage,
   type BatmanNeighbourRecord,
   type BatmanOriginatorMessage,
+  type BatmanRouteRecord,
 } from "@/features/processor/types/batman.ts";
-import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime.ts";
+import type { PeerNode } from "@/features/processor/types/runtime.ts";
 import {
+  BATMAN_EWMA_ALPHA,
   BATMAN_MAX_THROUGHPUT,
   BATMAN_TIME_TO_LIVE,
   BATMAN_VERSION,
+  BATMAN_WIRED_BASE_THROUGHPUT,
+  BATMAN_WIRELESS_BASE_THROUGHPUT,
 } from "@/shared/constants/batman.ts";
 import { EventType } from "@/shared/types/common/events.ts";
-import { MessageType, type Message, type Packet } from "@/shared/types/common/messages.ts";
+import { MessageType, type Message } from "@/shared/types/common/messages.ts";
+import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
+import type { BatmanConfiguration } from "@/shared/types/model/configurations.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
+import { clamp } from "@/shared/utils/math/clamp.ts";
+import { applyDistancePenalty } from "../../utils/batman.ts";
+import { getDistance } from "../../utils/connectivity.ts";
 import { clone } from "../../utils/messages.ts";
+import { BaseModule } from "../BaseModule.ts";
 import { BatmanOperations } from "./BatmanOperations.ts";
 import { NeighbourList } from "./structures/NeighbourList.ts";
 import { OriginatorTable } from "./structures/OriginatorTable.ts";
 
-const INCOMING_MESSAGE_TYPES = [
-  MessageType.Packet,
-  MessageType.BatmanOriginatorMessage,
-  MessageType.BatmanEchoLocationMessage,
-];
+const clampThroughput = (throughput: number) =>
+  clamp(Math.floor(throughput), 0, BATMAN_MAX_THROUGHPUT);
 
-export class BatmanModule implements RoutingModule {
-  private readonly peer: PeerNode;
-  private readonly eventRecorder: EventRecorder;
-
+export class BatmanModule extends BaseModule {
   // routing structures
   private readonly originatorTable: OriginatorTable;
   private readonly neighbourList = new NeighbourList();
@@ -38,16 +42,19 @@ export class BatmanModule implements RoutingModule {
   private ogmSequence: number = 0;
 
   private readonly operations: BatmanOperations;
-  private lastElpTickSent: number | null = null;
 
   constructor(peer: PeerNode, eventRecorder: EventRecorder) {
-    this.peer = peer;
-    this.eventRecorder = eventRecorder;
+    super(peer, eventRecorder);
+    this.INCOMING_MESSAGE_TYPES.push(
+      MessageType.BatmanOriginatorMessage,
+      MessageType.BatmanEchoLocationMessage,
+    );
 
     const configuration = getBatmanConfiguration(peer.getEntity());
     if (!configuration) {
       throw new Error("BATMAN module requires a BATMAN peer entity.");
     }
+
     this.originatorTable = new OriginatorTable(
       peer,
       eventRecorder,
@@ -64,20 +71,13 @@ export class BatmanModule implements RoutingModule {
     );
   }
 
-  // process incoming message from network
-  read(message: Message): boolean {
+  override read(message: Message): boolean {
+    super.read(message);
     const { type: messageType } = message;
-    if (!INCOMING_MESSAGE_TYPES.includes(messageType)) {
-      return false;
-    }
-
-    if (messageType === MessageType.Packet) {
-      return this.processPacket(message as Packet);
-    }
 
     // Echo Location Protocol message
     if (messageType === MessageType.BatmanEchoLocationMessage) {
-      return this.operations.processEchoLocation(message);
+      return this.processEchoLocation(message);
     }
 
     // Originator Message version 2 message
@@ -88,37 +88,144 @@ export class BatmanModule implements RoutingModule {
     return false;
   }
 
-  // process routed traffic
-  private processPacket(message: Packet): boolean {
-    if (message.destinationPeerId === this.peer.id) {
+  private processEchoLocation(message: BatmanEchoLocationMessage): boolean {
+    const currentTick = this.eventRecorder.getCurrentTick();
+    const { sourceId, senderId, timeToLive } = message;
+
+    if (sourceId === this.peer.id) {
       return true;
     }
 
-    const forwardedPacket: Packet = {
-      ...message,
-      timeToLive: Math.max(0, message.timeToLive - 1),
+    // time to live validation
+    if (timeToLive <= 0) {
+      this.recordEvent(
+        EventType.Drop,
+        { message: clone(message), reason: "ELP TTL reached zero" },
+        RoutingProtocol.BATMAN,
+      );
+
+      return false;
+    }
+
+    // distance calculation
+    const distance = getDistance(
+      this.peer.getEntity(),
+      this.peer.getNeighbour(senderId)!.getEntity(),
+    );
+
+    const isWiredLink = this.peer.isLinkedNeighbour(senderId);
+    const isWirelessLink = !isWiredLink && this.peer.isRangedNeighbour(senderId);
+
+    // throughput calculation
+    const { penaltyDistance, penaltyPercent } = this.peer.getConfiguration() as BatmanConfiguration;
+    const linkThroughput = isWirelessLink
+      ? BATMAN_WIRELESS_BASE_THROUGHPUT
+      : BATMAN_WIRED_BASE_THROUGHPUT;
+
+    let newThroughput = 0;
+    if (isWiredLink) {
+      newThroughput = linkThroughput;
+    } else if (isWirelessLink) {
+      newThroughput = applyDistancePenalty(
+        linkThroughput,
+        distance,
+        penaltyDistance,
+        penaltyPercent,
+      );
+
+      console.log(newThroughput);
+    }
+
+    // reception penalting
+    const neighbourRecord = this.neighbourList.get(senderId);
+    const tickGap = neighbourRecord ? Math.max(1, currentTick - neighbourRecord.lastTick) : 1;
+    const expectedGap = neighbourRecord ? Math.max(1, neighbourRecord.interval) : 1;
+
+    const receptionRatio = Math.min(1, expectedGap / tickGap);
+    const receptionedThroughput = newThroughput * receptionRatio;
+
+    // EWMA smoothing
+    const smoothedThroughput = neighbourRecord
+      ? BATMAN_EWMA_ALPHA * receptionedThroughput +
+        (1 - BATMAN_EWMA_ALPHA) * neighbourRecord.throughput
+      : receptionedThroughput;
+
+    this.neighbourList.put(senderId, {
+      neighbourId: senderId,
+      lastTick: currentTick,
+      interval: Math.max(1, Math.floor(message.interval)),
+      throughput: clampThroughput(smoothedThroughput),
+    } as BatmanNeighbourRecord);
+
+    const previousThroughput = neighbourRecord?.throughput ?? null;
+    this.recordEvent(
+      EventType.Calculation,
+      {
+        message: clone(message),
+        reason: "",
+        breakdown: {
+          newThroughput,
+          linkThroughput,
+          receptionRatio,
+          receptionedThroughput,
+          previousThroughput,
+          smoothedThroughput: smoothedThroughput,
+          distance,
+          penaltyDistance,
+          penaltyPercent,
+        },
+      },
+      RoutingProtocol.BATMAN,
+    );
+
+    return true;
+  }
+
+  override getRoute(destinationPeerId: UUID): UUID | null {
+    const route = this.originatorTable.getBestRoute(destinationPeerId);
+    return route?.hopId ?? null;
+  }
+
+  override tick() {
+    super.tick();
+
+    this.originatorTable.tick();
+  }
+
+  // broadcasts ELP message and updates neighbour list
+  refreshEchoLocation(): boolean {
+    super.refresh();
+
+    const configuration = getBatmanConfiguration(this.peer.getEntity());
+    if (!configuration) {
+      return false;
+    }
+
+    const neighbours: UUID[] = this.neighbourList.getAll().map((record) => record.neighbourId);
+
+    this.elpSequence += 1;
+    const message: BatmanEchoLocationMessage = {
+      type: MessageType.BatmanEchoLocationMessage,
+      version: BATMAN_VERSION,
+      sourceId: this.peer.id,
+      senderId: this.peer.id,
+      timeToLive: BATMAN_TIME_TO_LIVE,
+      numNeighbours: neighbours.length,
+      sequence: this.elpSequence,
+      interval: configuration.elpInterval,
+      neighbours,
     };
 
-    return this.operations.routeAndWrite(forwardedPacket);
+    return super.broadcast(message);
   }
 
-  refresh() {
-    this.refreshElp();
-    this.refreshOgm();
+  getNeighboursList(): BatmanNeighbourRecord[] {
+    return this.neighbourList.getAll();
   }
 
-  refreshElp() {
-    if (!this.peer.isActive()) {
-      return;
-    }
-
-    this.broadcastElp();
-  }
-
-  refreshOgm() {
-    if (!this.peer.isActive()) {
-      return;
-    }
+  // broadcasts OGMv2 messages and updates originator table
+  refreshOriginators(): boolean {
+    super.refresh();
 
     this.ogmSequence += 1;
     const message: BatmanOriginatorMessage = {
@@ -131,70 +238,10 @@ export class BatmanModule implements RoutingModule {
       throughput: BATMAN_MAX_THROUGHPUT,
     };
 
-    this.operations.broadcast(message);
+    return super.broadcast(message);
   }
 
-  tick() {
-    this.originatorTable.tick();
-  }
-
-  send(packet: Packet) {
-    const sourcePacket: Packet =
-      packet.sourcePeerId === null ? { ...packet, sourcePeerId: this.peer.id } : packet;
-
-    if (!this.peer.isActive()) {
-      this.eventRecorder.record(this.peer.id, EventType.Drop, {
-        message: clone(sourcePacket),
-        reason: "Source peer is disabled",
-      });
-      return false;
-    }
-
-    let remainingRetries = 1;
-    let result = false;
-
-    while (!result && remainingRetries-- > 0) {
-      result = this.operations.routeAndWrite(sourcePacket);
-    }
-
-    return result;
-  }
-
-  getRoutes() {
+  getOriginatorTable(): BatmanRouteRecord[] {
     return this.originatorTable.getAllRoutes();
-  }
-
-  getNeighboursTable(): BatmanNeighbourRecord[] {
-    return this.operations.getNeighboursTable();
-  }
-
-  private broadcastElp() {
-    const currentTick = this.eventRecorder.getCurrentTick();
-    if (this.lastElpTickSent === currentTick) {
-      return;
-    }
-
-    this.lastElpTickSent = currentTick;
-    this.elpSequence += 1;
-    const configuration = getBatmanConfiguration(this.peer.getEntity());
-    if (!configuration) {
-      return;
-    }
-    const elpInterval = Math.max(1, Math.floor(configuration.elpInterval));
-
-    const neighbours: UUID[] = this.neighbourList.getAll().map((record) => record.neighbourId);
-    const elpMessage: BatmanEchoLocationMessage = {
-      type: MessageType.BatmanEchoLocationMessage,
-      version: BATMAN_VERSION,
-      sourceId: this.peer.id,
-      senderId: this.peer.id,
-      timeToLive: BATMAN_TIME_TO_LIVE,
-      numNeighbours: neighbours.length,
-      sequence: this.elpSequence,
-      interval: elpInterval,
-      neighbours,
-    };
-
-    this.operations.broadcast(elpMessage);
   }
 }

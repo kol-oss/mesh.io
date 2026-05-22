@@ -160,8 +160,8 @@ export class RuntimePeer implements PeerNode {
     }
 
     if (module instanceof BatmanModule) {
-      routingStructures[RoutingStructure.BatmanRoutingTable] = module.getRoutes();
-      routingStructures[RoutingStructure.BatmanNeighboursTable] = module.getNeighboursTable();
+      routingStructures[RoutingStructure.BatmanRoutingTable] = module.getOriginatorTable();
+      routingStructures[RoutingStructure.BatmanNeighboursTable] = module.getNeighboursList();
       return routingStructures;
     }
 
@@ -193,5 +193,9 @@ export class RuntimePeer implements PeerNode {
 
   getPrimaryProtocol() {
     return this.entity.protocol;
+  }
+
+  getConfiguration() {
+    return this.entity.configuration;
   }
 }

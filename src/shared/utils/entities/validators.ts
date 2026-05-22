@@ -1,6 +1,6 @@
+import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { LinkEntity, NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
 import { getBatmanConfiguration, getDsdvConfiguration } from "@/shared/types/model/peers";
-import { RoutingProtocol } from "@/shared/types/common/protocols";
 
 export class EntityValidator {
   static isNameValid(name: string): boolean {
@@ -50,10 +50,10 @@ export function validatePeer(
       (batmanConfiguration?.purgeTimeout ?? 0) < minimums.purgeTimeout,
     isBatmanPenaltyDistanceMissing:
       selectedProtocol === RoutingProtocol.BATMAN &&
-      (batmanConfiguration?.distancePenaltyDistance ?? 0) < minimums.distancePenalty,
+      (batmanConfiguration?.penaltyDistance ?? 0) < minimums.distancePenalty,
     isBatmanPenaltyPercentMissing:
       selectedProtocol === RoutingProtocol.BATMAN &&
-      (batmanConfiguration?.distancePenaltyPercent ?? 0) < minimums.penaltyPercent,
+      (batmanConfiguration?.penaltyPercent ?? 0) < minimums.penaltyPercent,
     isDsdvIncrementalMissing:
       selectedProtocol === RoutingProtocol.DSDV &&
       (dsdvConfiguration?.incrementalUpdateInterval ?? 0) < minimums.dsdvIncremental,

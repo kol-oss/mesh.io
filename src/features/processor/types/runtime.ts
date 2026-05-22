@@ -13,6 +13,7 @@ import type { Packet } from "@/shared/types/common/messages";
 import type { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { Snapshot } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
+import type { PeerConfiguration } from "@/shared/types/model/configurations";
 import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
 
 export interface RoutingModule {
@@ -65,6 +66,7 @@ export interface PeerNode {
   isRangedNeighbour(peerId: UUID): boolean;
   getEntity(): PeerEntity;
   getRoutingStructures(): Readonly<RoutingStructuresMap>;
+  getConfiguration(): PeerConfiguration;
 }
 
 export interface Network {

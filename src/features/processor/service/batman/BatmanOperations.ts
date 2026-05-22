@@ -10,8 +10,8 @@ import {
   BATMAN_EWMA_ALPHA,
   BATMAN_MAX_THROUGHPUT,
   BATMAN_OGM_HOP_PENALTY_PERCENT,
-  BATMAN_STATIC_BASE_THROUGHPUT,
   BATMAN_VERSION,
+  BATMAN_WIRED_BASE_THROUGHPUT,
   BATMAN_WIRELESS_BASE_THROUGHPUT,
 } from "@/shared/constants/batman.ts";
 import { EventType } from "@/shared/types/common/events.ts";
@@ -337,13 +337,13 @@ export class BatmanOperations {
     const distance = getDistance(routingPeerEntity, senderPeerEntity);
     const baseReferenceThroughput = isWirelessLink
       ? BATMAN_WIRELESS_BASE_THROUGHPUT
-      : BATMAN_STATIC_BASE_THROUGHPUT;
+      : BATMAN_WIRED_BASE_THROUGHPUT;
     const baseThroughput = isWirelessLink
       ? applyDistancePenalty(
           baseReferenceThroughput,
           distance,
-          routingConfiguration.distancePenaltyDistance,
-          routingConfiguration.distancePenaltyPercent,
+          routingConfiguration.penaltyDistance,
+          routingConfiguration.penaltyPercent,
         )
       : baseReferenceThroughput;
 
@@ -372,22 +372,18 @@ export class BatmanOperations {
         ? `ELP metric calculation: base throughput ${baseThroughput}, reception ratio ${receptionRatio.toFixed(2)}, raw metric ${rawMetric.toFixed(2)}, initial EWMA ${nextEwma.toFixed(2)}.`
         : `ELP metric calculation: base throughput ${baseThroughput}, reception ratio ${receptionRatio.toFixed(2)}, raw metric ${rawMetric.toFixed(2)}, EWMA old ${previousEwma.toFixed(2)} -> new ${nextEwma.toFixed(2)} (alpha 0.2).`;
     this.recordThroughputCalculated(message, reason, {
-      baseThroughput,
-      baseReferenceThroughput,
+      newThroughput: baseThroughput,
+      linkThroughput: baseReferenceThroughput,
       receptionRatio,
-      rawThroughput: rawMetric,
-      previousEwma,
-      nextEwma,
+      receptionedThroughput: rawMetric,
+      previousThroughput: previousEwma,
+      smoothedThroughput: nextEwma,
       distance,
-      distancePenaltyDistance: routingConfiguration.distancePenaltyDistance,
-      distancePenaltyPercent: routingConfiguration.distancePenaltyPercent,
+      penaltyDistance: routingConfiguration.penaltyDistance,
+      penaltyPercent: routingConfiguration.penaltyPercent,
     });
 
     return true;
-  }
-
-  getNeighboursTable(): BatmanNeighbourRecord[] {
-    return this.neighbourList.getAll();
   }
 
   private recordThroughputCalculated(

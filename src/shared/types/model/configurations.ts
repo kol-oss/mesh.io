@@ -1,6 +1,6 @@
 export interface BatmanConfiguration {
-  distancePenaltyDistance: number;
-  distancePenaltyPercent: number;
+  penaltyDistance: number;
+  penaltyPercent: number;
   elpInterval: number;
   ogmInterval: number;
   purgeTimeout: number;

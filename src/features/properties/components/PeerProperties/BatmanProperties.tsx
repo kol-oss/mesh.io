@@ -1,3 +1,5 @@
+import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
+import PropertyGroup from "@/shared/components/Property/PropertyGroup";
 import {
   BATMAN_MIN_DISTANCE_PENALTY,
   BATMAN_MIN_ELP_INTERVAL,
@@ -8,10 +10,8 @@ import {
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { BatmanConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
 import { getConfiguration, type PeerEntity } from "@/shared/types/model/peers";
-import { Clock3, Percent, Ruler } from "lucide-react";
-import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
-import PropertyGroup from "@/shared/components/Property/PropertyGroup";
 import { getOnConfigurationChange } from "@/shared/utils/properties";
+import { Clock3, Percent, Ruler } from "lucide-react";
 
 type BatmanPropertiesProps = {
   peer: PeerEntity;
@@ -31,8 +31,8 @@ export default function BatmanProperties({
     ogmInterval = BATMAN_MIN_OGM_INTERVAL,
     elpInterval = BATMAN_MIN_ELP_INTERVAL,
     purgeTimeout = BATMAN_MIN_PURGE_TIMEOUT,
-    distancePenaltyDistance: penaltyDistance = BATMAN_MIN_DISTANCE_PENALTY,
-    distancePenaltyPercent: penaltyPercent = BATMAN_MIN_PENALTY_PERCENT,
+    penaltyDistance = BATMAN_MIN_DISTANCE_PENALTY,
+    penaltyPercent = BATMAN_MIN_PENALTY_PERCENT,
   } = getConfiguration(peer) as BatmanConfiguration;
 
   const onChange = getOnConfigurationChange(
@@ -49,7 +49,7 @@ export default function BatmanProperties({
           value={penaltyDistance}
           min={BATMAN_MIN_DISTANCE_PENALTY}
           onChange={(event) =>
-            onChange(event, "distancePenaltyDistance", BATMAN_MIN_DISTANCE_PENALTY, true)
+            onChange(event, "penaltyDistance", BATMAN_MIN_DISTANCE_PENALTY, true)
           }
         />
         <NumberPropertyField
@@ -57,9 +57,7 @@ export default function BatmanProperties({
           valid={penaltyPercent >= BATMAN_MIN_PENALTY_PERCENT}
           value={penaltyPercent}
           min={BATMAN_MIN_PENALTY_PERCENT}
-          onChange={(event) =>
-            onChange(event, "distancePenaltyPercent", BATMAN_MIN_PENALTY_PERCENT, true)
-          }
+          onChange={(event) => onChange(event, "penaltyPercent", BATMAN_MIN_PENALTY_PERCENT, true)}
         />
       </PropertyGroup>
 

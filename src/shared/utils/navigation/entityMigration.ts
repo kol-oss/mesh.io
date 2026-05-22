@@ -1,5 +1,6 @@
 import { getDefaultPeerConfiguration } from "@/shared/constants/protocol";
-import { EntityType } from "@/shared/types/model/entities";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import { generateUUID } from "@/shared/types/common/uuid";
 import type {
   AodvConfiguration,
   BatmanConfiguration,
@@ -8,8 +9,7 @@ import type {
   PeerConfiguration,
 } from "@/shared/types/model/configurations";
 import type { NetworkEntity } from "@/shared/types/model/entities";
-import { RoutingProtocol } from "@/shared/types/common/protocols";
-import { generateUUID } from "@/shared/types/common/uuid";
+import { EntityType } from "@/shared/types/model/entities";
 import { sanitizePeerEntity } from "@/shared/utils/entities/sanitizers";
 
 export const peerDefaults = {
@@ -55,14 +55,14 @@ const normalizeBatmanConfiguration = (value: unknown) => {
   }
 
   return {
-    distancePenaltyDistance:
-      typeof value.distancePenaltyDistance === "number" && value.distancePenaltyDistance > 0
-        ? value.distancePenaltyDistance
-        : defaults.distancePenaltyDistance,
-    distancePenaltyPercent:
-      typeof value.distancePenaltyPercent === "number" && value.distancePenaltyPercent >= 0
-        ? value.distancePenaltyPercent
-        : defaults.distancePenaltyPercent,
+    penaltyDistance:
+      typeof value.penaltyDistance === "number" && value.penaltyDistance > 0
+        ? value.penaltyDistance
+        : defaults.penaltyDistance,
+    penaltyPercent:
+      typeof value.penaltyPercent === "number" && value.penaltyPercent >= 0
+        ? value.penaltyPercent
+        : defaults.penaltyPercent,
     elpInterval:
       typeof value.elpInterval === "number" && value.elpInterval > 0
         ? value.elpInterval

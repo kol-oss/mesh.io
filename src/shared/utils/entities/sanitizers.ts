@@ -1,4 +1,5 @@
 import { getDefaultPeerConfiguration } from "@/shared/constants/protocol";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type {
   AodvConfiguration,
   BatmanConfiguration,
@@ -7,7 +8,6 @@ import type {
   PeerConfiguration,
 } from "@/shared/types/model/configurations";
 import { EntityType, type PeerEntity } from "@/shared/types/model/entities";
-import { RoutingProtocol } from "@/shared/types/common/protocols";
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null;
@@ -24,14 +24,14 @@ const sanitizeBatmanConfiguration = (value: unknown): BatmanConfiguration => {
   }
 
   return {
-    distancePenaltyDistance:
-      isNumber(value.distancePenaltyDistance) && value.distancePenaltyDistance > 0
-        ? value.distancePenaltyDistance
-        : defaults.distancePenaltyDistance,
-    distancePenaltyPercent:
-      isNumber(value.distancePenaltyPercent) && value.distancePenaltyPercent >= 0
-        ? value.distancePenaltyPercent
-        : defaults.distancePenaltyPercent,
+    penaltyDistance:
+      isNumber(value.penaltyDistance) && value.penaltyDistance > 0
+        ? value.penaltyDistance
+        : defaults.penaltyDistance,
+    penaltyPercent:
+      isNumber(value.penaltyPercent) && value.penaltyPercent >= 0
+        ? value.penaltyPercent
+        : defaults.penaltyPercent,
     elpInterval:
       isNumber(value.elpInterval) && value.elpInterval > 0
         ? value.elpInterval

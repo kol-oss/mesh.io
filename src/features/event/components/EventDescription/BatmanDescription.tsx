@@ -86,16 +86,16 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
     // ELP throughput calculation
     if (breakdown) {
       const {
-        baseReferenceThroughput,
-        distancePenaltyDistance,
-        distancePenaltyPercent,
-        baseThroughput,
+        linkThroughput: baseReferenceThroughput,
+        penaltyDistance: penaltyDistance,
+        penaltyPercent: penaltyPercent,
+        newThroughput: baseThroughput,
         distance,
-        nextEwma,
-        previousEwma,
+        smoothedThroughput: nextEwma,
+        previousThroughput: previousEwma,
       } = breakdown;
 
-      const isWireless = breakdown?.baseReferenceThroughput === BATMAN_WIRELESS_BASE_THROUGHPUT;
+      const isWireless = breakdown?.linkThroughput === BATMAN_WIRELESS_BASE_THROUGHPUT;
       return (
         <>
           <TextDescription>
@@ -118,9 +118,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
                   {" "}
                   Since this is a wireless connection, the{" "}
                   <VariableDescription
-                    value={
-                      "Minus " + distancePenaltyPercent + "% per " + distancePenaltyDistance + "m"
-                    }
+                    value={"Minus " + penaltyPercent + "% per " + penaltyDistance + "m"}
                   >
                     distance penalty
                   </VariableDescription>{" "}
@@ -176,7 +174,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
             <p>
               The received value of throughput from OGMv2 message was {receivedThroughput}, and
               value from Neighbours Table was {neighbourThroughput}, so minimum selected value was{" "}
-              {forwardedThroughput}.
+              {Math.min(receivedThroughput, neighbourThroughput)}.
             </p>
             <br />
             <p>

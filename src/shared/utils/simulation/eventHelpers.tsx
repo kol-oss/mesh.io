@@ -463,23 +463,23 @@ export const formatFixed = (value: number) => value.toFixed(2);
 export const getThroughputBaseExplanation = (
   breakdown: NonNullable<BatmanCalculationEventDetails["breakdown"]>,
 ) => {
-  const cutAmount = Math.max(0, breakdown.baseReferenceThroughput - breakdown.baseThroughput);
+  const cutAmount = Math.max(0, breakdown.linkThroughput - breakdown.newThroughput);
 
   if (cutAmount > 0) {
-    return `The (Math.round(breakdown.baseThroughput)) throughput is ${Math.round(breakdown.baseThroughput)}. Starting from ${Math.round(breakdown.baseReferenceThroughput)}, (formatFixed(breakdown.distance))-based penalty was applied for link (formatFixed(breakdown.distance)) ${formatFixed(breakdown.distance)} (configured penalty (formatFixed(breakdown.distance)) ${Math.round(breakdown.distancePenaltyDistance)}, penalty ${formatFixed(breakdown.distancePenaltyPercent)}% per unit), reducing throughput by ${Math.round(cutAmount)}. The reception (formatFixed(breakdown.receptionRatio)) is ${formatFixed(breakdown.receptionRatio)}, meaning no packet loss is observed at this sample.`;
+    return `The (Math.round(breakdown.baseThroughput)) throughput is ${Math.round(breakdown.newThroughput)}. Starting from ${Math.round(breakdown.linkThroughput)}, (formatFixed(breakdown.distance))-based penalty was applied for link (formatFixed(breakdown.distance)) ${formatFixed(breakdown.distance)} (configured penalty (formatFixed(breakdown.distance)) ${Math.round(breakdown.penaltyDistance)}, penalty ${formatFixed(breakdown.penaltyPercent)}% per unit), reducing throughput by ${Math.round(cutAmount)}. The reception (formatFixed(breakdown.receptionRatio)) is ${formatFixed(breakdown.receptionRatio)}, meaning no packet loss is observed at this sample.`;
   }
 
-  return `The (Math.round(breakdown.baseThroughput)) throughput is ${Math.round(breakdown.baseThroughput)}, and no distance cut is applied on this link. The reception (formatFixed(breakdown.receptionRatio)) is ${formatFixed(breakdown.receptionRatio)}.`;
+  return `The (Math.round(breakdown.baseThroughput)) throughput is ${Math.round(breakdown.newThroughput)}, and no distance cut is applied on this link. The reception (formatFixed(breakdown.receptionRatio)) is ${formatFixed(breakdown.receptionRatio)}.`;
 };
 
 export const getThroughputEwmaExplanation = (
   breakdown: NonNullable<BatmanCalculationEventDetails["breakdown"]>,
 ) => {
-  if (breakdown.previousEwma == null) {
-    return `This value is then used as the initial input to the EWMA (Exponentially Weighted Moving Average), resulting in an initial smoothed metric of ${formatFixed(breakdown.nextEwma)}, which will be refined over time as more measurements are collected.`;
+  if (breakdown.previousThroughput == null) {
+    return `This value is then used as the initial input to the EWMA (Exponentially Weighted Moving Average), resulting in an initial smoothed metric of ${formatFixed(breakdown.smoothedThroughput)}, which will be refined over time as more measurements are collected.`;
   }
 
-  return `This value is then folded into EWMA smoothing (alpha 0.20): (formatFixed(breakdown.previousEwma)) metric ${formatFixed(breakdown.previousEwma)}, new sample ${formatFixed(breakdown.rawThroughput)}, resulting smoothed metric ${formatFixed(breakdown.nextEwma)}.`;
+  return `This value is then folded into EWMA smoothing (alpha 0.20): (formatFixed(breakdown.previousEwma)) metric ${formatFixed(breakdown.previousThroughput)}, new sample ${formatFixed(breakdown.receptionedThroughput)}, resulting smoothed metric ${formatFixed(breakdown.smoothedThroughput)}.`;
 };
 
 const getRouteInsertTitle = (
