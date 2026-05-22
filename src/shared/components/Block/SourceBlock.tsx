@@ -1,6 +1,5 @@
 import { BookOpen } from "lucide-react";
 
-
 type SourceBlockProps = {
   children: React.ReactNode;
 };

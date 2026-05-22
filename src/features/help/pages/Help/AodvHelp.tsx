@@ -1,11 +1,10 @@
-import { useEffect } from "react";
+import PacketBlock from "@/shared/components/Block/PacketBlock";
+import SourceBlock from "@/shared/components/Block/SourceBlock";
+import TableBlock from "@/shared/components/Block/TableBlock";
+import TextBlock from "@/shared/components/Block/TextBlock";
+import { useScroll } from "../../hooks/useScroll";
 
-import PacketStructure from "@/features/help/components/Help/PacketStructure";
-import SourceBlock from "@/features/help/components/Help/SourceBlock";
-import TableBlock from "@/features/help/components/Help/TableBlock";
-import TextBlock from "@/features/help/components/Help/TextBlock";
-
-const SECTION_IDS = [
+const SECTIONS = [
   "aodv",
   "what-you-need-to-know",
   "distance-vector-routing",
@@ -15,47 +14,8 @@ const SECTION_IDS = [
   "route-selection",
 ];
 
-export default function AODVHelpPage() {
-  useEffect(() => {
-    const scrollToHashSection = () => {
-      const sectionId = window.location.hash.replace("#", "");
-      if (!sectionId) {
-        return;
-      }
-
-      const section = document.getElementById(sectionId);
-      if (!section) {
-        return;
-      }
-
-      window.requestAnimationFrame(() => {
-        section.scrollIntoView({ block: "start" });
-      });
-    };
-
-    scrollToHashSection();
-    window.addEventListener("hashchange", scrollToHashSection);
-
-    return () => window.removeEventListener("hashchange", scrollToHashSection);
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-
-      for (let i = SECTION_IDS.length - 1; i >= 0; i -= 1) {
-        const sectionId = SECTION_IDS[i];
-        const element = document.getElementById(sectionId);
-        if (element && element.offsetTop <= scrollPosition) {
-          window.history.replaceState(null, "", `/docs/aodv#${sectionId}`);
-          break;
-        }
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+export default function AodvHelp() {
+  useScroll(SECTIONS);
 
   return (
     <section className="help-page__section" id="aodv">
@@ -111,7 +71,7 @@ export default function AODVHelpPage() {
           to the specific neighbor that successfully forwarded the request.
         </TextBlock>
 
-        <PacketStructure
+        <PacketBlock
           introText="Route Request (RREQ) Message Structure"
           rows={[
             [
@@ -177,7 +137,7 @@ export default function AODVHelpPage() {
           completing the reliable two-way hop-by-hop path.
         </TextBlock>
 
-        <PacketStructure
+        <PacketBlock
           introText="Route Reply (RREP) Message Structure"
           rows={[
             [
@@ -243,7 +203,7 @@ export default function AODVHelpPage() {
           tracks all neighboring nodes currently using this specific link. The RERR is unicast or
           broadcast to notify these dependent precursors.
         </TextBlock>
-        <PacketStructure
+        <PacketBlock
           introText="Route Error (RERR) Message Structure"
           rows={[
             [
@@ -279,7 +239,7 @@ export default function AODVHelpPage() {
             ],
           ]}
         />
-        <PacketStructure
+        <PacketBlock
           introText="HELLO Message Structure"
           rows={[
             [

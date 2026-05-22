@@ -1,16 +1,7 @@
-
-
 type TextBlockProps = {
   children: string | string[];
 };
 
-/**
- * Renders text with support for:
- * - bold words using **text** syntax
- * - italic words using *text* syntax
- * - monospace text using `text` syntax
- * - links using [text](url) syntax
- */
 export default function TextBlock({ children }: TextBlockProps) {
   const text = Array.isArray(children) ? children.join("") : children;
   const parts = text.split(/(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|`[^`]+`|\*[^*\n]+\*)/);

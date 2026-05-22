@@ -1,11 +1,10 @@
-import { useEffect } from "react";
+import PacketBlock from "@/shared/components/Block/PacketBlock";
+import SourceBlock from "@/shared/components/Block/SourceBlock";
+import TableBlock from "@/shared/components/Block/TableBlock";
+import TextBlock from "@/shared/components/Block/TextBlock";
+import { useScroll } from "../../hooks/useScroll";
 
-import PacketStructure from "@/features/help/components/Help/PacketStructure";
-import SourceBlock from "@/features/help/components/Help/SourceBlock";
-import TableBlock from "@/features/help/components/Help/TableBlock";
-import TextBlock from "@/features/help/components/Help/TextBlock";
-
-const SECTION_IDS = [
+const SECTIONS = [
   "olsr",
   "what-you-need-to-know",
   "neighbor-sensing",
@@ -14,47 +13,8 @@ const SECTION_IDS = [
   "route-selection",
 ];
 
-export default function OlsrHelpPage() {
-  useEffect(() => {
-    const scrollToHashSection = () => {
-      const sectionId = window.location.hash.replace("#", "");
-      if (!sectionId) {
-        return;
-      }
-
-      const section = document.getElementById(sectionId);
-      if (!section) {
-        return;
-      }
-
-      window.requestAnimationFrame(() => {
-        section.scrollIntoView({ block: "start" });
-      });
-    };
-
-    scrollToHashSection();
-    window.addEventListener("hashchange", scrollToHashSection);
-
-    return () => window.removeEventListener("hashchange", scrollToHashSection);
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-
-      for (let i = SECTION_IDS.length - 1; i >= 0; i -= 1) {
-        const sectionId = SECTION_IDS[i];
-        const element = document.getElementById(sectionId);
-        if (element && element.offsetTop <= scrollPosition) {
-          window.history.replaceState(null, "", `/docs/olsr#${sectionId}`);
-          break;
-        }
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+export default function OlsrHelp() {
+  useScroll(SECTIONS);
 
   return (
     <section className="help-page__section" id="olsr">
@@ -103,7 +63,7 @@ export default function OlsrHelpPage() {
           confirmed). Additionally, nodes use HELLO messages to announce the neighbors they have
           selected to act as their Multipoint Relays.
         </TextBlock>
-        <PacketStructure
+        <PacketBlock
           introText="HELLO Message Payload Structure"
           rows={[
             [
@@ -221,7 +181,7 @@ export default function OlsrHelpPage() {
           control messages while providing enough information to calculate shortest-path routes to
           all destinations.
         </TextBlock>
-        <PacketStructure
+        <PacketBlock
           introText="TC Message Payload Structure"
           rows={[
             [

@@ -1,6 +1,5 @@
 import { Table2 } from "lucide-react";
 
-
 type TableBlockProps = {
   headers: string[];
   rows: string[][];

@@ -1,11 +1,10 @@
-import { useEffect } from "react";
+import PacketBlock from "@/shared/components/Block/PacketBlock";
+import SourceBlock from "@/shared/components/Block/SourceBlock";
+import TableBlock from "@/shared/components/Block/TableBlock";
+import TextBlock from "@/shared/components/Block/TextBlock";
+import { useScroll } from "../../hooks/useScroll";
 
-import PacketStructure from "@/features/help/components/Help/PacketStructure";
-import SourceBlock from "@/features/help/components/Help/SourceBlock";
-import TableBlock from "@/features/help/components/Help/TableBlock";
-import TextBlock from "@/features/help/components/Help/TextBlock";
-
-const SECTION_IDS = [
+const SECTIONS = [
   "dsr",
   "what-you-need-to-know",
   "source-routing",
@@ -15,47 +14,8 @@ const SECTION_IDS = [
   "route-selection",
 ];
 
-export default function DSRHelpPage() {
-  useEffect(() => {
-    const scrollToHashSection = () => {
-      const sectionId = window.location.hash.replace("#", "");
-      if (!sectionId) {
-        return;
-      }
-
-      const section = document.getElementById(sectionId);
-      if (!section) {
-        return;
-      }
-
-      window.requestAnimationFrame(() => {
-        section.scrollIntoView({ block: "start" });
-      });
-    };
-
-    scrollToHashSection();
-    window.addEventListener("hashchange", scrollToHashSection);
-
-    return () => window.removeEventListener("hashchange", scrollToHashSection);
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-
-      for (let i = SECTION_IDS.length - 1; i >= 0; i -= 1) {
-        const sectionId = SECTION_IDS[i];
-        const element = document.getElementById(sectionId);
-        if (element && element.offsetTop <= scrollPosition) {
-          window.history.replaceState(null, "", `/docs/dsr#${sectionId}`);
-          break;
-        }
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+export default function DsrHelp() {
+  useScroll(SECTIONS);
 
   return (
     <section className="help-page__section" id="dsr">
@@ -128,7 +88,7 @@ export default function DSRHelpPage() {
           instantly discard duplicate requests.
         </TextBlock>
 
-        <PacketStructure
+        <PacketBlock
           introText="Route Request (RREQ) Option Structure"
           rows={[
             [
@@ -172,7 +132,7 @@ export default function DSRHelpPage() {
           recorded during the RREQ's outbound journey.
         </TextBlock>
 
-        <PacketStructure
+        <PacketBlock
           introText="Route Reply (RREP) Option Structure"
           rows={[
             [
@@ -234,7 +194,7 @@ export default function DSRHelpPage() {
           Node B) is broken.
         </TextBlock>
 
-        <PacketStructure
+        <PacketBlock
           introText="Route Error (RERR) Option Structure"
           rows={[
             [

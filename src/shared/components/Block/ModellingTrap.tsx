@@ -1,6 +1,5 @@
 import { AlertTriangle } from "lucide-react";
 
-
 type ModellingTrapProps = {
   children: React.ReactNode;
 };

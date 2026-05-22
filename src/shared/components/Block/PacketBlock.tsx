@@ -1,23 +1,22 @@
 import { Mail } from "lucide-react";
 
-
 type PacketField = {
   label: string;
   bits: number;
   description: string;
 };
 
-type PacketStructureProps = {
+type PacketBlockProps = {
   rows: PacketField[][];
   totalBits?: number;
   introText?: string;
 };
 
-export default function PacketStructure({
+export default function PacketBlock({
   rows,
   totalBits = 32,
   introText = "Originator Message version 2",
-}: PacketStructureProps) {
+}: PacketBlockProps) {
   return (
     <div className="packet-structure" aria-label="packet structure">
       <div className="packet-structure__header">

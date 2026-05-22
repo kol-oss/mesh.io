@@ -1,11 +1,12 @@
 import { Link, NavLink, Navigate, Route, Routes } from "react-router-dom";
 
-import AboutUsHelpPage from "@/features/help/components/Help/pages/AboutUsHelpPage";
-import AodvHelpPage from "@/features/help/components/Help/pages/AodvHelpPage";
-import BatmanHelpPage from "@/features/help/components/Help/pages/BatmanHelpPage";
-import DsdvHelpPage from "@/features/help/components/Help/pages/DsdvHelpPage";
-import DsrHelpPage from "@/features/help/components/Help/pages/DsrHelpPage";
-import OlsrHelpPage from "@/features/help/components/Help/pages/OlsrHelpPage";const helpLinks = [
+import AboutUsHelp from "@/features/help/pages/Help/AboutUsHelp";
+import AodvHelpPage from "@/features/help/pages/Help/AodvHelp";
+import BatmanHelp from "@/features/help/pages/Help/BatmanHelp";
+import DsdvHelp from "@/features/help/pages/Help/DsdvHelp";
+import DsrHelpPage from "@/features/help/pages/Help/DsrHelp";
+import OlsrHelp from "@/features/help/pages/Help/OlsrHelp";
+const helpLinks = [
   { to: "/docs/about-us", label: "Workspace" },
   { to: "/docs/dsdv", label: "DSDV" },
   { to: "/docs/olsr", label: "OLSR" },
@@ -20,11 +21,7 @@ export default function Help() {
       <header className="help-page__header">
         <div className="help-page__header-inner">
           <div className="help-page__brand">
-            <img
-              className="help-page__brand-logo"
-              src="/favicon.svg"
-              alt={"Mesh IO logo"}
-            />
+            <img className="help-page__brand-logo" src="/favicon.svg" alt={"Mesh IO logo"} />
             <div>
               <p className="help-page__brand-title">{"Mesh IO"}</p>
               <p className="help-page__brand-subtitle">{"Design and Learn"}</p>
@@ -54,10 +51,10 @@ export default function Help() {
       <div className="help-page__body">
         <main className="help-page__content">
           <Routes>
-            <Route path="about-us" element={<AboutUsHelpPage />} />
-            <Route path="dsdv" element={<DsdvHelpPage />} />
-            <Route path="olsr" element={<OlsrHelpPage />} />
-            <Route path="batman" element={<BatmanHelpPage />} />
+            <Route path="about-us" element={<AboutUsHelp />} />
+            <Route path="dsdv" element={<DsdvHelp />} />
+            <Route path="olsr" element={<OlsrHelp />} />
+            <Route path="batman" element={<BatmanHelp />} />
             <Route path="dsr" element={<DsrHelpPage />} />
             <Route path="aodv" element={<AodvHelpPage />} />
             <Route path="*" element={<Navigate to="/docs/batman" replace />} />

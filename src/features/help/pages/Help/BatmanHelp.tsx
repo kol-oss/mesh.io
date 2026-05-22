@@ -1,13 +1,12 @@
-import { useEffect } from "react";
+import FormulaBlock from "@/shared/components/Block/FormulaBlock";
+import ModellingTrap from "@/shared/components/Block/ModellingTrap";
+import PacketBlock from "@/shared/components/Block/PacketBlock";
+import SourceBlock from "@/shared/components/Block/SourceBlock";
+import TableBlock from "@/shared/components/Block/TableBlock";
+import TextBlock from "@/shared/components/Block/TextBlock";
+import { useScroll } from "../../hooks/useScroll";
 
-import FormulaBlock from "@/features/help/components/Help/FormulaBlock";
-import ModellingTrap from "@/features/help/components/Help/ModellingTrap";
-import PacketStructure from "@/features/help/components/Help/PacketStructure";
-import SourceBlock from "@/features/help/components/Help/SourceBlock";
-import TableBlock from "@/features/help/components/Help/TableBlock";
-import TextBlock from "@/features/help/components/Help/TextBlock";
-
-const SECTION_IDS = [
+const SECTIONS = [
   "batman",
   "what-you-need-to-know",
   "batman-versioning",
@@ -18,47 +17,8 @@ const SECTION_IDS = [
   "route-selection",
 ];
 
-export default function BatmanHelpPage() {
-  useEffect(() => {
-    const scrollToHashSection = () => {
-      const sectionId = window.location.hash.replace("#", "");
-      if (!sectionId) {
-        return;
-      }
-
-      const section = document.getElementById(sectionId);
-      if (!section) {
-        return;
-      }
-
-      window.requestAnimationFrame(() => {
-        section.scrollIntoView({ block: "start" });
-      });
-    };
-
-    scrollToHashSection();
-    window.addEventListener("hashchange", scrollToHashSection);
-
-    return () => window.removeEventListener("hashchange", scrollToHashSection);
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-
-      for (let i = SECTION_IDS.length - 1; i >= 0; i -= 1) {
-        const sectionId = SECTION_IDS[i];
-        const element = document.getElementById(sectionId);
-        if (element && element.offsetTop <= scrollPosition) {
-          window.history.replaceState(null, "", `/docs/batman#${sectionId}`);
-          break;
-        }
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+export default function BatmanHelp() {
+  useScroll(SECTIONS);
 
   return (
     <section className="help-page__section" id="batman">
@@ -153,7 +113,7 @@ export default function BatmanHelpPage() {
           topology changes when a node leaves or powers down, and confirm that communication links
           remain vital and active.
         </TextBlock>
-        <PacketStructure
+        <PacketBlock
           introText="Echo Location Protocol message"
           rows={[
             [
@@ -303,7 +263,7 @@ export default function BatmanHelpPage() {
           identifying itself as the originator. These messages are broadcast and forwarded by other
           nodes, propagating hop-by-hop through the network.
         </TextBlock>
-        <PacketStructure
+        <PacketBlock
           rows={[
             [
               {

@@ -1,12 +1,11 @@
-import { useEffect } from "react";
+import ModellingTrap from "@/shared/components/Block/ModellingTrap";
+import PacketBlock from "@/shared/components/Block/PacketBlock";
+import SourceBlock from "@/shared/components/Block/SourceBlock";
+import TableBlock from "@/shared/components/Block/TableBlock";
+import TextBlock from "@/shared/components/Block/TextBlock";
+import { useScroll } from "../../hooks/useScroll";
 
-import TableBlock from "@/features/help/components/Help/TableBlock";
-import PacketStructure from "@/features/help/components/Help/PacketStructure";
-import SourceBlock from "@/features/help/components/Help/SourceBlock";
-import TextBlock from "@/features/help/components/Help/TextBlock";
-import ModellingTrap from "@/features/help/components/Help/ModellingTrap";
-
-const SECTION_IDS = [
+const SECTIONS = [
   "dsdv",
   "what-you-need-to-know",
   "sequence-numbering-and-metrics",
@@ -15,47 +14,8 @@ const SECTION_IDS = [
   "route-selection",
 ];
 
-export default function DsdvHelpPage() {
-  useEffect(() => {
-    const scrollToHashSection = () => {
-      const sectionId = window.location.hash.replace("#", "");
-      if (!sectionId) {
-        return;
-      }
-
-      const section = document.getElementById(sectionId);
-      if (!section) {
-        return;
-      }
-
-      window.requestAnimationFrame(() => {
-        section.scrollIntoView({ block: "start" });
-      });
-    };
-
-    scrollToHashSection();
-    window.addEventListener("hashchange", scrollToHashSection);
-
-    return () => window.removeEventListener("hashchange", scrollToHashSection);
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-
-      for (let i = SECTION_IDS.length - 1; i >= 0; i -= 1) {
-        const sectionId = SECTION_IDS[i];
-        const element = document.getElementById(sectionId);
-        if (element && element.offsetTop <= scrollPosition) {
-          window.history.replaceState(null, "", `/docs/dsdv#${sectionId}`);
-          break;
-        }
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+export default function DsdvHelp() {
+  useScroll(SECTIONS);
 
   return (
     <section className="help-page__section" id="dsdv">
@@ -164,7 +124,7 @@ export default function DsdvHelpPage() {
           main difference is the payload size (number of entries in attached routing table) that are
           transmitted.
         </TextBlock>
-        <PacketStructure
+        <PacketBlock
           introText="Destination-Sequenced Distance-Vector message"
           rows={[
             [

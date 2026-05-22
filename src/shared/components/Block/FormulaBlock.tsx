@@ -1,6 +1,5 @@
 import { Sigma } from "lucide-react";
 
-
 type FormulaBlockProps = {
   formula: string;
   ariaLabel?: string;
