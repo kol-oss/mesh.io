@@ -7,7 +7,8 @@ import PeerDescription from "@/shared/components/Description/PeerDescription";
 import SecondaryDescription from "@/shared/components/Description/SecondaryDescription";
 import TableDescription from "@/shared/components/Description/TableDescription";
 import VariableDescription from "@/shared/components/Description/VariableDescription";
-import { BATMAN_EWMA_ALPHA, BATMAN_WIRELESS_BASE_THROUGHPUT } from "@/shared/constants/batman";
+import { BATMAN_WIRELESS_BASE_THROUGHPUT } from "@/shared/constants/batman";
+import { EWMA_ALPHA } from "@/shared/constants/ewma";
 import {
   EventType,
   type BroadcastEventDetails,
@@ -133,11 +134,11 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
               <VariableDescription
                 value={
                   "(1 - " +
-                  BATMAN_EWMA_ALPHA +
+                  EWMA_ALPHA +
                   ") * " +
                   (previousEwma || baseThroughput) +
                   " + " +
-                  BATMAN_EWMA_ALPHA +
+                  EWMA_ALPHA +
                   " * " +
                   baseThroughput +
                   " = " +

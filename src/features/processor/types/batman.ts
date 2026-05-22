@@ -55,11 +55,9 @@ export type BatmanRouteRecord = {
 // Calculation details
 export type BatmanCalculationEventDetails = {
   message: Message;
-  reason: string;
   breakdown?: {
     newThroughput: number;
     linkThroughput: number;
-    receptionRatio: number;
     receptionedThroughput: number;
     previousThroughput: number | null;
     smoothedThroughput: number;

@@ -1,5 +1,6 @@
 import { EventRecorder } from "@/features/processor/EventRecorder.ts";
 import {
+  type BatmanCalculationEventDetails,
   type BatmanEchoLocationMessage,
   type BatmanNeighbourRecord,
   type BatmanOriginatorMessage,
@@ -7,8 +8,8 @@ import {
 } from "@/features/processor/types/batman.ts";
 import type { PeerNode } from "@/features/processor/types/runtime.ts";
 import {
-  BATMAN_EWMA_ALPHA,
   BATMAN_MAX_THROUGHPUT,
+  BATMAN_OGM_HOP_PENALTY_PERCENT,
   BATMAN_TIME_TO_LIVE,
   BATMAN_VERSION,
   BATMAN_WIRED_BASE_THROUGHPUT,
@@ -20,17 +21,19 @@ import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import type { BatmanConfiguration } from "@/shared/types/model/configurations.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
-import { clamp } from "@/shared/utils/math/clamp.ts";
-import { applyDistancePenalty } from "../../utils/batman.ts";
+import {
+  applyDistancePenalty,
+  applyReceptionPenalty,
+  applyWirelessPenalty,
+} from "../../utils/batman.ts";
 import { getDistance } from "../../utils/connectivity.ts";
+import { smooth } from "../../utils/ewma.ts";
 import { clone } from "../../utils/messages.ts";
 import { BaseModule } from "../BaseModule.ts";
-import { BatmanOperations } from "./BatmanOperations.ts";
 import { NeighbourList } from "./structures/NeighbourList.ts";
 import { OriginatorTable } from "./structures/OriginatorTable.ts";
 
-const clampThroughput = (throughput: number) =>
-  clamp(Math.floor(throughput), 0, BATMAN_MAX_THROUGHPUT);
+const PROTOCOL = RoutingProtocol.BATMAN;
 
 export class BatmanModule extends BaseModule {
   // routing structures
@@ -40,8 +43,6 @@ export class BatmanModule extends BaseModule {
   // sequence numbers
   private elpSequence: number = 0;
   private ogmSequence: number = 0;
-
-  private readonly operations: BatmanOperations;
 
   constructor(peer: PeerNode, eventRecorder: EventRecorder) {
     super(peer, eventRecorder);
@@ -63,12 +64,6 @@ export class BatmanModule extends BaseModule {
         this.neighbourList.delete(hopPeerId);
       },
     );
-    this.operations = new BatmanOperations(
-      peer,
-      eventRecorder,
-      this.originatorTable,
-      this.neighbourList,
-    );
   }
 
   override read(message: Message): boolean {
@@ -82,7 +77,7 @@ export class BatmanModule extends BaseModule {
 
     // Originator Message version 2 message
     if (messageType === MessageType.BatmanOriginatorMessage) {
-      return this.operations.processOgmMessage(message);
+      return this.processOriginatorMessage(message);
     }
 
     return false;
@@ -90,7 +85,7 @@ export class BatmanModule extends BaseModule {
 
   private processEchoLocation(message: BatmanEchoLocationMessage): boolean {
     const currentTick = this.eventRecorder.getCurrentTick();
-    const { sourceId, senderId, timeToLive } = message;
+    const { sourceId, senderId, timeToLive, interval } = message;
 
     if (sourceId === this.peer.id) {
       return true;
@@ -101,7 +96,7 @@ export class BatmanModule extends BaseModule {
       this.recordEvent(
         EventType.Drop,
         { message: clone(message), reason: "ELP TTL reached zero" },
-        RoutingProtocol.BATMAN,
+        PROTOCOL,
       );
 
       return false;
@@ -132,41 +127,36 @@ export class BatmanModule extends BaseModule {
         penaltyDistance,
         penaltyPercent,
       );
-
-      console.log(newThroughput);
     }
 
     // reception penalting
     const neighbourRecord = this.neighbourList.get(senderId);
-    const tickGap = neighbourRecord ? Math.max(1, currentTick - neighbourRecord.lastTick) : 1;
-    const expectedGap = neighbourRecord ? Math.max(1, neighbourRecord.interval) : 1;
-
-    const receptionRatio = Math.min(1, expectedGap / tickGap);
-    const receptionedThroughput = newThroughput * receptionRatio;
+    const receptionedThroughput = applyReceptionPenalty(
+      newThroughput,
+      currentTick,
+      neighbourRecord?.lastTick ?? 0,
+      interval,
+    );
 
     // EWMA smoothing
-    const smoothedThroughput = neighbourRecord
-      ? BATMAN_EWMA_ALPHA * receptionedThroughput +
-        (1 - BATMAN_EWMA_ALPHA) * neighbourRecord.throughput
-      : receptionedThroughput;
+    const smoothedThroughput = smooth(receptionedThroughput, neighbourRecord?.throughput ?? null);
 
     this.neighbourList.put(senderId, {
       neighbourId: senderId,
       lastTick: currentTick,
-      interval: Math.max(1, Math.floor(message.interval)),
-      throughput: clampThroughput(smoothedThroughput),
+      interval: interval,
+      throughput: smoothedThroughput,
     } as BatmanNeighbourRecord);
 
+    // calculation event recording
     const previousThroughput = neighbourRecord?.throughput ?? null;
     this.recordEvent(
       EventType.Calculation,
       {
         message: clone(message),
-        reason: "",
         breakdown: {
           newThroughput,
           linkThroughput,
-          receptionRatio,
           receptionedThroughput,
           previousThroughput,
           smoothedThroughput: smoothedThroughput,
@@ -174,11 +164,113 @@ export class BatmanModule extends BaseModule {
           penaltyDistance,
           penaltyPercent,
         },
-      },
-      RoutingProtocol.BATMAN,
+      } as BatmanCalculationEventDetails,
+      PROTOCOL,
     );
 
     return true;
+  }
+
+  private processOriginatorMessage(message: BatmanOriginatorMessage): boolean {
+    const { sourceId, senderId, timeToLive, throughput } = message;
+
+    // drop if the message is from the same node
+    if (sourceId === this.peer.id) {
+      this.recordEvent(
+        EventType.Drop,
+        { message: clone(message), reason: "The node is the source" },
+        PROTOCOL,
+      );
+
+      return true;
+    }
+
+    // time to live validation
+    const nextTimeToLive = timeToLive - 1;
+    if (nextTimeToLive <= 0) {
+      this.recordEvent(
+        EventType.Drop,
+        {
+          message: clone(message),
+          reason: "OGMv2 TTL reached zero",
+        },
+        PROTOCOL,
+      );
+
+      return true;
+    }
+
+    // throughput selection and penalting
+    const neighbourThroughput = this.neighbourList.get(senderId)!.throughput;
+    const selectedThroughput = Math.min(throughput, neighbourThroughput);
+
+    const isWiredHop = this.peer.isLinkedNeighbour(senderId);
+    const isWirelessHop = !isWiredHop && this.peer.isRangedNeighbour(senderId);
+
+    const nextThroughput = isWirelessHop
+      ? applyWirelessPenalty(selectedThroughput)
+      : selectedThroughput;
+
+    // calculation event recording
+    this.recordEvent(
+      EventType.Calculation,
+      {
+        message: clone(message),
+        ogmSelection: {
+          receivedThroughput: throughput,
+          neighbourThroughput,
+          selectedThroughput,
+          isWirelessHop,
+          hopPenaltyPercent: BATMAN_OGM_HOP_PENALTY_PERCENT,
+          forwardedThroughput: nextThroughput,
+        },
+      } as BatmanCalculationEventDetails,
+      PROTOCOL,
+    );
+
+    // processing of the message and updating the originator table
+    const processResult = this.originatorTable.process(message, nextThroughput);
+    const { accepted, previousHopId, previousThroughput } = processResult;
+    if (!accepted) {
+      this.recordEvent(
+        EventType.Drop,
+        {
+          message: clone(message),
+          reason: "Duplicate",
+        },
+        PROTOCOL,
+      );
+
+      return true;
+    }
+
+    // route throughput comparison and validation
+    if (
+      previousHopId !== null &&
+      previousHopId !== message.senderId &&
+      nextThroughput <= previousThroughput
+    ) {
+      this.recordEvent(
+        EventType.Drop,
+        {
+          message: clone(message),
+          reason: "Not from the best hop",
+        },
+        PROTOCOL,
+      );
+
+      return true;
+    }
+
+    // message rebroadcasting
+    const forwarded: BatmanOriginatorMessage = {
+      ...message,
+      senderId: this.peer.id,
+      timeToLive: nextTimeToLive,
+      throughput: nextThroughput,
+    };
+
+    return super.broadcast(forwarded);
   }
 
   override getRoute(destinationPeerId: UUID): UUID | null {

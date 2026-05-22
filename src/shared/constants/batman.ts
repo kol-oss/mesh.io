@@ -22,7 +22,6 @@ export const BATMAN_OGM_HOP_PENALTY_PERCENT = 5.8;
 export const BATMAN_MAX_THROUGHPUT = 2 ** 32;
 export const BATMAN_WIRELESS_BASE_THROUGHPUT = 100;
 export const BATMAN_WIRED_BASE_THROUGHPUT = 1000;
-export const BATMAN_EWMA_ALPHA = 0.2;
 
 // default configuration
 export const BATMAN_DEFAULT_CONFIGURATION = {

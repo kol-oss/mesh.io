@@ -23,6 +23,19 @@ export const applyWirelessPenalty = (throughput: number) => {
   return Math.max(0, Math.floor(penalized));
 };
 
+export const applyReceptionPenalty = (
+  throughput: number,
+  tick: number,
+  lastTick: number,
+  interval: number,
+) => {
+  const tickGap = Math.max(1, tick - lastTick);
+  const expectedGap = Math.max(1, interval);
+
+  const receptionRatio = Math.min(1, expectedGap / tickGap);
+  return throughput * receptionRatio;
+};
+
 export const toRouteRecord = (
   originator: UUID,
   record: BatmanOriginatorRecord,
