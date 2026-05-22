@@ -256,7 +256,7 @@ export class BatmanModule extends BaseModule {
       throughput: nextThroughput,
     };
 
-    return super.broadcast(forwarded);
+    return super.broadcast(forwarded, true);
   }
 
   override getRoute(destinationId: UUID): UUID | null {
@@ -327,7 +327,7 @@ export class BatmanModule extends BaseModule {
       throughput: BATMAN_MAX_THROUGHPUT,
     };
 
-    return super.broadcast(message);
+    return super.broadcast(message, false);
   }
 
   getOriginatorTable(): BatmanRouteRecord[] {

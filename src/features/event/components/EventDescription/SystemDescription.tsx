@@ -81,7 +81,8 @@ export default function SystemDescription({ peers, event, onPeerHover }: SystemD
     } else if (reason === DropReason.SourceIsTarget) {
       return (
         <TextDescription>
-          Message is dropped because the source and target are the same.
+          Message is dropped because the source and target are the same or the broadcast is
+          initiated by the destination node.
         </TextDescription>
       );
     } else if (reason === DropReason.NotOptimalRoute) {
