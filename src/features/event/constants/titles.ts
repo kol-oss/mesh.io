@@ -40,10 +40,6 @@ const getBatmanEventTitle = (event: Event): string => {
     return "Originator Removed";
   }
 
-  if (type === EventType.Drop) {
-    return "OGMv2 Dropped";
-  }
-
   return UNKNOWN_EVENT_TITLE;
 };
 
@@ -63,7 +59,7 @@ export const getEventTitle = (event: Event): string => {
   }
 
   if (type === EventType.Drop && protocol === undefined) {
-    return "Message Transfer Failed";
+    return "Message Dropped";
   }
 
   if (protocol === RoutingProtocol.BATMAN) {

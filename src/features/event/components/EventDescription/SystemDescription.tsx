@@ -1,7 +1,9 @@
 import PeerDescription from "@/shared/components/Description/PeerDescription";
 import TextDescription from "@/shared/components/Description/TextDescription";
 import {
+  DropReason,
   EventType,
+  type DropEventDetails,
   type Event,
   type MoveEventDetails,
   type StatusChangeEventDetails,
@@ -53,7 +55,7 @@ export default function SystemDescription({ peers, event, onPeerHover }: SystemD
     return (
       <>
         <TextDescription>
-          Payload immitation message is successfully transferred from peer{" "}
+          Message is successfully transferred from peer{" "}
           <PeerDescription peer={findById(sourcePeerId, peers)} onHover={onPeerHover} /> to peer{" "}
           <PeerDescription peer={findById(targetPeerId, peers)} onHover={onPeerHover} /> by selected
           route.
@@ -64,14 +66,29 @@ export default function SystemDescription({ peers, event, onPeerHover }: SystemD
 
   // Message drop
   if (type === EventType.Drop) {
-    return (
-      <>
+    const { reason } = details as DropEventDetails;
+    if (reason === DropReason.NoRoute || reason === DropReason.DestinationUnavailable) {
+      return (
         <TextDescription>
-          Payload immitation message is dropped due to no available route to the destination or the
-          source peer is unavailable.
+          Message is dropped due to no available route to the destination or the source peer is
+          unavailable.
         </TextDescription>
-      </>
-    );
+      );
+    } else if (reason === DropReason.TimeToLiveExceeded) {
+      return <TextDescription>Message is dropped due to time-to-live exceeded.</TextDescription>;
+    } else if (reason === DropReason.Duplicate) {
+      return <TextDescription>Message is dropped due to duplication.</TextDescription>;
+    } else if (reason === DropReason.SourceIsTarget) {
+      return (
+        <TextDescription>
+          Message is dropped because the source and target are the same.
+        </TextDescription>
+      );
+    } else if (reason === DropReason.NotOptimalRoute) {
+      return (
+        <TextDescription>Message is dropped because the route is not optimal.</TextDescription>
+      );
+    }
   }
 
   return <></>;

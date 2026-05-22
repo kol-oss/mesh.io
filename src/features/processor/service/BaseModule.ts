@@ -1,4 +1,4 @@
-import { EventType, type EventDetails } from "@/shared/types/common/events";
+import { DropReason, EventType, type EventDetails } from "@/shared/types/common/events";
 import { MessageType, type Message, type Packet } from "@/shared/types/common/messages";
 import type { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
@@ -52,7 +52,7 @@ export abstract class BaseModule implements RoutingModule {
     if (forwarded.timeToLive <= 0) {
       this.recordEvent(EventType.Drop, {
         message: clone(forwarded),
-        reason: "Packet TTL reached zero",
+        reason: DropReason.TimeToLiveExceeded,
       });
 
       return false;
@@ -62,7 +62,7 @@ export abstract class BaseModule implements RoutingModule {
     if (!nextHopId) {
       this.recordEvent(EventType.Drop, {
         message: clone(forwarded),
-        reason: "No route to destination",
+        reason: DropReason.NoRoute,
       });
 
       return false;
@@ -79,7 +79,7 @@ export abstract class BaseModule implements RoutingModule {
     if (!hop) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),
-        reason: "Unknown next hop",
+        reason: DropReason.NoRoute,
       });
 
       return false;
@@ -88,7 +88,7 @@ export abstract class BaseModule implements RoutingModule {
     if (!hop.isActive()) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),
-        reason: "Next hop is inactive",
+        reason: DropReason.DestinationUnavailable,
       });
 
       return false;
@@ -98,7 +98,7 @@ export abstract class BaseModule implements RoutingModule {
     if (!hop.supports(protocol)) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),
-        reason: "Unsupported protocol",
+        reason: DropReason.UnsupportedProtocol,
       });
 
       return false;
@@ -151,14 +151,20 @@ export abstract class BaseModule implements RoutingModule {
 
   // routes and sends traffic immitation packet
   send(packet: Packet): boolean {
+    const { protocol } = this.peer.getEntity();
+
     const { destinationPeerId } = packet;
     const nextHopId = this.getRoute(destinationPeerId);
 
     if (!nextHopId) {
-      this.recordEvent(EventType.Drop, {
-        message: clone(packet),
-        reason: "No route to destination",
-      });
+      this.recordEvent(
+        EventType.Drop,
+        {
+          message: clone(packet),
+          reason: DropReason.NoRoute,
+        },
+        protocol,
+      );
 
       return false;
     }

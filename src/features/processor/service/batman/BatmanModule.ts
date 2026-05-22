@@ -15,7 +15,7 @@ import {
   BATMAN_WIRED_BASE_THROUGHPUT,
   BATMAN_WIRELESS_BASE_THROUGHPUT,
 } from "@/shared/constants/batman.ts";
-import { EventType } from "@/shared/types/common/events.ts";
+import { DropReason, EventType, type GetRouteEventDetails } from "@/shared/types/common/events.ts";
 import { MessageType, type Message } from "@/shared/types/common/messages.ts";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
@@ -93,11 +93,10 @@ export class BatmanModule extends BaseModule {
 
     // time to live validation
     if (timeToLive <= 0) {
-      this.recordEvent(
-        EventType.Drop,
-        { message: clone(message), reason: "ELP TTL reached zero" },
-        PROTOCOL,
-      );
+      this.recordEvent(EventType.Drop, {
+        message: clone(message),
+        reason: DropReason.TimeToLiveExceeded,
+      });
 
       return false;
     }
@@ -176,11 +175,10 @@ export class BatmanModule extends BaseModule {
 
     // drop if the message is from the same node
     if (sourceId === this.peer.id) {
-      this.recordEvent(
-        EventType.Drop,
-        { message: clone(message), reason: "The node is the source" },
-        PROTOCOL,
-      );
+      this.recordEvent(EventType.Drop, {
+        message: clone(message),
+        reason: DropReason.SourceIsTarget,
+      });
 
       return true;
     }
@@ -188,14 +186,10 @@ export class BatmanModule extends BaseModule {
     // time to live validation
     const nextTimeToLive = timeToLive - 1;
     if (nextTimeToLive <= 0) {
-      this.recordEvent(
-        EventType.Drop,
-        {
-          message: clone(message),
-          reason: "OGMv2 TTL reached zero",
-        },
-        PROTOCOL,
-      );
+      this.recordEvent(EventType.Drop, {
+        message: clone(message),
+        reason: DropReason.TimeToLiveExceeded,
+      });
 
       return true;
     }
@@ -232,14 +226,10 @@ export class BatmanModule extends BaseModule {
     const processResult = this.originatorTable.process(message, nextThroughput);
     const { accepted, previousHopId, previousThroughput } = processResult;
     if (!accepted) {
-      this.recordEvent(
-        EventType.Drop,
-        {
-          message: clone(message),
-          reason: "Duplicate",
-        },
-        PROTOCOL,
-      );
+      this.recordEvent(EventType.Drop, {
+        message: clone(message),
+        reason: DropReason.Duplicate,
+      });
 
       return true;
     }
@@ -250,14 +240,10 @@ export class BatmanModule extends BaseModule {
       previousHopId !== message.senderId &&
       nextThroughput <= previousThroughput
     ) {
-      this.recordEvent(
-        EventType.Drop,
-        {
-          message: clone(message),
-          reason: "Not from the best hop",
-        },
-        PROTOCOL,
-      );
+      this.recordEvent(EventType.Drop, {
+        message: clone(message),
+        reason: DropReason.NotOptimalRoute,
+      });
 
       return true;
     }
@@ -273,8 +259,19 @@ export class BatmanModule extends BaseModule {
     return super.broadcast(forwarded);
   }
 
-  override getRoute(destinationPeerId: UUID): UUID | null {
-    const route = this.originatorTable.getBestRoute(destinationPeerId);
+  override getRoute(destinationId: UUID): UUID | null {
+    const route = this.originatorTable.getBestRoute(destinationId);
+
+    this.recordEvent(
+      EventType.GetRoute,
+      {
+        protocol: PROTOCOL,
+        destinationPeerId: destinationId,
+        selectedRoute: route ?? null,
+      } as GetRouteEventDetails,
+      PROTOCOL,
+    );
+
     return route?.hopId ?? null;
   }
 

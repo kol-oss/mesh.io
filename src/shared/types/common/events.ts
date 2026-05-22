@@ -60,11 +60,20 @@ export type BroadcastEventDetails = {
 // for Calculation event
 export type CalculationEventDetails = BatmanCalculationEventDetails;
 
+export enum DropReason {
+  NoRoute = "NO_ROUTE",
+  DestinationUnavailable = "DESTINATION_UNAVAILABLE",
+  UnsupportedProtocol = "UNSUPPORTED_PROTOCOL",
+  TimeToLiveExceeded = "TIME_TO_LIVE_EXCEEDED",
+  Duplicate = "DUPLICATE",
+  SourceIsTarget = "SOURCE_IS_TARGET",
+  NotOptimalRoute = "NOT_OPTIMAL_ROUTE",
+}
+
 // for Drop event
 export type DropEventDetails = {
   message?: Message;
-  reason: string;
-  reasonCode?: "NO_ROUTE" | "SOURCE_UNAVAILABLE";
+  reason: DropReason;
 };
 
 // for GetRoute event
