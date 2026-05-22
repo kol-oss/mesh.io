@@ -28,24 +28,24 @@ export default function BatmanTableStructure({
   const { batmanNeighboursTable: neighbours, batmanRoutingTable: originators } = peer;
   const neighbourRows = neighbours.map((neighbour) => [
     <PeerDescription
-      peer={findById(neighbour.neighbourPeerId, peers)}
-      onHover={() => onPeerNameHover(neighbour.neighbourPeerId)}
+      peer={findById(neighbour.neighbourId, peers)}
+      onHover={() => onPeerNameHover(neighbour.neighbourId)}
     />,
-    neighbour.quality,
+    neighbour.throughput,
     neighbour.lastTick,
     neighbour.interval,
   ]);
 
   const originatorRows = originators.map((originator) => [
     <PeerDescription
-      peer={findById(originator.originatorPeerId, peers)}
-      onHover={() => onPeerNameHover(originator.originatorPeerId)}
+      peer={findById(originator.originatorId, peers)}
+      onHover={() => onPeerNameHover(originator.originatorId)}
     />,
     <PeerDescription
-      peer={findById(originator.hopPeerId, peers)}
-      onHover={() => onPeerNameHover(originator.hopPeerId)}
+      peer={findById(originator.hopId, peers)}
+      onHover={() => onPeerNameHover(originator.hopId)}
     />,
-    originator.quality,
+    originator.throughput,
     originator.lastTick,
   ]);
 

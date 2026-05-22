@@ -1,12 +1,12 @@
 import { BATMAN_PROTECTION_WINDOW_SIZE } from "@/shared/constants/batman.ts";
 
-export class BatmanSequenceWindow {
+export class SequenceWindow {
   private readonly bits = Array<boolean>(BATMAN_PROTECTION_WINDOW_SIZE).fill(false);
+  private lastSequence: number = Number.NEGATIVE_INFINITY;
 
-  private lastSequence: number | null = null;
-
-  process(sequence: number) {
-    if (this.lastSequence === null) {
+  // handles the sequence number and returns true if the sequence is processed
+  process(sequence: number): boolean {
+    if (this.lastSequence === Number.NEGATIVE_INFINITY) {
       this.lastSequence = sequence;
       this.bits[0] = true;
       return true;
@@ -43,7 +43,7 @@ export class BatmanSequenceWindow {
     return true;
   }
 
-  toArray(): boolean[] {
+  getBits(): boolean[] {
     return [...this.bits];
   }
 }

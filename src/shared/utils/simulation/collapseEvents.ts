@@ -32,8 +32,8 @@ export function collapseOriginatorInsertUpdateEvents(events: Event[]): Event[] {
     }
 
     if (
-      currentDetails.originatorPeerId !== nextDetails.originatorPeerId ||
-      currentDetails.hopPeerId !== nextDetails.hopPeerId
+      currentDetails.originatorId !== nextDetails.originatorId ||
+      currentDetails.hopId !== nextDetails.hopId
     ) {
       continue;
     }

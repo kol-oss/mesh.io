@@ -1,13 +1,14 @@
 import type { BaseMessage, Message, MessageType } from "../../../shared/types/common/messages";
 import type { RoutingProtocol } from "../../../shared/types/common/protocols";
 import type { UUID } from "../../../shared/types/common/uuid";
+import type { SequenceWindow } from "../service/batman/SequenceWindow";
 
 // Echo Location Protocol message
 export type BatmanEchoLocationMessage = BaseMessage & {
   type: MessageType.BatmanEchoLocationMessage;
   version: number;
-  sourcePeerId: UUID;
-  senderPeerId: UUID;
+  sourceId: UUID;
+  senderId: UUID;
   timeToLive: number;
   numNeighbours: number;
   sequence: number;
@@ -19,8 +20,8 @@ export type BatmanEchoLocationMessage = BaseMessage & {
 export type BatmanOriginatorMessage = BaseMessage & {
   type: MessageType.BatmanOriginatorMessage;
   version: number;
-  sourcePeerId: UUID;
-  senderPeerId: UUID;
+  sourceId: UUID;
+  senderId: UUID;
   sequence: number;
   timeToLive: number;
   throughput: number;
@@ -28,18 +29,26 @@ export type BatmanOriginatorMessage = BaseMessage & {
 
 // Neighbours List record
 export type BatmanNeighbourRecord = {
-  neighbourPeerId: UUID;
-  quality: number;
+  neighbourId: UUID;
+  throughput: number;
   lastTick: number;
   interval: number;
 };
 
 // Originator Table record
+export type BatmanOriginatorRecord = {
+  hopId: UUID;
+  throughput: number;
+  sequenceWindow: SequenceWindow;
+  lastTick: number;
+};
+
+// Originator Table serializable record
 export type BatmanRouteRecord = {
-  originatorPeerId: UUID;
-  hopPeerId: UUID;
-  quality: number;
-  qualityWindow: boolean[];
+  originatorId: UUID;
+  hopId: UUID;
+  throughput: number;
+  sequenceWindow: boolean[];
   lastTick: number;
 };
 
@@ -69,10 +78,10 @@ export type BatmanCalculationEventDetails = {
 };
 
 // AddRoute, UpdateRoute, and DeleteRoute details
-export type BatmanRouteUpdateEventDetails = {
+export type BatmanRouteChangeEventDetails = {
   protocol: RoutingProtocol.BATMAN;
-  originatorPeerId: UUID;
-  hopPeerId: UUID;
+  originatorId: UUID;
+  hopId: UUID;
   previousRoute: BatmanRouteRecord | null;
   nextRoute: BatmanRouteRecord | null;
   message?: Message;

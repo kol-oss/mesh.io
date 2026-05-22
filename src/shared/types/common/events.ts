@@ -4,8 +4,8 @@ import type {
 } from "../../../features/processor/types/aodv";
 import type {
   BatmanCalculationEventDetails,
+  BatmanRouteChangeEventDetails,
   BatmanRouteRecord,
-  BatmanRouteUpdateEventDetails,
 } from "../../../features/processor/types/batman";
 import type {
   DsdvRouteChangeEventDetails,
@@ -90,7 +90,7 @@ export type TransferEventDetails = {
 
 // for AddRoute, UpdateRoute, DeleteRoute events
 export type RouteChangeEventDetails =
-  | BatmanRouteUpdateEventDetails
+  | BatmanRouteChangeEventDetails
   | DsdvRouteChangeEventDetails
   | AodvRouteChangeEventDetails
   | OlsrRouteChangeEventDetails

@@ -107,7 +107,7 @@ export const buildSimulationMessageAnimations = (
     if (details.message.type === MessageType.BatmanOriginatorMessage) {
       return toMessageAnimations([
         createAnimation(
-          details.message.senderPeerId,
+          details.message.senderId,
           currentEvent.peerId,
           "throughput",
           "route-change",
@@ -118,7 +118,7 @@ export const buildSimulationMessageAnimations = (
     if (details.message.type === MessageType.BatmanEchoLocationMessage) {
       return toMessageAnimations([
         createAnimation(
-          details.message.senderPeerId,
+          details.message.senderId,
           currentEvent.peerId,
           "throughput",
           "route-change",
@@ -270,15 +270,15 @@ const getDroppedMessageAnimation = (
   message: Message,
 ): { sourcePeerId: UUID; targetPeerId: UUID } | null => {
   if (message.type === MessageType.BatmanEchoLocationMessage) {
-    return message.senderPeerId !== eventPeerId
-      ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
-      : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
+    return message.senderId !== eventPeerId
+      ? { sourcePeerId: message.senderId, targetPeerId: eventPeerId }
+      : { sourcePeerId: eventPeerId, targetPeerId: message.sourceId };
   }
 
   if (message.type === MessageType.BatmanOriginatorMessage) {
-    return message.senderPeerId !== eventPeerId
-      ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
-      : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
+    return message.senderId !== eventPeerId
+      ? { sourcePeerId: message.senderId, targetPeerId: eventPeerId }
+      : { sourcePeerId: eventPeerId, targetPeerId: message.sourceId };
   }
 
   if (message.type === MessageType.DsdvRouteUpdateMessage) {

@@ -91,7 +91,7 @@ export const getEchoLocationMessageStructure = (
     [
       {
         label: "Originator Address",
-        value: getNameById(message.sourcePeerId, peers),
+        value: getNameById(message.sourceId, peers),
         bits: 48,
         description: "MAC address of the node that generated this ELP packet.",
         blocked: false,
@@ -156,7 +156,7 @@ export const getOriginatorMessageStructure = (
     [
       {
         label: "Originator Address",
-        value: getNameById(message.sourcePeerId, peers),
+        value: getNameById(message.sourceId, peers),
         bits: 48,
         description: "MAC address of the source node that originated the route advertisement.",
         blocked: false,
@@ -174,7 +174,7 @@ export const getOriginatorMessageStructure = (
     [
       {
         label: "Sender Address",
-        value: getNameById(message.senderPeerId, peers),
+        value: getNameById(message.senderId, peers),
         bits: 48,
         description: "MAC address of the last-hop node that forwarded this OGM.",
         blocked: false,

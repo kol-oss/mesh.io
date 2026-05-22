@@ -1,4 +1,6 @@
 import { BATMAN_OGM_HOP_PENALTY_PERCENT } from "@/shared/constants/batman";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { BatmanOriginatorRecord, BatmanRouteRecord } from "../types/batman";
 
 export const applyDistancePenalty = (
   throughput: number,
@@ -19,4 +21,17 @@ export const applyDistancePenalty = (
 export const applyWirelessPenalty = (throughput: number) => {
   const penalized = throughput * ((100 - BATMAN_OGM_HOP_PENALTY_PERCENT) / 100);
   return Math.max(0, Math.floor(penalized));
+};
+
+export const toRouteRecord = (
+  originator: UUID,
+  record: BatmanOriginatorRecord,
+): BatmanRouteRecord => {
+  return {
+    originatorId: originator,
+    hopId: record.hopId,
+    throughput: record.throughput,
+    sequenceWindow: record.sequenceWindow.getBits(),
+    lastTick: record.lastTick,
+  };
 };

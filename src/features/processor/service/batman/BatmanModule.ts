@@ -16,7 +16,7 @@ import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
 import { clone } from "../../utils/messages.ts";
 import { BatmanOperations } from "./BatmanOperations.ts";
-import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";
+import { OriginatorTable } from "./OriginatorTable.ts";
 type BatmanNeighbourEntry = {
   neighbourId: UUID;
   lastSeen: number;
@@ -25,7 +25,7 @@ type BatmanNeighbourEntry = {
 };
 
 export class BatmanModule implements RoutingModule {
-  private readonly originatorTable: BatmanOriginatorTable;
+  private readonly originatorTable: OriginatorTable;
 
   private readonly operations: BatmanOperations;
 
@@ -48,7 +48,7 @@ export class BatmanModule implements RoutingModule {
     if (!configuration) {
       throw new Error("BATMAN module requires a BATMAN peer entity.");
     }
-    this.originatorTable = new BatmanOriginatorTable(
+    this.originatorTable = new OriginatorTable(
       routingPeer,
       eventRecorder,
       Math.max(1, configuration.purgeTimeout),
@@ -119,8 +119,8 @@ export class BatmanModule implements RoutingModule {
     const message: BatmanOriginatorMessage = {
       type: MessageType.BatmanOriginatorMessage,
       version: BATMAN_VERSION,
-      sourcePeerId: this.routingPeer.id,
-      senderPeerId: this.routingPeer.id,
+      sourceId: this.routingPeer.id,
+      senderId: this.routingPeer.id,
       sequence: this.ogmSequence,
       timeToLive: BATMAN_TIME_TO_LIVE,
       throughput: BATMAN_MAX_THROUGHPUT,
@@ -156,7 +156,7 @@ export class BatmanModule implements RoutingModule {
   }
 
   getRoutes() {
-    return this.originatorTable.getRoutes();
+    return this.originatorTable.getAllRoutes();
   }
 
   getNeighboursTable(): BatmanNeighbourRecord[] {
@@ -183,8 +183,8 @@ export class BatmanModule implements RoutingModule {
     const elpMessage: BatmanEchoLocationMessage = {
       type: MessageType.BatmanEchoLocationMessage,
       version: BATMAN_VERSION,
-      sourcePeerId: this.routingPeer.id,
-      senderPeerId: this.routingPeer.id,
+      sourceId: this.routingPeer.id,
+      senderId: this.routingPeer.id,
       timeToLive: BATMAN_TIME_TO_LIVE,
       numNeighbours: neighbours.length,
       sequence: this.elpSequence,

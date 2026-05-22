@@ -1,7 +1,7 @@
 import {
   type BatmanCalculationEventDetails,
+  type BatmanRouteChangeEventDetails,
   type BatmanRouteRecord,
-  type BatmanRouteUpdateEventDetails,
 } from "@/features/processor/types/batman";
 import {
   EventType,
@@ -116,7 +116,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
       if (!isBatmanRoute(details.selectedRoute)) {
         return `${actor} emitted a simulation event.`;
       }
-      return `Selected route to ${getPeerDisplayName(details.selectedRoute.originatorPeerId, peerNameById)} via ${getPeerDisplayName(details.selectedRoute.hopPeerId, peerNameById)} with throughput ${details.selectedRoute.quality}.`;
+      return `Selected route to ${getPeerDisplayName(details.selectedRoute.originatorId, peerNameById)} via ${getPeerDisplayName(details.selectedRoute.hopId, peerNameById)} with throughput ${details.selectedRoute.throughput}.`;
     }
     case EventType.Transfer:
       return `${actor} forwarded a packet to the selected next hop.`;
@@ -151,7 +151,7 @@ export const getRouteChange = (event: Event): RouteChangeEventDetails | null => 
   return details.protocol === RoutingProtocol.BATMAN ? details : null;
 };
 
-export const getRouteRows = (details: BatmanRouteUpdateEventDetails): BatmanRouteRecord[] => {
+export const getRouteRows = (details: BatmanRouteChangeEventDetails): BatmanRouteRecord[] => {
   if (details.nextRoute) {
     return [details.nextRoute];
   }
@@ -195,14 +195,14 @@ export const getMessageSummary = (
       {
         label: "Next Hop",
         value: renderPeerName(
-          details.selectedRoute.hopPeerId,
-          getPeerLabel(details.selectedRoute.hopPeerId, peerNameById),
+          details.selectedRoute.hopId,
+          getPeerLabel(details.selectedRoute.hopId, peerNameById),
           onPeerHoverChange,
         ),
       },
       {
         label: "Throughput",
-        value: String(details.selectedRoute.quality),
+        value: String(details.selectedRoute.throughput),
       },
       {
         label: "Last Seen",

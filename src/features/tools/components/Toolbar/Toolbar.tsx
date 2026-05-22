@@ -94,6 +94,7 @@ export default function Toolbar({
         {MODE_GROUPS.map((modeGroup) => {
           return (
             <ModeButton
+              key={modeGroup.id}
               group={modeGroup}
               mode={activeModes[modeGroup.id]}
               isActive={group === modeGroup.id}
@@ -111,6 +112,7 @@ export default function Toolbar({
       <div className="toolbar__group">
         {ACTIONS.map((item) => (
           <ActionButton
+            key={item.label}
             item={item}
             isRuntime={isRuntime}
             prevExist={prevExist}

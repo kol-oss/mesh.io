@@ -23,7 +23,7 @@ import { clamp } from "@/shared/utils/math/clamp.ts";
 import { applyDistancePenalty, applyWirelessPenalty } from "../../utils/batman.ts";
 import { getDistance } from "../../utils/connectivity.ts";
 import { clone } from "../../utils/messages.ts";
-import { BatmanOriginatorTable } from "./BatmanOriginatorTable.ts";
+import { OriginatorTable } from "./OriginatorTable.ts";
 
 const clampThroughput = (throughput: number) =>
   clamp(Math.floor(throughput), 0, BATMAN_MAX_THROUGHPUT);
@@ -37,17 +37,14 @@ type BatmanNeighbourEntry = {
 
 export class BatmanOperations {
   private readonly routingPeer: PeerNode;
-
   private readonly eventRecorder: EventRecorder;
-
-  private readonly originatorTable: BatmanOriginatorTable;
-
+  private readonly originatorTable: OriginatorTable;
   private readonly neighbourTable: Map<UUID, BatmanNeighbourEntry>;
 
   constructor(params: {
     routingPeer: PeerNode;
     eventRecorder: EventRecorder;
-    originatorTable: BatmanOriginatorTable;
+    originatorTable: OriginatorTable;
     neighbourTable: Map<UUID, BatmanNeighbourEntry>;
   }) {
     this.routingPeer = params.routingPeer;
@@ -57,7 +54,7 @@ export class BatmanOperations {
   }
 
   processOgmMessage(message: BatmanOriginatorMessage) {
-    if (message.sourcePeerId === this.routingPeer.id) {
+    if (message.sourceId === this.routingPeer.id) {
       this.eventRecorder.record(
         this.routingPeer.id,
         EventType.Drop,
@@ -98,7 +95,7 @@ export class BatmanOperations {
       return false;
     }
 
-    const neighbourEntry = this.neighbourTable.get(message.senderPeerId);
+    const neighbourEntry = this.neighbourTable.get(message.senderId);
     if (!neighbourEntry) {
       this.eventRecorder.record(
         this.routingPeer.id,
@@ -115,8 +112,8 @@ export class BatmanOperations {
     const receivedThroughput = clampThroughput(message.throughput);
     const neighbourThroughput = clampThroughput(neighbourEntry.ewmaThroughput);
     const selectedThroughput = Math.min(receivedThroughput, neighbourThroughput);
-    const isStaticHop = this.routingPeer.isLinkedNeighbour(message.senderPeerId);
-    const isWirelessHop = !isStaticHop && this.routingPeer.isRangedNeighbour(message.senderPeerId);
+    const isStaticHop = this.routingPeer.isLinkedNeighbour(message.senderId);
+    const isWirelessHop = !isStaticHop && this.routingPeer.isRangedNeighbour(message.senderId);
     const nextThroughput = isWirelessHop
       ? applyWirelessPenalty(selectedThroughput)
       : selectedThroughput;
@@ -132,13 +129,7 @@ export class BatmanOperations {
       forwardedThroughput: nextThroughput,
     });
 
-    const processed = this.originatorTable.process(
-      message.sourcePeerId,
-      message.senderPeerId,
-      message,
-      nextThroughput,
-      reason,
-    );
+    const processed = this.originatorTable.process(message, nextThroughput);
     if (!processed.accepted) {
       this.eventRecorder.record(
         this.routingPeer.id,
@@ -153,9 +144,9 @@ export class BatmanOperations {
     }
 
     const rebroadcastAllowedByBestPath =
-      processed.previousBestHopPeerId === null ||
-      processed.previousBestHopPeerId === message.senderPeerId ||
-      nextThroughput > processed.previousBestThroughput;
+      processed.previousHopId === null ||
+      processed.previousHopId === message.senderId ||
+      nextThroughput > processed.previousThroughput;
 
     if (!rebroadcastAllowedByBestPath) {
       this.eventRecorder.record(
@@ -173,7 +164,7 @@ export class BatmanOperations {
 
     const forwarded: BatmanOriginatorMessage = {
       ...message,
-      senderPeerId: this.routingPeer.id,
+      senderId: this.routingPeer.id,
       timeToLive: nextTimeToLive,
       throughput: nextThroughput,
     };
@@ -194,7 +185,7 @@ export class BatmanOperations {
       return false;
     }
 
-    const selectedRoute = this.originatorTable.getBestRouteRecord(packet.destinationPeerId);
+    const selectedRoute = this.originatorTable.getBestRoute(packet.destinationPeerId);
     if (!selectedRoute) {
       this.eventRecorder.record(
         this.routingPeer.id,
@@ -221,7 +212,7 @@ export class BatmanOperations {
       RoutingProtocol.BATMAN,
     );
 
-    return this.write(packet, selectedRoute.hopPeerId);
+    return this.write(packet, selectedRoute.hopId);
   }
 
   write(message: Message, hopPeerId: UUID) {
@@ -280,7 +271,7 @@ export class BatmanOperations {
       EventType.Broadcast,
       {
         neighbourPeerIds: neighbours.map((peer) => peer.id),
-        retransmit: message.sourcePeerId !== this.routingPeer.id,
+        retransmit: message.sourceId !== this.routingPeer.id,
         message: clone(message),
       },
       RoutingProtocol.BATMAN,
@@ -296,7 +287,7 @@ export class BatmanOperations {
   }
 
   processEchoLocation(message: BatmanEchoLocationMessage) {
-    if (message.sourcePeerId === this.routingPeer.id) {
+    if (message.sourceId === this.routingPeer.id) {
       return true;
     }
 
@@ -326,7 +317,7 @@ export class BatmanOperations {
       return false;
     }
 
-    const senderPeer = this.routingPeer.getNeighbour(message.senderPeerId);
+    const senderPeer = this.routingPeer.getNeighbour(message.senderId);
     if (!senderPeer) {
       this.eventRecorder.record(
         this.routingPeer.id,
@@ -346,9 +337,8 @@ export class BatmanOperations {
       return false;
     }
     const senderPeerEntity = senderPeer.getEntity();
-    const isStaticLink = this.routingPeer.isLinkedNeighbour(message.senderPeerId);
-    const isWirelessLink =
-      !isStaticLink && this.routingPeer.isRangedNeighbour(message.senderPeerId);
+    const isStaticLink = this.routingPeer.isLinkedNeighbour(message.senderId);
+    const isWirelessLink = !isStaticLink && this.routingPeer.isRangedNeighbour(message.senderId);
     const distance = getDistance(routingPeerEntity, senderPeerEntity);
     const baseReferenceThroughput = isWirelessLink
       ? BATMAN_WIRELESS_BASE_THROUGHPUT
@@ -362,7 +352,7 @@ export class BatmanOperations {
         )
       : baseReferenceThroughput;
 
-    const previous = this.neighbourTable.get(message.senderPeerId);
+    const previous = this.neighbourTable.get(message.senderId);
     const currentTick = this.eventRecorder.getCurrentTick();
     const tickGap = previous ? Math.max(1, currentTick - previous.lastSeen) : 1;
     const expectedGap = previous ? Math.max(1, previous.lastInterval) : 1;
@@ -374,8 +364,8 @@ export class BatmanOperations {
       ? BATMAN_EWMA_ALPHA * rawMetric + (1 - BATMAN_EWMA_ALPHA) * previous.ewmaThroughput
       : rawMetric;
 
-    this.neighbourTable.set(message.senderPeerId, {
-      neighbourId: message.senderPeerId,
+    this.neighbourTable.set(message.senderId, {
+      neighbourId: message.senderId,
       lastSeen: currentTick,
       lastInterval: Math.max(1, Math.floor(message.interval)),
       ewmaThroughput: clampThroughput(nextEwma),
@@ -404,12 +394,12 @@ export class BatmanOperations {
   getNeighboursTable(): BatmanNeighbourRecord[] {
     return [...this.neighbourTable.values()]
       .map((entry) => ({
-        neighbourPeerId: entry.neighbourId,
-        quality: clampThroughput(entry.ewmaThroughput),
+        neighbourId: entry.neighbourId,
+        throughput: clampThroughput(entry.ewmaThroughput),
         lastTick: entry.lastSeen,
         interval: entry.lastInterval,
       }))
-      .sort((left, right) => left.neighbourPeerId.localeCompare(right.neighbourPeerId));
+      .sort((left, right) => left.neighbourId.localeCompare(right.neighbourId));
   }
 
   private recordThroughputCalculated(

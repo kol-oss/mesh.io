@@ -1,7 +1,7 @@
 import {
   type BatmanCalculationEventDetails,
+  type BatmanRouteChangeEventDetails,
   type BatmanRouteRecord,
-  type BatmanRouteUpdateEventDetails,
 } from "@/features/processor/types/batman";
 import PeerDescription from "@/shared/components/Description/PeerDescription";
 import SecondaryDescription from "@/shared/components/Description/SecondaryDescription";
@@ -194,7 +194,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
 
   // Originator addition or update
   if (type === EventType.AddRoute || type === EventType.UpdateRoute) {
-    const { nextRoute } = details as BatmanRouteUpdateEventDetails;
+    const { nextRoute } = details as BatmanRouteChangeEventDetails;
 
     return (
       <>
@@ -208,14 +208,14 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
           rows={[
             [
               <PeerDescription
-                peer={findById(nextRoute?.originatorPeerId as UUID, peers)}
+                peer={findById(nextRoute?.originatorId as UUID, peers)}
                 onHover={onPeerHover}
               />,
               <PeerDescription
-                peer={findById(nextRoute?.hopPeerId as UUID, peers)}
+                peer={findById(nextRoute?.hopId as UUID, peers)}
                 onHover={onPeerHover}
               />,
-              nextRoute?.quality,
+              nextRoute?.throughput,
               nextRoute?.lastTick,
             ],
           ]}
@@ -229,7 +229,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
           </p>
           <br />
           <TableDescription
-            rows={[(nextRoute?.qualityWindow ?? []).slice(0, 16).map((bit) => (bit ? "1" : "0"))]}
+            rows={[(nextRoute?.sequenceWindow ?? []).slice(0, 16).map((bit) => (bit ? "1" : "0"))]}
             fontSize={8}
           />
         </SecondaryDescription>
@@ -239,7 +239,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
 
   // Purge Timeout
   if (type === EventType.DeleteRoute) {
-    const { previousRoute } = details as BatmanRouteUpdateEventDetails;
+    const { previousRoute } = details as BatmanRouteChangeEventDetails;
     return (
       <>
         <TextDescription>
@@ -251,14 +251,14 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
           rows={[
             [
               <PeerDescription
-                peer={findById(previousRoute?.originatorPeerId as UUID, peers)}
+                peer={findById(previousRoute?.originatorId as UUID, peers)}
                 onHover={onPeerHover}
               />,
               <PeerDescription
-                peer={findById(previousRoute?.hopPeerId as UUID, peers)}
+                peer={findById(previousRoute?.hopId as UUID, peers)}
                 onHover={onPeerHover}
               />,
-              previousRoute?.quality,
+              previousRoute?.throughput,
               previousRoute?.lastTick,
             ],
           ]}
@@ -295,14 +295,14 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
           rows={[
             [
               <PeerDescription
-                peer={findById(route?.originatorPeerId as UUID, peers)}
+                peer={findById(route?.originatorId as UUID, peers)}
                 onHover={onPeerHover}
               />,
               <PeerDescription
-                peer={findById(route?.hopPeerId as UUID, peers)}
+                peer={findById(route?.hopId as UUID, peers)}
                 onHover={onPeerHover}
               />,
-              route?.quality,
+              route?.throughput,
               route?.lastTick,
             ],
           ]}
