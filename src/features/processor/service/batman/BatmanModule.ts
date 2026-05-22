@@ -19,77 +19,87 @@ import { BatmanOperations } from "./BatmanOperations.ts";
 import { NeighbourList } from "./structures/NeighbourList.ts";
 import { OriginatorTable } from "./structures/OriginatorTable.ts";
 
+const INCOMING_MESSAGE_TYPES = [
+  MessageType.Packet,
+  MessageType.BatmanOriginatorMessage,
+  MessageType.BatmanEchoLocationMessage,
+];
+
 export class BatmanModule implements RoutingModule {
-  private readonly originatorTable: OriginatorTable;
-
-  private readonly operations: BatmanOperations;
-
-  private readonly routingPeer: PeerNode;
-
+  private readonly peer: PeerNode;
   private readonly eventRecorder: EventRecorder;
 
-  private ogmSequence = 0;
+  // routing structures
+  private readonly originatorTable: OriginatorTable;
+  private readonly neighbourList = new NeighbourList();
 
-  private elpSequence = 0;
+  // sequence numbers
+  private elpSequence: number = 0;
+  private ogmSequence: number = 0;
 
+  private readonly operations: BatmanOperations;
   private lastElpTickSent: number | null = null;
 
-  private readonly neighbourTable = new NeighbourList();
-
-  constructor(routingPeer: PeerNode, eventRecorder: EventRecorder) {
-    this.routingPeer = routingPeer;
+  constructor(peer: PeerNode, eventRecorder: EventRecorder) {
+    this.peer = peer;
     this.eventRecorder = eventRecorder;
-    const configuration = getBatmanConfiguration(routingPeer.getEntity());
+
+    const configuration = getBatmanConfiguration(peer.getEntity());
     if (!configuration) {
       throw new Error("BATMAN module requires a BATMAN peer entity.");
     }
     this.originatorTable = new OriginatorTable(
-      routingPeer,
+      peer,
       eventRecorder,
       Math.max(1, configuration.purgeTimeout),
       (hopPeerId) => {
-        this.neighbourTable.delete(hopPeerId);
+        this.neighbourList.delete(hopPeerId);
       },
     );
-    this.operations = new BatmanOperations({
-      routingPeer,
+    this.operations = new BatmanOperations(
+      peer,
       eventRecorder,
-      originatorTable: this.originatorTable,
-      neighbourTable: this.neighbourTable,
-    });
+      this.originatorTable,
+      this.neighbourList,
+    );
   }
 
+  // process incoming message from network
   read(message: Message): boolean {
     const { type: messageType } = message;
-    if (
-      messageType !== MessageType.Packet &&
-      messageType !== MessageType.BatmanOriginatorMessage &&
-      messageType !== MessageType.BatmanEchoLocationMessage
-    ) {
+    if (!INCOMING_MESSAGE_TYPES.includes(messageType)) {
       return false;
     }
 
     if (messageType === MessageType.Packet) {
-      if (message.destinationPeerId === this.routingPeer.id) {
-        return true;
-      }
-
-      const forwardedPacket: Packet = {
-        ...message,
-        timeToLive: Math.max(0, message.timeToLive - 1),
-      };
-      return this.operations.routeAndWrite(forwardedPacket);
+      return this.processPacket(message as Packet);
     }
 
+    // Echo Location Protocol message
     if (messageType === MessageType.BatmanEchoLocationMessage) {
       return this.operations.processEchoLocation(message);
     }
 
-    if (messageType !== MessageType.BatmanOriginatorMessage) {
-      return false;
+    // Originator Message version 2 message
+    if (messageType === MessageType.BatmanOriginatorMessage) {
+      return this.operations.processOgmMessage(message);
     }
 
-    return this.operations.processOgmMessage(message);
+    return false;
+  }
+
+  // process routed traffic
+  private processPacket(message: Packet): boolean {
+    if (message.destinationPeerId === this.peer.id) {
+      return true;
+    }
+
+    const forwardedPacket: Packet = {
+      ...message,
+      timeToLive: Math.max(0, message.timeToLive - 1),
+    };
+
+    return this.operations.routeAndWrite(forwardedPacket);
   }
 
   refresh() {
@@ -98,7 +108,7 @@ export class BatmanModule implements RoutingModule {
   }
 
   refreshElp() {
-    if (!this.routingPeer.isActive()) {
+    if (!this.peer.isActive()) {
       return;
     }
 
@@ -106,7 +116,7 @@ export class BatmanModule implements RoutingModule {
   }
 
   refreshOgm() {
-    if (!this.routingPeer.isActive()) {
+    if (!this.peer.isActive()) {
       return;
     }
 
@@ -114,8 +124,8 @@ export class BatmanModule implements RoutingModule {
     const message: BatmanOriginatorMessage = {
       type: MessageType.BatmanOriginatorMessage,
       version: BATMAN_VERSION,
-      sourceId: this.routingPeer.id,
-      senderId: this.routingPeer.id,
+      sourceId: this.peer.id,
+      senderId: this.peer.id,
       sequence: this.ogmSequence,
       timeToLive: BATMAN_TIME_TO_LIVE,
       throughput: BATMAN_MAX_THROUGHPUT,
@@ -130,10 +140,10 @@ export class BatmanModule implements RoutingModule {
 
   send(packet: Packet) {
     const sourcePacket: Packet =
-      packet.sourcePeerId === null ? { ...packet, sourcePeerId: this.routingPeer.id } : packet;
+      packet.sourcePeerId === null ? { ...packet, sourcePeerId: this.peer.id } : packet;
 
-    if (!this.routingPeer.isActive()) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
+    if (!this.peer.isActive()) {
+      this.eventRecorder.record(this.peer.id, EventType.Drop, {
         message: clone(sourcePacket),
         reason: "Source peer is disabled",
       });
@@ -166,18 +176,18 @@ export class BatmanModule implements RoutingModule {
 
     this.lastElpTickSent = currentTick;
     this.elpSequence += 1;
-    const configuration = getBatmanConfiguration(this.routingPeer.getEntity());
+    const configuration = getBatmanConfiguration(this.peer.getEntity());
     if (!configuration) {
       return;
     }
     const elpInterval = Math.max(1, Math.floor(configuration.elpInterval));
 
-    const neighbours: UUID[] = this.neighbourTable.getAll().map((record) => record.neighbourId);
+    const neighbours: UUID[] = this.neighbourList.getAll().map((record) => record.neighbourId);
     const elpMessage: BatmanEchoLocationMessage = {
       type: MessageType.BatmanEchoLocationMessage,
       version: BATMAN_VERSION,
-      sourceId: this.routingPeer.id,
-      senderId: this.routingPeer.id,
+      sourceId: this.peer.id,
+      senderId: this.peer.id,
       timeToLive: BATMAN_TIME_TO_LIVE,
       numNeighbours: neighbours.length,
       sequence: this.elpSequence,

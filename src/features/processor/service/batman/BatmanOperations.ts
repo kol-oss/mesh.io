@@ -30,27 +30,28 @@ const clampThroughput = (throughput: number) =>
   clamp(Math.floor(throughput), 0, BATMAN_MAX_THROUGHPUT);
 
 export class BatmanOperations {
-  private readonly routingPeer: PeerNode;
+  private readonly peer: PeerNode;
   private readonly eventRecorder: EventRecorder;
-  private readonly originatorTable: OriginatorTable;
-  private readonly neighbourTable: NeighbourList = new NeighbourList();
 
-  constructor(params: {
-    routingPeer: PeerNode;
-    eventRecorder: EventRecorder;
-    originatorTable: OriginatorTable;
-    neighbourTable: NeighbourList;
-  }) {
-    this.routingPeer = params.routingPeer;
-    this.eventRecorder = params.eventRecorder;
-    this.originatorTable = params.originatorTable;
-    this.neighbourTable = params.neighbourTable;
+  private readonly originatorTable: OriginatorTable;
+  private readonly neighbourList: NeighbourList;
+
+  constructor(
+    peer: PeerNode,
+    eventRecorder: EventRecorder,
+    originatorTable: OriginatorTable,
+    neighbourList: NeighbourList,
+  ) {
+    this.peer = peer;
+    this.eventRecorder = eventRecorder;
+    this.originatorTable = originatorTable;
+    this.neighbourList = neighbourList;
   }
 
   processOgmMessage(message: BatmanOriginatorMessage) {
-    if (message.sourceId === this.routingPeer.id) {
+    if (message.sourceId === this.peer.id) {
       this.eventRecorder.record(
-        this.routingPeer.id,
+        this.peer.id,
         EventType.Drop,
         {
           message: clone(message),
@@ -64,7 +65,7 @@ export class BatmanOperations {
 
     if (message.version !== BATMAN_VERSION) {
       this.eventRecorder.record(
-        this.routingPeer.id,
+        this.peer.id,
         EventType.Drop,
         {
           message: clone(message),
@@ -78,7 +79,7 @@ export class BatmanOperations {
     const nextTimeToLive = message.timeToLive - 1;
     if (nextTimeToLive <= 0) {
       this.eventRecorder.record(
-        this.routingPeer.id,
+        this.peer.id,
         EventType.Drop,
         {
           message: clone(message),
@@ -89,10 +90,10 @@ export class BatmanOperations {
       return false;
     }
 
-    const neighbourEntry = this.neighbourTable.get(message.senderId);
+    const neighbourEntry = this.neighbourList.get(message.senderId);
     if (!neighbourEntry) {
       this.eventRecorder.record(
-        this.routingPeer.id,
+        this.peer.id,
         EventType.Drop,
         {
           message: clone(message),
@@ -106,8 +107,8 @@ export class BatmanOperations {
     const receivedThroughput = clampThroughput(message.throughput);
     const neighbourThroughput = clampThroughput(neighbourEntry.throughput);
     const selectedThroughput = Math.min(receivedThroughput, neighbourThroughput);
-    const isStaticHop = this.routingPeer.isLinkedNeighbour(message.senderId);
-    const isWirelessHop = !isStaticHop && this.routingPeer.isRangedNeighbour(message.senderId);
+    const isStaticHop = this.peer.isLinkedNeighbour(message.senderId);
+    const isWirelessHop = !isStaticHop && this.peer.isRangedNeighbour(message.senderId);
     const nextThroughput = isWirelessHop
       ? applyWirelessPenalty(selectedThroughput)
       : selectedThroughput;
@@ -126,7 +127,7 @@ export class BatmanOperations {
     const processed = this.originatorTable.process(message, nextThroughput);
     if (!processed.accepted) {
       this.eventRecorder.record(
-        this.routingPeer.id,
+        this.peer.id,
         EventType.Drop,
         {
           message: clone(message),
@@ -144,7 +145,7 @@ export class BatmanOperations {
 
     if (!rebroadcastAllowedByBestPath) {
       this.eventRecorder.record(
-        this.routingPeer.id,
+        this.peer.id,
         EventType.Drop,
         {
           message: clone(message),
@@ -158,7 +159,7 @@ export class BatmanOperations {
 
     const forwarded: BatmanOriginatorMessage = {
       ...message,
-      senderId: this.routingPeer.id,
+      senderId: this.peer.id,
       timeToLive: nextTimeToLive,
       throughput: nextThroughput,
     };
@@ -168,7 +169,7 @@ export class BatmanOperations {
   routeAndWrite(packet: Packet) {
     if (packet.timeToLive <= 0) {
       this.eventRecorder.record(
-        this.routingPeer.id,
+        this.peer.id,
         EventType.Drop,
         {
           message: clone(packet),
@@ -182,7 +183,7 @@ export class BatmanOperations {
     const selectedRoute = this.originatorTable.getBestRoute(packet.destinationPeerId);
     if (!selectedRoute) {
       this.eventRecorder.record(
-        this.routingPeer.id,
+        this.peer.id,
         EventType.Drop,
         {
           message: clone(packet),
@@ -195,7 +196,7 @@ export class BatmanOperations {
     }
 
     this.eventRecorder.record(
-      this.routingPeer.id,
+      this.peer.id,
       EventType.GetRoute,
       {
         protocol: RoutingProtocol.BATMAN,
@@ -210,9 +211,9 @@ export class BatmanOperations {
   }
 
   write(message: Message, hopPeerId: UUID) {
-    const hop = this.routingPeer.getNeighbour(hopPeerId);
+    const hop = this.peer.getNeighbour(hopPeerId);
     if (!hop) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
+      this.eventRecorder.record(this.peer.id, EventType.Drop, {
         message: clone(message),
         reason: "Selected next hop is not a current neighbour",
       });
@@ -221,7 +222,7 @@ export class BatmanOperations {
 
     if (!hop.supports(RoutingProtocol.BATMAN)) {
       this.eventRecorder.record(
-        this.routingPeer.id,
+        this.peer.id,
         EventType.Drop,
         {
           message: clone(message),
@@ -234,16 +235,16 @@ export class BatmanOperations {
 
     const forwardedMessage =
       message.type === MessageType.Packet && message.sourcePeerId === null
-        ? { ...message, sourcePeerId: this.routingPeer.id }
+        ? { ...message, sourcePeerId: this.peer.id }
         : clone(message);
 
     if (forwardedMessage.type === MessageType.Packet) {
       this.eventRecorder.record(
-        this.routingPeer.id,
+        this.peer.id,
         EventType.Transfer,
         {
           protocol: RoutingProtocol.BATMAN,
-          sourcePeerId: this.routingPeer.id,
+          sourcePeerId: this.peer.id,
           targetPeerId: hopPeerId,
           message: clone(forwardedMessage),
         },
@@ -256,16 +257,16 @@ export class BatmanOperations {
   }
 
   broadcast(message: BatmanOriginatorMessage | BatmanEchoLocationMessage) {
-    const neighbours = this.routingPeer
+    const neighbours = this.peer
       .getNeighbours()
       .filter((peer) => peer.supports(RoutingProtocol.BATMAN));
 
     this.eventRecorder.record(
-      this.routingPeer.id,
+      this.peer.id,
       EventType.Broadcast,
       {
         neighbourPeerIds: neighbours.map((peer) => peer.id),
-        retransmit: message.sourceId !== this.routingPeer.id,
+        retransmit: message.sourceId !== this.peer.id,
         message: clone(message),
       },
       RoutingProtocol.BATMAN,
@@ -281,13 +282,13 @@ export class BatmanOperations {
   }
 
   processEchoLocation(message: BatmanEchoLocationMessage) {
-    if (message.sourceId === this.routingPeer.id) {
+    if (message.sourceId === this.peer.id) {
       return true;
     }
 
     if (message.version !== BATMAN_VERSION) {
       this.eventRecorder.record(
-        this.routingPeer.id,
+        this.peer.id,
         EventType.Drop,
         {
           message: clone(message),
@@ -300,7 +301,7 @@ export class BatmanOperations {
 
     if (message.timeToLive <= 0) {
       this.eventRecorder.record(
-        this.routingPeer.id,
+        this.peer.id,
         EventType.Drop,
         {
           message: clone(message),
@@ -311,10 +312,10 @@ export class BatmanOperations {
       return false;
     }
 
-    const senderPeer = this.routingPeer.getNeighbour(message.senderId);
+    const senderPeer = this.peer.getNeighbour(message.senderId);
     if (!senderPeer) {
       this.eventRecorder.record(
-        this.routingPeer.id,
+        this.peer.id,
         EventType.Drop,
         {
           message: clone(message),
@@ -325,14 +326,14 @@ export class BatmanOperations {
       return false;
     }
 
-    const routingPeerEntity = this.routingPeer.getEntity();
+    const routingPeerEntity = this.peer.getEntity();
     const routingConfiguration = getBatmanConfiguration(routingPeerEntity);
     if (!routingConfiguration) {
       return false;
     }
     const senderPeerEntity = senderPeer.getEntity();
-    const isStaticLink = this.routingPeer.isLinkedNeighbour(message.senderId);
-    const isWirelessLink = !isStaticLink && this.routingPeer.isRangedNeighbour(message.senderId);
+    const isStaticLink = this.peer.isLinkedNeighbour(message.senderId);
+    const isWirelessLink = !isStaticLink && this.peer.isRangedNeighbour(message.senderId);
     const distance = getDistance(routingPeerEntity, senderPeerEntity);
     const baseReferenceThroughput = isWirelessLink
       ? BATMAN_WIRELESS_BASE_THROUGHPUT
@@ -346,7 +347,7 @@ export class BatmanOperations {
         )
       : baseReferenceThroughput;
 
-    const previous = this.neighbourTable.get(message.senderId);
+    const previous = this.neighbourList.get(message.senderId);
     const currentTick = this.eventRecorder.getCurrentTick();
     const tickGap = previous ? Math.max(1, currentTick - previous.lastTick) : 1;
     const expectedGap = previous ? Math.max(1, previous.interval) : 1;
@@ -358,7 +359,7 @@ export class BatmanOperations {
       ? BATMAN_EWMA_ALPHA * rawMetric + (1 - BATMAN_EWMA_ALPHA) * previous.throughput
       : rawMetric;
 
-    this.neighbourTable.put(message.senderId, {
+    this.neighbourList.put(message.senderId, {
       neighbourId: message.senderId,
       lastTick: currentTick,
       interval: Math.max(1, Math.floor(message.interval)),
@@ -386,7 +387,7 @@ export class BatmanOperations {
   }
 
   getNeighboursTable(): BatmanNeighbourRecord[] {
-    return this.neighbourTable.getAll();
+    return this.neighbourList.getAll();
   }
 
   private recordThroughputCalculated(
@@ -396,7 +397,7 @@ export class BatmanOperations {
     ogmSelection?: BatmanCalculationEventDetails["ogmSelection"],
   ) {
     this.eventRecorder.record(
-      this.routingPeer.id,
+      this.peer.id,
       EventType.Calculation,
       {
         message: clone(message),
