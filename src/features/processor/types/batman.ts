@@ -55,7 +55,7 @@ export type BatmanRouteRecord = {
 // Calculation details
 export type BatmanCalculationEventDetails = {
   message: Message;
-  breakdown?: {
+  elpProcessing?: {
     newThroughput: number;
     linkThroughput: number;
     receptionedThroughput: number;
@@ -65,7 +65,7 @@ export type BatmanCalculationEventDetails = {
     penaltyDistance: number;
     penaltyPercent: number;
   };
-  ogmSelection?: {
+  ogmProcessing?: {
     receivedThroughput: number;
     neighbourThroughput: number;
     selectedThroughput: number;

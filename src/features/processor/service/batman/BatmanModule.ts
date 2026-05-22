@@ -154,7 +154,7 @@ export class BatmanModule extends BaseModule {
       EventType.Calculation,
       {
         message: clone(message),
-        breakdown: {
+        elpProcessing: {
           newThroughput,
           linkThroughput,
           receptionedThroughput,
@@ -216,7 +216,7 @@ export class BatmanModule extends BaseModule {
       EventType.Calculation,
       {
         message: clone(message),
-        ogmSelection: {
+        ogmProcessing: {
           receivedThroughput: throughput,
           neighbourThroughput,
           selectedThroughput,

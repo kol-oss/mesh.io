@@ -417,7 +417,7 @@ export const getThroughputBreakdown = (event: Event) => {
     return null;
   }
 
-  return details.breakdown ?? null;
+  return details.elpProcessing ?? null;
 };
 
 export const getOgmBroadcastThroughputExplanation = (event: Event, message: Message | null) => {
@@ -446,11 +446,11 @@ export const getOgmThroughputSelectionExplanation = (event: Event) => {
     return null;
   }
 
-  if (!details.ogmSelection) {
+  if (!details.ogmProcessing) {
     return null;
   }
 
-  const selection = details.ogmSelection;
+  const selection = details.ogmProcessing;
   if (selection.isWirelessHop) {
     return `The received value of throughput from OGMv2 was ${selection.receivedThroughput}, and value from Neighbours Table was ${selection.neighbourThroughput}, so minimum selected value was ${selection.selectedThroughput}. Because this is a wireless hop, peer penalty ${selection.hopPenaltyPercent.toFixed(1)}% was applied, producing finalized value ${selection.forwardedThroughput}. Final value is ${selection.forwardedThroughput}, and this value will be used as route throughput.`;
   }
@@ -461,7 +461,7 @@ export const getOgmThroughputSelectionExplanation = (event: Event) => {
 export const formatFixed = (value: number) => value.toFixed(2);
 
 export const getThroughputBaseExplanation = (
-  breakdown: NonNullable<BatmanCalculationEventDetails["breakdown"]>,
+  breakdown: NonNullable<BatmanCalculationEventDetails["elpProcessing"]>,
 ) => {
   const cutAmount = Math.max(0, breakdown.linkThroughput - breakdown.newThroughput);
 
@@ -473,7 +473,7 @@ export const getThroughputBaseExplanation = (
 };
 
 export const getThroughputEwmaExplanation = (
-  breakdown: NonNullable<BatmanCalculationEventDetails["breakdown"]>,
+  breakdown: NonNullable<BatmanCalculationEventDetails["elpProcessing"]>,
 ) => {
   if (breakdown.previousThroughput == null) {
     return `This value is then used as the initial input to the EWMA (Exponentially Weighted Moving Average), resulting in an initial smoothed metric of ${formatFixed(breakdown.smoothedThroughput)}, which will be refined over time as more measurements are collected.`;

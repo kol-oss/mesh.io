@@ -82,7 +82,8 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
   }
 
   if (type === EventType.Calculation) {
-    const { breakdown, ogmSelection } = details as BatmanCalculationEventDetails;
+    const { elpProcessing: breakdown, ogmProcessing: ogmSelection } =
+      details as BatmanCalculationEventDetails;
 
     // ELP throughput calculation
     if (breakdown) {
