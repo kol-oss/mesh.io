@@ -73,7 +73,14 @@ export abstract class BaseModule implements RoutingModule {
 
   // send message to a specific neighbour
   protected write(message: Message, hopPeerId: UUID): boolean {
-    if (!this.peer.isActive()) return false;
+    if (!this.peer.isActive()) {
+      this.recordEvent(EventType.Drop, {
+        message: clone(message),
+        reason: DropReason.DestinationUnavailable,
+      });
+
+      return false;
+    }
 
     const hop = this.peer.getNeighbour(hopPeerId);
     if (!hop) {
@@ -151,6 +158,15 @@ export abstract class BaseModule implements RoutingModule {
 
   // routes and sends traffic immitation packet
   send(packet: Packet): boolean {
+    if (!this.peer.isActive()) {
+      this.recordEvent(EventType.Drop, {
+        message: clone(packet),
+        reason: DropReason.DestinationUnavailable,
+      });
+
+      return false;
+    }
+
     const { protocol } = this.peer.getEntity();
 
     const { destinationPeerId } = packet;
