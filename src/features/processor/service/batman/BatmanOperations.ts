@@ -23,29 +23,23 @@ import { clamp } from "@/shared/utils/math/clamp.ts";
 import { applyDistancePenalty, applyWirelessPenalty } from "../../utils/batman.ts";
 import { getDistance } from "../../utils/connectivity.ts";
 import { clone } from "../../utils/messages.ts";
+import { NeighbourList } from "./structures/NeighbourList.ts";
 import { OriginatorTable } from "./structures/OriginatorTable.ts";
 
 const clampThroughput = (throughput: number) =>
   clamp(Math.floor(throughput), 0, BATMAN_MAX_THROUGHPUT);
 
-type BatmanNeighbourEntry = {
-  neighbourId: UUID;
-  lastSeen: number;
-  lastInterval: number;
-  ewmaThroughput: number;
-};
-
 export class BatmanOperations {
   private readonly routingPeer: PeerNode;
   private readonly eventRecorder: EventRecorder;
   private readonly originatorTable: OriginatorTable;
-  private readonly neighbourTable: Map<UUID, BatmanNeighbourEntry>;
+  private readonly neighbourTable: NeighbourList = new NeighbourList();
 
   constructor(params: {
     routingPeer: PeerNode;
     eventRecorder: EventRecorder;
     originatorTable: OriginatorTable;
-    neighbourTable: Map<UUID, BatmanNeighbourEntry>;
+    neighbourTable: NeighbourList;
   }) {
     this.routingPeer = params.routingPeer;
     this.eventRecorder = params.eventRecorder;
@@ -110,7 +104,7 @@ export class BatmanOperations {
     }
 
     const receivedThroughput = clampThroughput(message.throughput);
-    const neighbourThroughput = clampThroughput(neighbourEntry.ewmaThroughput);
+    const neighbourThroughput = clampThroughput(neighbourEntry.throughput);
     const selectedThroughput = Math.min(receivedThroughput, neighbourThroughput);
     const isStaticHop = this.routingPeer.isLinkedNeighbour(message.senderId);
     const isWirelessHop = !isStaticHop && this.routingPeer.isRangedNeighbour(message.senderId);
@@ -354,24 +348,24 @@ export class BatmanOperations {
 
     const previous = this.neighbourTable.get(message.senderId);
     const currentTick = this.eventRecorder.getCurrentTick();
-    const tickGap = previous ? Math.max(1, currentTick - previous.lastSeen) : 1;
-    const expectedGap = previous ? Math.max(1, previous.lastInterval) : 1;
+    const tickGap = previous ? Math.max(1, currentTick - previous.lastTick) : 1;
+    const expectedGap = previous ? Math.max(1, previous.interval) : 1;
     const receptionRatio = Math.min(1, expectedGap / tickGap);
 
     const rawMetric = baseThroughput * receptionRatio;
 
     const nextEwma = previous
-      ? BATMAN_EWMA_ALPHA * rawMetric + (1 - BATMAN_EWMA_ALPHA) * previous.ewmaThroughput
+      ? BATMAN_EWMA_ALPHA * rawMetric + (1 - BATMAN_EWMA_ALPHA) * previous.throughput
       : rawMetric;
 
-    this.neighbourTable.set(message.senderId, {
+    this.neighbourTable.put(message.senderId, {
       neighbourId: message.senderId,
-      lastSeen: currentTick,
-      lastInterval: Math.max(1, Math.floor(message.interval)),
-      ewmaThroughput: clampThroughput(nextEwma),
-    });
+      lastTick: currentTick,
+      interval: Math.max(1, Math.floor(message.interval)),
+      throughput: clampThroughput(nextEwma),
+    } as BatmanNeighbourRecord);
 
-    const previousEwma = previous?.ewmaThroughput ?? null;
+    const previousEwma = previous?.throughput ?? null;
     const reason =
       previousEwma === null
         ? `ELP metric calculation: base throughput ${baseThroughput}, reception ratio ${receptionRatio.toFixed(2)}, raw metric ${rawMetric.toFixed(2)}, initial EWMA ${nextEwma.toFixed(2)}.`
@@ -392,14 +386,7 @@ export class BatmanOperations {
   }
 
   getNeighboursTable(): BatmanNeighbourRecord[] {
-    return [...this.neighbourTable.values()]
-      .map((entry) => ({
-        neighbourId: entry.neighbourId,
-        throughput: clampThroughput(entry.ewmaThroughput),
-        lastTick: entry.lastSeen,
-        interval: entry.lastInterval,
-      }))
-      .sort((left, right) => left.neighbourId.localeCompare(right.neighbourId));
+    return this.neighbourTable.getAll();
   }
 
   private recordThroughputCalculated(

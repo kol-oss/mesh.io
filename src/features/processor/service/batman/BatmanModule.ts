@@ -16,13 +16,8 @@ import type { UUID } from "@/shared/types/common/uuid.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
 import { clone } from "../../utils/messages.ts";
 import { BatmanOperations } from "./BatmanOperations.ts";
+import { NeighbourList } from "./structures/NeighbourList.ts";
 import { OriginatorTable } from "./structures/OriginatorTable.ts";
-type BatmanNeighbourEntry = {
-  neighbourId: UUID;
-  lastSeen: number;
-  lastInterval: number;
-  ewmaThroughput: number;
-};
 
 export class BatmanModule implements RoutingModule {
   private readonly originatorTable: OriginatorTable;
@@ -39,7 +34,7 @@ export class BatmanModule implements RoutingModule {
 
   private lastElpTickSent: number | null = null;
 
-  private readonly neighbourTable = new Map<UUID, BatmanNeighbourEntry>();
+  private readonly neighbourTable = new NeighbourList();
 
   constructor(routingPeer: PeerNode, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
@@ -177,9 +172,7 @@ export class BatmanModule implements RoutingModule {
     }
     const elpInterval = Math.max(1, Math.floor(configuration.elpInterval));
 
-    const neighbours: UUID[] = [...this.neighbourTable.values()]
-      .map((entry) => entry.neighbourId)
-      .sort((left, right) => left.localeCompare(right));
+    const neighbours: UUID[] = this.neighbourTable.getAll().map((record) => record.neighbourId);
     const elpMessage: BatmanEchoLocationMessage = {
       type: MessageType.BatmanEchoLocationMessage,
       version: BATMAN_VERSION,
