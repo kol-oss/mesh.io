@@ -104,7 +104,7 @@ export const buildSimulationMessageAnimations = (
 
   if (currentEvent.type === EventType.Calculation) {
     const details = currentEvent.details as BatmanCalculationEventDetails;
-    if (details.message.kind === MessageType.BatmanOriginatorMessage) {
+    if (details.message.type === MessageType.BatmanOriginatorMessage) {
       return toMessageAnimations([
         createAnimation(
           details.message.senderPeerId,
@@ -115,7 +115,7 @@ export const buildSimulationMessageAnimations = (
       ]);
     }
 
-    if (details.message.kind === MessageType.BatmanEchoLocationMessage) {
+    if (details.message.type === MessageType.BatmanEchoLocationMessage) {
       return toMessageAnimations([
         createAnimation(
           details.message.senderPeerId,
@@ -126,7 +126,7 @@ export const buildSimulationMessageAnimations = (
       ]);
     }
 
-    if (details.message.kind === MessageType.DsdvRouteUpdateMessage) {
+    if (details.message.type === MessageType.DsdvRouteUpdateMessage) {
       return toMessageAnimations([
         createAnimation(
           details.message.senderPeerId,
@@ -137,7 +137,7 @@ export const buildSimulationMessageAnimations = (
       ]);
     }
 
-    if (details.message.kind === MessageType.AodvRouteReplyMessage) {
+    if (details.message.type === MessageType.AodvRouteReplyMessage) {
       return toMessageAnimations([
         createAnimation(
           details.message.senderPeerId,
@@ -148,7 +148,7 @@ export const buildSimulationMessageAnimations = (
       ]);
     }
 
-    if (details.message.kind === MessageType.AodvRouteErrorMessage) {
+    if (details.message.type === MessageType.AodvRouteErrorMessage) {
       return toMessageAnimations([
         createAnimation(
           details.message.senderPeerId,
@@ -159,7 +159,7 @@ export const buildSimulationMessageAnimations = (
       ]);
     }
 
-    if (details.message.kind === MessageType.OlsrHelloMessage) {
+    if (details.message.type === MessageType.OlsrHelloMessage) {
       return toMessageAnimations([
         createAnimation(
           details.message.senderPeerId,
@@ -170,7 +170,7 @@ export const buildSimulationMessageAnimations = (
       ]);
     }
 
-    if (details.message.kind === MessageType.OlsrTcMessage) {
+    if (details.message.type === MessageType.OlsrTcMessage) {
       return toMessageAnimations([
         createAnimation(
           details.message.senderPeerId,
@@ -181,7 +181,7 @@ export const buildSimulationMessageAnimations = (
       ]);
     }
 
-    if (details.message.kind === MessageType.DsrRouteRequestMessage) {
+    if (details.message.type === MessageType.DsrRouteRequestMessage) {
       const previousHopPeerId =
         details.message.routePeerIds.length > 1
           ? details.message.routePeerIds[details.message.routePeerIds.length - 2]
@@ -191,7 +191,7 @@ export const buildSimulationMessageAnimations = (
       ]);
     }
 
-    if (details.message.kind === MessageType.DsrRouteReplyMessage) {
+    if (details.message.type === MessageType.DsrRouteReplyMessage) {
       const senderPeerId = details.message.senderPeerId;
       const senderIndex = details.message.routePeerIds.indexOf(senderPeerId);
       const targetPeerId = senderIndex > 0 ? details.message.routePeerIds[senderIndex - 1] : null;
@@ -200,7 +200,7 @@ export const buildSimulationMessageAnimations = (
       ]);
     }
 
-    if (details.message.kind === MessageType.DsrRouteErrorMessage) {
+    if (details.message.type === MessageType.DsrRouteErrorMessage) {
       return toMessageAnimations([
         createAnimation(
           details.message.brokenFromPeerId,
@@ -269,37 +269,37 @@ const getDroppedMessageAnimation = (
   eventPeerId: UUID,
   message: Message,
 ): { sourcePeerId: UUID; targetPeerId: UUID } | null => {
-  if (message.kind === MessageType.BatmanEchoLocationMessage) {
+  if (message.type === MessageType.BatmanEchoLocationMessage) {
     return message.senderPeerId !== eventPeerId
       ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
       : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
   }
 
-  if (message.kind === MessageType.BatmanOriginatorMessage) {
+  if (message.type === MessageType.BatmanOriginatorMessage) {
     return message.senderPeerId !== eventPeerId
       ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
       : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
   }
 
-  if (message.kind === MessageType.DsdvRouteUpdateMessage) {
+  if (message.type === MessageType.DsdvRouteUpdateMessage) {
     return message.senderPeerId !== eventPeerId
       ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
       : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
   }
 
-  if (message.kind === MessageType.OlsrHelloMessage) {
+  if (message.type === MessageType.OlsrHelloMessage) {
     return message.senderPeerId !== eventPeerId
       ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
       : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
   }
 
-  if (message.kind === MessageType.OlsrTcMessage) {
+  if (message.type === MessageType.OlsrTcMessage) {
     return message.senderPeerId !== eventPeerId
       ? { sourcePeerId: message.senderPeerId, targetPeerId: eventPeerId }
       : { sourcePeerId: eventPeerId, targetPeerId: message.sourcePeerId };
   }
 
-  if (message.kind === MessageType.DsrRouteRequestMessage) {
+  if (message.type === MessageType.DsrRouteRequestMessage) {
     const previousHopPeerId =
       message.routePeerIds.length > 1
         ? message.routePeerIds[message.routePeerIds.length - 2]
@@ -311,7 +311,7 @@ const getDroppedMessageAnimation = (
     return { sourcePeerId: previousHopPeerId, targetPeerId: eventPeerId };
   }
 
-  if (message.kind === MessageType.DsrRouteReplyMessage) {
+  if (message.type === MessageType.DsrRouteReplyMessage) {
     const senderIndex = message.routePeerIds.indexOf(message.senderPeerId);
     const previousPeerId = senderIndex > 0 ? message.routePeerIds[senderIndex - 1] : null;
     if (!previousPeerId) {
@@ -321,14 +321,14 @@ const getDroppedMessageAnimation = (
     return { sourcePeerId: message.senderPeerId, targetPeerId: previousPeerId };
   }
 
-  if (message.kind === MessageType.DsrRouteErrorMessage) {
+  if (message.type === MessageType.DsrRouteErrorMessage) {
     return {
       sourcePeerId: message.brokenFromPeerId,
       targetPeerId: message.brokenToPeerId,
     };
   }
 
-  if (message.kind !== MessageType.Packet) {
+  if (message.type !== MessageType.Packet) {
     return null;
   }
 

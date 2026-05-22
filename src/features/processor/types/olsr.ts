@@ -1,10 +1,10 @@
-import type { Message, MessageType } from "../../../shared/types/common/messages";
+import type { BaseMessage, Message, MessageType } from "../../../shared/types/common/messages";
 import type { RoutingProtocol } from "../../../shared/types/common/protocols";
 import type { UUID } from "../../../shared/types/common/uuid";
 
 // HELLO message
-export type OlsrHelloMessage = {
-  kind: MessageType.OlsrHelloMessage;
+export type OlsrHelloMessage = BaseMessage & {
+  type: MessageType.OlsrHelloMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   interval: number;
@@ -13,8 +13,8 @@ export type OlsrHelloMessage = {
 };
 
 // Transaction Control message
-export type OlsrTcMessage = {
-  kind: MessageType.OlsrTcMessage;
+export type OlsrTcMessage = BaseMessage & {
+  type: MessageType.OlsrTcMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   ansn: number;

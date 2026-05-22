@@ -1,8 +1,8 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
 import {
   DsdvUpdateType,
-  type DsdvRouteRecordMessage,
   type DsdvRouteUpdateMessage,
+  type DsdvRouteUpdateRecordEntry,
 } from "@/features/processor/types/dsdv";
 import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime";
 import {
@@ -86,7 +86,7 @@ export class DsdvModule implements RoutingModule {
       return false;
     }
 
-    if (message.kind === MessageType.Packet) {
+    if (message.type === MessageType.Packet) {
       if (message.destinationPeerId === this.routingPeer.id) {
         return true;
       }
@@ -98,7 +98,7 @@ export class DsdvModule implements RoutingModule {
       return this.routeAndWrite(forwardedPacket);
     }
 
-    if (message.kind !== MessageType.DsdvRouteUpdateMessage) {
+    if (message.type !== MessageType.DsdvRouteUpdateMessage) {
       return false;
     }
 
@@ -224,7 +224,7 @@ export class DsdvModule implements RoutingModule {
       .getRoutes()
       .filter((route) => acceptedSet.has(route.destinationPeerId))
       .map(
-        (route): DsdvRouteRecordMessage => ({
+        (route): DsdvRouteUpdateRecordEntry => ({
           destinationPeerId: route.destinationPeerId,
           nextHopPeerId: route.nextHopPeerId,
           sequenceNumber: route.sequenceNumber,
@@ -294,11 +294,11 @@ export class DsdvModule implements RoutingModule {
     }
 
     const forwardedMessage =
-      message.kind === MessageType.Packet && message.sourcePeerId === null
+      message.type === MessageType.Packet && message.sourcePeerId === null
         ? { ...message, sourcePeerId: this.routingPeer.id }
         : cloneDsdvMessage(message);
 
-    if (forwardedMessage.kind === MessageType.Packet) {
+    if (forwardedMessage.type === MessageType.Packet) {
       this.eventRecorder.record(this.routingPeer.id, EventType.Transfer, {
         protocol: RoutingProtocol.DSDV,
         sourcePeerId: this.routingPeer.id,
@@ -316,14 +316,14 @@ export class DsdvModule implements RoutingModule {
     retransmit: boolean;
     sourcePeerId?: UUID;
     hopCount?: number;
-    entries?: DsdvRouteRecordMessage[];
+    entries?: DsdvRouteUpdateRecordEntry[];
     note: string;
   }) {
     const routes =
       params.entries ??
       (params.updateType === DsdvUpdateType.FullDump
         ? this.routingTable.getRoutes().map(
-            (route): DsdvRouteRecordMessage => ({
+            (route): DsdvRouteUpdateRecordEntry => ({
               destinationPeerId: route.destinationPeerId,
               nextHopPeerId: route.nextHopPeerId,
               sequenceNumber: route.sequenceNumber,
@@ -331,7 +331,7 @@ export class DsdvModule implements RoutingModule {
             }),
           )
         : this.routingTable.getChangedRoutes().map(
-            (route): DsdvRouteRecordMessage => ({
+            (route): DsdvRouteUpdateRecordEntry => ({
               destinationPeerId: route.destinationPeerId,
               nextHopPeerId: route.nextHopPeerId,
               sequenceNumber: route.sequenceNumber,
@@ -342,7 +342,7 @@ export class DsdvModule implements RoutingModule {
     if (routes.length === 0) {
       if (params.updateType === DsdvUpdateType.Incremental && !params.retransmit) {
         const emptyIncrementalMessage: DsdvRouteUpdateMessage = {
-          kind: MessageType.DsdvRouteUpdateMessage,
+          type: MessageType.DsdvRouteUpdateMessage,
           updateType: DsdvUpdateType.Incremental,
           sourcePeerId: this.routingPeer.id,
           senderPeerId: this.routingPeer.id,
@@ -367,7 +367,7 @@ export class DsdvModule implements RoutingModule {
       .filter((peer) => peer.supports(RoutingProtocol.DSDV));
 
     const message: DsdvRouteUpdateMessage = {
-      kind: MessageType.DsdvRouteUpdateMessage,
+      type: MessageType.DsdvRouteUpdateMessage,
       updateType: params.updateType,
       sourcePeerId: params.sourcePeerId ?? this.routingPeer.id,
       senderPeerId: this.routingPeer.id,

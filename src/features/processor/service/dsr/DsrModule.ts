@@ -44,7 +44,7 @@ export class DsrModule implements RoutingModule {
       return false;
     }
 
-    if (message.kind === MessageType.Packet) {
+    if (message.type === MessageType.Packet) {
       if (message.destinationPeerId === this.routingPeer.id) {
         return true;
       }
@@ -170,7 +170,7 @@ export class DsrModule implements RoutingModule {
         .filter((peer) => peer.supports(RoutingProtocol.DSR) && peer.isActive());
 
       const requestMessage: DsrRouteRequestMessage = {
-        kind: MessageType.DsrRouteRequestMessage,
+        type: MessageType.DsrRouteRequestMessage,
         sourcePeerId: this.routingPeer.id,
         senderPeerId: current.peer.id,
         targetPeerId: destinationPeerId,
@@ -240,7 +240,7 @@ export class DsrModule implements RoutingModule {
       }
 
       const replyMessage: DsrRouteReplyMessage = {
-        kind: MessageType.DsrRouteReplyMessage,
+        type: MessageType.DsrRouteReplyMessage,
         sourcePeerId: pathPeerIds[0],
         senderPeerId,
         targetPeerId: pathPeerIds[pathPeerIds.length - 1],
@@ -268,7 +268,7 @@ export class DsrModule implements RoutingModule {
       const reversePath = [...pathPeerIds.slice(0, index + 1)].reverse();
 
       const discoveryMessage: DsrRouteReplyMessage = {
-        kind: MessageType.DsrRouteReplyMessage,
+        type: MessageType.DsrRouteReplyMessage,
         sourcePeerId: pathPeerIds[0],
         senderPeerId: pathPeerIds[pathPeerIds.length - 1],
         targetPeerId: pathPeerIds[pathPeerIds.length - 1],
@@ -490,7 +490,7 @@ export class DsrModule implements RoutingModule {
     salvageCount: number,
   ): DsrRouteErrorMessage {
     return {
-      kind: MessageType.DsrRouteErrorMessage,
+      type: MessageType.DsrRouteErrorMessage,
       sourcePeerId: packet.sourcePeerId ?? this.routingPeer.id,
       senderPeerId: brokenFromPeerId,
       destinationPeerId: packet.destinationPeerId,

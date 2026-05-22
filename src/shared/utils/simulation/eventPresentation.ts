@@ -49,49 +49,49 @@ import {
 
 const isBatmanMessage = (message: Message | null) => {
   return (
-    message?.kind === MessageType.BatmanOriginatorMessage ||
-    message?.kind === MessageType.BatmanEchoLocationMessage
+    message?.type === MessageType.BatmanOriginatorMessage ||
+    message?.type === MessageType.BatmanEchoLocationMessage
   );
 };
 
 const isDsdvMessage = (message: Message | null): message is DsdvRouteUpdateMessage => {
-  return message?.kind === MessageType.DsdvRouteUpdateMessage;
+  return message?.type === MessageType.DsdvRouteUpdateMessage;
 };
 
 const isAodvRouteRequestMessage = (message: Message | null): message is AodvRouteRequestMessage => {
-  return message?.kind === MessageType.AodvRouteRequestMessage;
+  return message?.type === MessageType.AodvRouteRequestMessage;
 };
 
 const isAodvRouteReplyMessage = (message: Message | null): message is AodvRouteReplyMessage => {
-  return message?.kind === MessageType.AodvRouteReplyMessage;
+  return message?.type === MessageType.AodvRouteReplyMessage;
 };
 
 const isAodvRouteErrorMessage = (message: Message | null): message is AodvRouteErrorMessage => {
-  return message?.kind === MessageType.AodvRouteErrorMessage;
+  return message?.type === MessageType.AodvRouteErrorMessage;
 };
 
 const isAodvHelloMessage = (message: Message | null): message is AodvHelloMessage => {
-  return message?.kind === MessageType.AodvHelloMessage;
+  return message?.type === MessageType.AodvHelloMessage;
 };
 
 const isOlsrHelloMessage = (message: Message | null): message is OlsrHelloMessage => {
-  return message?.kind === MessageType.OlsrHelloMessage;
+  return message?.type === MessageType.OlsrHelloMessage;
 };
 
 const isOlsrTcMessage = (message: Message | null): message is OlsrTcMessage => {
-  return message?.kind === MessageType.OlsrTcMessage;
+  return message?.type === MessageType.OlsrTcMessage;
 };
 
 const isDsrRouteRequestMessage = (message: Message | null): message is DsrRouteRequestMessage => {
-  return message?.kind === MessageType.DsrRouteRequestMessage;
+  return message?.type === MessageType.DsrRouteRequestMessage;
 };
 
 const isDsrRouteReplyMessage = (message: Message | null): message is DsrRouteReplyMessage => {
-  return message?.kind === MessageType.DsrRouteReplyMessage;
+  return message?.type === MessageType.DsrRouteReplyMessage;
 };
 
 const isDsrRouteErrorMessage = (message: Message | null): message is DsrRouteErrorMessage => {
-  return message?.kind === MessageType.DsrRouteErrorMessage;
+  return message?.type === MessageType.DsrRouteErrorMessage;
 };
 
 const getRouteChange = (event: Event): RouteChangeEventDetails | null => {

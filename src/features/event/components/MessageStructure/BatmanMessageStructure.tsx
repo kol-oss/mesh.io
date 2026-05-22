@@ -15,7 +15,7 @@ type MessageStructureProps = {
 };
 
 export default function BatmanMessageStructure({ message, peers }: MessageStructureProps) {
-  const { kind: messageType } = message;
+  const { type: messageType } = message;
   let structure: FieldStructure[][] = [];
 
   // Echo Location Protocol message

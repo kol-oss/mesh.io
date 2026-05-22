@@ -131,7 +131,7 @@ export default function MessageStructure({
           />
         )}
 
-        {eventMessage?.kind === MessageType.DsdvRouteUpdateMessage ? (
+        {eventMessage?.type === MessageType.DsdvRouteUpdateMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getDsdvStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-dsdv-${rowIndex}`}>
@@ -161,10 +161,10 @@ export default function MessageStructure({
               </div>
             ))}
           </div>
-        ) : eventMessage?.kind === MessageType.AodvRouteRequestMessage ||
-          eventMessage?.kind === MessageType.AodvRouteReplyMessage ||
-          eventMessage?.kind === MessageType.AodvRouteErrorMessage ||
-          eventMessage?.kind === MessageType.AodvHelloMessage ? (
+        ) : eventMessage?.type === MessageType.AodvRouteRequestMessage ||
+          eventMessage?.type === MessageType.AodvRouteReplyMessage ||
+          eventMessage?.type === MessageType.AodvRouteErrorMessage ||
+          eventMessage?.type === MessageType.AodvHelloMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getAodvStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-aodv-${rowIndex}`}>
@@ -194,7 +194,7 @@ export default function MessageStructure({
               </div>
             ))}
           </div>
-        ) : eventMessage?.kind === MessageType.OlsrHelloMessage ? (
+        ) : eventMessage?.type === MessageType.OlsrHelloMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getOlsrHelloStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div
@@ -227,7 +227,7 @@ export default function MessageStructure({
               </div>
             ))}
           </div>
-        ) : eventMessage?.kind === MessageType.OlsrTcMessage ? (
+        ) : eventMessage?.type === MessageType.OlsrTcMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getOlsrTcStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-olsr-tc-${rowIndex}`}>
@@ -252,9 +252,9 @@ export default function MessageStructure({
               </div>
             ))}
           </div>
-        ) : eventMessage?.kind === MessageType.DsrRouteRequestMessage ||
-          eventMessage?.kind === MessageType.DsrRouteReplyMessage ||
-          eventMessage?.kind === MessageType.DsrRouteErrorMessage ? (
+        ) : eventMessage?.type === MessageType.DsrRouteRequestMessage ||
+          eventMessage?.type === MessageType.DsrRouteReplyMessage ||
+          eventMessage?.type === MessageType.DsrRouteErrorMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getDsrStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-dsr-${rowIndex}`}>
@@ -306,47 +306,47 @@ export default function MessageStructure({
 }
 
 const getPacketInspectorTitle = (message: Message | null) => {
-  if (message?.kind === MessageType.BatmanEchoLocationMessage) {
+  if (message?.type === MessageType.BatmanEchoLocationMessage) {
     return "Echo Location Message (ELP)";
   }
 
-  if (message?.kind === MessageType.DsdvRouteUpdateMessage) {
+  if (message?.type === MessageType.DsdvRouteUpdateMessage) {
     return "DSDV Update Message";
   }
 
-  if (message?.kind === MessageType.AodvRouteRequestMessage) {
+  if (message?.type === MessageType.AodvRouteRequestMessage) {
     return "AODV Route Request (RREQ)";
   }
 
-  if (message?.kind === MessageType.AodvRouteReplyMessage) {
+  if (message?.type === MessageType.AodvRouteReplyMessage) {
     return "AODV Route Reply (RREP)";
   }
 
-  if (message?.kind === MessageType.AodvRouteErrorMessage) {
+  if (message?.type === MessageType.AodvRouteErrorMessage) {
     return "AODV Route Error (RERR)";
   }
 
-  if (message?.kind === MessageType.AodvHelloMessage) {
+  if (message?.type === MessageType.AodvHelloMessage) {
     return "AODV HELLO Message";
   }
 
-  if (message?.kind === MessageType.OlsrHelloMessage) {
+  if (message?.type === MessageType.OlsrHelloMessage) {
     return "OLSR HELLO Message";
   }
 
-  if (message?.kind === MessageType.OlsrTcMessage) {
+  if (message?.type === MessageType.OlsrTcMessage) {
     return "OLSR TC Message";
   }
 
-  if (message?.kind === MessageType.DsrRouteRequestMessage) {
+  if (message?.type === MessageType.DsrRouteRequestMessage) {
     return "DSR Route Request (RREQ)";
   }
 
-  if (message?.kind === MessageType.DsrRouteReplyMessage) {
+  if (message?.type === MessageType.DsrRouteReplyMessage) {
     return "DSR Route Reply (RREP)";
   }
 
-  if (message?.kind === MessageType.DsrRouteErrorMessage) {
+  if (message?.type === MessageType.DsrRouteErrorMessage) {
     return "DSR Route Error (RERR)";
   }
 
@@ -354,47 +354,47 @@ const getPacketInspectorTitle = (message: Message | null) => {
 };
 
 const getPacketInspectorStructureAria = (message: Message | null) => {
-  if (message?.kind === MessageType.BatmanEchoLocationMessage) {
+  if (message?.type === MessageType.BatmanEchoLocationMessage) {
     return "Echo Location Message structure";
   }
 
-  if (message?.kind === MessageType.DsdvRouteUpdateMessage) {
+  if (message?.type === MessageType.DsdvRouteUpdateMessage) {
     return "DSDV route update structure";
   }
 
-  if (message?.kind === MessageType.AodvRouteRequestMessage) {
+  if (message?.type === MessageType.AodvRouteRequestMessage) {
     return "AODV Route Request structure";
   }
 
-  if (message?.kind === MessageType.AodvRouteReplyMessage) {
+  if (message?.type === MessageType.AodvRouteReplyMessage) {
     return "AODV Route Reply structure";
   }
 
-  if (message?.kind === MessageType.AodvRouteErrorMessage) {
+  if (message?.type === MessageType.AodvRouteErrorMessage) {
     return "AODV Route Error structure";
   }
 
-  if (message?.kind === MessageType.AodvHelloMessage) {
+  if (message?.type === MessageType.AodvHelloMessage) {
     return "AODV HELLO structure";
   }
 
-  if (message?.kind === MessageType.OlsrHelloMessage) {
+  if (message?.type === MessageType.OlsrHelloMessage) {
     return "OLSR HELLO message structure";
   }
 
-  if (message?.kind === MessageType.OlsrTcMessage) {
+  if (message?.type === MessageType.OlsrTcMessage) {
     return "OLSR TC message structure";
   }
 
-  if (message?.kind === MessageType.DsrRouteRequestMessage) {
+  if (message?.type === MessageType.DsrRouteRequestMessage) {
     return "DSR Route Request message structure";
   }
 
-  if (message?.kind === MessageType.DsrRouteReplyMessage) {
+  if (message?.type === MessageType.DsrRouteReplyMessage) {
     return "DSR Route Reply message structure";
   }
 
-  if (message?.kind === MessageType.DsrRouteErrorMessage) {
+  if (message?.type === MessageType.DsrRouteErrorMessage) {
     return "DSR Route Error message structure";
   }
 
@@ -402,51 +402,51 @@ const getPacketInspectorStructureAria = (message: Message | null) => {
 };
 
 const getPacketReadMorePath = (message: Message | null) => {
-  if (message?.kind === MessageType.BatmanEchoLocationMessage) {
+  if (message?.type === MessageType.BatmanEchoLocationMessage) {
     return "/docs/batman#echo-location-protocol";
   }
 
-  if (message?.kind === MessageType.BatmanOriginatorMessage) {
+  if (message?.type === MessageType.BatmanOriginatorMessage) {
     return "/docs/batman#originator-message";
   }
 
-  if (message?.kind === MessageType.DsdvRouteUpdateMessage) {
+  if (message?.type === MessageType.DsdvRouteUpdateMessage) {
     return "/docs/dsdv#full-and-incremental-updates";
   }
 
-  if (message?.kind === MessageType.AodvRouteRequestMessage) {
+  if (message?.type === MessageType.AodvRouteRequestMessage) {
     return "/docs/aodv#route-discovery";
   }
 
-  if (message?.kind === MessageType.AodvRouteReplyMessage) {
+  if (message?.type === MessageType.AodvRouteReplyMessage) {
     return "/docs/aodv#route-discovery";
   }
 
-  if (message?.kind === MessageType.AodvRouteErrorMessage) {
+  if (message?.type === MessageType.AodvRouteErrorMessage) {
     return "/docs/aodv#route-maintenance";
   }
 
-  if (message?.kind === MessageType.AodvHelloMessage) {
+  if (message?.type === MessageType.AodvHelloMessage) {
     return "/docs/aodv#route-maintenance";
   }
 
-  if (message?.kind === MessageType.OlsrHelloMessage) {
+  if (message?.type === MessageType.OlsrHelloMessage) {
     return "/docs/olsr#neighbor-sensing";
   }
 
-  if (message?.kind === MessageType.OlsrTcMessage) {
+  if (message?.type === MessageType.OlsrTcMessage) {
     return "/docs/olsr#topology-discovery";
   }
 
-  if (message?.kind === MessageType.DsrRouteRequestMessage) {
+  if (message?.type === MessageType.DsrRouteRequestMessage) {
     return "/docs/dsr#route-discovery";
   }
 
-  if (message?.kind === MessageType.DsrRouteReplyMessage) {
+  if (message?.type === MessageType.DsrRouteReplyMessage) {
     return "/docs/dsr#route-discovery";
   }
 
-  if (message?.kind === MessageType.DsrRouteErrorMessage) {
+  if (message?.type === MessageType.DsrRouteErrorMessage) {
     return "/docs/dsr#route-maintenance";
   }
 
@@ -457,7 +457,7 @@ const getDsrStructureRows = (
   message: Message,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
-  if (message.kind === MessageType.DsrRouteRequestMessage) {
+  if (message.type === MessageType.DsrRouteRequestMessage) {
     const hopRows =
       message.routePeerIds.length > 0
         ? message.routePeerIds.map((peerId) => [
@@ -508,7 +508,7 @@ const getDsrStructureRows = (
     ];
   }
 
-  if (message.kind === MessageType.DsrRouteReplyMessage) {
+  if (message.type === MessageType.DsrRouteReplyMessage) {
     const pathRows = message.routePeerIds.map((peerId) => [
       {
         label: "Address [1...n]",
@@ -547,7 +547,7 @@ const getDsrStructureRows = (
     ];
   }
 
-  if (message.kind === MessageType.DsrRouteErrorMessage) {
+  if (message.type === MessageType.DsrRouteErrorMessage) {
     return [
       [
         {
@@ -616,7 +616,7 @@ const getAodvStructureRows = (
   message: Message,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
-  if (message.kind === MessageType.AodvRouteRequestMessage) {
+  if (message.type === MessageType.AodvRouteRequestMessage) {
     return [
       [
         {
@@ -693,7 +693,7 @@ const getAodvStructureRows = (
     ];
   }
 
-  if (message.kind === MessageType.AodvRouteReplyMessage) {
+  if (message.type === MessageType.AodvRouteReplyMessage) {
     return [
       [
         {
@@ -757,7 +757,7 @@ const getAodvStructureRows = (
     ];
   }
 
-  if (message.kind === MessageType.AodvRouteErrorMessage) {
+  if (message.type === MessageType.AodvRouteErrorMessage) {
     const unreachableRows = message.unreachableDestinations.flatMap((entry) => [
       [
         {
@@ -807,7 +807,7 @@ const getAodvStructureRows = (
     ];
   }
 
-  if (message.kind === MessageType.AodvHelloMessage) {
+  if (message.type === MessageType.AodvHelloMessage) {
     return [
       [
         {
@@ -1026,7 +1026,7 @@ const getDsdvStructureRows = (
   message: Message,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
-  if (message.kind !== MessageType.DsdvRouteUpdateMessage) {
+  if (message.type !== MessageType.DsdvRouteUpdateMessage) {
     return [];
   }
 

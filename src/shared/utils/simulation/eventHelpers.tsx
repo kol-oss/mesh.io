@@ -69,11 +69,11 @@ export const getSimulationReadMorePath = (
     return "/docs/batman#sequence-protection-window";
   }
 
-  if (message?.kind === MessageType.BatmanEchoLocationMessage) {
+  if (message?.type === MessageType.BatmanEchoLocationMessage) {
     return "/docs/batman#echo-location-protocol";
   }
 
-  if (message?.kind === MessageType.BatmanOriginatorMessage) {
+  if (message?.type === MessageType.BatmanOriginatorMessage) {
     return "/docs/batman#originator-message";
   }
 
@@ -211,7 +211,7 @@ export const getMessageSummary = (
     ];
   }
 
-  if (message.kind === MessageType.Packet) {
+  if (message.type === MessageType.Packet) {
     return [
       {
         label: "Source",
@@ -286,17 +286,17 @@ export const getEventMessage = (event: Event): Message | null => {
 };
 
 const getBroadcastTitle = (event: Event, message: Message | null) => {
-  if (message?.kind === MessageType.BatmanEchoLocationMessage) {
+  if (message?.type === MessageType.BatmanEchoLocationMessage) {
     return "ELP Broadcast";
   }
 
-  if (message?.kind === MessageType.BatmanOriginatorMessage) {
+  if (message?.type === MessageType.BatmanOriginatorMessage) {
     return "retransmit" in event.details && event.details.retransmit
       ? "OGMv2 Broadcast Retransmission"
       : "OGMv2 Broadcast";
   }
 
-  if (message?.kind === MessageType.Packet) {
+  if (message?.type === MessageType.Packet) {
     return "Packet Broadcast";
   }
 
@@ -308,15 +308,15 @@ const getDroppedTitle = (event: Event, message: Message | null) => {
     return "Packet Send Failed";
   }
 
-  if (message?.kind === MessageType.BatmanEchoLocationMessage) {
+  if (message?.type === MessageType.BatmanEchoLocationMessage) {
     return "ELP Dropped";
   }
 
-  if (message?.kind === MessageType.BatmanOriginatorMessage) {
+  if (message?.type === MessageType.BatmanOriginatorMessage) {
     return "OGMv2 Dropped";
   }
 
-  if (message?.kind === MessageType.Packet) {
+  if (message?.type === MessageType.Packet) {
     return "Packet Dropped";
   }
 
@@ -324,13 +324,13 @@ const getDroppedTitle = (event: Event, message: Message | null) => {
 };
 
 const getBroadcastDescription = (event: Event, message: Message | null) => {
-  if (message?.kind === MessageType.BatmanEchoLocationMessage) {
+  if (message?.type === MessageType.BatmanEchoLocationMessage) {
     return (
       <>{`Every ELP Interval B.A.T.M.A.N. node broadcast an Echo Location Protocol (ELP) message to neighbours. If this node wants to announce its' neighbors it should append a neighbor entry message for each neighbor to be announced and fill the "Number of Neighbors" field accordingly.`}</>
     );
   }
 
-  if (message?.kind === MessageType.BatmanOriginatorMessage) {
+  if (message?.type === MessageType.BatmanOriginatorMessage) {
     if ("retransmit" in event.details && event.details.retransmit) {
       return (
         <>
@@ -350,7 +350,7 @@ const getBroadcastDescription = (event: Event, message: Message | null) => {
     );
   }
 
-  if (message?.kind === MessageType.Packet) {
+  if (message?.type === MessageType.Packet) {
     return <>{"The node broadcast a packet message to neighbouring nodes."}</>;
   }
 
@@ -365,17 +365,17 @@ const getDroppedDescription = (actor: string, event: Event, message: Message | n
     );
   }
 
-  if (message?.kind === MessageType.BatmanEchoLocationMessage) {
+  if (message?.type === MessageType.BatmanEchoLocationMessage) {
     return <>{`${actor} dropped a message during processing.`}</>;
   }
 
-  if (message?.kind === MessageType.BatmanOriginatorMessage) {
+  if (message?.type === MessageType.BatmanOriginatorMessage) {
     return (
       <>{`${actor} already received OGMv2 with such originator and sequence number with better throughput, so it did not continue processing this OGMv2, and B.A.T.M.A.N. V propagation stopped at this hop.`}</>
     );
   }
 
-  if (message?.kind === MessageType.Packet) {
+  if (message?.type === MessageType.Packet) {
     return <>{`${actor} could not forward this packet, so delivery stopped at this hop.`}</>;
   }
 
@@ -384,7 +384,7 @@ const getDroppedDescription = (actor: string, event: Event, message: Message | n
 
 const getThroughputCalculatedDescription = (actor: string, event: Event) => {
   const details = event.details as BatmanCalculationEventDetails;
-  if (details.message.kind === MessageType.BatmanEchoLocationMessage) {
+  if (details.message.type === MessageType.BatmanEchoLocationMessage) {
     return (
       <>
         {
@@ -394,7 +394,7 @@ const getThroughputCalculatedDescription = (actor: string, event: Event) => {
     );
   }
 
-  if (details.message.kind === MessageType.BatmanOriginatorMessage) {
+  if (details.message.type === MessageType.BatmanOriginatorMessage) {
     return (
       <>
         {
@@ -413,7 +413,7 @@ export const getThroughputBreakdown = (event: Event) => {
   }
 
   const details = event.details as BatmanCalculationEventDetails;
-  if (details.message.kind !== MessageType.BatmanEchoLocationMessage) {
+  if (details.message.type !== MessageType.BatmanEchoLocationMessage) {
     return null;
   }
 
@@ -425,7 +425,7 @@ export const getOgmBroadcastThroughputExplanation = (event: Event, message: Mess
     return null;
   }
 
-  if (message?.kind !== MessageType.BatmanOriginatorMessage) {
+  if (message?.type !== MessageType.BatmanOriginatorMessage) {
     return null;
   }
 
@@ -442,7 +442,7 @@ export const getOgmThroughputSelectionExplanation = (event: Event) => {
   }
 
   const details = event.details as BatmanCalculationEventDetails;
-  if (details.message.kind !== MessageType.BatmanOriginatorMessage) {
+  if (details.message.type !== MessageType.BatmanOriginatorMessage) {
     return null;
   }
 
@@ -486,7 +486,7 @@ const getRouteInsertTitle = (
   message: Message | null,
   routeChange: RouteChangeEventDetails | null,
 ) => {
-  if (message?.kind === MessageType.BatmanOriginatorMessage || routeChange) {
+  if (message?.type === MessageType.BatmanOriginatorMessage || routeChange) {
     return "Originator Added";
   }
 
@@ -497,7 +497,7 @@ const getRouteUpdateTitle = (
   message: Message | null,
   routeChange: RouteChangeEventDetails | null,
 ) => {
-  if (message?.kind === MessageType.BatmanOriginatorMessage || routeChange) {
+  if (message?.type === MessageType.BatmanOriginatorMessage || routeChange) {
     return "Originator Updated";
   }
 
@@ -508,7 +508,7 @@ const getRouteRemoveTitle = (
   message: Message | null,
   routeChange: RouteChangeEventDetails | null,
 ) => {
-  if (message?.kind === MessageType.BatmanOriginatorMessage || routeChange) {
+  if (message?.type === MessageType.BatmanOriginatorMessage || routeChange) {
     return "Originator Removed";
   }
 
@@ -545,7 +545,7 @@ export const getRouteSequenceWindowExplanation = (event: Event) => {
   const routeChange = getRouteChange(event);
   const message = getEventMessage(event);
   const nextRoute = routeChange?.nextRoute;
-  if (!routeChange || !nextRoute || message?.kind !== MessageType.BatmanOriginatorMessage) {
+  if (!routeChange || !nextRoute || message?.type !== MessageType.BatmanOriginatorMessage) {
     return null;
   }
 
@@ -598,5 +598,5 @@ const isSourcePacketSendFailure = (event: Event, message: Message | null) => {
     return true;
   }
 
-  return message?.kind === MessageType.Packet && message.sourcePeerId === null;
+  return message?.type === MessageType.Packet && message.sourcePeerId === null;
 };

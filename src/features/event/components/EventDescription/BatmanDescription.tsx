@@ -31,7 +31,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
 
   if (type === EventType.Broadcast) {
     const { message, retransmit: isRetransmission } = details as BroadcastEventDetails;
-    const { kind: messageType } = message;
+    const { type: messageType } = message;
 
     // Echo Location Protocol (ELP) broadcast
     if (messageType === MessageType.BatmanEchoLocationMessage) {

@@ -223,7 +223,7 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
   }
 
   const packet: Packet = {
-    kind: MessageType.Packet,
+    type: MessageType.Packet,
     sourcePeerId: null,
     destinationPeerId: step.destinationId,
     timeToLive: 50,

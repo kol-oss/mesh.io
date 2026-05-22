@@ -3,13 +3,13 @@ import { MessageType, type Message } from "@/shared/types/common/messages";
 export const cloneDsrMessage = <T extends Message>(message: T): T => {
   return {
     ...message,
-    ...(message.kind === MessageType.DsrRouteRequestMessage
+    ...(message.type === MessageType.DsrRouteRequestMessage
       ? { routePeerIds: [...message.routePeerIds] }
       : {}),
-    ...(message.kind === MessageType.DsrRouteReplyMessage
+    ...(message.type === MessageType.DsrRouteReplyMessage
       ? { routePeerIds: [...message.routePeerIds] }
       : {}),
-    ...(message.kind === MessageType.DsrRouteErrorMessage
+    ...(message.type === MessageType.DsrRouteErrorMessage
       ? { routePeerIds: [...message.routePeerIds] }
       : {}),
   };
@@ -22,9 +22,9 @@ export const isDsrSimulationMessage = (value: unknown): value is Message => {
 
   const candidate = value as Partial<Message>;
   return (
-    candidate.kind === MessageType.Packet ||
-    candidate.kind === MessageType.DsrRouteRequestMessage ||
-    candidate.kind === MessageType.DsrRouteReplyMessage ||
-    candidate.kind === MessageType.DsrRouteErrorMessage
+    candidate.type === MessageType.Packet ||
+    candidate.type === MessageType.DsrRouteRequestMessage ||
+    candidate.type === MessageType.DsrRouteReplyMessage ||
+    candidate.type === MessageType.DsrRouteErrorMessage
   );
 };

@@ -248,11 +248,11 @@ export class BatmanOperations {
     }
 
     const forwardedMessage =
-      message.kind === MessageType.Packet && message.sourcePeerId === null
+      message.type === MessageType.Packet && message.sourcePeerId === null
         ? { ...message, sourcePeerId: this.routingPeer.id }
         : clone(message);
 
-    if (forwardedMessage.kind === MessageType.Packet) {
+    if (forwardedMessage.type === MessageType.Packet) {
       this.eventRecorder.record(
         this.routingPeer.id,
         EventType.Transfer,

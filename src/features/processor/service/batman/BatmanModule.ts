@@ -65,7 +65,7 @@ export class BatmanModule implements RoutingModule {
   }
 
   read(message: Message): boolean {
-    const { kind: messageType } = message;
+    const { type: messageType } = message;
     if (
       messageType !== MessageType.Packet &&
       messageType !== MessageType.BatmanOriginatorMessage &&
@@ -117,7 +117,7 @@ export class BatmanModule implements RoutingModule {
 
     this.ogmSequence += 1;
     const message: BatmanOriginatorMessage = {
-      kind: MessageType.BatmanOriginatorMessage,
+      type: MessageType.BatmanOriginatorMessage,
       version: BATMAN_VERSION,
       sourcePeerId: this.routingPeer.id,
       senderPeerId: this.routingPeer.id,
@@ -181,7 +181,7 @@ export class BatmanModule implements RoutingModule {
       .map((entry) => entry.neighbourId)
       .sort((left, right) => left.localeCompare(right));
     const elpMessage: BatmanEchoLocationMessage = {
-      kind: MessageType.BatmanEchoLocationMessage,
+      type: MessageType.BatmanEchoLocationMessage,
       version: BATMAN_VERSION,
       sourcePeerId: this.routingPeer.id,
       senderPeerId: this.routingPeer.id,

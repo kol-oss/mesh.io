@@ -13,7 +13,7 @@ const getBatmanEventTitle = (event: Event): string => {
 
   if (type === EventType.Broadcast) {
     const { message, retransmit: isRetransmission } = details as BroadcastEventDetails;
-    const { kind: messageType } = message;
+    const { type: messageType } = message;
 
     if (messageType === MessageType.BatmanEchoLocationMessage) {
       return "ELP Broadcast";

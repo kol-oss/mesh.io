@@ -1,10 +1,10 @@
-import type { Message, MessageType } from "../../../shared/types/common/messages";
+import type { BaseMessage, Message, MessageType } from "../../../shared/types/common/messages";
 import type { RoutingProtocol } from "../../../shared/types/common/protocols";
 import type { UUID } from "../../../shared/types/common/uuid";
 
 // RREQ message
-export type DsrRouteRequestMessage = {
-  kind: MessageType.DsrRouteRequestMessage;
+export type DsrRouteRequestMessage = BaseMessage & {
+  type: MessageType.DsrRouteRequestMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   targetPeerId: UUID;
@@ -14,8 +14,8 @@ export type DsrRouteRequestMessage = {
 };
 
 // RREP message
-export type DsrRouteReplyMessage = {
-  kind: MessageType.DsrRouteReplyMessage;
+export type DsrRouteReplyMessage = BaseMessage & {
+  type: MessageType.DsrRouteReplyMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   targetPeerId: UUID;
@@ -25,8 +25,8 @@ export type DsrRouteReplyMessage = {
 };
 
 // RERR message
-export type DsrRouteErrorMessage = {
-  kind: MessageType.DsrRouteErrorMessage;
+export type DsrRouteErrorMessage = BaseMessage & {
+  type: MessageType.DsrRouteErrorMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   destinationPeerId: UUID;

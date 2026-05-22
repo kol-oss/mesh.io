@@ -1,10 +1,10 @@
-import type { Message, MessageType } from "../../../shared/types/common/messages";
+import type { BaseMessage, Message, MessageType } from "../../../shared/types/common/messages";
 import type { RoutingProtocol } from "../../../shared/types/common/protocols";
 import type { UUID } from "../../../shared/types/common/uuid";
 
 // Echo Location Protocol message
-export type BatmanEchoLocationMessage = {
-  kind: MessageType.BatmanEchoLocationMessage;
+export type BatmanEchoLocationMessage = BaseMessage & {
+  type: MessageType.BatmanEchoLocationMessage;
   version: number;
   sourcePeerId: UUID;
   senderPeerId: UUID;
@@ -16,8 +16,8 @@ export type BatmanEchoLocationMessage = {
 };
 
 // Originator Message version 2 message
-export type BatmanOriginatorMessage = {
-  kind: MessageType.BatmanOriginatorMessage;
+export type BatmanOriginatorMessage = BaseMessage & {
+  type: MessageType.BatmanOriginatorMessage;
   version: number;
   sourcePeerId: UUID;
   senderPeerId: UUID;

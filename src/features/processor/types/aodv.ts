@@ -1,10 +1,10 @@
-import type { Message, MessageType } from "../../../shared/types/common/messages";
+import type { BaseMessage, Message, MessageType } from "../../../shared/types/common/messages";
 import type { RoutingProtocol } from "../../../shared/types/common/protocols";
 import type { UUID } from "../../../shared/types/common/uuid";
 
 // RREQ message
-export type AodvRouteRequestMessage = {
-  kind: MessageType.AodvRouteRequestMessage;
+export type AodvRouteRequestMessage = BaseMessage & {
+  type: MessageType.AodvRouteRequestMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   destinationPeerId: UUID;
@@ -15,8 +15,8 @@ export type AodvRouteRequestMessage = {
 };
 
 // RREP message
-export type AodvRouteReplyMessage = {
-  kind: MessageType.AodvRouteReplyMessage;
+export type AodvRouteReplyMessage = BaseMessage & {
+  type: MessageType.AodvRouteReplyMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   targetPeerId: UUID;
@@ -35,8 +35,8 @@ export type AodvUnreachableDestination = {
 };
 
 // RERR message
-export type AodvRouteErrorMessage = {
-  kind: MessageType.AodvRouteErrorMessage;
+export type AodvRouteErrorMessage = BaseMessage & {
+  type: MessageType.AodvRouteErrorMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   targetPeerId: UUID | null;
@@ -45,8 +45,8 @@ export type AodvRouteErrorMessage = {
 };
 
 // HELLO message
-export type AodvHelloMessage = {
-  kind: MessageType.AodvHelloMessage;
+export type AodvHelloMessage = BaseMessage & {
+  type: MessageType.AodvHelloMessage;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   destinationSequenceNumber: number;

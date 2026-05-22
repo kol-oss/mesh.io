@@ -1,4 +1,4 @@
-import type { Message, MessageType } from "../../../shared/types/common/messages";
+import type { BaseMessage, Message, MessageType } from "../../../shared/types/common/messages";
 import type { RoutingProtocol } from "../../../shared/types/common/protocols";
 import type { UUID } from "../../../shared/types/common/uuid";
 
@@ -16,8 +16,8 @@ export type DsdvRouteRecord = {
   lastUpdateTick: number;
 };
 
-// Route Record message
-export type DsdvRouteRecordMessage = {
+// Route Record message entry
+export type DsdvRouteUpdateRecordEntry = {
   destinationPeerId: UUID;
   nextHopPeerId: UUID;
   sequenceNumber: number;
@@ -25,13 +25,13 @@ export type DsdvRouteRecordMessage = {
 };
 
 // Route Update message
-export type DsdvRouteUpdateMessage = {
-  kind: MessageType.DsdvRouteUpdateMessage;
+export type DsdvRouteUpdateMessage = BaseMessage & {
+  type: MessageType.DsdvRouteUpdateMessage;
   updateType: DsdvUpdateType;
   sourcePeerId: UUID;
   senderPeerId: UUID;
   hopCount: number;
-  entries: DsdvRouteRecordMessage[];
+  entries: DsdvRouteUpdateRecordEntry[];
 };
 
 // AddRoute, UpdateRoute, and DeleteRoute details

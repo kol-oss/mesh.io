@@ -11,6 +11,6 @@ export const isDsdvSimulationMessage = (value: unknown): value is Message => {
 
   const candidate = value as Partial<Message>;
   return (
-    candidate.kind === MessageType.Packet || candidate.kind === MessageType.DsdvRouteUpdateMessage
+    candidate.type === MessageType.Packet || candidate.type === MessageType.DsdvRouteUpdateMessage
   );
 };

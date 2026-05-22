@@ -33,8 +33,12 @@ export enum MessageType {
   DsrRouteErrorMessage = "DSR_ROUTE_ERROR_MESSAGE",
 }
 
-export type Packet = {
-  kind: MessageType.Packet;
+export type BaseMessage = {
+  type: MessageType;
+};
+
+export type Packet = BaseMessage & {
+  type: MessageType.Packet;
   sourcePeerId: UUID | null;
   destinationPeerId: UUID;
   timeToLive: number;

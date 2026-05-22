@@ -84,7 +84,7 @@ export class OlsrModule implements RoutingModule {
       return false;
     }
 
-    if (message.kind === MessageType.Packet) {
+    if (message.type === MessageType.Packet) {
       if (message.destinationPeerId === this.routingPeer.id) {
         return true;
       }
@@ -96,11 +96,11 @@ export class OlsrModule implements RoutingModule {
       return this.routeAndWrite(forwardedPacket);
     }
 
-    if (message.kind === MessageType.OlsrHelloMessage) {
+    if (message.type === MessageType.OlsrHelloMessage) {
       return this.processHello(message);
     }
 
-    if (message.kind === MessageType.OlsrTcMessage) {
+    if (message.type === MessageType.OlsrTcMessage) {
       return this.processTc(message);
     }
 
@@ -120,7 +120,7 @@ export class OlsrModule implements RoutingModule {
     this.recomputeMprSet();
 
     const helloMessage: OlsrHelloMessage = {
-      kind: MessageType.OlsrHelloMessage,
+      type: MessageType.OlsrHelloMessage,
       sourcePeerId: this.routingPeer.id,
       senderPeerId: this.routingPeer.id,
       interval: clampInterval(this.getConfiguration().helloInterval),
@@ -146,7 +146,7 @@ export class OlsrModule implements RoutingModule {
 
     if (this.selectorPeerIds.size === 0) {
       const tcMessage: OlsrTcMessage = {
-        kind: MessageType.OlsrTcMessage,
+        type: MessageType.OlsrTcMessage,
         sourcePeerId: this.routingPeer.id,
         senderPeerId: this.routingPeer.id,
         ansn: this.ansn,
@@ -165,7 +165,7 @@ export class OlsrModule implements RoutingModule {
 
     this.ansn += 1;
     const tcMessage: OlsrTcMessage = {
-      kind: MessageType.OlsrTcMessage,
+      type: MessageType.OlsrTcMessage,
       sourcePeerId: this.routingPeer.id,
       senderPeerId: this.routingPeer.id,
       ansn: this.ansn,
@@ -743,11 +743,11 @@ export class OlsrModule implements RoutingModule {
     }
 
     const forwardedMessage =
-      message.kind === MessageType.Packet && message.sourcePeerId === null
+      message.type === MessageType.Packet && message.sourcePeerId === null
         ? { ...message, sourcePeerId: this.routingPeer.id }
         : cloneOlsrMessage(message);
 
-    if (forwardedMessage.kind === MessageType.Packet) {
+    if (forwardedMessage.type === MessageType.Packet) {
       this.eventRecorder.record(this.routingPeer.id, EventType.Transfer, {
         protocol: RoutingProtocol.OLSR,
         sourcePeerId: this.routingPeer.id,
