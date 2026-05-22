@@ -1,0 +1,201 @@
+import type { EventRecorder } from "@/features/processor/EventRecorder";
+import { AodvModule } from "@/features/processor/service/aodv/AodvModule";
+import { BatmanModule } from "@/features/processor/service/batman/BatmanModule";
+import { DsdvModule } from "@/features/processor/service/dsdv/DsdvModule";
+import { DsrModule } from "@/features/processor/service/dsr/DsrModule";
+import { OlsrModule } from "@/features/processor/service/olsr/OlsrModule";
+import {
+  RoutingStructure,
+  type Node,
+  type RoutingStructuresMap,
+} from "@/features/processor/types/peer";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { PeerEntity } from "@/shared/types/model/entities";
+import { type RoutingModule } from "../types/module";
+import type { NetworkManager } from "./NetworkManager";
+
+export class NetworkNode implements Node {
+  private readonly module: RoutingModule | null;
+  private readonly rangedPeerIds = new Set<UUID>();
+  private readonly linkedPeerIds = new Set<UUID>();
+  private readonly entity: PeerEntity;
+  private readonly network: NetworkManager;
+
+  constructor(entity: PeerEntity, network: NetworkManager, eventRecorder: EventRecorder) {
+    this.entity = entity;
+    this.network = network;
+    this.module = this.createModule(eventRecorder);
+  }
+
+  private createModule(eventRecorder: EventRecorder): RoutingModule | null {
+    const protocol = this.entity.protocol;
+
+    if (protocol === RoutingProtocol.BATMAN) {
+      return new BatmanModule(this, eventRecorder);
+    }
+
+    if (protocol === RoutingProtocol.DSDV) {
+      return new DsdvModule(this, eventRecorder);
+    }
+
+    if (protocol === RoutingProtocol.AODV) {
+      return new AodvModule(this, eventRecorder);
+    }
+
+    if (protocol === RoutingProtocol.DSR) {
+      return new DsrModule(this, eventRecorder);
+    }
+
+    if (protocol === RoutingProtocol.OLSR) {
+      return new OlsrModule(this, eventRecorder);
+    }
+
+    return null;
+  }
+
+  get id() {
+    return this.entity.id;
+  }
+
+  get name() {
+    return this.entity.name;
+  }
+
+  isActive() {
+    return this.entity.enabled;
+  }
+
+  supports(protocol: RoutingProtocol) {
+    return this.module !== null && this.entity.protocol === protocol;
+  }
+
+  getModule(protocol: RoutingProtocol) {
+    if (this.entity.protocol !== protocol) {
+      return null;
+    }
+
+    return this.module;
+  }
+
+  getEntity() {
+    return this.entity;
+  }
+
+  setPosition(x: number, y: number) {
+    this.entity.x = x;
+    this.entity.y = y;
+  }
+
+  setEnabled(enabled: boolean) {
+    this.entity.enabled = enabled;
+  }
+
+  clearTopology() {
+    this.rangedPeerIds.clear();
+    this.linkedPeerIds.clear();
+  }
+
+  addRangedPeer(peerId: UUID) {
+    this.rangedPeerIds.add(peerId);
+  }
+
+  addLinkedPeer(peerId: UUID) {
+    this.linkedPeerIds.add(peerId);
+  }
+
+  getNeighbour(peerId: UUID) {
+    if (!this.isActive()) {
+      return null;
+    }
+
+    if (!this.rangedPeerIds.has(peerId) && !this.linkedPeerIds.has(peerId)) {
+      return null;
+    }
+
+    const neighbour = this.network.getPeer(peerId);
+    return neighbour?.isActive() ? neighbour : null;
+  }
+
+  getNeighbours() {
+    const neighbourIds = new Set([...this.rangedPeerIds, ...this.linkedPeerIds]);
+    const neighbours: Node[] = [];
+
+    for (const peerId of neighbourIds) {
+      const peer = this.network.getPeer(peerId);
+      if (peer?.isActive()) {
+        neighbours.push(peer);
+      }
+    }
+
+    return neighbours;
+  }
+
+  getRangedNeighbours() {
+    const neighbours: Node[] = [];
+
+    for (const peerId of this.rangedPeerIds) {
+      const peer = this.network.getPeer(peerId);
+      if (peer?.isActive()) {
+        neighbours.push(peer);
+      }
+    }
+
+    return neighbours;
+  }
+
+  isRangedNeighbour(peerId: UUID) {
+    return this.rangedPeerIds.has(peerId);
+  }
+
+  isLinkedNeighbour(peerId: UUID) {
+    return this.linkedPeerIds.has(peerId);
+  }
+
+  getRoutingStructures(): Readonly<RoutingStructuresMap> {
+    const routingStructures: RoutingStructuresMap = {};
+    const module = this.module;
+    if (!module) {
+      return routingStructures;
+    }
+
+    if (module instanceof BatmanModule) {
+      routingStructures[RoutingStructure.BatmanRoutingTable] = module.getOriginatorTable();
+      routingStructures[RoutingStructure.BatmanNeighboursTable] = module.getNeighboursList();
+      return routingStructures;
+    }
+
+    if (module instanceof DsdvModule) {
+      routingStructures[RoutingStructure.DsdvRoutingTable] = module.getRoutes();
+      return routingStructures;
+    }
+
+    if (module instanceof AodvModule) {
+      routingStructures[RoutingStructure.AodvRoutingTable] = module.getRoutes();
+      return routingStructures;
+    }
+
+    if (module instanceof OlsrModule) {
+      routingStructures[RoutingStructure.OlsrNeighbourTable] = module.getNeighbourTable();
+      routingStructures[RoutingStructure.OlsrTopologyTable] = module.getTopologyTable();
+      routingStructures[RoutingStructure.OlsrTwoHopTable] = module.getTwoHopTable();
+      routingStructures[RoutingStructure.OlsrSelectorTable] = module.getSelectorTable();
+      routingStructures[RoutingStructure.OlsrRoutingTable] = module.getRoutes();
+      return routingStructures;
+    }
+
+    if (module instanceof DsrModule) {
+      routingStructures[RoutingStructure.DsrRoutingTable] = module.getRoutes();
+    }
+
+    return routingStructures;
+  }
+
+  getPrimaryProtocol() {
+    return this.entity.protocol;
+  }
+
+  getConfiguration() {
+    return this.entity.configuration;
+  }
+}

@@ -1,4 +1,4 @@
-import type { BatmanCalculationEventDetails } from "@/features/processor/types/batman";
+import type { BatmanCalculationEventDetails } from "@/features/processor/types/protocols/batman";
 import type {
   BroadcastEventDetails,
   DropEventDetails,

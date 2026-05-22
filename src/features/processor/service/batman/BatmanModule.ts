@@ -1,12 +1,12 @@
 import { EventRecorder } from "@/features/processor/EventRecorder.ts";
+import type { Node } from "@/features/processor/types/peer.ts";
 import {
   type BatmanCalculationEventDetails,
   type BatmanEchoLocationMessage,
   type BatmanNeighbourRecord,
   type BatmanOriginatorMessage,
   type BatmanRouteRecord,
-} from "@/features/processor/types/batman.ts";
-import type { PeerNode } from "@/features/processor/types/runtime.ts";
+} from "@/features/processor/types/protocols/batman.ts";
 import {
   BATMAN_MAX_THROUGHPUT,
   BATMAN_OGM_HOP_PENALTY_PERCENT,
@@ -44,7 +44,7 @@ export class BatmanModule extends BaseModule {
   private elpSequence: number = 0;
   private ogmSequence: number = 0;
 
-  constructor(peer: PeerNode, eventRecorder: EventRecorder) {
+  constructor(peer: Node, eventRecorder: EventRecorder) {
     super(peer, eventRecorder);
     this.INCOMING_MESSAGE_TYPES.push(
       MessageType.BatmanOriginatorMessage,

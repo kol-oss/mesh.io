@@ -1,17 +1,17 @@
-import type { AodvRouteRecord } from "../../../features/processor/types/aodv";
+import type { AodvRouteRecord } from "../../../features/processor/types/protocols/aodv";
 import type {
   BatmanNeighbourRecord,
   BatmanRouteRecord,
-} from "../../../features/processor/types/batman";
-import type { DsdvRouteRecord } from "../../../features/processor/types/dsdv";
-import type { DsrRouteRecord } from "../../../features/processor/types/dsr";
+} from "../../../features/processor/types/protocols/batman";
+import type { DsdvRouteRecord } from "../../../features/processor/types/protocols/dsdv";
+import type { DsrRouteRecord } from "../../../features/processor/types/protocols/dsr";
 import type {
   OlsrNeighbourRecord,
   OlsrRouteRecord,
   OlsrSelectorRecord,
   OlsrTopologyRecord,
   OlsrTwoHopRecord,
-} from "../../../features/processor/types/olsr";
+} from "../../../features/processor/types/protocols/olsr";
 import type { NetworkEntity, PeerEntity } from "../model/entities";
 import type { Step } from "../model/steps";
 import type { Event } from "./events";

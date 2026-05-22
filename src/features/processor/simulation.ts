@@ -1,9 +1,8 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
 import { AodvModule } from "@/features/processor/service/aodv/AodvModule";
 import { DsdvModule } from "@/features/processor/service/dsdv/DsdvModule";
+import { NetworkManager } from "@/features/processor/service/NetworkManager";
 import { OlsrModule } from "@/features/processor/service/olsr/OlsrModule";
-import { RuntimeNetwork } from "@/features/processor/types/network";
-import type { RoutingModule } from "@/features/processor/types/runtime";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import {
   type SimulationInput,
@@ -13,19 +12,21 @@ import {
 } from "@/shared/types/common/simulation";
 import { RefreshAction, StepType, type Step } from "@/shared/types/model/steps";
 import {
+  DropReason,
   EventType,
   type MoveEventDetails,
   type StatusChangeEventDetails,
 } from "../../shared/types/common/events";
 import { MessageType, type Packet } from "../../shared/types/common/messages";
 import { BatmanModule } from "./service/batman/BatmanModule";
+import type { RoutingModule } from "./types/module";
 import { sortStepsByTick } from "./utils/steps";
 
 export function runSimulation(input: SimulationInput): SimulationResult {
   const { entities, steps } = input;
 
   const eventRecorder = new EventRecorder();
-  const network = new RuntimeNetwork(entities, eventRecorder);
+  const network = new NetworkManager(entities, eventRecorder);
   const sortedSteps = sortStepsByTick(steps);
   const stepResults: StepResult[] = [];
   const eventSnapshots: Snapshot[] = [];
@@ -39,7 +40,7 @@ export function runSimulation(input: SimulationInput): SimulationResult {
   while (stepIndex < sortedSteps.length) {
     const tick = sortedSteps[stepIndex].tick;
     while (simulationTick < tick) {
-      network.tickModules();
+      network.tick();
       eventRecorder.addTick(1);
       simulationTick += 1;
     }
@@ -76,7 +77,7 @@ export function runSimulation(input: SimulationInput): SimulationResult {
   };
 }
 
-const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRecorder) => {
+const processStep = (step: Step, network: NetworkManager, eventRecorder: EventRecorder) => {
   if (step.type === StepType.Move) {
     if (!step.entityId) {
       return;
@@ -96,8 +97,8 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
       toY: step.y,
     };
 
-    network.updatePeerPosition(step.entityId, step.x, step.y);
-    network.refreshConnectivity();
+    network.move(step.entityId, step.x, step.y);
+    network.refresh();
     eventRecorder.record(step.entityId, EventType.Move, moveDetails);
     return;
   }
@@ -107,12 +108,12 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
       return;
     }
 
-    const toggleResult = network.toggleEntity(step.entityId);
+    const toggleResult = network.toggleStatus(step.entityId);
     if (!toggleResult) {
       return;
     }
 
-    network.refreshConnectivity();
+    network.refresh();
 
     const statusDetails: StatusChangeEventDetails = {
       entityId: step.entityId,
@@ -214,10 +215,7 @@ const processStep = (step: Step, network: RuntimeNetwork, eventRecorder: EventRe
   const sourceModule = sourceProtocol ? sourcePeer?.getModule(sourceProtocol) : null;
   if (!sourceModule || !isPacketCapableModule(sourceModule)) {
     eventRecorder.record(step.sourceId, EventType.Drop, {
-      reason: sourcePeer
-        ? `Source peer does not have a ${sourceProtocol ?? "Unknown"} module`
-        : "Source peer does not exist",
-      reasonCode: "SOURCE_UNAVAILABLE",
+      reason: DropReason.DestinationUnavailable,
     });
     return;
   }

@@ -1,10 +1,10 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
+import type { Node } from "@/features/processor/types/peer";
 import {
   DsdvUpdateType,
   type DsdvRouteUpdateMessage,
   type DsdvRouteUpdateRecordEntry,
-} from "@/features/processor/types/dsdv";
-import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime";
+} from "@/features/processor/types/protocols/dsdv";
 import {
   DSDV_METRIC_INFINITY,
   DSDV_MIN_INTERVAL,
@@ -17,6 +17,7 @@ import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { DsdvConfiguration } from "@/shared/types/model/configurations";
 import { getDsdvConfiguration } from "@/shared/types/model/peers";
+import type { RoutingModule } from "../../types/module";
 import { DsdvRoutingTable } from "./DsdvRoutingTable";
 import { cloneDsdvMessage, isDsdvSimulationMessage } from "./dsdvMessage";
 
@@ -31,7 +32,7 @@ const clampTimeout = (value: number) => {
 };
 
 export class DsdvModule implements RoutingModule {
-  private readonly routingPeer: PeerNode;
+  private readonly routingPeer: Node;
 
   private readonly eventRecorder: EventRecorder;
 
@@ -58,7 +59,7 @@ export class DsdvModule implements RoutingModule {
     return configuration;
   }
 
-  constructor(routingPeer: PeerNode, eventRecorder: EventRecorder) {
+  constructor(routingPeer: Node, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
     this.routingTable = new DsdvRoutingTable({

@@ -1,5 +1,8 @@
-import { DsdvUpdateType } from "@/features/processor/types/dsdv";
-import { type OlsrHelloMessage, type OlsrTcMessage } from "@/features/processor/types/olsr";
+import { DsdvUpdateType } from "@/features/processor/types/protocols/dsdv";
+import {
+  type OlsrHelloMessage,
+  type OlsrTcMessage,
+} from "@/features/processor/types/protocols/olsr";
 import { type Event } from "@/shared/types/common/events";
 import { MessageType, type Message } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";

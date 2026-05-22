@@ -3,18 +3,21 @@ import type {
   AodvRouteErrorMessage,
   AodvRouteReplyMessage,
   AodvRouteRequestMessage,
-} from "../../../features/processor/types/aodv";
+} from "../../../features/processor/types/protocols/aodv";
 import type {
   BatmanEchoLocationMessage,
   BatmanOriginatorMessage,
-} from "../../../features/processor/types/batman";
-import type { DsdvRouteUpdateMessage } from "../../../features/processor/types/dsdv";
+} from "../../../features/processor/types/protocols/batman";
+import type { DsdvRouteUpdateMessage } from "../../../features/processor/types/protocols/dsdv";
 import type {
   DsrRouteErrorMessage,
   DsrRouteReplyMessage,
   DsrRouteRequestMessage,
-} from "../../../features/processor/types/dsr";
-import type { OlsrHelloMessage, OlsrTcMessage } from "../../../features/processor/types/olsr";
+} from "../../../features/processor/types/protocols/dsr";
+import type {
+  OlsrHelloMessage,
+  OlsrTcMessage,
+} from "../../../features/processor/types/protocols/olsr";
 import type { UUID } from "./uuid";
 
 export enum MessageType {

@@ -1,24 +1,24 @@
 import type {
   AodvRouteChangeEventDetails,
   AodvRouteRecord,
-} from "../../../features/processor/types/aodv";
+} from "../../../features/processor/types/protocols/aodv";
 import type {
   BatmanCalculationEventDetails,
   BatmanRouteChangeEventDetails,
   BatmanRouteRecord,
-} from "../../../features/processor/types/batman";
+} from "../../../features/processor/types/protocols/batman";
 import type {
   DsdvRouteChangeEventDetails,
   DsdvRouteRecord,
-} from "../../../features/processor/types/dsdv";
+} from "../../../features/processor/types/protocols/dsdv";
 import type {
   DsrRouteChangeEventDetails,
   DsrRouteRecord,
-} from "../../../features/processor/types/dsr";
+} from "../../../features/processor/types/protocols/dsr";
 import type {
   OlsrRouteChangeEventDetails,
   OlsrRouteRecord,
-} from "../../../features/processor/types/olsr";
+} from "../../../features/processor/types/protocols/olsr";
 import type { EntityType } from "../model/entities";
 import type { Message, Packet } from "./messages";
 import type { RoutingProtocol } from "./protocols";

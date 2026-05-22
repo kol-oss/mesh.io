@@ -1,11 +1,11 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
+import type { Node } from "@/features/processor/types/peer";
 import {
   type DsrRouteErrorMessage,
   type DsrRouteRecord,
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,
-} from "@/features/processor/types/dsr";
-import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime";
+} from "@/features/processor/types/protocols/dsr";
 import {
   DSR_DEFAULT_HOP_LIMIT,
   DSR_MAX_REDISCOVERY_ATTEMPTS,
@@ -16,6 +16,7 @@ import { EventType } from "@/shared/types/common/events";
 import { MessageType, type Packet } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
+import type { RoutingModule } from "../../types/module";
 import { cloneDsrMessage, isDsrSimulationMessage } from "./dsrMessage";
 
 type RouteCacheEntry = DsrRouteRecord;
@@ -26,7 +27,7 @@ type DiscoveryResult = {
 };
 
 export class DsrModule implements RoutingModule {
-  private readonly routingPeer: PeerNode;
+  private readonly routingPeer: Node;
 
   private readonly eventRecorder: EventRecorder;
 
@@ -34,7 +35,7 @@ export class DsrModule implements RoutingModule {
 
   private requestSequence = 0;
 
-  constructor(routingPeer: PeerNode, eventRecorder: EventRecorder) {
+  constructor(routingPeer: Node, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
   }
@@ -151,7 +152,7 @@ export class DsrModule implements RoutingModule {
     this.requestSequence += 1;
     const requestId = this.requestSequence;
 
-    const queue: Array<{ peer: PeerNode; pathPeerIds: UUID[] }> = [
+    const queue: Array<{ peer: Node; pathPeerIds: UUID[] }> = [
       { peer: this.routingPeer, pathPeerIds: [this.routingPeer.id] },
     ];
 
@@ -545,7 +546,7 @@ export class DsrModule implements RoutingModule {
 
   private getModulesAlongPath(pathPeerIds: UUID[]) {
     const modules: DsrModule[] = [];
-    let currentPeer: PeerNode | null = this.routingPeer;
+    let currentPeer: Node | null = this.routingPeer;
 
     for (let index = 0; index < pathPeerIds.length; index += 1) {
       const expectedPeerId = pathPeerIds[index];

@@ -1,6 +1,6 @@
-import type { BaseMessage, Message, MessageType } from "../../../shared/types/common/messages";
-import type { RoutingProtocol } from "../../../shared/types/common/protocols";
-import type { UUID } from "../../../shared/types/common/uuid";
+import type { BaseMessage, Message, MessageType } from "../../../../shared/types/common/messages";
+import type { RoutingProtocol } from "../../../../shared/types/common/protocols";
+import type { UUID } from "../../../../shared/types/common/uuid";
 
 // RREQ message
 export type AodvRouteRequestMessage = BaseMessage & {

@@ -2,7 +2,7 @@ import {
   type BatmanCalculationEventDetails,
   type BatmanRouteChangeEventDetails,
   type BatmanRouteRecord,
-} from "@/features/processor/types/batman";
+} from "@/features/processor/types/protocols/batman";
 import PeerDescription from "@/shared/components/Description/PeerDescription";
 import SecondaryDescription from "@/shared/components/Description/SecondaryDescription";
 import TableDescription from "@/shared/components/Description/TableDescription";

@@ -1,4 +1,5 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
+import type { Node } from "@/features/processor/types/peer";
 import {
   type OlsrHelloMessage,
   type OlsrNeighbourRecord,
@@ -7,8 +8,7 @@ import {
   type OlsrTcMessage,
   type OlsrTopologyRecord,
   type OlsrTwoHopRecord,
-} from "@/features/processor/types/olsr";
-import type { PeerNode, RoutingModule } from "@/features/processor/types/runtime";
+} from "@/features/processor/types/protocols/olsr";
 import { OLSR_DEFAULT_TC_TTL, OLSR_MIN_INTERVAL } from "@/shared/constants/olsr";
 import { EventType } from "@/shared/types/common/events";
 import { MessageType, type Message, type Packet } from "@/shared/types/common/messages";
@@ -16,6 +16,7 @@ import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { OlsrConfiguration } from "@/shared/types/model/configurations";
 import { getOlsrConfiguration } from "@/shared/types/model/peers";
+import type { RoutingModule } from "../../types/module";
 import { cloneOlsrMessage, isOlsrSimulationMessage } from "./olsrMessage";
 
 type OlsrTopologyEntry = {
@@ -42,7 +43,7 @@ const clampInterval = (value: number) => {
 };
 
 export class OlsrModule implements RoutingModule {
-  private readonly routingPeer: PeerNode;
+  private readonly routingPeer: Node;
 
   private readonly eventRecorder: EventRecorder;
 
@@ -74,7 +75,7 @@ export class OlsrModule implements RoutingModule {
     return configuration;
   }
 
-  constructor(routingPeer: PeerNode, eventRecorder: EventRecorder) {
+  constructor(routingPeer: Node, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
   }
@@ -789,7 +790,7 @@ export class OlsrModule implements RoutingModule {
   }
 
   private getKnownSymmetricNeighbours() {
-    const neighbours: PeerNode[] = [];
+    const neighbours: Node[] = [];
 
     for (const record of this.neighbourTable.values()) {
       const peer = this.routingPeer.getNeighbour(record.neighbourPeerId);

@@ -2,7 +2,7 @@ import {
   type BatmanCalculationEventDetails,
   type BatmanRouteChangeEventDetails,
   type BatmanRouteRecord,
-} from "@/features/processor/types/batman";
+} from "@/features/processor/types/protocols/batman";
 import {
   EventType,
   type DropEventDetails,

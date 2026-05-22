@@ -1,4 +1,4 @@
-import type { BatmanNeighbourRecord } from "@/features/processor/types/batman";
+import type { BatmanNeighbourRecord } from "@/features/processor/types/protocols/batman";
 import type { UUID } from "@/shared/types/common/uuid";
 
 export class NeighbourList {

@@ -3,18 +3,24 @@ import {
   type AodvRouteErrorMessage,
   type AodvRouteReplyMessage,
   type AodvRouteRequestMessage,
-} from "@/features/processor/types/aodv";
+} from "@/features/processor/types/protocols/aodv";
 import {
   type BatmanCalculationEventDetails,
   type BatmanRouteRecord,
-} from "@/features/processor/types/batman";
-import { DsdvUpdateType, type DsdvRouteUpdateMessage } from "@/features/processor/types/dsdv";
+} from "@/features/processor/types/protocols/batman";
+import {
+  DsdvUpdateType,
+  type DsdvRouteUpdateMessage,
+} from "@/features/processor/types/protocols/dsdv";
 import {
   type DsrRouteErrorMessage,
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,
-} from "@/features/processor/types/dsr";
-import { type OlsrHelloMessage, type OlsrTcMessage } from "@/features/processor/types/olsr";
+} from "@/features/processor/types/protocols/dsr";
+import {
+  type OlsrHelloMessage,
+  type OlsrTcMessage,
+} from "@/features/processor/types/protocols/olsr";
 import {
   EventType,
   type BroadcastEventDetails,
