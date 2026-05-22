@@ -6,52 +6,29 @@ import { DsrModule } from "@/features/processor/service/dsr/DsrModule";
 import { OlsrModule } from "@/features/processor/service/olsr/OlsrModule";
 import {
   RoutingStructure,
-  type Node,
+  type NodeWrapper,
   type RoutingStructuresMap,
-} from "@/features/processor/types/peer";
+} from "@/features/processor/types/node";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { type RoutingModule } from "../types/module";
+import { MODULE_FACTORY_BY_PROTOCOL } from "../utils/module";
 import type { NetworkManager } from "./NetworkManager";
 
-export class NetworkNode implements Node {
-  private readonly module: RoutingModule | null;
-  private readonly rangedPeerIds = new Set<UUID>();
-  private readonly linkedPeerIds = new Set<UUID>();
+export class NetworkNode implements NodeWrapper {
   private readonly entity: PeerEntity;
   private readonly network: NetworkManager;
+  private readonly module: RoutingModule;
+
+  private readonly ranged = new Set<UUID>();
+  private readonly linked = new Set<UUID>();
 
   constructor(entity: PeerEntity, network: NetworkManager, eventRecorder: EventRecorder) {
     this.entity = entity;
     this.network = network;
-    this.module = this.createModule(eventRecorder);
-  }
 
-  private createModule(eventRecorder: EventRecorder): RoutingModule | null {
-    const protocol = this.entity.protocol;
-
-    if (protocol === RoutingProtocol.BATMAN) {
-      return new BatmanModule(this, eventRecorder);
-    }
-
-    if (protocol === RoutingProtocol.DSDV) {
-      return new DsdvModule(this, eventRecorder);
-    }
-
-    if (protocol === RoutingProtocol.AODV) {
-      return new AodvModule(this, eventRecorder);
-    }
-
-    if (protocol === RoutingProtocol.DSR) {
-      return new DsrModule(this, eventRecorder);
-    }
-
-    if (protocol === RoutingProtocol.OLSR) {
-      return new OlsrModule(this, eventRecorder);
-    }
-
-    return null;
+    this.module = MODULE_FACTORY_BY_PROTOCOL.get(this.entity.protocol)!(this, eventRecorder);
   }
 
   get id() {
@@ -67,7 +44,7 @@ export class NetworkNode implements Node {
   }
 
   supports(protocol: RoutingProtocol) {
-    return this.module !== null && this.entity.protocol === protocol;
+    return this.entity.protocol === protocol;
   }
 
   getModule(protocol: RoutingProtocol) {
@@ -91,17 +68,17 @@ export class NetworkNode implements Node {
     this.entity.enabled = enabled;
   }
 
-  clearTopology() {
-    this.rangedPeerIds.clear();
-    this.linkedPeerIds.clear();
+  clear() {
+    this.ranged.clear();
+    this.linked.clear();
   }
 
-  addRangedPeer(peerId: UUID) {
-    this.rangedPeerIds.add(peerId);
+  addRanged(peerId: UUID) {
+    this.ranged.add(peerId);
   }
 
-  addLinkedPeer(peerId: UUID) {
-    this.linkedPeerIds.add(peerId);
+  addLinked(peerId: UUID) {
+    this.linked.add(peerId);
   }
 
   getNeighbour(peerId: UUID) {
@@ -109,7 +86,7 @@ export class NetworkNode implements Node {
       return null;
     }
 
-    if (!this.rangedPeerIds.has(peerId) && !this.linkedPeerIds.has(peerId)) {
+    if (!this.ranged.has(peerId) && !this.linked.has(peerId)) {
       return null;
     }
 
@@ -118,8 +95,8 @@ export class NetworkNode implements Node {
   }
 
   getNeighbours() {
-    const neighbourIds = new Set([...this.rangedPeerIds, ...this.linkedPeerIds]);
-    const neighbours: Node[] = [];
+    const neighbourIds = new Set([...this.ranged, ...this.linked]);
+    const neighbours: NodeWrapper[] = [];
 
     for (const peerId of neighbourIds) {
       const peer = this.network.getPeer(peerId);
@@ -132,9 +109,9 @@ export class NetworkNode implements Node {
   }
 
   getRangedNeighbours() {
-    const neighbours: Node[] = [];
+    const neighbours: NodeWrapper[] = [];
 
-    for (const peerId of this.rangedPeerIds) {
+    for (const peerId of this.ranged) {
       const peer = this.network.getPeer(peerId);
       if (peer?.isActive()) {
         neighbours.push(peer);
@@ -145,11 +122,11 @@ export class NetworkNode implements Node {
   }
 
   isRangedNeighbour(peerId: UUID) {
-    return this.rangedPeerIds.has(peerId);
+    return this.ranged.has(peerId);
   }
 
   isLinkedNeighbour(peerId: UUID) {
-    return this.linkedPeerIds.has(peerId);
+    return this.linked.has(peerId);
   }
 
   getRoutingStructures(): Readonly<RoutingStructuresMap> {

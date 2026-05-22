@@ -1,5 +1,5 @@
 import type { EventRecorder } from "@/features/processor/EventRecorder";
-import { RoutingStructure } from "@/features/processor/types/peer";
+import { RoutingStructure } from "@/features/processor/types/node";
 import {
   canCreateRangedConnection,
   getConnectivityObstacleBounds,
@@ -20,7 +20,7 @@ import { NetworkNode } from "./NetworkNode";
 const clone = <T extends NetworkEntity>(entity: T): T => ({ ...entity });
 
 export class NetworkManager implements EntityManager, EventManager, StateManager {
-  private readonly peers = new Map<UUID, NetworkNode>();
+  private readonly nodes = new Map<UUID, NetworkNode>();
   private readonly links = new Map<UUID, LinkEntity>();
   private readonly obstacles: ObstacleEntity[] = [];
 
@@ -32,7 +32,7 @@ export class NetworkManager implements EntityManager, EventManager, StateManager
 
       if (entity.type === EntityType.Peer) {
         const peerEntity = clone(entity);
-        this.peers.set(peerEntity.id, new NetworkNode(peerEntity, this, eventRecorder));
+        this.nodes.set(peerEntity.id, new NetworkNode(peerEntity, this, eventRecorder));
         continue;
       }
 
@@ -51,12 +51,12 @@ export class NetworkManager implements EntityManager, EventManager, StateManager
 
   // get peer by id
   getPeer(peerId: UUID) {
-    return this.peers.get(peerId) ?? null;
+    return this.nodes.get(peerId) ?? null;
   }
 
   // get all peers
   getAllPeers() {
-    return [...this.peers.values()];
+    return [...this.nodes.values()];
   }
 
   // refresh network connectivity
@@ -65,7 +65,7 @@ export class NetworkManager implements EntityManager, EventManager, StateManager
     const obstacleBounds = getConnectivityObstacleBounds(this.obstacles);
 
     for (const peer of peerList) {
-      peer.clearTopology();
+      peer.clear();
     }
 
     for (let index = 0; index < peerList.length; index += 1) {
@@ -76,8 +76,8 @@ export class NetworkManager implements EntityManager, EventManager, StateManager
         const destination = peerList[innerIndex];
         const destinationPeer = destination.getEntity();
         if (canCreateRangedConnection(sourcePeer, destinationPeer, obstacleBounds)) {
-          source.addRangedPeer(destination.id);
-          destination.addRangedPeer(source.id);
+          source.addRanged(destination.id);
+          destination.addRanged(source.id);
         }
       }
     }
@@ -94,8 +94,8 @@ export class NetworkManager implements EntityManager, EventManager, StateManager
         continue;
       }
 
-      source.addLinkedPeer(destination.id);
-      destination.addLinkedPeer(source.id);
+      source.addLinked(destination.id);
+      destination.addLinked(source.id);
     }
   }
 
@@ -109,12 +109,12 @@ export class NetworkManager implements EntityManager, EventManager, StateManager
 
   // update peer position
   move(peerId: UUID, x: number, y: number) {
-    this.peers.get(peerId)?.setPosition(x, y);
+    this.nodes.get(peerId)?.setPosition(x, y);
   }
 
   // toggle peer or link enabled status
   toggleStatus(entityId: UUID): ToggleStatusResult | null {
-    const peer = this.peers.get(entityId);
+    const peer = this.nodes.get(entityId);
     if (peer) {
       const previousEnabled = peer.getEntity().enabled;
       const nextEnabled = !previousEnabled;

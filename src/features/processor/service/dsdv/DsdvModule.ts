@@ -1,5 +1,5 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
-import type { Node } from "@/features/processor/types/peer";
+import type { NodeWrapper } from "@/features/processor/types/node";
 import {
   DsdvUpdateType,
   type DsdvRouteUpdateMessage,
@@ -32,7 +32,7 @@ const clampTimeout = (value: number) => {
 };
 
 export class DsdvModule implements RoutingModule {
-  private readonly routingPeer: Node;
+  private readonly routingPeer: NodeWrapper;
 
   private readonly eventRecorder: EventRecorder;
 
@@ -59,7 +59,7 @@ export class DsdvModule implements RoutingModule {
     return configuration;
   }
 
-  constructor(routingPeer: Node, eventRecorder: EventRecorder) {
+  constructor(routingPeer: NodeWrapper, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
     this.routingTable = new DsdvRoutingTable({

@@ -1,5 +1,5 @@
 import { EventRecorder } from "@/features/processor/EventRecorder.ts";
-import type { Node } from "@/features/processor/types/peer.ts";
+import type { NodeWrapper } from "@/features/processor/types/node.ts";
 import {
   type BatmanCalculationEventDetails,
   type BatmanEchoLocationMessage,
@@ -44,7 +44,7 @@ export class BatmanModule extends BaseModule {
   private elpSequence: number = 0;
   private ogmSequence: number = 0;
 
-  constructor(peer: Node, eventRecorder: EventRecorder) {
+  constructor(peer: NodeWrapper, eventRecorder: EventRecorder) {
     super(peer, eventRecorder);
     this.INCOMING_MESSAGE_TYPES.push(
       MessageType.BatmanOriginatorMessage,

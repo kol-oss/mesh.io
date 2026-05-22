@@ -1,5 +1,5 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
-import type { Node } from "@/features/processor/types/peer";
+import type { NodeWrapper } from "@/features/processor/types/node";
 import {
   type BatmanOriginatorMessage,
   type BatmanOriginatorRecord,
@@ -24,7 +24,7 @@ type BatmanProcessResult = {
 const PROTOCOL = RoutingProtocol.BATMAN;
 
 export class OriginatorTable {
-  private readonly peer: Node;
+  private readonly peer: NodeWrapper;
   private readonly eventRecorder: EventRecorder;
   private readonly originators = new Map<UUID, Map<UUID, BatmanOriginatorRecord>>();
   private readonly purgeTimeout: number;
@@ -32,7 +32,7 @@ export class OriginatorTable {
   private readonly onRouteDeleted?: (hopId: UUID) => void;
 
   constructor(
-    peer: Node,
+    peer: NodeWrapper,
     eventRecorder: EventRecorder,
     purgeTimeout: number,
     onRouteDeleted?: (hopId: UUID) => void,

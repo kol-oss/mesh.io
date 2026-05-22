@@ -4,16 +4,16 @@ import type { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { EventRecorder } from "../EventRecorder";
 import type { RoutingModule } from "../types/module";
-import type { Node } from "../types/peer";
+import type { NodeWrapper } from "../types/node";
 import { clone } from "../utils/messages";
 
 export abstract class BaseModule implements RoutingModule {
-  protected readonly peer: Node;
+  protected readonly peer: NodeWrapper;
   protected readonly eventRecorder: EventRecorder;
 
   protected readonly INCOMING_MESSAGE_TYPES: MessageType[] = [MessageType.Packet];
 
-  constructor(peer: Node, eventRecorder: EventRecorder) {
+  constructor(peer: NodeWrapper, eventRecorder: EventRecorder) {
     this.peer = peer;
     this.eventRecorder = eventRecorder;
   }

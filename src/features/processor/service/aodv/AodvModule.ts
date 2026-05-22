@@ -1,5 +1,5 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
-import type { Node } from "@/features/processor/types/peer";
+import type { NodeWrapper } from "@/features/processor/types/node";
 import {
   type AodvHelloMessage,
   type AodvRouteErrorMessage,
@@ -48,7 +48,7 @@ const clampRouteTimeout = (value: number) => {
 };
 
 export class AodvModule implements RoutingModule {
-  private readonly routingPeer: Node;
+  private readonly routingPeer: NodeWrapper;
 
   private readonly eventRecorder: EventRecorder;
 
@@ -60,7 +60,7 @@ export class AodvModule implements RoutingModule {
 
   private requestSequence = 0;
 
-  constructor(routingPeer: Node, eventRecorder: EventRecorder) {
+  constructor(routingPeer: NodeWrapper, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
 
@@ -258,7 +258,7 @@ export class AodvModule implements RoutingModule {
     const requestId = this.requestSequence;
     const requestedSequenceNumber = this.getRequestedDestinationSequence(destinationPeerId);
     const queue: Array<{
-      peer: Node;
+      peer: NodeWrapper;
       previousHopPeerId: UUID | null;
       hopCount: number;
       pathPeerIds: UUID[];
@@ -858,8 +858,8 @@ export class AodvModule implements RoutingModule {
   }
 
   private getPeersAlongPath(pathPeerIds: UUID[]) {
-    const peers: Node[] = [];
-    let currentPeer: Node | null = this.routingPeer;
+    const peers: NodeWrapper[] = [];
+    let currentPeer: NodeWrapper | null = this.routingPeer;
 
     for (let index = 0; index < pathPeerIds.length; index += 1) {
       const expectedPeerId = pathPeerIds[index];
@@ -879,7 +879,7 @@ export class AodvModule implements RoutingModule {
     return peers;
   }
 
-  private getAodvModule(peer: Node | null) {
+  private getAodvModule(peer: NodeWrapper | null) {
     if (!peer) {
       return null;
     }

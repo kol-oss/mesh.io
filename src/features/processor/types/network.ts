@@ -1,7 +1,7 @@
 import type { Snapshot } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { EntityType, NetworkEntity } from "@/shared/types/model/entities";
-import type { Node } from "./peer";
+import type { NodeWrapper } from "./node";
 
 export type ToggleStatusResult = {
   entityType: EntityType;
@@ -10,8 +10,8 @@ export type ToggleStatusResult = {
 } | null;
 
 export interface EntityManager {
-  getPeer(id: UUID): Node | null;
-  getAllPeers(): Node[];
+  getPeer(id: UUID): NodeWrapper | null;
+  getAllPeers(): NodeWrapper[];
 }
 
 export interface EventManager {

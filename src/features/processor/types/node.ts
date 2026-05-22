@@ -48,18 +48,26 @@ export type RoutingStructureRecordsByType = {
 
 export type RoutingStructuresMap = Partial<RoutingStructureRecordsByType>;
 
-export interface Node {
+export interface PeerWrapper {
   readonly id: UUID;
   readonly name: string;
+  getEntity(): PeerEntity;
+  getConfiguration(): PeerConfiguration;
   isActive(): boolean;
-  supports(protocol: RoutingProtocol): boolean;
-  getModule(protocol: RoutingProtocol): RoutingModule | null;
-  getNeighbour(peerId: UUID): Node | null;
-  getNeighbours(): Node[];
-  getRangedNeighbours(): Node[];
+}
+
+export interface NeighbourWrapper {
+  getNeighbour(peerId: UUID): NodeWrapper | null;
+  getNeighbours(): NodeWrapper[];
+  getRangedNeighbours(): NodeWrapper[];
   isLinkedNeighbour(peerId: UUID): boolean;
   isRangedNeighbour(peerId: UUID): boolean;
-  getEntity(): PeerEntity;
-  getRoutingStructures(): Readonly<RoutingStructuresMap>;
-  getConfiguration(): PeerConfiguration;
 }
+
+export interface RoutingWrapper {
+  supports(protocol: RoutingProtocol): boolean;
+  getModule(protocol: RoutingProtocol): RoutingModule | null;
+  getRoutingStructures(): Readonly<RoutingStructuresMap>;
+}
+
+export interface NodeWrapper extends PeerWrapper, NeighbourWrapper, RoutingWrapper {}

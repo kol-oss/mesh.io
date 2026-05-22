@@ -1,5 +1,5 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
-import type { Node } from "@/features/processor/types/peer";
+import type { NodeWrapper } from "@/features/processor/types/node";
 import {
   type DsdvRouteRecord,
   type DsdvRouteUpdateMessage,
@@ -25,7 +25,7 @@ export class DsdvRoutingTable {
 
   private readonly pendingWithdrawals = new Map<UUID, DsdvRouteState>();
 
-  private readonly routingPeer: Node;
+  private readonly routingPeer: NodeWrapper;
 
   private readonly eventRecorder: EventRecorder;
 
@@ -34,7 +34,7 @@ export class DsdvRoutingTable {
   private getRouteExpiryTick: (nextHopPeerId: UUID, fallbackTick: number) => number;
 
   constructor(params: {
-    routingPeer: Node;
+    routingPeer: NodeWrapper;
     eventRecorder: EventRecorder;
     getRouteTimeout: () => number;
     getRouteExpiryTick: (nextHopPeerId: UUID, fallbackTick: number) => number;

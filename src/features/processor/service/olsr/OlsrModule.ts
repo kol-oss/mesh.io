@@ -1,5 +1,5 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
-import type { Node } from "@/features/processor/types/peer";
+import type { NodeWrapper } from "@/features/processor/types/node";
 import {
   type OlsrHelloMessage,
   type OlsrNeighbourRecord,
@@ -10,7 +10,7 @@ import {
   type OlsrTwoHopRecord,
 } from "@/features/processor/types/protocols/olsr";
 import { OLSR_DEFAULT_TC_TTL, OLSR_MIN_INTERVAL } from "@/shared/constants/olsr";
-import { EventType } from "@/shared/types/common/events";
+import { DropReason, EventType } from "@/shared/types/common/events";
 import { MessageType, type Message, type Packet } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
@@ -43,7 +43,7 @@ const clampInterval = (value: number) => {
 };
 
 export class OlsrModule implements RoutingModule {
-  private readonly routingPeer: Node;
+  private readonly routingPeer: NodeWrapper;
 
   private readonly eventRecorder: EventRecorder;
 
@@ -75,7 +75,7 @@ export class OlsrModule implements RoutingModule {
     return configuration;
   }
 
-  constructor(routingPeer: Node, eventRecorder: EventRecorder) {
+  constructor(routingPeer: NodeWrapper, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
   }
@@ -709,8 +709,7 @@ export class OlsrModule implements RoutingModule {
     if (!selectedRoute) {
       this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
         message: cloneOlsrMessage(packet),
-        reason: "No OLSR route is available for the destination",
-        reasonCode: "NO_ROUTE",
+        reason: DropReason.NoRoute,
       });
       return false;
     }
@@ -790,7 +789,7 @@ export class OlsrModule implements RoutingModule {
   }
 
   private getKnownSymmetricNeighbours() {
-    const neighbours: Node[] = [];
+    const neighbours: NodeWrapper[] = [];
 
     for (const record of this.neighbourTable.values()) {
       const peer = this.routingPeer.getNeighbour(record.neighbourPeerId);

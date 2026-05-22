@@ -1,5 +1,5 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
-import type { Node } from "@/features/processor/types/peer";
+import type { NodeWrapper } from "@/features/processor/types/node";
 import {
   type DsrRouteErrorMessage,
   type DsrRouteRecord,
@@ -27,7 +27,7 @@ type DiscoveryResult = {
 };
 
 export class DsrModule implements RoutingModule {
-  private readonly routingPeer: Node;
+  private readonly routingPeer: NodeWrapper;
 
   private readonly eventRecorder: EventRecorder;
 
@@ -35,7 +35,7 @@ export class DsrModule implements RoutingModule {
 
   private requestSequence = 0;
 
-  constructor(routingPeer: Node, eventRecorder: EventRecorder) {
+  constructor(routingPeer: NodeWrapper, eventRecorder: EventRecorder) {
     this.routingPeer = routingPeer;
     this.eventRecorder = eventRecorder;
   }
@@ -152,7 +152,7 @@ export class DsrModule implements RoutingModule {
     this.requestSequence += 1;
     const requestId = this.requestSequence;
 
-    const queue: Array<{ peer: Node; pathPeerIds: UUID[] }> = [
+    const queue: Array<{ peer: NodeWrapper; pathPeerIds: UUID[] }> = [
       { peer: this.routingPeer, pathPeerIds: [this.routingPeer.id] },
     ];
 
@@ -546,7 +546,7 @@ export class DsrModule implements RoutingModule {
 
   private getModulesAlongPath(pathPeerIds: UUID[]) {
     const modules: DsrModule[] = [];
-    let currentPeer: Node | null = this.routingPeer;
+    let currentPeer: NodeWrapper | null = this.routingPeer;
 
     for (let index = 0; index < pathPeerIds.length; index += 1) {
       const expectedPeerId = pathPeerIds[index];
