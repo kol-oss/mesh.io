@@ -34,7 +34,7 @@ export default function LinkProperties({ selected, entities, setEntities }: Link
 
   return (
     <>
-      <PropertyHeader title="Link" link="/docs">
+      <PropertyHeader title="Link" link="/docs/system#links">
         {"A persistent bidirectional connection between two nodes in the network."}
       </PropertyHeader>
 

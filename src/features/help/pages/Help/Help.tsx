@@ -2,10 +2,10 @@ import { Link, NavLink, Navigate, Route, Routes } from "react-router-dom";
 
 import AodvHelpPage from "@/features/help/pages/Help/AodvHelp";
 import BatmanHelp from "@/features/help/pages/Help/BatmanHelp";
-import CoreHelp from "@/features/help/pages/Help/CoreHelp";
 import DsdvHelp from "@/features/help/pages/Help/DsdvHelp";
 import DsrHelpPage from "@/features/help/pages/Help/DsrHelp";
 import OlsrHelp from "@/features/help/pages/Help/OlsrHelp";
+import SystemHelp from "@/features/help/pages/Help/SystemHelp";
 
 const HEADER_LINKS = [
   { to: "/docs/dsdv", label: "DSDV" },
@@ -13,7 +13,7 @@ const HEADER_LINKS = [
   { to: "/docs/batman", label: "B.A.T.M.A.N." },
   { to: "/docs/dsr", label: "DSR" },
   { to: "/docs/aodv", label: "AODV" },
-  { to: "/docs/core", label: "Core" },
+  { to: "/docs/system", label: "Mesh IO" },
 ];
 
 export default function Help() {
@@ -52,12 +52,12 @@ export default function Help() {
       <div className="help-page__body">
         <main className="help-page__content">
           <Routes>
-            <Route path="core" element={<CoreHelp />} />
             <Route path="dsdv" element={<DsdvHelp />} />
             <Route path="olsr" element={<OlsrHelp />} />
             <Route path="batman" element={<BatmanHelp />} />
             <Route path="dsr" element={<DsrHelpPage />} />
             <Route path="aodv" element={<AodvHelpPage />} />
+            <Route path="system" element={<SystemHelp />} />
 
             <Route path="*" element={<Navigate to="/docs/batman" replace />} />
           </Routes>

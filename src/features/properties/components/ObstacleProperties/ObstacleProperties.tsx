@@ -24,7 +24,7 @@ export default function ObstacleProperties({
 
   return (
     <>
-      <PropertyHeader title="Obstacle" link="/docs">
+      <PropertyHeader title="Obstacle" link="/docs/system#obstacles">
         {"A physical barrier that blocks signal propagation between nearby nodes."}
       </PropertyHeader>
 

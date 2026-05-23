@@ -84,7 +84,7 @@ export default function PeerProperties({ selected, entities, setEntities }: Peer
 
   return (
     <>
-      <PropertyHeader title="Peer" link="/docs">
+      <PropertyHeader title="Peer" link="/docs/system#peers">
         {"A mesh network node with built-in support for specific routing protocols."}
       </PropertyHeader>
 

@@ -62,13 +62,13 @@ export default function StepProperties({
   return (
     <>
       {isRefresh ? (
-        <PropertyHeader title="Refresh Step" link="/docs">
+        <PropertyHeader title="Refresh Step" link="/docs/system#refresh-steps">
           {
             "Auto-generated intervaled routing refresh step for peer protocol state synchronization."
           }
         </PropertyHeader>
       ) : (
-        <PropertyHeader title="Step" link="/docs">
+        <PropertyHeader title="Step" link="/docs/system#steps">
           {"A discrete action in the simulation workflow, executed at a specific tick."}
         </PropertyHeader>
       )}

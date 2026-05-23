@@ -674,7 +674,7 @@ export const getSimulationReadMorePath = (
     return "/docs/olsr#what-you-need-to-know";
   }
 
-  return "/docs/batman#what-you-need-to-know";
+  return "/docs/system#events";
 };
 
 export const getMessageSummary = (
