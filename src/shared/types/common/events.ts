@@ -133,3 +133,22 @@ export type EventDetails =
   | RouteChangeEventDetails;
 
 export type EventListener = (event: Event) => void;
+
+export enum EventDetailsType {
+  // General event details types
+  Transfer,
+  Move,
+  StatusChange,
+  Drop,
+  Unknown,
+  // Batman-specific event details types
+  BatmanThroughputCalculation,
+  BatmanEchoLocationMessageBroadcast,
+  BatmanOriginatorMessageBroadcast,
+  BatmanOriginatorMessageRetransmission,
+  BatmanOriginatorSelected,
+  BatmanOriginatorAdded,
+  BatmanOriginatorUpdated,
+  BatmanOriginatorRemoved,
+  BatmanOriginatorMessageDropped,
+}

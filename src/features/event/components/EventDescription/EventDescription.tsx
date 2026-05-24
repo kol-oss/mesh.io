@@ -3,6 +3,7 @@ import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { type StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import { EntityType } from "@/shared/types/model/entities";
+import { getEventDetailsType } from "@/shared/utils/events";
 import {
   getEventMessage,
   getPeerLabel,
@@ -101,7 +102,10 @@ export default function EventDescription({
   );
   const routeChange = getRouteChange(currentEvent);
   const currentMessage = getEventMessage(currentEvent);
-  const title = getEventTitle(currentEvent);
+
+  const detailsType = getEventDetailsType(currentEvent);
+  const title = getEventTitle(detailsType);
+
   const eventOwner = (() => {
     if (currentEvent.type === EventType.StatusChange) {
       const details = currentEvent.details as StatusChangeEventDetails;
@@ -179,6 +183,7 @@ export default function EventDescription({
         {protocol === RoutingProtocol.BATMAN && (
           <BatmanDescription
             event={currentEvent}
+            detailsType={detailsType}
             peers={currentStepResult.snapshot.peers}
             onPeerHover={onPeerHoverChange}
           />

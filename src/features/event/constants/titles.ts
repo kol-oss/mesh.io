@@ -1,70 +1,25 @@
-import { EventType, type BroadcastEventDetails, type Event } from "@/shared/types/common/events";
-import { MessageType } from "@/shared/types/common/messages";
-import { RoutingProtocol } from "@/shared/types/common/protocols";
+import { EventDetailsType } from "@/shared/types/common/events";
 
 const UNKNOWN_EVENT_TITLE = "Unknown Event";
 
-const getBatmanEventTitle = (event: Event): string => {
-  const { type, details } = event;
+const EVENT_TITLES = new Map<EventDetailsType, string>([
+  // General event details types
+  [EventDetailsType.Transfer, "Message Transferred"],
+  [EventDetailsType.Move, "Entity Moved"],
+  [EventDetailsType.StatusChange, "Status Changed"],
+  [EventDetailsType.Drop, "Message Dropped"],
+  [EventDetailsType.Unknown, UNKNOWN_EVENT_TITLE],
+  // Batman-specific event details types
+  [EventDetailsType.BatmanThroughputCalculation, "Throughput Calculation"],
+  [EventDetailsType.BatmanEchoLocationMessageBroadcast, "ELP Broadcast"],
+  [EventDetailsType.BatmanOriginatorMessageBroadcast, "OGMv2 Broadcast"],
+  [EventDetailsType.BatmanOriginatorMessageRetransmission, "OGMv2 Broadcast Retransmission"],
+  [EventDetailsType.BatmanOriginatorSelected, "Originator Selected"],
+  [EventDetailsType.BatmanOriginatorAdded, "Originator Added"],
+  [EventDetailsType.BatmanOriginatorUpdated, "Originator Updated"],
+  [EventDetailsType.BatmanOriginatorRemoved, "Originator Removed"],
+]);
 
-  if (type === EventType.Calculation) {
-    return "Throughput Calculation";
-  }
-
-  if (type === EventType.Broadcast) {
-    const { message, retransmit: isRetransmission } = details as BroadcastEventDetails;
-    const { type: messageType } = message;
-
-    if (messageType === MessageType.BatmanEchoLocationMessage) {
-      return "ELP Broadcast";
-    }
-
-    if (messageType === MessageType.BatmanOriginatorMessage) {
-      return "OGMv2 Broadcast" + (isRetransmission ? " Retransmission" : "");
-    }
-  }
-
-  if (type === EventType.GetRoute) {
-    return "Originator Selected";
-  }
-
-  if (type === EventType.AddRoute) {
-    return "Originator Added";
-  }
-
-  if (type === EventType.UpdateRoute) {
-    return "Originator Updated";
-  }
-
-  if (type === EventType.DeleteRoute) {
-    return "Originator Removed";
-  }
-
-  return UNKNOWN_EVENT_TITLE;
-};
-
-export const getEventTitle = (event: Event): string => {
-  const { protocol, type } = event;
-
-  if (type === EventType.Transfer) {
-    return "Message Transferred";
-  }
-
-  if (type === EventType.Move) {
-    return "Entity Moved";
-  }
-
-  if (type === EventType.StatusChange) {
-    return "Status Changed";
-  }
-
-  if (type === EventType.Drop && protocol === undefined) {
-    return "Message Dropped";
-  }
-
-  if (protocol === RoutingProtocol.BATMAN) {
-    return getBatmanEventTitle(event);
-  }
-
-  return UNKNOWN_EVENT_TITLE;
+export const getEventTitle = (eventType: EventDetailsType): string => {
+  return EVENT_TITLES.get(eventType) ?? UNKNOWN_EVENT_TITLE;
 };

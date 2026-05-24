@@ -1,6 +1,7 @@
 import { EWMA_ALPHA } from "@/features/processor/constants/ewma";
 import {
   type BatmanCalculationEventDetails,
+  type BatmanEchoLocationMessage,
   type BatmanRouteChangeEventDetails,
   type BatmanRouteRecord,
 } from "@/features/processor/types/protocols/batman";
@@ -10,12 +11,11 @@ import TableDescription from "@/shared/components/Description/TableDescription";
 import VariableDescription from "@/shared/components/Description/VariableDescription";
 import { BATMAN_WIRELESS_BASE_THROUGHPUT } from "@/shared/constants/protocols/batman";
 import {
-  EventType,
+  EventDetailsType,
   type BroadcastEventDetails,
   type Event,
   type GetRouteEventDetails,
 } from "@/shared/types/common/events";
-import { MessageType } from "@/shared/types/common/messages";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
@@ -24,64 +24,71 @@ import TextDescription from "../../../../shared/components/Description/TextDescr
 type BatmanDescriptionProps = {
   peers: PeerEntity[];
   event: Event;
+  detailsType: EventDetailsType;
   onPeerHover: (peerId: UUID) => void;
 };
 
-export default function BatmanDescription({ peers, event, onPeerHover }: BatmanDescriptionProps) {
-  const { type, details } = event;
+export default function BatmanDescription({
+  peers,
+  event,
+  detailsType,
+  onPeerHover,
+}: BatmanDescriptionProps) {
+  const { details } = event;
 
-  if (type === EventType.Broadcast) {
-    const { message, retransmit: isRetransmission } = details as BroadcastEventDetails;
-    const { type: messageType } = message;
+  // Echo Location Protocol (ELP) broadcast
+  if (detailsType === EventDetailsType.BatmanEchoLocationMessageBroadcast) {
+    const { message } = details as BroadcastEventDetails;
+    const { interval } = message as BatmanEchoLocationMessage;
 
-    // Echo Location Protocol (ELP) broadcast
-    if (messageType === MessageType.BatmanEchoLocationMessage) {
-      return (
-        <>
-          <TextDescription>
-            Every <VariableDescription value={message.interval}>ELP Interval</VariableDescription>,
-            a B.A.T.M.A.N. V node broadcasts an <i>Echo Location Protocol (ELP)</i> message to
-            neighboring nodes to estimate connection quality.
-          </TextDescription>
-          <TextDescription>
-            The node also may append a dedicated neighbor entry for each announced neighbor and
-            updates the <i>Number of Neighbors</i> field accordingly to share neighbor topology
-            through the network.
-          </TextDescription>
-        </>
-      );
-    }
-
-    // Originator Message version 2 (OGMv2) broadcast
-    if (messageType === MessageType.BatmanOriginatorMessage) {
-      return (
-        <>
-          {!isRetransmission && (
-            <TextDescription>
-              Every <VariableDescription value={1}>OGM interval</VariableDescription>, an{" "}
-              <i>Originator Message version 2 (OGMv2)</i> message is broadcasted to announce the
-              node's presence and distribute throughput-related routing metrics called{" "}
-              <i>throughput</i> across the mesh network.
-            </TextDescription>
-          )}
-          <TextDescription>
-            Neighboring nodes rebroadcast received OGMv2 message if the throughput value is the best
-            across all available paths.
-          </TextDescription>
-          {!isRetransmission && (
-            <SecondaryDescription title="Why is the starting throughput value 2^32?">
-              Starting OGMv2 message has the maximum possible integer value, so that each hop can
-              compare it against the local throughput value. Each subsequent peer combines the
-              received value with the one received from ELP using a min() operation, and then
-              forwards the resulting value.
-            </SecondaryDescription>
-          )}
-        </>
-      );
-    }
+    return (
+      <>
+        <TextDescription>
+          Every <VariableDescription value={interval}>ELP Interval</VariableDescription>, a
+          B.A.T.M.A.N. V node broadcasts an <i>Echo Location Protocol (ELP)</i> message to
+          neighboring nodes to estimate connection quality.
+        </TextDescription>
+        <TextDescription>
+          The node also may append a dedicated neighbor entry for each announced neighbor and
+          updates the <i>Number of Neighbors</i> field accordingly to share neighbor topology
+          through the network.
+        </TextDescription>
+      </>
+    );
   }
 
-  if (type === EventType.Calculation) {
+  // Originator Message version 2 (OGMv2) broadcast
+  if (detailsType === EventDetailsType.BatmanOriginatorMessageBroadcast) {
+    return (
+      <>
+        <TextDescription>
+          Every OGM interval, an <i>Originator Message version 2 (OGMv2)</i> message is broadcasted
+          to announce the node's presence and distribute throughput-related routing metrics called{" "}
+          <i>throughput</i> across the mesh network.
+        </TextDescription>
+        <SecondaryDescription title="Why is the starting throughput value 2^32?">
+          Starting OGMv2 message has the maximum possible integer value, so that each hop can
+          compare it against the local throughput value. Each subsequent peer combines the received
+          value with the one received from ELP using a min() operation, and then forwards the
+          resulting value.
+        </SecondaryDescription>
+      </>
+    );
+  }
+
+  // Originator Message version 2 (OGMv2) broadcast retransmission
+  if (detailsType === EventDetailsType.BatmanOriginatorMessageRetransmission) {
+    return (
+      <>
+        <TextDescription>
+          Neighboring nodes rebroadcast received OGMv2 message if the throughput value is the best
+          across all available paths.
+        </TextDescription>
+      </>
+    );
+  }
+
+  if (detailsType === EventDetailsType.BatmanThroughputCalculation) {
     const { elpProcessing: breakdown, ogmProcessing: ogmSelection } =
       details as BatmanCalculationEventDetails;
 
@@ -193,7 +200,10 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
   }
 
   // Originator addition or update
-  if (type === EventType.AddRoute || type === EventType.UpdateRoute) {
+  if (
+    detailsType === EventDetailsType.BatmanOriginatorAdded ||
+    detailsType === EventDetailsType.BatmanOriginatorUpdated
+  ) {
     const { nextRoute } = details as BatmanRouteChangeEventDetails;
 
     return (
@@ -238,7 +248,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
   }
 
   // Purge Timeout
-  if (type === EventType.DeleteRoute) {
+  if (detailsType === EventDetailsType.BatmanOriginatorRemoved) {
     const { previousRoute } = details as BatmanRouteChangeEventDetails;
     return (
       <>
@@ -268,7 +278,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
   }
 
   // OGMv2 retransmission cancellation
-  if (type === EventType.Drop) {
+  if (detailsType === EventDetailsType.BatmanOriginatorMessageDropped) {
     return (
       <>
         <TextDescription>
@@ -280,7 +290,7 @@ export default function BatmanDescription({ peers, event, onPeerHover }: BatmanD
   }
 
   // Get originator route
-  if (type === EventType.GetRoute) {
+  if (detailsType === EventDetailsType.BatmanOriginatorSelected) {
     const { selectedRoute } = details as GetRouteEventDetails;
     const route = selectedRoute as BatmanRouteRecord;
 
