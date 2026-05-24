@@ -3,7 +3,7 @@ import PropertyGroup from "@/features/properties/components/Property/PropertyGro
 import PropertyHeader from "@/features/properties/components/Property/PropertyHeader";
 import SelectPropertyField from "@/features/properties/components/Property/SelectPropertyField";
 import TextPropertyField from "@/features/properties/components/Property/TextPropertyField";
-import { getStepTypeIcon } from "@/shared/constants/icons";
+import { getStepTypeIcon } from "@/shared/constants/common/icons";
 import { MIN_TICK } from "@/shared/constants/tick";
 import type { SelectOption } from "@/shared/types/common/select";
 import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";

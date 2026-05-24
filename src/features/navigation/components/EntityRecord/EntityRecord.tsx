@@ -1,6 +1,6 @@
 import Tooltip from "@/shared/components/Tooltip/Tooltip";
-import { getEntityTypeIcon } from "@/shared/constants/icons";
-import { getEntityTypeName } from "@/shared/constants/names";
+import { getEntityTypeIcon } from "@/shared/constants/common/icons";
+import { getEntityTypeName } from "@/shared/constants/common/names";
 import type { NetworkEntity } from "@/shared/types/model/entities";
 import { Lock, LockOpen } from "lucide-react";
 import { type PointerEvent as ReactPointerEvent } from "react";

@@ -1,14 +1,14 @@
 import { useCallback } from "react";
 
+import type { UUID } from "@/shared/types/common/uuid";
+import type { TextItem } from "@/shared/types/workspace/text";
 import type {
   WorkspaceTextEditHandlers,
   WorkspaceTextEditSetters,
 } from "@/shared/types/workspace/textEdit";
-import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
-import type { UUID } from "@/shared/types/common/uuid";
 
 type UseTextEditParams = {
-  texts: WorkspaceTextItem[];
+  texts: TextItem[];
   editingTextId: UUID | null;
   editingTextDraft: string;
   setters: WorkspaceTextEditSetters;
@@ -21,7 +21,7 @@ export function useTextEdit({
   setters,
 }: UseTextEditParams): WorkspaceTextEditHandlers {
   const handleTextDoubleClick = useCallback(
-    (item: WorkspaceTextItem) => {
+    (item: TextItem) => {
       setters.setSelectedTextId(item.id);
       setters.setEditingTextId(item.id);
       setters.setEditingTextDraft(item.text);

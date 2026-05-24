@@ -1,11 +1,11 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-import { SelectionType } from "@/shared/types/view/selection";
-import type { Connection, RangePolygon } from "./interaction";
+import type { UUID } from "@/shared/types/common/uuid";
 import type { ResizeEdge } from "@/shared/types/interaction";
 import type { ObstacleEntity, PeerEntity } from "@/shared/types/model/entities";
-import type { WorkspaceTextItem } from "./text";
-import type { UUID } from "@/shared/types/common/uuid";
+import { SelectionType } from "@/shared/types/view/selection";
+import type { Connection, RangePolygon } from "./interaction";
+import type { TextItem } from "./text";
 
 export type MoveIndicator = {
   stepId: UUID | null;
@@ -58,7 +58,7 @@ export type WorkspaceSceneProps = {
   messageAnimations: MessageAnimation[];
   moveStepAnimation: MoveStepAnimation | null;
   toggleStepAnimation: ToggleStepAnimation | null;
-  texts: WorkspaceTextItem[];
+  texts: TextItem[];
   obstacles: ObstacleEntity[];
   peers: PeerEntity[];
   selectedSource: SelectionType | null;
@@ -74,8 +74,8 @@ export type WorkspaceSceneProps = {
   commitTextEdit: () => void;
   cancelTextEdit: () => void;
   handleStaticLinkPointerDown: (linkId: UUID, event: ReactPointerEvent<SVGLineElement>) => void;
-  handleTextPointerDown: (item: WorkspaceTextItem, event: ReactPointerEvent<HTMLElement>) => void;
-  handleTextDoubleClick: (item: WorkspaceTextItem) => void;
+  handleTextPointerDown: (item: TextItem, event: ReactPointerEvent<HTMLElement>) => void;
+  handleTextDoubleClick: (item: TextItem) => void;
   handleEntityPointerMove: (event: ReactPointerEvent<HTMLElement>) => void;
   handleEntityPointerEnd: (event: ReactPointerEvent<HTMLElement>) => void;
   handleObstaclePointerDown: (

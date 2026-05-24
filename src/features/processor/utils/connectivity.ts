@@ -1,4 +1,4 @@
-import { OBSTACLE_MIN_HEIGHT, OBSTACLE_MIN_WIDTH } from "@/shared/constants/obstacle";
+import { OBSTACLE_MIN_HEIGHT, OBSTACLE_MIN_WIDTH } from "@/shared/constants/entities/obstacle";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { LinkEntity, ObstacleEntity, PeerEntity } from "@/shared/types/model/entities";
 import type { ObstacleBounds } from "@/shared/types/workspace/interaction";

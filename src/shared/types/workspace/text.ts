@@ -1,6 +1,6 @@
 import type { UUID } from "@/shared/types/common/uuid";
 
-export type WorkspaceTextItem = {
+export type TextItem = {
   id: UUID;
   text: string;
   x: number;

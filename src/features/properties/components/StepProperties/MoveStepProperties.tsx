@@ -2,7 +2,7 @@ import NumberPropertyField from "@/features/properties/components/Property/Numbe
 import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
 import SelectPropertyField from "@/features/properties/components/Property/SelectPropertyField";
 import Letter from "@/shared/components/Letter/Letter";
-import { getEntityTypeIcon } from "@/shared/constants/icons";
+import { getEntityTypeIcon } from "@/shared/constants/common/icons";
 import type { SelectOption } from "@/shared/types/common/select";
 import type { UUID } from "@/shared/types/common/uuid";
 import { type PeerEntity } from "@/shared/types/model/entities";

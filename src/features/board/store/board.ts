@@ -51,7 +51,7 @@ import type {
 import { EntityType } from "@/shared/types/model/entities";
 import type { Step } from "@/shared/types/model/steps";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
-import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
+import type { TextItem } from "@/shared/types/workspace/text";
 import {
   exportState,
   importState,
@@ -154,7 +154,7 @@ export function useBoardStore() {
   );
 
   const setTexts = useCallback(
-    (value: WorkspaceTextItem[]) => {
+    (value: TextItem[]) => {
       dispatch(replaceTexts(value));
     },
     [dispatch],

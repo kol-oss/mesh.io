@@ -1,3 +1,5 @@
+import { EntityType } from "@/shared/types/model/entities";
+import { StepType } from "@/shared/types/model/steps";
 import {
   Activity,
   ChevronsRight,
@@ -9,8 +11,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import React from "react";
-import { EntityType } from "../types/model/entities";
-import { StepType } from "../types/model/steps";
 
 // Entity icons
 export const ENTITY_TYPE_ICONS: Record<EntityType, LucideIcon> = {

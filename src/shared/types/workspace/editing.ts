@@ -1,17 +1,17 @@
 import type { Dispatch, SetStateAction } from "react";
 
 import type { UUID } from "@/shared/types/common/uuid";
-import type { WorkspaceTextItem } from "./text";
+import type { TextItem } from "./text";
 
 export type WorkspaceEditingSetters = {
-  setTexts: (value: WorkspaceTextItem[]) => void;
+  setTexts: (value: TextItem[]) => void;
   setSelectedTextId: Dispatch<SetStateAction<UUID | null>>;
   setEditingTextId: Dispatch<SetStateAction<UUID | null>>;
   setEditingTextDraft: Dispatch<SetStateAction<string>>;
 };
 
 export type WorkspaceEditingHandlers = {
-  handleTextDoubleClick: (item: WorkspaceTextItem) => void;
+  handleTextDoubleClick: (item: TextItem) => void;
   commitTextEdit: () => void;
   cancelTextEdit: () => void;
 };

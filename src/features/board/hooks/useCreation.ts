@@ -1,37 +1,28 @@
 import { useCallback } from "react";
 
-import { OBSTACLE_DEFAULT_HEIGHT, OBSTACLE_DEFAULT_WIDTH } from "@/shared/constants/obstacle.ts";
-import { getDefaultPeerConfiguration } from "@/shared/constants/protocols/protocol";
-import { NEW_PEER_RANGE } from "@/shared/constants/workspace";
-import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
-import { generateUUID, type UUID } from "@/shared/types/common/uuid.ts";
-import type { BatmanConfiguration } from "@/shared/types/model/configurations.ts";
-import type {
-  LinkEntity,
-  NetworkEntity,
-  ObstacleEntity,
-  PeerEntity,
-} from "@/shared/types/model/entities.ts";
-import { EntityType } from "@/shared/types/model/entities.ts";
-import type {
-  MessageStep,
-  MoveStep,
-  Step,
-  ToggleStep,
-  UserStep,
-} from "@/shared/types/model/steps.ts";
-import { StepType } from "@/shared/types/model/steps.ts";
+import { getDefaultLink } from "@/shared/constants/entities/link";
+import { getDefaultObstacle } from "@/shared/constants/entities/obstacle";
+import { getDefaultPeer } from "@/shared/constants/entities/peer";
+import { getDefaultText } from "@/shared/constants/entities/text";
+import {
+  getDefaultMessageStep,
+  getDefaultMoveStep,
+  getDefaultToggleStep,
+} from "@/shared/constants/steps/step";
+import { type UUID } from "@/shared/types/common/uuid.ts";
+import type { NetworkEntity, ObstacleEntity, PeerEntity } from "@/shared/types/model/entities.ts";
+import type { Step, UserStep } from "@/shared/types/model/steps.ts";
 import type {
   WorkspaceCreationCallbacks,
   WorkspaceCreationSetters,
 } from "@/shared/types/workspace/creation";
-import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
+import type { TextItem } from "@/shared/types/workspace/text";
 import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
 
 type UseCreationParams = {
   entities: NetworkEntity[];
   steps: Step[];
-  texts: WorkspaceTextItem[];
+  texts: TextItem[];
   setters: WorkspaceCreationSetters;
   callbacks: WorkspaceCreationCallbacks;
 };
@@ -39,18 +30,7 @@ type UseCreationParams = {
 export function useCreation({ entities, steps, texts, setters, callbacks }: UseCreationParams) {
   const createPeerAt = useCallback(
     (x: number, y: number) => {
-      const nextPeer: PeerEntity = {
-        id: generateUUID(),
-        name: "Peer",
-        type: EntityType.Peer,
-        locked: false,
-        x,
-        y,
-        range: NEW_PEER_RANGE,
-        enabled: true,
-        protocol: RoutingProtocol.BATMAN,
-        configuration: getDefaultPeerConfiguration(RoutingProtocol.BATMAN) as BatmanConfiguration,
-      };
+      const nextPeer: PeerEntity = getDefaultPeer(x, y);
 
       setters.setEntities([...entities, nextPeer]);
       callbacks.onEntitySelect(nextPeer.id);
@@ -61,16 +41,7 @@ export function useCreation({ entities, steps, texts, setters, callbacks }: UseC
 
   const createObstacleAt = useCallback(
     (x: number, y: number) => {
-      const nextObstacle: ObstacleEntity = {
-        id: generateUUID(),
-        name: "Obstacle",
-        type: EntityType.Obstacle,
-        locked: false,
-        x,
-        y,
-        width: OBSTACLE_DEFAULT_WIDTH,
-        height: OBSTACLE_DEFAULT_HEIGHT,
-      };
+      const nextObstacle: ObstacleEntity = getDefaultObstacle(x, y);
 
       setters.setEntities([...entities, nextObstacle]);
       callbacks.onEntitySelect(nextObstacle.id);
@@ -81,15 +52,7 @@ export function useCreation({ entities, steps, texts, setters, callbacks }: UseC
 
   const createLink = useCallback(
     (sourcePeerId: UUID, destinationPeerId: UUID) => {
-      const nextLink: LinkEntity = {
-        id: generateUUID(),
-        name: "Link",
-        type: EntityType.Link,
-        locked: false,
-        sourcePeerId,
-        destinationPeerId,
-        enabled: true,
-      };
+      const nextLink = getDefaultLink(sourcePeerId, destinationPeerId);
 
       setters.setEntities([...entities, nextLink]);
       callbacks.onEntitySelect(nextLink.id);
@@ -118,15 +81,7 @@ export function useCreation({ entities, steps, texts, setters, callbacks }: UseC
 
   const createMessageStep = useCallback(
     (sourcePeerId: UUID, destinationPeerId: UUID) => {
-      const step: MessageStep = {
-        id: generateUUID(),
-        title: "Message",
-        type: StepType.Message,
-        tick: getNextManualStepTick(),
-        sourceId: sourcePeerId,
-        destinationId: destinationPeerId,
-      };
-
+      const step = getDefaultMessageStep(sourcePeerId, destinationPeerId, getNextManualStepTick());
       createStep(step);
     },
     [createStep, getNextManualStepTick],
@@ -134,16 +89,7 @@ export function useCreation({ entities, steps, texts, setters, callbacks }: UseC
 
   const createMoveStep = useCallback(
     (movePeerId: UUID, x: number, y: number) => {
-      const step: MoveStep = {
-        id: generateUUID(),
-        title: "Move",
-        type: StepType.Move,
-        tick: getNextManualStepTick(),
-        entityId: movePeerId,
-        x,
-        y,
-      };
-
+      const step = getDefaultMoveStep(movePeerId, x, y, getNextManualStepTick());
       createStep(step);
     },
     [createStep, getNextManualStepTick],
@@ -151,14 +97,7 @@ export function useCreation({ entities, steps, texts, setters, callbacks }: UseC
 
   const createToggleStep = useCallback(
     (targetEntityId: UUID) => {
-      const step: ToggleStep = {
-        id: generateUUID(),
-        title: "Toggle",
-        type: StepType.Toggle,
-        tick: getNextManualStepTick(),
-        entityId: targetEntityId,
-      };
-
+      const step = getDefaultToggleStep(targetEntityId, getNextManualStepTick());
       createStep(step);
     },
     [createStep, getNextManualStepTick],
@@ -166,12 +105,7 @@ export function useCreation({ entities, steps, texts, setters, callbacks }: UseC
 
   const createTextAt = useCallback(
     (x: number, y: number) => {
-      const nextText: WorkspaceTextItem = {
-        id: generateUUID(),
-        text: "Text",
-        x,
-        y,
-      };
+      const nextText = getDefaultText(x, y);
 
       setters.setTexts([...texts, nextText]);
       callbacks.showCreationToast("Text added");

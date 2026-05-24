@@ -1,13 +1,13 @@
-import { useEffect } from "react";
-import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
 import type { UUID } from "@/shared/types/common/uuid";
+import type { TextItem } from "@/shared/types/workspace/text";
+import { useEffect } from "react";
 
 type Params = {
   isSimulationActive: boolean;
   selectedTextId: UUID | null;
   editingTextId: UUID | null;
-  texts: WorkspaceTextItem[];
-  setTexts: (value: WorkspaceTextItem[]) => void;
+  texts: TextItem[];
+  setTexts: (value: TextItem[]) => void;
   setSelectedTextId: (value: UUID | null) => void;
   showToast: (message: string) => void;
 };

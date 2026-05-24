@@ -27,15 +27,15 @@ import type { Step } from "@/shared/types/model/steps";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import type { WorkspacePanState } from "@/shared/types/workspace/background";
 import type { DragState } from "@/shared/types/workspace/interaction";
-import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
+import type { TextItem } from "@/shared/types/workspace/text";
 
 type CanvasProps = {
   entities: NetworkEntity[];
   setEntities: (value: NetworkEntity[]) => void;
   steps: Step[];
   setSteps: (value: Step[]) => void;
-  texts: WorkspaceTextItem[];
-  setTexts: (value: WorkspaceTextItem[]) => void;
+  texts: TextItem[];
+  setTexts: (value: TextItem[]) => void;
   selectedId: UUID | null;
   selectedSource: SelectionSource | null;
   placementMode: ToolbarPlacementMode;

@@ -4,7 +4,7 @@ import PropertyGroup from "@/features/properties/components/Property/PropertyGro
 import PropertyHeader from "@/features/properties/components/Property/PropertyHeader";
 import SelectPropertyField from "@/features/properties/components/Property/SelectPropertyField";
 import TextPropertyField from "@/features/properties/components/Property/TextPropertyField";
-import { getEntityTypeIcon } from "@/shared/constants/icons";
+import { getEntityTypeIcon } from "@/shared/constants/common/icons";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { LinkEntity, PeerEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";

@@ -1,4 +1,4 @@
-import { EntityType } from "../types/model/entities";
+import { EntityType } from "@/shared/types/model/entities";
 
 const ENTITY_TYPE_NAMES: Record<EntityType, string> = {
   [EntityType.Peer]: "Peer",

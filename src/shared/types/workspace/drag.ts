@@ -1,11 +1,11 @@
 import type { MutableRefObject, PointerEvent as ReactPointerEvent } from "react";
 
-import type { DragState } from "./interaction";
+import type { UUID } from "@/shared/types/common/uuid";
 import type { ResizeEdge } from "@/shared/types/interaction";
 import type { NetworkEntity, ObstacleEntity, PeerEntity } from "@/shared/types/model/entities";
-import type { WorkspaceTextItem } from "./text";
+import type { DragState } from "./interaction";
 import type { SetNullableStringState } from "./shared";
-import type { UUID } from "@/shared/types/common/uuid";
+import type { TextItem } from "./text";
 
 export type WorkspaceDragRefs = {
   dragStateRef: MutableRefObject<DragState | null>;
@@ -17,7 +17,7 @@ export type WorkspaceDragSetters = {
 };
 
 export type WorkspaceDragEntities = NetworkEntity[];
-export type WorkspaceDragTexts = WorkspaceTextItem[];
+export type WorkspaceDragTexts = TextItem[];
 
 export type WorkspaceDragState = {
   editingTextId: UUID | null;
@@ -29,7 +29,7 @@ export type WorkspaceDragActions = {
 };
 
 export type WorkspaceDragHandlers = {
-  handleTextPointerDown: (item: WorkspaceTextItem, event: ReactPointerEvent<HTMLElement>) => void;
+  handleTextPointerDown: (item: TextItem, event: ReactPointerEvent<HTMLElement>) => void;
   handleObstaclePointerDown: (
     obstacle: ObstacleEntity,
     event: ReactPointerEvent<HTMLButtonElement>,

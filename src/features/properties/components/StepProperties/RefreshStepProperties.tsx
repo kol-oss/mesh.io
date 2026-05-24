@@ -1,7 +1,7 @@
 import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
 import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
 import TextPropertyField from "@/features/properties/components/Property/TextPropertyField";
-import { getEntityTypeIcon } from "@/shared/constants/icons";
+import { getEntityTypeIcon } from "@/shared/constants/common/icons";
 import { EntityType, type PeerEntity } from "@/shared/types/model/entities";
 import type { RefreshStep } from "@/shared/types/model/steps";
 import { Clock3, RotateCw } from "lucide-react";

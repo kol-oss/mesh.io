@@ -12,7 +12,7 @@ import type {
 } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
 import { RefreshAction, StepType, type Step } from "@/shared/types/model/steps";
-import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
+import type { TextItem } from "@/shared/types/workspace/text";
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null;
@@ -124,7 +124,7 @@ const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
   return false;
 };
 
-const isValidTextItem = (value: unknown): value is WorkspaceTextItem => {
+const isValidTextItem = (value: unknown): value is TextItem => {
   return (
     isRecord(value) &&
     typeof value.id === "string" &&

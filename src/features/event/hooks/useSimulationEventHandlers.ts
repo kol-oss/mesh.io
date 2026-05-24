@@ -1,13 +1,13 @@
-import { useCallback } from "react";
 import { useAppDispatch } from "@/shared/store/hooks";
 import { pinTableInspectionWindow } from "@/shared/store/slices/simulationSlice";
-import { EntityType } from "@/shared/types/model/entities";
 import { ActionMode as ToolbarMode } from "@/shared/types/action";
+import type { UUID } from "@/shared/types/common/uuid";
 import type { ResizeEdge } from "@/shared/types/interaction";
 import type { NetworkEntity } from "@/shared/types/model/entities";
-import type { UUID } from "@/shared/types/common/uuid";
-import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
+import { EntityType } from "@/shared/types/model/entities";
+import type { TextItem } from "@/shared/types/workspace/text";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import { useCallback } from "react";
 
 type ObstacleSelectionEntity = Extract<NetworkEntity, { type: typeof EntityType.Obstacle }>;
 type PeerSelectionEntity = Extract<NetworkEntity, { type: typeof EntityType.Peer }>;
@@ -17,8 +17,8 @@ type Props = {
   simulationInspectionMode: ToolbarMode;
   onEntitySelect: (id: UUID) => void;
   handleStaticLinkPointerDown: (linkId: UUID, event: ReactPointerEvent<SVGLineElement>) => void;
-  handleTextPointerDown: (item: WorkspaceTextItem, event: ReactPointerEvent<HTMLElement>) => void;
-  handleTextDoubleClick: (item: WorkspaceTextItem) => void;
+  handleTextPointerDown: (item: TextItem, event: ReactPointerEvent<HTMLElement>) => void;
+  handleTextDoubleClick: (item: TextItem) => void;
   handleObstaclePointerDown: (
     obstacle: ObstacleSelectionEntity,
     event: ReactPointerEvent<HTMLButtonElement>,
@@ -40,11 +40,8 @@ type Return = {
     linkId: UUID,
     event: ReactPointerEvent<SVGLineElement>,
   ) => void;
-  handleSimulationTextPointerDown: (
-    item: WorkspaceTextItem,
-    event: ReactPointerEvent<HTMLElement>,
-  ) => void;
-  handleSimulationTextDoubleClick: (item: WorkspaceTextItem) => void;
+  handleSimulationTextPointerDown: (item: TextItem, event: ReactPointerEvent<HTMLElement>) => void;
+  handleSimulationTextDoubleClick: (item: TextItem) => void;
   handleSimulationObstaclePointerDown: (
     obstacle: ObstacleSelectionEntity,
     event: ReactPointerEvent<HTMLButtonElement>,
@@ -87,14 +84,14 @@ export const useSimulationEventHandlers = ({
   );
 
   const handleSimulationTextPointerDown = useCallback(
-    (item: WorkspaceTextItem, event: ReactPointerEvent<HTMLElement>) => {
+    (item: TextItem, event: ReactPointerEvent<HTMLElement>) => {
       handleTextPointerDown(item, event);
     },
     [handleTextPointerDown],
   );
 
   const handleSimulationTextDoubleClick = useCallback(
-    (item: WorkspaceTextItem) => {
+    (item: TextItem) => {
       handleTextDoubleClick(item);
     },
     [handleTextDoubleClick],

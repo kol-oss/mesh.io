@@ -2,7 +2,7 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback } from "react";
 
 import { toInt } from "@/features/processor/utils/connectivity";
-import { OBSTACLE_MIN_HEIGHT, OBSTACLE_MIN_WIDTH } from "@/shared/constants/obstacle";
+import { OBSTACLE_MIN_HEIGHT, OBSTACLE_MIN_WIDTH } from "@/shared/constants/entities/obstacle";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as PlacementMode } from "@/shared/types/action";
 import type { UUID } from "@/shared/types/common/uuid";
@@ -19,7 +19,7 @@ import type {
   WorkspaceDragTexts,
 } from "@/shared/types/workspace/drag";
 import type { SetEntities, SetTexts } from "@/shared/types/workspace/shared";
-import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
+import type { TextItem } from "@/shared/types/workspace/text";
 
 type UseDragParams = {
   entities: WorkspaceDragEntities;
@@ -123,7 +123,7 @@ export function useDrag({
   );
 
   const handleTextPointerDown = useCallback(
-    (item: WorkspaceTextItem, event: ReactPointerEvent<HTMLElement>) => {
+    (item: TextItem, event: ReactPointerEvent<HTMLElement>) => {
       if (event.button !== 0) {
         return;
       }

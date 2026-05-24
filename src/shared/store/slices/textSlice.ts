@@ -1,17 +1,17 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-import type { UUID } from "@/shared/types/common/uuid";
-import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
 import { TEXT_STORAGE_KEY } from "@/shared/store/constants";
 import { loadStates } from "@/shared/store/utils/storeUtils";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { TextItem } from "@/shared/types/workspace/text";
 
-const initialState: WorkspaceTextItem[] = loadStates<WorkspaceTextItem>(TEXT_STORAGE_KEY);
+const initialState: TextItem[] = loadStates<TextItem>(TEXT_STORAGE_KEY);
 
 const textSlice = createSlice({
   name: "texts",
   initialState,
   reducers: {
-    setText(state, action: PayloadAction<WorkspaceTextItem>) {
+    setText(state, action: PayloadAction<TextItem>) {
       const index = state.findIndex((text) => text.id === action.payload.id);
       if (index !== -1) {
         state[index] = action.payload;
@@ -25,7 +25,7 @@ const textSlice = createSlice({
         state.splice(index, 1);
       }
     },
-    replaceTexts(_state, action: PayloadAction<WorkspaceTextItem[]>) {
+    replaceTexts(_state, action: PayloadAction<TextItem[]>) {
       return action.payload;
     },
     clearTexts(state) {

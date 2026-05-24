@@ -1,7 +1,7 @@
-import type { WorkspaceTextItem } from "@/shared/types/workspace/text";
+import type { TextItem } from "@/shared/types/workspace/text";
 
 type Props = {
-  item: WorkspaceTextItem;
+  item: TextItem;
   isEditing: boolean;
   editingTextDraft: string;
   selectedTextId: string | null;
@@ -9,10 +9,10 @@ type Props = {
   setEditingTextDraft: (value: string) => void;
   commitTextEdit: () => void;
   cancelTextEdit: () => void;
-  onPointerDown: (item: WorkspaceTextItem, event: React.PointerEvent<HTMLElement>) => void;
+  onPointerDown: (item: TextItem, event: React.PointerEvent<HTMLElement>) => void;
   onPointerMove: (event: React.PointerEvent<HTMLElement>) => void;
   onPointerEnd: (event: React.PointerEvent<HTMLElement>) => void;
-  onDoubleClick: (item: WorkspaceTextItem) => void;
+  onDoubleClick: (item: TextItem) => void;
 };
 
 export default function Text({
