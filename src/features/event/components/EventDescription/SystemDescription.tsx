@@ -1,5 +1,5 @@
-import PeerDescription from "@/shared/components/Description/PeerDescription";
-import TextDescription from "@/shared/components/Description/TextDescription";
+import PeerDescription from "@/features/event/components/Description/PeerDescription";
+import TextDescription from "@/features/event/components/Description/TextDescription";
 import {
   DropReason,
   EventType,

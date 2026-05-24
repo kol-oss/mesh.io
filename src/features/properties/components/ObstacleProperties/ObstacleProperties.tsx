@@ -1,9 +1,9 @@
+import LockMessage from "@/features/properties/components/Property/LockMessage";
+import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
+import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
+import PropertyHeader from "@/features/properties/components/Property/PropertyHeader";
+import TextPropertyField from "@/features/properties/components/Property/TextPropertyField";
 import Letter from "@/shared/components/Letter/Letter";
-import LockMessage from "@/shared/components/Property/LockMessage";
-import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
-import PropertyGroup from "@/shared/components/Property/PropertyGroup";
-import PropertyHeader from "@/shared/components/Property/PropertyHeader";
-import TextPropertyField from "@/shared/components/Property/TextPropertyField";
 import type { ObstacleEntity } from "@/shared/types/model/entities";
 import type { EntityPropertiesProps } from "@/shared/types/view/properties";
 import { updateEntity } from "@/shared/utils/mutation";

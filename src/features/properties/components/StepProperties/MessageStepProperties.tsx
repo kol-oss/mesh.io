@@ -1,5 +1,5 @@
-import PropertyGroup from "@/shared/components/Property/PropertyGroup";
-import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
+import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
+import SelectPropertyField from "@/features/properties/components/Property/SelectPropertyField";
 import { getEntityTypeIcon } from "@/shared/constants/icons";
 import type { SelectOption } from "@/shared/types/common/select";
 import type { UUID } from "@/shared/types/common/uuid";

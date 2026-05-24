@@ -1,5 +1,5 @@
 import { Globe } from "lucide-react";
-import Tooltip from "../Tooltip/Tooltip";
+import Tooltip from "../../../../shared/components/Tooltip/Tooltip";
 
 type PropertyLabelProps = {
   label: string;

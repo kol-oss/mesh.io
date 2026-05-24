@@ -1,6 +1,6 @@
-import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
-import PropertyGroup from "@/shared/components/Property/PropertyGroup";
-import TextPropertyField from "@/shared/components/Property/TextPropertyField";
+import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
+import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
+import TextPropertyField from "@/features/properties/components/Property/TextPropertyField";
 import { getEntityTypeIcon } from "@/shared/constants/icons";
 import { EntityType, type PeerEntity } from "@/shared/types/model/entities";
 import type { RefreshStep } from "@/shared/types/model/steps";

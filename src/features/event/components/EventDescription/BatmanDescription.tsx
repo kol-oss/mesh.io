@@ -1,3 +1,7 @@
+import PeerDescription from "@/features/event/components/Description/PeerDescription";
+import SecondaryDescription from "@/features/event/components/Description/SecondaryDescription";
+import TableDescription from "@/features/event/components/Description/TableDescription";
+import VariableDescription from "@/features/event/components/Description/VariableDescription";
 import { EWMA_ALPHA } from "@/features/processor/constants/ewma";
 import {
   type BatmanCalculationEventDetails,
@@ -5,10 +9,6 @@ import {
   type BatmanRouteChangeEventDetails,
   type BatmanRouteRecord,
 } from "@/features/processor/types/protocols/batman";
-import PeerDescription from "@/shared/components/Description/PeerDescription";
-import SecondaryDescription from "@/shared/components/Description/SecondaryDescription";
-import TableDescription from "@/shared/components/Description/TableDescription";
-import VariableDescription from "@/shared/components/Description/VariableDescription";
 import { BATMAN_WIRELESS_BASE_THROUGHPUT } from "@/shared/constants/protocols/batman";
 import {
   EventDetailsType,
@@ -19,7 +19,7 @@ import {
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
-import TextDescription from "../../../../shared/components/Description/TextDescription";
+import TextDescription from "../Description/TextDescription";
 
 type BatmanDescriptionProps = {
   peers: PeerEntity[];

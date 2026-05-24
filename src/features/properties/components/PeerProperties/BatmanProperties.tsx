@@ -1,5 +1,5 @@
-import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
-import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
+import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
 import {
   BATMAN_MIN_DISTANCE_PENALTY,
   BATMAN_MIN_ELP_INTERVAL,

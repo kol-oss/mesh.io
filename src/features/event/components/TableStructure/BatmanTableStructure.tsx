@@ -1,5 +1,5 @@
-import PeerDescription from "@/shared/components/Description/PeerDescription";
-import TableDescription from "@/shared/components/Description/TableDescription";
+import PeerDescription from "@/features/event/components/Description/PeerDescription";
+import TableDescription from "@/features/event/components/Description/TableDescription";
 import type { PeerSnapshot } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";

@@ -1,5 +1,5 @@
-import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
-import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
+import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
 import { OLSR_MIN_INTERVAL } from "@/shared/constants/protocols/olsr";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { OlsrConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";

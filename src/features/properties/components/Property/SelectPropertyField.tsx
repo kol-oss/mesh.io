@@ -1,5 +1,5 @@
 import type { SelectOption } from "@/shared/types/common/select";
-import Select from "../Select/Select";
+import Select from "../../../../shared/components/Select/Select";
 import PropertyLabel from "./PropertyLabel";
 
 type SelectPropertyFieldProps<T> = {

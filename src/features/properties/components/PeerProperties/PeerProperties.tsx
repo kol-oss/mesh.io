@@ -1,13 +1,13 @@
 import { CircleDot, Diamond } from "lucide-react";
 
+import BooleanPropertyField from "@/features/properties/components/Property/BooleanPropertyField";
+import LockMessage from "@/features/properties/components/Property/LockMessage";
+import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
+import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
+import PropertyHeader from "@/features/properties/components/Property/PropertyHeader";
+import ProtocolField from "@/features/properties/components/Property/ProtocolField";
+import TextPropertyField from "@/features/properties/components/Property/TextPropertyField";
 import Letter from "@/shared/components/Letter/Letter";
-import BooleanPropertyField from "@/shared/components/Property/BooleanPropertyField";
-import LockMessage from "@/shared/components/Property/LockMessage";
-import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
-import PropertyGroup from "@/shared/components/Property/PropertyGroup";
-import PropertyHeader from "@/shared/components/Property/PropertyHeader";
-import ProtocolField from "@/shared/components/Property/ProtocolField";
-import TextPropertyField from "@/shared/components/Property/TextPropertyField";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { PeerConfiguration } from "@/shared/types/model/configurations";
 import type { PeerEntity } from "@/shared/types/model/entities";

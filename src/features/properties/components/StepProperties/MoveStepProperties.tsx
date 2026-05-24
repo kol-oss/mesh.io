@@ -1,7 +1,7 @@
+import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
+import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
+import SelectPropertyField from "@/features/properties/components/Property/SelectPropertyField";
 import Letter from "@/shared/components/Letter/Letter";
-import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
-import PropertyGroup from "@/shared/components/Property/PropertyGroup";
-import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
 import { getEntityTypeIcon } from "@/shared/constants/icons";
 import type { SelectOption } from "@/shared/types/common/select";
 import type { UUID } from "@/shared/types/common/uuid";

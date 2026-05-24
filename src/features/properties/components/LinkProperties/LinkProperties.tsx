@@ -1,9 +1,9 @@
-import BooleanPropertyField from "@/shared/components/Property/BooleanPropertyField";
-import LockMessage from "@/shared/components/Property/LockMessage";
-import PropertyGroup from "@/shared/components/Property/PropertyGroup";
-import PropertyHeader from "@/shared/components/Property/PropertyHeader";
-import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
-import TextPropertyField from "@/shared/components/Property/TextPropertyField";
+import BooleanPropertyField from "@/features/properties/components/Property/BooleanPropertyField";
+import LockMessage from "@/features/properties/components/Property/LockMessage";
+import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
+import PropertyHeader from "@/features/properties/components/Property/PropertyHeader";
+import SelectPropertyField from "@/features/properties/components/Property/SelectPropertyField";
+import TextPropertyField from "@/features/properties/components/Property/TextPropertyField";
 import { getEntityTypeIcon } from "@/shared/constants/icons";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { LinkEntity, PeerEntity } from "@/shared/types/model/entities";

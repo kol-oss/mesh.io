@@ -1,8 +1,8 @@
-import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
-import PropertyGroup from "@/shared/components/Property/PropertyGroup";
-import PropertyHeader from "@/shared/components/Property/PropertyHeader";
-import SelectPropertyField from "@/shared/components/Property/SelectPropertyField";
-import TextPropertyField from "@/shared/components/Property/TextPropertyField";
+import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
+import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
+import PropertyHeader from "@/features/properties/components/Property/PropertyHeader";
+import SelectPropertyField from "@/features/properties/components/Property/SelectPropertyField";
+import TextPropertyField from "@/features/properties/components/Property/TextPropertyField";
 import { getStepTypeIcon } from "@/shared/constants/icons";
 import { MIN_TICK } from "@/shared/constants/tick";
 import type { SelectOption } from "@/shared/types/common/select";

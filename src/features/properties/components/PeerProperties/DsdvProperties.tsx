@@ -1,5 +1,5 @@
-import NumberPropertyField from "@/shared/components/Property/NumberPropertyField";
-import PropertyGroup from "@/shared/components/Property/PropertyGroup";
+import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
+import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
 import { DSDV_MIN_INTERVAL, DSDV_MIN_TIMEOUT } from "@/shared/constants/protocols/dsdv";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { DsdvConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
