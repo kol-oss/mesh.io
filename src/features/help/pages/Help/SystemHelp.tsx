@@ -1,6 +1,6 @@
-import ModellingTrap from "@/shared/components/Block/ModellingTrap";
-import SourceBlock from "@/shared/components/Block/SourceBlock";
-import TextBlock from "@/shared/components/Block/TextBlock";
+import ModellingTrap from "@/features/help/components/Block/ModellingTrap";
+import SourceBlock from "@/features/help/components/Block/SourceBlock";
+import TextBlock from "@/features/help/components/Block/TextBlock";
 import { useScroll } from "../../hooks/useScroll";
 
 const SECTIONS = [

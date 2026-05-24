@@ -1,8 +1,8 @@
-import ModellingTrap from "@/shared/components/Block/ModellingTrap";
-import PacketBlock from "@/shared/components/Block/PacketBlock";
-import SourceBlock from "@/shared/components/Block/SourceBlock";
-import TableBlock from "@/shared/components/Block/TableBlock";
-import TextBlock from "@/shared/components/Block/TextBlock";
+import ModellingTrap from "@/features/help/components/Block/ModellingTrap";
+import PacketBlock from "@/features/help/components/Block/PacketBlock";
+import SourceBlock from "@/features/help/components/Block/SourceBlock";
+import TableBlock from "@/features/help/components/Block/TableBlock";
+import TextBlock from "@/features/help/components/Block/TextBlock";
 import { useScroll } from "../../hooks/useScroll";
 
 const SECTIONS = [
