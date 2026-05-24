@@ -4,6 +4,8 @@ import PacketBlock from "@/shared/components/Block/PacketBlock";
 import SourceBlock from "@/shared/components/Block/SourceBlock";
 import TableBlock from "@/shared/components/Block/TableBlock";
 import TextBlock from "@/shared/components/Block/TextBlock";
+import ChapterBlock from "../../components/TitleBlock/ChapterBlock";
+import TitleBlock from "../../components/TitleBlock/TitleBlock";
 import { useScroll } from "../../hooks/useScroll";
 
 const SECTIONS = [
@@ -22,13 +24,9 @@ export default function BatmanHelp() {
 
   return (
     <section className="help-page__section" id="batman">
-      <div className="help-page__big-header">
-        <h1 className="help-page__big-title">B.A.T.M.A.N. V</h1>
-        <p className="help-page__big-subtitle">Better Approach To Mobile Ad-hoc Networking</p>
-      </div>
+      <TitleBlock title="B.A.T.M.A.N. V" subtitle="Better Approach To Mobile Ad-hoc Networking" />
 
-      <div className="help-page__chapter" id="what-you-need-to-know">
-        <h2 className="help-page__chapter-title">What You Need to Know</h2>
+      <ChapterBlock id="what-you-need-to-know" title="What You Need to Know">
         <TextBlock>
           **Better Approach To Mobile Ad-hoc Networking (B.A.T.M.A.N)** is a modern open-source
           routing protocol for multi-hop mobile ad hoc networks and since the release of kernel
@@ -48,10 +46,9 @@ export default function BatmanHelp() {
             concept](https://www.open-mesh.org/projects/open-mesh/wiki/BATMANConcept)".
           </TextBlock>
         </SourceBlock>
-      </div>
+      </ChapterBlock>
 
-      <div className="help-page__chapter" id="batman-versioning">
-        <h2 className="help-page__chapter-title">B.A.T.M.A.N. Versioning</h2>
+      <ChapterBlock id="batman-versioning" title="B.A.T.M.A.N. Versioning">
         <TextBlock>
           The development of the B.A.T.M.A.N protocol started around 2006 and nowadays, includes 5
           major versions/generations. One can think of generations I to V as the abstract ideas, the
@@ -79,10 +76,9 @@ export default function BatmanHelp() {
             behind this protocol.
           </TextBlock>
         </ModellingTrap>
-      </div>
+      </ChapterBlock>
 
-      <div className="help-page__chapter" id="echo-location-protocol">
-        <h2 className="help-page__chapter-title">Echo Location Protocol (ELP)</h2>
+      <ChapterBlock id="echo-location-protocol" title="Echo Location Protocol (ELP)">
         <TextBlock>
           The **Echo Location Protocol (ELP)** was introduced as a foundational component of the
           B.A.T.M.A.N. V routing algorithm. To address the performance limitations of previous
@@ -219,10 +215,9 @@ export default function BatmanHelp() {
             (ELP)](https://www.open-mesh.org/projects/batman-adv/wiki/ELP)".
           </TextBlock>
         </SourceBlock>
-      </div>
+      </ChapterBlock>
 
-      <div className="help-page__chapter" id="throughput-calculation">
-        <h2 className="help-page__chapter-title">Throughput Calculation</h2>
+      <ChapterBlock id="throughput-calculation" title="Throughput Calculation">
         <TextBlock>
           The core function of ELP in B.A.T.M.A.N. V is the estimation of link throughput rather
           than simple packet delivery ratios. ELP frames are typically padded to sizes close to the
@@ -250,10 +245,9 @@ export default function BatmanHelp() {
             exceeds. Pay attention that this mechanism *is not applied* to the wired links.
           </TextBlock>
         </ModellingTrap>
-      </div>
+      </ChapterBlock>
 
-      <div className="help-page__chapter" id="originator-message">
-        <h2 className="help-page__chapter-title">Originator Message version 2 (OGMv2)</h2>
+      <ChapterBlock id="originator-message" title="Originator Message version 2 (OGMv2)">
         <TextBlock>
           **Originator Messages version 2 (OGMv2)** in B.A.T.M.A.N. V are the core mechanism for
           multi-hop route discovery and network-wide topology propagation. While ELP operates
@@ -389,10 +383,9 @@ export default function BatmanHelp() {
             (OGMv2)](https://www.open-mesh.org/projects/batman-adv/wiki/Ogmv2)".
           </TextBlock>
         </SourceBlock>
-      </div>
+      </ChapterBlock>
 
-      <div className="help-page__chapter" id="sequence-protection-window">
-        <h2 className="help-page__chapter-title">Sequence Protection Window</h2>
+      <ChapterBlock id="sequence-protection-window" title="Sequence Protection Window">
         <TextBlock>
           The **Sequence Protection Window** in B.A.T.M.A.N. V is a sliding bitmap used to track
           recently seen OGMv2 sequence numbers and prevent processing of duplicates, replayed
@@ -420,10 +413,9 @@ export default function BatmanHelp() {
             typically set to **64 bits**, that was actually implemented in the simulator.
           </TextBlock>
         </ModellingTrap>
-      </div>
+      </ChapterBlock>
 
-      <div className="help-page__chapter" id="route-selection">
-        <h2 className="help-page__chapter-title">Route Selection</h2>
+      <ChapterBlock id="route-selection" title="Route Selection">
         <TextBlock>
           Route selection in B.A.T.M.A.N. V is performed using the best-received OGMv2 metrics for
           each originator. After duplicate filtering via the **Sequence Protection Window**, each
@@ -437,7 +429,7 @@ export default function BatmanHelp() {
           degradations are applied. This ensures that routing decisions are not based on hop count,
           but on end-to-end link quality as observed through OGM propagation and ELP measurements.
         </TextBlock>
-      </div>
+      </ChapterBlock>
     </section>
   );
 }
