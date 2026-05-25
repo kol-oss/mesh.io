@@ -13,6 +13,7 @@ import { StepType } from "@/shared/types/model/steps";
 import { parseNumberValue } from "@/shared/utils/properties";
 import { convertStep, updateStep, updateTickAndReorder } from "@/shared/utils/steps";
 import { Clock3 } from "lucide-react";
+import LockMessage from "../Property/LockMessage";
 import MessageStepProperties from "./MessageStepProperties";
 import MoveStepProperties from "./MoveStepProperties";
 import RefreshStepProperties from "./RefreshStepProperties";
@@ -72,6 +73,8 @@ export default function StepProperties({
           {"A discrete action in the simulation workflow, executed at a specific tick."}
         </PropertyHeader>
       )}
+
+      {isRefresh && <LockMessage />}
 
       <section className="properties__section">
         <p className="properties__section-title">{"Configuration"}</p>
