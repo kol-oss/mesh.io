@@ -1,4 +1,4 @@
-import type { Packet } from "@/shared/types/common/messages";
+import type { Message, Packet } from "@/shared/types/common/messages";
 import type { AodvRouteRecord } from "./protocols/aodv";
 import type { BatmanNeighbourRecord, BatmanRouteRecord } from "./protocols/batman";
 import type { DsdvRouteRecord } from "./protocols/dsdv";
@@ -12,7 +12,7 @@ import type {
 } from "./protocols/olsr";
 
 export interface RoutingModule {
-  read(message: unknown): boolean;
+  read(message: Message): boolean;
   send(packet: Packet): boolean;
   refresh(): void;
   tick(): void;

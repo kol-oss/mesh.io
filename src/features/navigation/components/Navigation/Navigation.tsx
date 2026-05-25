@@ -9,10 +9,10 @@ import type { StepResult } from "@/shared/types/common/simulation";
 import CollapsedTitle from "../Title/CollapsedTitle";
 
 type NavigationProps = {
-  currentSimulationStepResult: StepResult | null;
+  step: StepResult | null;
 };
 
-export default function Navigation({ currentSimulationStepResult }: NavigationProps) {
+export default function Navigation({ step }: NavigationProps) {
   const { isCollapsed } = useNavigationRedux();
   const { widthPercent, onResizeStart } = useSidebarResize();
 
@@ -29,7 +29,7 @@ export default function Navigation({ currentSimulationStepResult }: NavigationPr
           <Menu />
           <div className="navigation__lists">
             <EntityList />
-            <StepList currentSimulationStepResult={currentSimulationStepResult} />
+            <StepList step={step} />
           </div>
 
           <Resizer onResizeStart={onResizeStart} />

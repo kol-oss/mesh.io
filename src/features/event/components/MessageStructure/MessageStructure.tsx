@@ -288,9 +288,7 @@ export default function MessageStructure({
             ))}
           </div>
         ) : (
-          <p className="simulation-panel__description simulation-panel__description--secondary">
-            {"Packet structure is not available for this event."}
-          </p>
+          <></>
         )}
       </section>
       <footer className="simulation-panel__footer">

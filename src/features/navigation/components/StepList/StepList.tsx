@@ -29,7 +29,7 @@ import { createPortal } from "react-dom";
 import StepRecord from "../StepRecord/StepRecord";
 
 type StepListProps = {
-  currentSimulationStepResult: StepResult | null;
+  step: StepResult | null;
 };
 
 const isSameRefreshStep = (left: RefreshStep, right: RefreshStep) => {
@@ -58,7 +58,7 @@ const isSelectedStep = (step: Step, selectedStep: Step | null) => {
   return step.id === selectedStep.id;
 };
 
-export default function StepList({ currentSimulationStepResult }: StepListProps) {
+export default function StepList({ step: currentSimulationStepResult }: StepListProps) {
   const {
     steps,
     setSteps,

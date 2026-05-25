@@ -41,7 +41,7 @@ export default function Workspace() {
   return (
     <div className="workspace-page">
       <div className="workspace-page__nav">
-        <Navigation currentSimulationStepResult={currentSimulationStepResult} />
+        <Navigation step={currentSimulationStepResult} />
       </div>
       <div className="workspace-page__workspace">
         <Canvas

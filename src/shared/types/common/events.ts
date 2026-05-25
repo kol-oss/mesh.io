@@ -39,6 +39,7 @@ export enum EventType {
   Move = "MOVE",
   StatusChange = "STATUS_CHANGE",
 }
+
 export type Event = {
   id: UUID;
   tick: number;
