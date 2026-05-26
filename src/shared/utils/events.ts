@@ -6,7 +6,6 @@ import {
   type Event,
   type GetRouteEventDetails,
   type RouteChangeEventDetails,
-  type TransferEventDetails,
 } from "@/shared/types/common/events";
 import { MessageType } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
@@ -29,7 +28,7 @@ export const getEventProtocol = (event: Event): RoutingProtocol | undefined => {
   }
 
   if (event.type === EventType.Transfer) {
-    return (event.details as TransferEventDetails).protocol;
+    return undefined;
   }
 
   return undefined;

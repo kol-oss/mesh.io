@@ -166,7 +166,6 @@ export default function EventDescription({
   };
 
   const protocol = getEventProtocol(currentEvent);
-
   return (
     <aside
       className={`simulation-panel simulation-panel--tooltip${isDragging ? " simulation-panel--dragging" : ""}`}
