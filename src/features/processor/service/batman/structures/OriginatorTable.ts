@@ -199,14 +199,16 @@ export class OriginatorTable {
     return false;
   }
 
-  private recordEvent(type: EventType, details: Partial<BatmanRouteChangeEventDetails>): void {
+  private recordEvent(
+    type: EventType,
+    details: Omit<BatmanRouteChangeEventDetails, "protocol">,
+  ): void {
     this.eventRecorder.record(
       this.peer.id,
       type,
       {
         ...details,
         protocol: PROTOCOL,
-        reason: "",
       },
       PROTOCOL,
     );

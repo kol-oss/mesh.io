@@ -54,5 +54,4 @@ export type DsrRouteChangeEventDetails = {
   previousRoute: DsrRouteRecord | null;
   nextRoute: DsrRouteRecord | null;
   message?: Message;
-  reason: string;
 };

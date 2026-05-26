@@ -79,7 +79,6 @@ export class DsdvRoutingTable {
           nextHopPeerId: this.peer.id,
           previousRoute: null,
           nextRoute: this.toRecord(nextState),
-          reason: "Initial self route created",
         },
         RoutingProtocol.DSDV,
       );
@@ -95,7 +94,6 @@ export class DsdvRoutingTable {
         nextHopPeerId: this.peer.id,
         previousRoute: this.toRecord(previous),
         nextRoute: this.toRecord(nextState),
-        reason: "Self sequence number advanced for periodic advertisement",
       },
       RoutingProtocol.DSDV,
     );
@@ -151,10 +149,6 @@ export class DsdvRoutingTable {
     this.pendingWithdrawals.delete(params.destinationPeerId);
     this.routes.set(params.destinationPeerId, nextState);
 
-    const reason = current
-      ? `Accepted fresher or better DSDV route (seq ${params.incomingSequenceNumber}, metric ${metric}).`
-      : `Discovered new DSDV route (seq ${params.incomingSequenceNumber}, metric ${metric}).`;
-
     this.eventRecorder.record(
       this.peer.id,
       current ? EventType.UpdateRoute : EventType.AddRoute,
@@ -165,7 +159,6 @@ export class DsdvRoutingTable {
         previousRoute: current ? this.toRecord(current) : null,
         nextRoute: this.toRecord(nextState),
         message: clone(params.message),
-        reason,
       },
       RoutingProtocol.DSDV,
     );
@@ -211,7 +204,6 @@ export class DsdvRoutingTable {
             nextHopPeerId: previousRoute.nextHopPeerId,
             previousRoute,
             nextRoute: null,
-            reason: `Route deleted because no DSDV full dump was received from next hop ${previousRoute.nextHopPeerId} by tick ${tick}.`,
           },
           RoutingProtocol.DSDV,
         );
@@ -237,7 +229,6 @@ export class DsdvRoutingTable {
             nextHopPeerId: previousRoute.nextHopPeerId,
             previousRoute,
             nextRoute: null,
-            reason: `Invalid DSDV route garbage-collected after ${Math.max(1, this.routeTimeout)} ticks.`,
           },
           RoutingProtocol.DSDV,
         );

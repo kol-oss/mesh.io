@@ -38,7 +38,6 @@ export class DsdvModule extends BaseModule {
   private ownSequenceNumber = DSDV_SEQUENCE_INITIAL;
 
   private hasSentFullDump = false;
-  private lastIncrementalBroadcastTick = 0;
 
   constructor(peer: NodeWrapper, eventRecorder: EventRecorder) {
     super(peer, eventRecorder);
@@ -53,8 +52,6 @@ export class DsdvModule extends BaseModule {
 
     this.routingTable.upsertSelfRoute(this.ownSequenceNumber);
     this.routingTable.clearChangedFlags();
-
-    this.lastIncrementalBroadcastTick = this.eventRecorder.getCurrentTick();
   }
 
   override read(message: Message): boolean {
@@ -144,7 +141,6 @@ export class DsdvModule extends BaseModule {
         sourcePeerId: message.sourcePeerId,
         hopCount: message.hopCount + 1,
         entries: retransmitEntries,
-        note: `Retransmitted ${message.updateType === DsdvUpdateType.Incremental ? "incremental" : "full dump"} update with hop count ${message.hopCount + 1}.`,
       });
     }
 
@@ -197,7 +193,6 @@ export class DsdvModule extends BaseModule {
     this.broadcastRouteUpdate({
       updateType: DsdvUpdateType.FullDump,
       retransmit: false,
-      note: "Full dump includes all current routing table entries.",
     });
     this.hasSentFullDump = true;
   }
@@ -218,7 +213,6 @@ export class DsdvModule extends BaseModule {
     this.broadcastRouteUpdate({
       updateType: DsdvUpdateType.Incremental,
       retransmit: false,
-      note: `Incremental update includes routes changed since tick ${this.lastIncrementalBroadcastTick}.`,
     });
   }
 
@@ -243,7 +237,6 @@ export class DsdvModule extends BaseModule {
     sourcePeerId?: UUID;
     hopCount?: number;
     entries?: DsdvRouteUpdateRecordEntry[];
-    note: string;
   }): boolean {
     const routes =
       params.entries ??
@@ -268,12 +261,9 @@ export class DsdvModule extends BaseModule {
             neighbourPeerIds: [],
             retransmit: false,
             message: { ...emptyIncrementalMessage },
-            note: "No changes since last incremental update, no traffic sent.",
           },
           PROTOCOL,
         );
-
-        this.lastIncrementalBroadcastTick = this.eventRecorder.getCurrentTick();
       }
       return false;
     }
@@ -295,7 +285,6 @@ export class DsdvModule extends BaseModule {
         neighbourPeerIds: neighbours.map((peer) => peer.id),
         retransmit: params.retransmit,
         message: { ...message },
-        note: params.note,
       },
       PROTOCOL,
     );
@@ -306,9 +295,6 @@ export class DsdvModule extends BaseModule {
 
     if (!params.retransmit) {
       this.routingTable.clearChangedFlags();
-      if (params.updateType === DsdvUpdateType.Incremental) {
-        this.lastIncrementalBroadcastTick = this.eventRecorder.getCurrentTick();
-      }
     }
 
     return true;

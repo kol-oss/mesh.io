@@ -77,7 +77,6 @@ export const cloneAodvMessage = <T extends Message>(message: T): T => {
 
 export type AodvCalculationEventDetails = {
   message: AodvHelloMessage | AodvRouteReplyMessage | AodvRouteErrorMessage;
-  reason: string;
 };
 
 // Routing Table record
@@ -100,5 +99,4 @@ export type AodvRouteChangeEventDetails = {
   previousRoute: AodvRouteRecord | null;
   nextRoute: AodvRouteRecord | null;
   message?: Message;
-  reason: string;
 };

@@ -67,5 +67,4 @@ export type OlsrRouteChangeEventDetails = {
   previousRoute: OlsrRouteRecord | null;
   nextRoute: OlsrRouteRecord | null;
   message?: Message;
-  reason: string;
 };

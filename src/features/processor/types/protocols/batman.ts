@@ -83,5 +83,4 @@ export type BatmanRouteChangeEventDetails = {
   previousRoute: BatmanRouteRecord | null;
   nextRoute: BatmanRouteRecord | null;
   message?: Message;
-  reason: string;
 };

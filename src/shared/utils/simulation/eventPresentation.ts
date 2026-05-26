@@ -23,7 +23,6 @@ import {
 } from "@/features/processor/types/protocols/olsr";
 import {
   EventType,
-  type BroadcastEventDetails,
   type DropEventDetails,
   type Event,
   type GetRouteEventDetails,
@@ -43,7 +42,6 @@ import {
   getEventTitle as getBatmanEventTitle,
   getMessageSummary as getBatmanMessageSummary,
   getSimulationReadMorePath as getBatmanSimulationReadMorePath,
-  getOgmBroadcastThroughputExplanation,
   getOgmThroughputSelectionExplanation,
   getPeerLabel,
   getRouteSequenceWindowExplanation,
@@ -394,22 +392,19 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
     if (protocol === RoutingProtocol.AODV) {
       const routeChange = getRouteChange(event);
       if (routeChange && routeChange.protocol === RoutingProtocol.AODV) {
-        const namedReason = replacePeerIdsWithNames(routeChange.reason, peerNameById);
         if (event.type === EventType.AddRoute) {
-          return `Node inserted a new AODV route after route discovery or neighbour sensing. ${namedReason}`;
+          return "Node inserted a new AODV route after route discovery or neighbour sensing.";
         }
 
         if (event.type === EventType.UpdateRoute) {
-          return `Node updated an existing AODV route using sequence-number and hop-count comparison. ${namedReason}`;
+          return "Node updated an existing AODV route using sequence-number and hop-count comparison.";
         }
 
-        return `Node removed or invalidated an AODV route after timeout or link-break processing. ${namedReason}`;
+        return "Node removed or invalidated an AODV route after timeout or link-break processing.";
       }
 
       if (event.type === EventType.Broadcast) {
-        const details = event.details as BroadcastEventDetails;
-        const namedNote = replacePeerIdsWithNames(details.note ?? "", peerNameById);
-        return `Node processed AODV control traffic. ${namedNote}`;
+        return "Node processed AODV control traffic.";
       }
 
       if (event.type === EventType.Drop) {
@@ -425,8 +420,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
       }
 
       if (event.type === EventType.Calculation) {
-        const details = event.details as BatmanCalculationEventDetails;
-        return replacePeerIdsWithNames(details.reason, peerNameById);
+        return "Node processed an AODV control calculation step.";
       }
 
       return "Node emitted a simulation event.";
@@ -435,22 +429,19 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
     if (protocol === RoutingProtocol.DSR) {
       const routeChange = getRouteChange(event);
       if (routeChange && routeChange.protocol === RoutingProtocol.DSR) {
-        const namedReason = replacePeerIdsWithNames(routeChange.reason, peerNameById);
         if (event.type === EventType.AddRoute) {
-          return `Node inserted a DSR Route Cache entry from a discovered source route. ${namedReason}`;
+          return "Node inserted a DSR Route Cache entry from a discovered source route.";
         }
 
         if (event.type === EventType.UpdateRoute) {
-          return `Node updated a DSR Route Cache entry after receiving fresher route knowledge. ${namedReason}`;
+          return "Node updated a DSR Route Cache entry after receiving fresher route knowledge.";
         }
 
-        return `Node removed a DSR Route Cache entry after link failure or expiration. ${namedReason}`;
+        return "Node removed a DSR Route Cache entry after link failure or expiration.";
       }
 
       if (event.type === EventType.Broadcast) {
-        const details = event.details as BroadcastEventDetails;
-        const namedNote = replacePeerIdsWithNames(details.note ?? "", peerNameById);
-        return `Node flooded a DSR Route Request. ${namedNote}`;
+        return "Node flooded a DSR Route Request.";
       }
 
       if (event.type === EventType.Drop) {
@@ -468,8 +459,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
       }
 
       if (event.type === EventType.Calculation) {
-        const details = event.details as BatmanCalculationEventDetails;
-        return replacePeerIdsWithNames(details.reason, peerNameById);
+        return "Node processed a DSR control calculation step.";
       }
 
       return "Node emitted a simulation event.";
@@ -478,19 +468,18 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
     const routeChange = getRouteChange(event);
     if (routeChange && routeChange.protocol === RoutingProtocol.OLSR) {
       if (event.type === EventType.AddRoute) {
-        return `Node inserted a new OLSR route after recalculating routes from the Neighbor Set, 2-Hop Neighbor Set, and Topology Table. ${routeChange.reason}`;
+        return "Node inserted a new OLSR route after recalculating routes from the Neighbor Set, 2-Hop Neighbor Set, and Topology Table.";
       }
 
       if (event.type === EventType.UpdateRoute) {
-        return `Node updated an OLSR route after recalculating routes from learned OLSR topology state. ${routeChange.reason}`;
+        return "Node updated an OLSR route after recalculating routes from learned OLSR topology state.";
       }
 
-      return `Node removed an OLSR route after neighbour or topology information changed. ${routeChange.reason}`;
+      return "Node removed an OLSR route after neighbour or topology information changed.";
     }
 
     if (event.type === EventType.Broadcast) {
-      const details = event.details as BroadcastEventDetails;
-      return `OLSR control-message handling executed for this node. ${details.note ?? ""}`;
+      return "OLSR control-message handling executed for this node.";
     }
 
     if (event.type === EventType.Drop) {
@@ -506,8 +495,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
     }
 
     if (event.type === EventType.Calculation) {
-      const details = event.details as BatmanCalculationEventDetails;
-      return details.reason;
+      return "Node recalculated OLSR routing state from neighbour and topology information.";
     }
 
     return "Node emitted a simulation event.";
@@ -516,23 +504,22 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
   const routeChange = getRouteChange(event);
   if (routeChange && routeChange.protocol === RoutingProtocol.DSDV) {
     if (event.type === EventType.AddRoute) {
-      return `Node inserted a new DSDV route after accepting an incoming update. ${routeChange.reason}`;
+      return "Node inserted a new DSDV route after accepting an incoming update.";
     }
 
     if (event.type === EventType.UpdateRoute) {
-      return `Node updated an existing DSDV route using the DSDV acceptance rule. ${routeChange.reason}`;
+      return "Node updated an existing DSDV route using the DSDV acceptance rule.";
     }
 
-    return `Node removed a DSDV route after timeout-based garbage collection. ${routeChange.reason}`;
+    return "Node removed a DSDV route after timeout-based garbage collection.";
   }
 
   if (event.type === EventType.Broadcast && isDsdvMessage(message)) {
-    const details = event.details as BroadcastEventDetails;
     const fallbackNote =
       message.updateType === DsdvUpdateType.Incremental
         ? `Incremental update with ${message.entries.length} changed route entr${message.entries.length === 1 ? "y" : "ies"}.`
         : `Full dump update with ${message.entries.length} route entr${message.entries.length === 1 ? "y" : "ies"}.`;
-    return `Node broadcast a DSDV routing update. ${details.note ?? fallbackNote}`;
+    return `Node broadcast a DSDV routing update. ${fallbackNote}`;
   }
 
   if (event.type === EventType.Drop) {
@@ -818,17 +805,8 @@ const getPeerNameForDescription = (peerId: UUID, peerNameById: Map<UUID, string>
   return peerNameById.get(peerId) ?? "Unknown";
 };
 
-const replacePeerIdsWithNames = (text: string, peerNameById: Map<UUID, string>) => {
-  // Replace UUID-like tokens in runtime reason strings with friendly peer names.
-  return text.replace(
-    /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi,
-    (peerId) => peerNameById.get(peerId as UUID) ?? peerId,
-  );
-};
-
 export {
   formatFixed,
-  getOgmBroadcastThroughputExplanation,
   getOgmThroughputSelectionExplanation,
   getPeerLabel,
   getRouteSequenceWindowExplanation,

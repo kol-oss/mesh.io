@@ -85,11 +85,7 @@ export class OlsrModule extends BaseModule {
       mprPeerIds: this.mprSet.toArray(),
     };
 
-    this.broadcastControlMessage(
-      helloMessage,
-      false,
-      "HELLO broadcast refreshed local symmetric links and MPR announcements.",
-    );
+    this.broadcastControlMessage(helloMessage, false);
     this.recomputeRoutingTable(
       "Recomputed OLSR routes after local HELLO neighbour sensing and MPR selection.",
       helloMessage,
@@ -119,7 +115,6 @@ export class OlsrModule extends BaseModule {
           neighbourPeerIds: [],
           retransmit: false,
           message: clone(tcMessage),
-          note: `${this.peer.name} did not send a TC message because its MPR Selector Set is empty. Only nodes selected as Multipoint Relays advertise topology information in OLSR.`,
         },
         RoutingProtocol.OLSR,
       );
@@ -136,11 +131,7 @@ export class OlsrModule extends BaseModule {
       advertisedNeighbours: [...this.selectorSet.values()],
     };
 
-    this.broadcastControlMessage(
-      tcMessage,
-      false,
-      "TC broadcast advertised this node's current MPR selectors.",
-    );
+    this.broadcastControlMessage(tcMessage, false);
   }
 
   override tick() {
@@ -327,12 +318,7 @@ export class OlsrModule extends BaseModule {
         senderPeerId: this.peer.id,
         timeToLive: message.timeToLive - 1,
       };
-      this.broadcastControlMessage(
-        forwardedMessage,
-        true,
-        `TC message with ANSN ${message.ansn} was forwarded by selected relay.`,
-        message.senderPeerId,
-      );
+      this.broadcastControlMessage(forwardedMessage, true, message.senderPeerId);
     }
 
     return true;
@@ -423,8 +409,8 @@ export class OlsrModule extends BaseModule {
     }
   }
 
-  private recomputeRoutingTable(reason: string, message: Message | null) {
-    const computation = this.calculateRoutes(reason);
+  private recomputeRoutingTable(trigger: string, message: Message | null) {
+    const computation = this.calculateRoutes(trigger);
     const nextRoutes = computation.routes;
     const previousRoutes = new Map(this.routingTable.entries());
 
@@ -443,7 +429,6 @@ export class OlsrModule extends BaseModule {
           previousRoute,
           nextRoute: null,
           message: message ? clone(message) : undefined,
-          reason: `${computation.explanation} Removed route to ${this.getPeerDisplayName(destinationPeerId)} because it is no longer reachable in the recalculated topology.`,
         },
         RoutingProtocol.OLSR,
       );
@@ -462,7 +447,6 @@ export class OlsrModule extends BaseModule {
             previousRoute: null,
             nextRoute,
             message: message ? clone(message) : undefined,
-            reason: `${computation.explanation} Inserted route to ${this.getPeerDisplayName(destinationPeerId)} via ${this.getPeerDisplayName(nextRoute.nextHopPeerId)} with hop count ${nextRoute.metric}.`,
           },
           RoutingProtocol.OLSR,
         );
@@ -484,7 +468,6 @@ export class OlsrModule extends BaseModule {
             previousRoute,
             nextRoute,
             message: message ? clone(message) : undefined,
-            reason: `${computation.explanation} Updated route to ${this.getPeerDisplayName(destinationPeerId)} via ${this.getPeerDisplayName(nextRoute.nextHopPeerId)} with hop count ${nextRoute.metric}.`,
           },
           RoutingProtocol.OLSR,
         );
@@ -499,7 +482,6 @@ export class OlsrModule extends BaseModule {
         EventType.Calculation,
         {
           message: clone(message),
-          reason: computation.explanation,
         },
         RoutingProtocol.OLSR,
       );
@@ -632,7 +614,6 @@ export class OlsrModule extends BaseModule {
   private broadcastControlMessage(
     message: OlsrHelloMessage | OlsrTcMessage,
     retransmit: boolean,
-    note: string,
     excludedPeerId?: UUID,
   ) {
     const neighbours = this.getLocalBroadcastNeighbours().filter(
@@ -645,7 +626,6 @@ export class OlsrModule extends BaseModule {
         neighbourPeerIds: neighbours.map((peer) => peer.id),
         retransmit,
         message: clone(message),
-        note,
       },
       RoutingProtocol.OLSR,
     );

@@ -42,5 +42,4 @@ export type DsdvRouteChangeEventDetails = {
   previousRoute: DsdvRouteRecord | null;
   nextRoute: DsdvRouteRecord | null;
   message?: Message;
-  reason: string;
 };

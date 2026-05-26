@@ -100,7 +100,6 @@ export class DsrModule extends BaseModule {
           nextHopPeerId: route.nextHopPeerId,
           previousRoute: route,
           nextRoute: null,
-          reason: `DSR Route Cache entry expired after ${routeTimeout} ticks without reuse.`,
         },
         PROTOCOL,
       );
@@ -198,10 +197,6 @@ export class DsrModule extends BaseModule {
           neighbourPeerIds: neighbours.map((peer) => peer.id),
           retransmit: current.peer.id !== this.peer.id,
           message: cloneDsrMessage(requestMessage),
-          note:
-            current.peer.id === this.peer.id
-              ? `DSR Route Request ${requestId} flooded for destination ${destinationPeerId}.`
-              : `Forwarded DSR Route Request ${requestId}.`,
         },
         PROTOCOL,
       );
@@ -249,7 +244,6 @@ export class DsrModule extends BaseModule {
     const modulesAlongPath = this.getModulesAlongPath(pathPeerIds);
     for (let index = pathPeerIds.length - 1; index > 0; index -= 1) {
       const senderPeerId = pathPeerIds[index];
-      const previousPeerId = pathPeerIds[index - 1];
       const senderModule = modulesAlongPath[index] ?? null;
       const senderPeer = senderModule?.peer;
       if (!senderPeer) {
@@ -271,7 +265,6 @@ export class DsrModule extends BaseModule {
         EventType.Calculation,
         {
           message: cloneDsrMessage(replyMessage),
-          reason: `DSR Route Reply ${requestId} unicast to ${previousPeerId} carrying source route ${pathPeerIds.join(" -> ")}.`,
         },
         PROTOCOL,
       );
@@ -299,19 +292,9 @@ export class DsrModule extends BaseModule {
         routePeerIds: [...pathPeerIds],
       };
 
-      module.upsertRoute(
-        pathPeerIds[pathPeerIds.length - 1],
-        forwardPath,
-        discoveryMessage,
-        `DSR Route Reply ${requestId} installed route to destination ${pathPeerIds[pathPeerIds.length - 1]}.`,
-      );
+      module.upsertRoute(pathPeerIds[pathPeerIds.length - 1], forwardPath, discoveryMessage);
 
-      module.upsertRoute(
-        pathPeerIds[0],
-        reversePath,
-        discoveryMessage,
-        `DSR Route Reply ${requestId} cached reverse path to initiator ${pathPeerIds[0]}.`,
-      );
+      module.upsertRoute(pathPeerIds[0], reversePath, discoveryMessage);
     }
   }
 
@@ -409,7 +392,6 @@ export class DsrModule extends BaseModule {
               EventType.Calculation,
               {
                 message: cloneDsrMessage(routeError),
-                reason: `DSR packet salvaging reused cached alternate route ${salvagedPath.join(" -> ")}.`,
               },
               PROTOCOL,
             );
@@ -454,7 +436,6 @@ export class DsrModule extends BaseModule {
     destinationPeerId: UUID,
     pathPeerIds: UUID[],
     message: DsrRouteRequestMessage | DsrRouteReplyMessage,
-    reason: string,
   ) {
     const upsertResult = this.routeCache.upsert(
       this.peer.id,
@@ -479,7 +460,6 @@ export class DsrModule extends BaseModule {
           previousRoute: null,
           nextRoute,
           message: cloneDsrMessage(message),
-          reason,
         },
         PROTOCOL,
       );
@@ -496,7 +476,6 @@ export class DsrModule extends BaseModule {
           previousRoute,
           nextRoute,
           message: cloneDsrMessage(message),
-          reason,
         },
         PROTOCOL,
       );
@@ -537,7 +516,6 @@ export class DsrModule extends BaseModule {
           previousRoute: route,
           nextRoute: null,
           message: cloneDsrMessage(message),
-          reason: `DSR Route Error invalidated cache entry using broken link ${brokenFromPeerId} -> ${brokenToPeerId}.`,
         },
         PROTOCOL,
       );

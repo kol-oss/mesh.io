@@ -129,7 +129,6 @@ export class AodvModule extends BaseModule {
       neighbourPeerIds: neighbours.map((neighbour) => neighbour.id),
       retransmit: false,
       message: cloneAodvMessage(helloMessage),
-      note: `AODV HELLO advertised local connectivity for ${helloMessage.lifetime} ticks.`,
     });
 
     for (const neighbour of neighbours) {
@@ -152,7 +151,7 @@ export class AodvModule extends BaseModule {
       }
 
       if (route.expiresAtTick <= currentTick) {
-        this.removeRoute(destinationPeerId, null, `AODV route to ${destinationPeerId} expired.`);
+        this.removeRoute(destinationPeerId, null);
         continue;
       }
 
@@ -163,10 +162,7 @@ export class AodvModule extends BaseModule {
     }
 
     for (const nextHopPeerId of brokenNextHops) {
-      this.handleLinkBreak(
-        nextHopPeerId,
-        `AODV detected link break towards next hop ${nextHopPeerId}.`,
-      );
+      this.handleLinkBreak(nextHopPeerId);
     }
   }
 
@@ -298,7 +294,6 @@ export class AodvModule extends BaseModule {
           current.hopCount,
           this.ownSequenceNumber,
           true,
-          `AODV RREQ ${requestId} updated reverse route to originator ${this.peer.id}.`,
           requestMessage,
           AODV_ACTIVE_ROUTE_TIMEOUT,
         );
@@ -312,10 +307,6 @@ export class AodvModule extends BaseModule {
         neighbourPeerIds: neighbours.map((neighbour) => neighbour.id),
         retransmit: current.peer.id !== this.peer.id,
         message: cloneAodvMessage(requestMessage),
-        note:
-          current.peer.id === this.peer.id
-            ? `AODV Route Request ${requestId} flooded for destination ${destinationPeerId}.`
-            : `Forwarded AODV Route Request ${requestId} with hop count ${current.hopCount}.`,
       });
 
       const candidate = currentModule.buildReplyCandidate(
@@ -353,7 +344,7 @@ export class AodvModule extends BaseModule {
       return null;
     }
 
-    this.applyRouteReply(bestReply, requestId, destinationPeerId);
+    this.applyRouteReply(bestReply, destinationPeerId);
     return this.getUsableRoute(destinationPeerId);
   }
 
@@ -398,11 +389,7 @@ export class AodvModule extends BaseModule {
     };
   }
 
-  private applyRouteReply(
-    candidate: RouteReplyCandidate,
-    requestId: number,
-    destinationPeerId: UUID,
-  ) {
+  private applyRouteReply(candidate: RouteReplyCandidate, destinationPeerId: UUID) {
     const peersAlongPath = this.getPeersAlongPath(candidate.pathPeerIds);
     if (peersAlongPath.length !== candidate.pathPeerIds.length) {
       return;
@@ -434,7 +421,6 @@ export class AodvModule extends BaseModule {
 
       this.recordAodvEvent(senderPeer.id, EventType.Calculation, {
         message: cloneAodvMessage(replyMessage),
-        reason: `AODV Route Reply ${requestId} unicast to ${recipientPeer.id} for destination ${destinationPeerId} with hop count ${senderDistanceToDestination}.`,
       });
 
       senderModule.addPrecursor(destinationPeerId, recipientPeer.id);
@@ -444,7 +430,6 @@ export class AodvModule extends BaseModule {
         senderDistanceToDestination + 1,
         candidate.destinationSequenceNumber,
         true,
-        `AODV Route Reply ${requestId} installed forward route to destination ${destinationPeerId}.`,
         replyMessage,
         replyMessage.lifetime,
       );
@@ -471,7 +456,6 @@ export class AodvModule extends BaseModule {
       1,
       message.destinationSequenceNumber,
       true,
-      `AODV HELLO refreshed direct neighbour route to ${message.sourcePeerId}.`,
       message,
       message.lifetime,
     );
@@ -513,23 +497,14 @@ export class AodvModule extends BaseModule {
         sequenceNumber: Math.max(unreachable.sequenceNumber, route.sequenceNumber + 1),
       });
 
-      this.removeRoute(
-        unreachable.destinationPeerId,
-        message,
-        `AODV Route Error invalidated route to ${unreachable.destinationPeerId}.`,
-      );
+      this.removeRoute(unreachable.destinationPeerId, message);
     }
 
     if (propagatedDestinations.length === 0) {
       return true;
     }
 
-    this.propagateRouteError(
-      propagatedDestinations,
-      [...recipients],
-      `Forwarded AODV Route Error for ${propagatedDestinations.map((entry) => entry.destinationPeerId).join(", ")}.`,
-      message.sourcePeerId,
-    );
+    this.propagateRouteError(propagatedDestinations, [...recipients], message.sourcePeerId);
 
     return true;
   }
@@ -545,10 +520,7 @@ export class AodvModule extends BaseModule {
         },
         PROTOCOL,
       );
-      this.handleLinkBreak(
-        hopPeerId,
-        `AODV failed to forward packet because next hop ${hopPeerId} is unavailable.`,
-      );
+      this.handleLinkBreak(hopPeerId);
       return false;
     }
 
@@ -561,10 +533,7 @@ export class AodvModule extends BaseModule {
         },
         PROTOCOL,
       );
-      this.handleLinkBreak(
-        hopPeerId,
-        `AODV failed to forward packet because next hop ${hopPeerId} does not support AODV.`,
-      );
+      this.handleLinkBreak(hopPeerId);
       return false;
     }
 
@@ -589,10 +558,7 @@ export class AodvModule extends BaseModule {
     const targetModule = hop.getModule(PROTOCOL);
     const delivered = targetModule?.read(forwardedPacket) ?? false;
     if (!delivered) {
-      this.handleLinkBreak(
-        hopPeerId,
-        `AODV detected downstream forwarding failure via next hop ${hopPeerId}.`,
-      );
+      this.handleLinkBreak(hopPeerId);
     }
 
     return delivered;
@@ -608,7 +574,7 @@ export class AodvModule extends BaseModule {
     return targetModule?.read(cloneAodvMessage(message)) ?? false;
   }
 
-  private handleLinkBreak(nextHopPeerId: UUID, reason: string) {
+  private handleLinkBreak(nextHopPeerId: UUID) {
     const affectedRoutes = [...this.routingTable.values()].filter(
       (route) => route.destinationPeerId !== this.peer.id && route.nextHopPeerId === nextHopPeerId,
     );
@@ -629,20 +595,15 @@ export class AodvModule extends BaseModule {
         sequenceNumber: route.sequenceNumber + 1,
       });
 
-      this.removeRoute(
-        route.destinationPeerId,
-        null,
-        `${reason} Route to ${route.destinationPeerId} was invalidated.`,
-      );
+      this.removeRoute(route.destinationPeerId, null);
     }
 
-    this.propagateRouteError(unreachableDestinations, [...recipients], reason, this.peer.id);
+    this.propagateRouteError(unreachableDestinations, [...recipients], this.peer.id);
   }
 
   private propagateRouteError(
     unreachableDestinations: AodvUnreachableDestination[],
     recipientPeerIds: UUID[],
-    reason: string,
     sourcePeerId: UUID,
   ) {
     if (unreachableDestinations.length === 0 || recipientPeerIds.length === 0) {
@@ -663,14 +624,12 @@ export class AodvModule extends BaseModule {
         neighbourPeerIds: recipientPeerIds,
         retransmit: true,
         message: cloneAodvMessage(errorMessage),
-        note: reason,
       });
     } else {
       this.recordEvent(
         EventType.Calculation,
         {
           message: cloneAodvMessage(errorMessage),
-          reason,
         },
         PROTOCOL,
       );
@@ -687,7 +646,6 @@ export class AodvModule extends BaseModule {
     metric: number,
     sequenceNumber: number,
     validSequenceNumber: boolean,
-    reason: string,
     message: AodvControlMessage,
     lifetime: number,
   ) {
@@ -732,7 +690,6 @@ export class AodvModule extends BaseModule {
           previousRoute: null,
           nextRoute: this.toPublicRoute(nextRoute),
           message: cloneAodvMessage(message),
-          reason,
         },
         PROTOCOL,
       );
@@ -748,17 +705,12 @@ export class AodvModule extends BaseModule {
         previousRoute: this.toPublicRoute(previousRoute),
         nextRoute: this.toPublicRoute(nextRoute),
         message: cloneAodvMessage(message),
-        reason,
       },
       PROTOCOL,
     );
   }
 
-  private removeRoute(
-    destinationPeerId: UUID,
-    message: AodvRouteErrorMessage | null,
-    reason: string,
-  ) {
+  private removeRoute(destinationPeerId: UUID, message: AodvRouteErrorMessage | null) {
     const previousRoute = this.routingTable.get(destinationPeerId);
     if (!previousRoute || destinationPeerId === this.peer.id) {
       return;
@@ -774,7 +726,6 @@ export class AodvModule extends BaseModule {
         previousRoute: this.toPublicRoute(previousRoute),
         nextRoute: null,
         message: message ? cloneAodvMessage(message) : undefined,
-        reason,
       },
       PROTOCOL,
     );

@@ -56,7 +56,6 @@ export type BroadcastEventDetails = {
   neighbourPeerIds: UUID[];
   retransmit: boolean;
   message: Message;
-  note?: string;
 };
 
 // for Calculation event

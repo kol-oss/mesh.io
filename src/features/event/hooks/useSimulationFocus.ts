@@ -8,7 +8,7 @@ import { ActionMode as ToolbarMode } from "@/shared/types/action";
 import { EventType, type Event, type StatusChangeEventDetails } from "@/shared/types/common/events";
 import type { StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
-import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
+import type { LinkEntity, NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
 import { clamp } from "@/shared/utils/math/clamp";
 
@@ -51,7 +51,7 @@ export function useSimulationFocus({
 
     const getLinkAnchorPosition = (linkId: UUID): { x: number; y: number } | null => {
       const link = simulationEntities.find(
-        (entity) => entity.type === EntityType.Link && entity.id === linkId,
+        (entity): entity is LinkEntity => entity.type === EntityType.Link && entity.id === linkId,
       );
 
       if (!link || !link.sourcePeerId || !link.destinationPeerId) {

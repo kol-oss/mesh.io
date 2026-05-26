@@ -1,3 +1,17 @@
+import { useNavigationRedux } from "@/features/navigation/hooks/useNavigationRedux";
+import Tooltip from "@/shared/components/Tooltip/Tooltip";
+import { useListReorder } from "@/shared/hooks/useListReorder";
+import { useToast } from "@/shared/toast/useToast";
+import { generateUUID, type UUID } from "@/shared/types/common/uuid";
+import type { NetworkEntity } from "@/shared/types/model/entities";
+import { EntityType } from "@/shared/types/model/entities";
+import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
+import {
+  migrateEntities,
+  obstacleDefaults,
+  peerDefaults,
+} from "@/shared/utils/navigation/entityMigration";
+import { ChevronRight, Link, Plus, Radio, SquareSlash } from "lucide-react";
 import {
   Fragment,
   useCallback,
@@ -7,21 +21,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import { ChevronRight, Link, Plus, Radio, SquareSlash } from "lucide-react";
 import { createPortal } from "react-dom";
-import { useListReorder } from "@/shared/hooks/useListReorder";
-import { useToast } from "@/shared/toast/useToast";
-import { EntityType } from "@/shared/types/model/entities";
-import type { NetworkEntity } from "@/shared/types/model/entities";
-import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
-import { generateUUID, type UUID } from "@/shared/types/common/uuid";
-import {
-  migrateEntities,
-  obstacleDefaults,
-  peerDefaults,
-} from "@/shared/utils/navigation/entityMigration";
-import Tooltip from "@/shared/components/Tooltip/Tooltip";
-import { useNavigationRedux } from "@/features/navigation/hooks/useNavigationRedux";
 import EntityRecord from "../EntityRecord/EntityRecord";
 
 export default function EntityList() {
@@ -272,7 +272,6 @@ export default function EntityList() {
               <EntityRecord
                 entity={networkEntity}
                 isSelected={selectedEntityId === networkEntity.id}
-                isDragging={dragIndex === index}
                 onSelect={() => {
                   if (suppressNextClickRef.current) {
                     suppressNextClickRef.current = false;

@@ -106,7 +106,7 @@ export const getEventDescription = (event: Event, peerNameById: Map<UUID, string
       return getRouteUpdateDescription();
     }
 
-    return getRouteRemoveDescription(routeChange.reason);
+    return getRouteRemoveDescription();
   }
 
   switch (event.type) {
@@ -405,7 +405,7 @@ const getThroughputCalculatedDescription = (actor: string, event: Event) => {
     );
   }
 
-  return <>{`${actor} calculated throughput: ${details.reason}`}</>;
+  return <>{`${actor} completed a protocol calculation step.`}</>;
 };
 
 export const getThroughputBreakdown = (event: Event) => {
@@ -465,12 +465,14 @@ export const getThroughputBaseExplanation = (
   breakdown: NonNullable<BatmanCalculationEventDetails["elpProcessing"]>,
 ) => {
   const cutAmount = Math.max(0, breakdown.linkThroughput - breakdown.newThroughput);
+  const receptionRatio =
+    breakdown.linkThroughput > 0 ? breakdown.receptionedThroughput / breakdown.linkThroughput : 0;
 
   if (cutAmount > 0) {
-    return `The (Math.round(breakdown.baseThroughput)) throughput is ${Math.round(breakdown.newThroughput)}. Starting from ${Math.round(breakdown.linkThroughput)}, (formatFixed(breakdown.distance))-based penalty was applied for link (formatFixed(breakdown.distance)) ${formatFixed(breakdown.distance)} (configured penalty (formatFixed(breakdown.distance)) ${Math.round(breakdown.penaltyDistance)}, penalty ${formatFixed(breakdown.penaltyPercent)}% per unit), reducing throughput by ${Math.round(cutAmount)}. The reception (formatFixed(breakdown.receptionRatio)) is ${formatFixed(breakdown.receptionRatio)}, meaning no packet loss is observed at this sample.`;
+    return `The throughput sample is ${Math.round(breakdown.newThroughput)}. Starting from ${Math.round(breakdown.linkThroughput)}, distance penalty was applied for link distance ${formatFixed(breakdown.distance)} (configured penalty distance ${Math.round(breakdown.penaltyDistance)}, penalty ${formatFixed(breakdown.penaltyPercent)}% per unit), reducing throughput by ${Math.round(cutAmount)}. The reception ratio is ${formatFixed(receptionRatio)} for this sample.`;
   }
 
-  return `The (Math.round(breakdown.baseThroughput)) throughput is ${Math.round(breakdown.newThroughput)}, and no distance cut is applied on this link. The reception (formatFixed(breakdown.receptionRatio)) is ${formatFixed(breakdown.receptionRatio)}.`;
+  return `The throughput sample is ${Math.round(breakdown.newThroughput)}, and no distance cut is applied on this link. The reception ratio is ${formatFixed(receptionRatio)}.`;
 };
 
 export const getThroughputEwmaExplanation = (
@@ -553,14 +555,13 @@ export const getRouteSequenceWindowExplanation = (event: Event) => {
   return `Sequence Protection Window tracks accepted (message.sequence) numbers and blocks duplicates or out-of-range OGMs. The (message.sequence) number of received OGM: ${message.sequence}.`;
 };
 
-const getRouteRemoveDescription = (reason: string) => {
+const getRouteRemoveDescription = () => {
   return (
     <>
       {"The node removed an originator-table entry."} {"The route is no longer treated as valid"}.{" "}
       {
         "B.A.T.M.A.N. V drops this record when the route becomes stale, so this next hop is no longer trusted as a valid path to that originator."
-      }{" "}
-      {`Reason: ${reason}`}
+      }
     </>
   );
 };
