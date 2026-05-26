@@ -50,7 +50,7 @@ export default function DsdvTableStructure({
       }}
     >
       <TableDescription
-        headers={["Destination", "Next Hop", "Metric", "Sequence Number", "Last Update"]}
+        headers={["Destination", "Next Hop", "Metric", "Sequence", "Last Update"]}
         rows={routeRows.length > 0 ? routeRows : EMPTY_ROW}
       />
     </TableGroup>
