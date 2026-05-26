@@ -11,6 +11,7 @@ import {
 import { clearLinks, replaceLinks } from "@/shared/store/slices/linkSlice";
 import { clearObstacles, replaceObstacles } from "@/shared/store/slices/obstacleSlice";
 import { clearPeers, replacePeers } from "@/shared/store/slices/peerSlice";
+import { setCurrentStepIndex } from "@/shared/store/slices/simulationSlice";
 import { clearSteps, replaceSteps } from "@/shared/store/slices/stepSlice";
 import { clearTexts, replaceTexts } from "@/shared/store/slices/textSlice";
 import { useToast } from "@/shared/toast/useToast";
@@ -50,6 +51,7 @@ export const useNavigationRedux = () => {
   const openedTabs = useAppSelector((state) => state.display.openedTabs);
   const isRefreshHidden = useAppSelector((state) => state.display.refreshHidden);
   const isNavCollapsed = useAppSelector((state) => state.display.navCollapsed ?? false);
+  const simulationResult = useAppSelector((state) => state.simulation.result);
 
   const entities = useMemo<NetworkEntity[]>(() => {
     return [...peers, ...links, ...obstacles];
@@ -127,9 +129,18 @@ export const useNavigationRedux = () => {
         return;
       }
 
+      if (simulationResult) {
+        const stepIndex = simulationResult.stepResults.findIndex(
+          (stepResult) => stepResult.step.id === id,
+        );
+        if (stepIndex !== -1) {
+          dispatch(setCurrentStepIndex(stepIndex));
+        }
+      }
+
       dispatch(setSelectedId(id));
     },
-    [dispatch, selectedId, selectedSource],
+    [dispatch, selectedId, selectedSource, simulationResult],
   );
 
   const setEntitiesOpened = useCallback(
