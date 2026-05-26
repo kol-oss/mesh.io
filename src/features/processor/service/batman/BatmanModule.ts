@@ -67,10 +67,8 @@ export class BatmanModule extends BaseModule {
   }
 
   override read(message: Message): boolean {
+    super.read(message);
     const { type: messageType } = message;
-    if (messageType === MessageType.Packet) {
-      return super.read(message);
-    }
 
     // Echo Location Protocol message
     if (messageType === MessageType.BatmanEchoLocationMessage) {

@@ -37,20 +37,6 @@ const cloneDsrMessage = <T extends Message>(message: T): T => {
   };
 };
 
-const isDsrSimulationMessage = (value: unknown): value is Message => {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const candidate = value as Partial<Message>;
-  return (
-    candidate.type === MessageType.Packet ||
-    candidate.type === MessageType.DsrRouteRequestMessage ||
-    candidate.type === MessageType.DsrRouteReplyMessage ||
-    candidate.type === MessageType.DsrRouteErrorMessage
-  );
-};
-
 type DiscoveryResult = {
   pathPeerIds: UUID[];
   requestId: number;
@@ -63,14 +49,18 @@ export class DsrModule extends BaseModule {
 
   constructor(routingPeer: NodeWrapper, eventRecorder: EventRecorder) {
     super(routingPeer, eventRecorder);
+    this.INCOMING_MESSAGE_TYPES.push(
+      MessageType.DsrRouteRequestMessage,
+      MessageType.DsrRouteReplyMessage,
+      MessageType.DsrRouteErrorMessage,
+    );
   }
 
   override read(message: Message): boolean {
-    if (!isDsrSimulationMessage(message)) {
-      return false;
-    }
+    super.read(message);
+    const { type: messageType } = message;
 
-    if (message.type === MessageType.Packet) {
+    if (messageType === MessageType.Packet) {
       if (message.destinationPeerId === this.peer.id) {
         return true;
       }
