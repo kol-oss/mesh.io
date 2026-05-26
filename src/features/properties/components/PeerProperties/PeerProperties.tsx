@@ -19,6 +19,7 @@ import { parseNumber } from "@/shared/utils/properties";
 import AodvProperties from "./AodvProperties";
 import BatmanProperties from "./BatmanProperties";
 import DsdvProperties from "./DsdvProperties";
+import DsrProperties from "./DsrProperties";
 import OlsrProperties from "./OlsrProperties";
 
 type PeerPropertiesProps = EntityPropertiesProps<PeerEntity>;
@@ -176,6 +177,14 @@ export default function PeerProperties({ selected, entities, setEntities }: Peer
 
         {protocol === RoutingProtocol.AODV && (
           <AodvProperties
+            peer={selected}
+            updateConfiguration={updateConfiguration}
+            updateConfigurationByProtocol={updateConfigurationByProtocol}
+          />
+        )}
+
+        {protocol === RoutingProtocol.DSR && (
+          <DsrProperties
             peer={selected}
             updateConfiguration={updateConfiguration}
             updateConfigurationByProtocol={updateConfigurationByProtocol}

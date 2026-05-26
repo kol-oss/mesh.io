@@ -5,6 +5,7 @@ import { StepType } from "@/shared/types/model/steps";
 import { AODV_DEFAULT_CONFIGURATION } from "./aodv";
 import { BATMAN_DEFAULT_CONFIGURATION } from "./batman";
 import { DSDV_DEFAULT_CONFIGURATION } from "./dsdv";
+import { DSR_DEFAULT_CONFIGURATION } from "./dsr";
 import { OLSR_DEFAULT_CONFIGURATION } from "./olsr";
 
 export const peerRoutingProtocols: RoutingProtocol[] = [...ROUTING_PROTOCOLS];
@@ -20,7 +21,7 @@ export const getDefaultPeerConfiguration = (protocol: RoutingProtocol): PeerConf
     case RoutingProtocol.OLSR:
       return { ...OLSR_DEFAULT_CONFIGURATION };
     case RoutingProtocol.DSR:
-      return {};
+      return { ...DSR_DEFAULT_CONFIGURATION };
   }
 };
 

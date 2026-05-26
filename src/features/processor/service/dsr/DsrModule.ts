@@ -1,5 +1,4 @@
-import { EventRecorder } from "@/features/processor/EventRecorder";
-import type { NodeWrapper } from "@/features/processor/types/node";
+import type { EventRecorder } from "@/features/processor/EventRecorder";
 import {
   type DsrRouteErrorMessage,
   type DsrRouteRecord,
@@ -10,43 +9,69 @@ import {
   DSR_DEFAULT_HOP_LIMIT,
   DSR_MAX_REDISCOVERY_ATTEMPTS,
   DSR_MAX_SALVAGE_COUNT,
-  DSR_ROUTE_CACHE_TIMEOUT,
+  DSR_MIN_ROUTE_TIMEOUT,
 } from "@/shared/constants/protocols/dsr";
-import { EventType } from "@/shared/types/common/events";
-import { MessageType, type Packet } from "@/shared/types/common/messages";
+import { DropReason, EventType, type GetRouteEventDetails } from "@/shared/types/common/events";
+import { MessageType, type Message, type Packet } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import type { RoutingModule } from "../../types/routing";
-import { cloneDsrMessage, isDsrSimulationMessage } from "./dsrMessage";
+import { getDsrConfiguration } from "@/shared/types/model/peers";
+import type { NodeWrapper } from "../../types/node";
+import { BaseModule } from "../BaseModule";
+import { RouteCache } from "./structures/RouteCache";
 
-type RouteCacheEntry = DsrRouteRecord;
+const PROTOCOL = RoutingProtocol.DSR;
+
+const cloneDsrMessage = <T extends Message>(message: T): T => {
+  return {
+    ...message,
+    ...(message.type === MessageType.DsrRouteRequestMessage
+      ? { routePeerIds: [...message.routePeerIds] }
+      : {}),
+    ...(message.type === MessageType.DsrRouteReplyMessage
+      ? { routePeerIds: [...message.routePeerIds] }
+      : {}),
+    ...(message.type === MessageType.DsrRouteErrorMessage
+      ? { routePeerIds: [...message.routePeerIds] }
+      : {}),
+  };
+};
+
+const isDsrSimulationMessage = (value: unknown): value is Message => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<Message>;
+  return (
+    candidate.type === MessageType.Packet ||
+    candidate.type === MessageType.DsrRouteRequestMessage ||
+    candidate.type === MessageType.DsrRouteReplyMessage ||
+    candidate.type === MessageType.DsrRouteErrorMessage
+  );
+};
 
 type DiscoveryResult = {
   pathPeerIds: UUID[];
   requestId: number;
 };
 
-export class DsrModule implements RoutingModule {
-  private readonly routingPeer: NodeWrapper;
-
-  private readonly eventRecorder: EventRecorder;
-
-  private readonly routeCache = new Map<UUID, RouteCacheEntry>();
+export class DsrModule extends BaseModule {
+  private readonly routeCache = new RouteCache();
 
   private requestSequence = 0;
 
   constructor(routingPeer: NodeWrapper, eventRecorder: EventRecorder) {
-    this.routingPeer = routingPeer;
-    this.eventRecorder = eventRecorder;
+    super(routingPeer, eventRecorder);
   }
 
-  read(message: unknown): boolean {
+  override read(message: Message): boolean {
     if (!isDsrSimulationMessage(message)) {
       return false;
     }
 
     if (message.type === MessageType.Packet) {
-      if (message.destinationPeerId === this.routingPeer.id) {
+      if (message.destinationPeerId === this.peer.id) {
         return true;
       }
 
@@ -61,54 +86,52 @@ export class DsrModule implements RoutingModule {
     return true;
   }
 
-  refresh() {
+  override refresh() {
     // DSR is reactive; no periodic refresh traffic is generated.
   }
 
-  tick() {
+  override tick() {
+    super.tick();
+    if (!this.peer.isActive()) {
+      return;
+    }
+
     const currentTick = this.eventRecorder.getCurrentTick();
-    for (const [destinationPeerId, route] of this.routeCache.entries()) {
-      if (destinationPeerId === this.routingPeer.id) {
-        continue;
-      }
+    const routeTimeout = this.getRouteTimeout();
+    const expiredRoutes = this.routeCache.removeExpired(this.peer.id, currentTick, routeTimeout);
 
-      if (currentTick - route.lastUpdateTick < DSR_ROUTE_CACHE_TIMEOUT) {
-        continue;
-      }
-
-      this.routeCache.delete(destinationPeerId);
-      this.eventRecorder.record(this.routingPeer.id, EventType.DeleteRoute, {
-        protocol: RoutingProtocol.DSR,
-        destinationPeerId,
-        nextHopPeerId: route.nextHopPeerId,
-        previousRoute: route,
-        nextRoute: null,
-        reason: `DSR Route Cache entry expired after ${DSR_ROUTE_CACHE_TIMEOUT} ticks without reuse.`,
-      });
+    for (const { destinationPeerId, route } of expiredRoutes) {
+      this.eventRecorder.record(
+        this.peer.id,
+        EventType.DeleteRoute,
+        {
+          protocol: PROTOCOL,
+          destinationPeerId,
+          nextHopPeerId: route.nextHopPeerId,
+          previousRoute: route,
+          nextRoute: null,
+          reason: `DSR Route Cache entry expired after ${routeTimeout} ticks without reuse.`,
+        },
+        PROTOCOL,
+      );
     }
   }
 
-  send(packet: Packet): boolean {
-    if (!this.routingPeer.isActive()) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneDsrMessage(packet),
-        reason: "Source peer is disabled",
-      });
+  override send(packet: Packet): boolean {
+    if (!this.peer.isActive()) {
+      this.recordDrop(packet, DropReason.DestinationUnavailable);
       return false;
     }
 
     if (packet.timeToLive <= 0) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-        message: cloneDsrMessage(packet),
-        reason: "Packet TTL reached zero",
-      });
+      this.recordDrop(packet, DropReason.TimeToLiveExceeded);
       return false;
     }
 
     const sourcePacket: Packet =
-      packet.sourcePeerId === null ? { ...packet, sourcePeerId: this.routingPeer.id } : packet;
+      packet.sourcePeerId === null ? { ...packet, sourcePeerId: this.peer.id } : packet;
 
-    if (sourcePacket.destinationPeerId === this.routingPeer.id) {
+    if (sourcePacket.destinationPeerId === this.peer.id) {
       return true;
     }
 
@@ -133,19 +156,17 @@ export class DsrModule implements RoutingModule {
       }
     }
 
-    this.eventRecorder.record(this.routingPeer.id, EventType.Drop, {
-      message: cloneDsrMessage(sourcePacket),
-      reason: "No DSR source route is available for the destination",
-      reasonCode: "NO_ROUTE",
-    });
+    this.recordDrop(sourcePacket, DropReason.NoRoute);
 
     return false;
   }
 
+  override getRoute(destinationPeerId: UUID): UUID | null {
+    return this.routeCache.get(destinationPeerId)?.nextHopPeerId ?? null;
+  }
+
   getRoutes() {
-    return [...this.routeCache.values()].sort((left, right) =>
-      left.destinationPeerId.localeCompare(right.destinationPeerId),
-    );
+    return this.routeCache.getAll();
   }
 
   private discoverRoute(destinationPeerId: UUID): DiscoveryResult | null {
@@ -153,10 +174,10 @@ export class DsrModule implements RoutingModule {
     const requestId = this.requestSequence;
 
     const queue: Array<{ peer: NodeWrapper; pathPeerIds: UUID[] }> = [
-      { peer: this.routingPeer, pathPeerIds: [this.routingPeer.id] },
+      { peer: this.peer, pathPeerIds: [this.peer.id] },
     ];
 
-    const discoveredDepthByPeer = new Map<UUID, number>([[this.routingPeer.id, 0]]);
+    const discoveredDepthByPeer = new Map<UUID, number>([[this.peer.id, 0]]);
     let discoveredPath: UUID[] | null = null;
 
     while (queue.length > 0) {
@@ -172,7 +193,7 @@ export class DsrModule implements RoutingModule {
 
       const requestMessage: DsrRouteRequestMessage = {
         type: MessageType.DsrRouteRequestMessage,
-        sourcePeerId: this.routingPeer.id,
+        sourcePeerId: this.peer.id,
         senderPeerId: current.peer.id,
         targetPeerId: destinationPeerId,
         requestId,
@@ -180,15 +201,20 @@ export class DsrModule implements RoutingModule {
         routePeerIds: [...current.pathPeerIds],
       };
 
-      this.eventRecorder.record(current.peer.id, EventType.Broadcast, {
-        neighbourPeerIds: neighbours.map((peer) => peer.id),
-        retransmit: current.peer.id !== this.routingPeer.id,
-        message: cloneDsrMessage(requestMessage),
-        note:
-          current.peer.id === this.routingPeer.id
-            ? `DSR Route Request ${requestId} flooded for destination ${destinationPeerId}.`
-            : `Forwarded DSR Route Request ${requestId}.`,
-      });
+      this.eventRecorder.record(
+        current.peer.id,
+        EventType.Broadcast,
+        {
+          neighbourPeerIds: neighbours.map((peer) => peer.id),
+          retransmit: current.peer.id !== this.peer.id,
+          message: cloneDsrMessage(requestMessage),
+          note:
+            current.peer.id === this.peer.id
+              ? `DSR Route Request ${requestId} flooded for destination ${destinationPeerId}.`
+              : `Forwarded DSR Route Request ${requestId}.`,
+        },
+        PROTOCOL,
+      );
 
       if (current.peer.id === destinationPeerId && !discoveredPath) {
         discoveredPath = current.pathPeerIds;
@@ -235,7 +261,7 @@ export class DsrModule implements RoutingModule {
       const senderPeerId = pathPeerIds[index];
       const previousPeerId = pathPeerIds[index - 1];
       const senderModule = modulesAlongPath[index] ?? null;
-      const senderPeer = senderModule?.routingPeer;
+      const senderPeer = senderModule?.peer;
       if (!senderPeer) {
         continue;
       }
@@ -250,10 +276,15 @@ export class DsrModule implements RoutingModule {
         routePeerIds: [...pathPeerIds],
       };
 
-      this.eventRecorder.record(senderPeerId, EventType.Calculation, {
-        message: cloneDsrMessage(replyMessage),
-        reason: `DSR Route Reply ${requestId} unicast to ${previousPeerId} carrying source route ${pathPeerIds.join(" -> ")}.`,
-      });
+      this.eventRecorder.record(
+        senderPeerId,
+        EventType.Calculation,
+        {
+          message: cloneDsrMessage(replyMessage),
+          reason: `DSR Route Reply ${requestId} unicast to ${previousPeerId} carrying source route ${pathPeerIds.join(" -> ")}.`,
+        },
+        PROTOCOL,
+      );
     }
   }
 
@@ -300,10 +331,10 @@ export class DsrModule implements RoutingModule {
     salvageCount: number,
   ): boolean {
     if (routePeerIds.length < 2) {
-      return packet.destinationPeerId === this.routingPeer.id;
+      return packet.destinationPeerId === this.peer.id;
     }
 
-    let currentPeer = this.routingPeer;
+    let currentPeer = this.peer;
     let currentPacket = { ...packet };
 
     for (let index = 0; index < routePeerIds.length - 1; index += 1) {
@@ -313,20 +344,30 @@ export class DsrModule implements RoutingModule {
       if (currentPeer.id !== currentPeerId) {
         const alignedPeer = currentPeer.getNeighbour(currentPeerId);
         if (!alignedPeer) {
-          this.eventRecorder.record(currentPeer.id, EventType.Drop, {
-            message: cloneDsrMessage(currentPacket),
-            reason: `Cannot continue DSR route because ${currentPeerId} is not a current neighbour of ${currentPeer.id}`,
-          });
+          this.eventRecorder.record(
+            currentPeer.id,
+            EventType.Drop,
+            {
+              message: cloneDsrMessage(currentPacket),
+              reason: DropReason.NoRoute,
+            },
+            PROTOCOL,
+          );
           return false;
         }
         currentPeer = alignedPeer;
       }
 
       if (currentPacket.timeToLive <= 0) {
-        this.eventRecorder.record(currentPeer.id, EventType.Drop, {
-          message: cloneDsrMessage(currentPacket),
-          reason: "Packet TTL reached zero",
-        });
+        this.eventRecorder.record(
+          currentPeer.id,
+          EventType.Drop,
+          {
+            message: cloneDsrMessage(currentPacket),
+            reason: DropReason.TimeToLiveExceeded,
+          },
+          PROTOCOL,
+        );
         return false;
       }
 
@@ -339,22 +380,30 @@ export class DsrModule implements RoutingModule {
         pathPeerIds: routePeerIds.slice(index),
       };
 
-      this.eventRecorder.record(currentPeer.id, EventType.GetRoute, {
-        protocol: RoutingProtocol.DSR,
-        destinationPeerId: packet.destinationPeerId,
-        selectedRoute,
-        message: cloneDsrMessage(currentPacket),
-      });
+      this.eventRecorder.record(
+        currentPeer.id,
+        EventType.GetRoute,
+        {
+          protocol: PROTOCOL,
+          destinationPeerId: packet.destinationPeerId,
+          selectedRoute,
+          message: cloneDsrMessage(currentPacket),
+        } as GetRouteEventDetails,
+        PROTOCOL,
+      );
 
       const nextPeer = currentPeer.getNeighbour(nextPeerId);
       if (!nextPeer || !nextPeer.supports(RoutingProtocol.DSR)) {
         const routeError = this.createRouteError(packet, currentPeerId, nextPeerId, salvageCount);
-        this.eventRecorder.record(currentPeer.id, EventType.Drop, {
-          message: cloneDsrMessage(routeError),
-          reason: !nextPeer
-            ? "Selected next hop is not a current neighbour"
-            : "Selected next hop does not support DSR",
-        });
+        this.eventRecorder.record(
+          currentPeer.id,
+          EventType.Drop,
+          {
+            message: cloneDsrMessage(routeError),
+            reason: !nextPeer ? DropReason.NoRoute : DropReason.UnsupportedProtocol,
+          },
+          PROTOCOL,
+        );
 
         this.invalidateRoutesAcrossPath(routePeerIds, currentPeerId, nextPeerId, routeError);
 
@@ -365,10 +414,15 @@ export class DsrModule implements RoutingModule {
           if (salvageRoute) {
             const prefix = routePeerIds.slice(0, index + 1);
             const salvagedPath = [...prefix, ...salvageRoute.pathPeerIds.slice(1)];
-            this.eventRecorder.record(currentPeer.id, EventType.Calculation, {
-              message: cloneDsrMessage(routeError),
-              reason: `DSR packet salvaging reused cached alternate route ${salvagedPath.join(" -> ")}.`,
-            });
+            this.eventRecorder.record(
+              currentPeer.id,
+              EventType.Calculation,
+              {
+                message: cloneDsrMessage(routeError),
+                reason: `DSR packet salvaging reused cached alternate route ${salvagedPath.join(" -> ")}.`,
+              },
+              PROTOCOL,
+            );
 
             return this.forwardPacketOnRoute(currentPacket, salvagedPath, salvageCount + 1);
           }
@@ -383,12 +437,17 @@ export class DsrModule implements RoutingModule {
         timeToLive: currentPacket.timeToLive - 1,
       };
 
-      this.eventRecorder.record(currentPeer.id, EventType.Transfer, {
-        protocol: RoutingProtocol.DSR,
-        sourcePeerId: currentPeer.id,
-        targetPeerId: nextPeerId,
-        message: cloneDsrMessage(forwardedPacket),
-      });
+      this.eventRecorder.record(
+        currentPeer.id,
+        EventType.Transfer,
+        {
+          protocol: PROTOCOL,
+          sourcePeerId: currentPeer.id,
+          targetPeerId: nextPeerId,
+          message: cloneDsrMessage(forwardedPacket),
+        },
+        PROTOCOL,
+      );
 
       currentPacket = forwardedPacket;
       currentPeer = nextPeer;
@@ -397,32 +456,8 @@ export class DsrModule implements RoutingModule {
     return currentPeer.id === packet.destinationPeerId;
   }
 
-  private getUsableRoute(
-    destinationPeerId: UUID,
-    options?: { excludedLink?: [UUID, UUID] },
-  ): RouteCacheEntry | null {
-    const route = this.routeCache.get(destinationPeerId) ?? null;
-    if (!route) {
-      return null;
-    }
-
-    if (route.pathPeerIds.length < 2 || route.pathPeerIds[0] !== this.routingPeer.id) {
-      return null;
-    }
-
-    if (options?.excludedLink) {
-      const [blockedFromPeerId, blockedToPeerId] = options.excludedLink;
-      for (let index = 0; index < route.pathPeerIds.length - 1; index += 1) {
-        if (
-          route.pathPeerIds[index] === blockedFromPeerId &&
-          route.pathPeerIds[index + 1] === blockedToPeerId
-        ) {
-          return null;
-        }
-      }
-    }
-
-    return route;
+  private getUsableRoute(destinationPeerId: UUID, options?: { excludedLink?: [UUID, UUID] }) {
+    return this.routeCache.findUsable(this.peer.id, destinationPeerId, options);
   }
 
   private upsertRoute(
@@ -431,57 +466,51 @@ export class DsrModule implements RoutingModule {
     message: DsrRouteRequestMessage | DsrRouteReplyMessage,
     reason: string,
   ) {
-    if (pathPeerIds.length < 2 || pathPeerIds[0] !== this.routingPeer.id) {
+    const upsertResult = this.routeCache.upsert(
+      this.peer.id,
+      destinationPeerId,
+      pathPeerIds,
+      message.requestId,
+      this.eventRecorder.getCurrentTick(),
+    );
+    if (!upsertResult) {
       return;
     }
 
-    const currentTick = this.eventRecorder.getCurrentTick();
-    const nextRoute: RouteCacheEntry = {
-      destinationPeerId,
-      nextHopPeerId: pathPeerIds[1],
-      metric: pathPeerIds.length - 1,
-      sequenceNumber: message.requestId,
-      lastUpdateTick: currentTick,
-      pathPeerIds: [...pathPeerIds],
-    };
-
-    const previousRoute = this.routeCache.get(destinationPeerId) ?? null;
-    this.routeCache.set(destinationPeerId, nextRoute);
+    const { previousRoute, nextRoute, changed } = upsertResult;
 
     if (!previousRoute) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.AddRoute, {
-        protocol: RoutingProtocol.DSR,
-        destinationPeerId,
-        nextHopPeerId: nextRoute.nextHopPeerId,
-        previousRoute: null,
-        nextRoute,
-        message: cloneDsrMessage(message),
-        reason,
-      });
+      this.recordEvent(
+        EventType.AddRoute,
+        {
+          protocol: PROTOCOL,
+          destinationPeerId,
+          nextHopPeerId: nextRoute.nextHopPeerId,
+          previousRoute: null,
+          nextRoute,
+          message: cloneDsrMessage(message),
+          reason,
+        },
+        PROTOCOL,
+      );
       return;
     }
 
-    if (
-      previousRoute.nextHopPeerId !== nextRoute.nextHopPeerId ||
-      previousRoute.metric !== nextRoute.metric ||
-      previousRoute.pathPeerIds.join("|") !== nextRoute.pathPeerIds.join("|")
-    ) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.UpdateRoute, {
-        protocol: RoutingProtocol.DSR,
-        destinationPeerId,
-        nextHopPeerId: nextRoute.nextHopPeerId,
-        previousRoute,
-        nextRoute,
-        message: cloneDsrMessage(message),
-        reason,
-      });
-      return;
+    if (changed) {
+      this.recordEvent(
+        EventType.UpdateRoute,
+        {
+          protocol: PROTOCOL,
+          destinationPeerId,
+          nextHopPeerId: nextRoute.nextHopPeerId,
+          previousRoute,
+          nextRoute,
+          message: cloneDsrMessage(message),
+          reason,
+        },
+        PROTOCOL,
+      );
     }
-
-    this.routeCache.set(destinationPeerId, {
-      ...nextRoute,
-      sequenceNumber: previousRoute.sequenceNumber,
-    });
   }
 
   private createRouteError(
@@ -492,7 +521,7 @@ export class DsrModule implements RoutingModule {
   ): DsrRouteErrorMessage {
     return {
       type: MessageType.DsrRouteErrorMessage,
-      sourcePeerId: packet.sourcePeerId ?? this.routingPeer.id,
+      sourcePeerId: packet.sourcePeerId ?? this.peer.id,
       senderPeerId: brokenFromPeerId,
       destinationPeerId: packet.destinationPeerId,
       brokenFromPeerId,
@@ -507,28 +536,21 @@ export class DsrModule implements RoutingModule {
     brokenToPeerId: UUID,
     message: DsrRouteErrorMessage,
   ) {
-    for (const [destinationPeerId, route] of this.routeCache.entries()) {
-      const usesBrokenLink = route.pathPeerIds.some(
-        (peerId, index) =>
-          index < route.pathPeerIds.length - 1 &&
-          peerId === brokenFromPeerId &&
-          route.pathPeerIds[index + 1] === brokenToPeerId,
+    const removed = this.routeCache.removeUsingBrokenLink(brokenFromPeerId, brokenToPeerId);
+    for (const { destinationPeerId, route } of removed) {
+      this.recordEvent(
+        EventType.DeleteRoute,
+        {
+          protocol: PROTOCOL,
+          destinationPeerId,
+          nextHopPeerId: route.nextHopPeerId,
+          previousRoute: route,
+          nextRoute: null,
+          message: cloneDsrMessage(message),
+          reason: `DSR Route Error invalidated cache entry using broken link ${brokenFromPeerId} -> ${brokenToPeerId}.`,
+        },
+        PROTOCOL,
       );
-
-      if (!usesBrokenLink) {
-        continue;
-      }
-
-      this.routeCache.delete(destinationPeerId);
-      this.eventRecorder.record(this.routingPeer.id, EventType.DeleteRoute, {
-        protocol: RoutingProtocol.DSR,
-        destinationPeerId,
-        nextHopPeerId: route.nextHopPeerId,
-        previousRoute: route,
-        nextRoute: null,
-        message: cloneDsrMessage(message),
-        reason: `DSR Route Error invalidated cache entry using broken link ${brokenFromPeerId} -> ${brokenToPeerId}.`,
-      });
     }
   }
 
@@ -546,7 +568,7 @@ export class DsrModule implements RoutingModule {
 
   private getModulesAlongPath(pathPeerIds: UUID[]) {
     const modules: DsrModule[] = [];
-    let currentPeer: NodeWrapper | null = this.routingPeer;
+    let currentPeer: NodeWrapper | null = this.peer;
 
     for (let index = 0; index < pathPeerIds.length; index += 1) {
       const expectedPeerId = pathPeerIds[index];
@@ -569,5 +591,25 @@ export class DsrModule implements RoutingModule {
     }
 
     return modules;
+  }
+
+  private recordDrop(message: Packet | DsrRouteErrorMessage, reason: DropReason) {
+    this.recordEvent(
+      EventType.Drop,
+      {
+        message: cloneDsrMessage(message),
+        reason,
+      },
+      PROTOCOL,
+    );
+  }
+
+  private getRouteTimeout() {
+    const configuration = getDsrConfiguration(this.peer.getEntity());
+    if (!configuration) {
+      throw new Error("DSR module requires a DSR peer entity.");
+    }
+
+    return Math.max(DSR_MIN_ROUTE_TIMEOUT, Math.floor(configuration.routeTimeout));
   }
 }

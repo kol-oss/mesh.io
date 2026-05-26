@@ -22,7 +22,9 @@ export interface OlsrConfiguration {
   tcInterval: number;
 }
 
-export type DsrConfiguration = Record<string, never>;
+export interface DsrConfiguration {
+  routeTimeout: number;
+}
 
 export type PeerConfiguration =
   | BatmanConfiguration

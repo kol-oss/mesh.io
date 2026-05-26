@@ -5,6 +5,7 @@ import type {
   AodvConfiguration,
   BatmanConfiguration,
   DsdvConfiguration,
+  DsrConfiguration,
   OlsrConfiguration,
   PeerConfiguration,
 } from "@/shared/types/model/configurations";
@@ -136,6 +137,20 @@ const normalizeOlsrConfiguration = (value: unknown) => {
   };
 };
 
+const normalizeDsrConfiguration = (value: unknown) => {
+  const defaults = getDefaultPeerConfiguration(RoutingProtocol.DSR) as DsrConfiguration;
+  if (!isRecord(value)) {
+    return defaults;
+  }
+
+  return {
+    routeTimeout:
+      typeof value.routeTimeout === "number" && value.routeTimeout > 0
+        ? value.routeTimeout
+        : defaults.routeTimeout,
+  };
+};
+
 const normalizePeerConfiguration = (
   value: unknown,
   protocol: RoutingProtocol,
@@ -156,7 +171,7 @@ const normalizePeerConfiguration = (
     return normalizeOlsrConfiguration(value);
   }
 
-  return {} as Record<string, never>;
+  return normalizeDsrConfiguration(value);
 };
 
 const hasPeerDefaults = (entity: NetworkEntity) => {

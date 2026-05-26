@@ -4,6 +4,7 @@ import type {
   AodvConfiguration,
   BatmanConfiguration,
   DsdvConfiguration,
+  DsrConfiguration,
   OlsrConfiguration,
   PeerConfiguration,
 } from "@/shared/types/model/configurations";
@@ -103,6 +104,20 @@ const sanitizeOlsrConfiguration = (value: unknown): OlsrConfiguration => {
   };
 };
 
+const sanitizeDsrConfiguration = (value: unknown): DsrConfiguration => {
+  const defaults = getDefaultPeerConfiguration(RoutingProtocol.DSR) as DsrConfiguration;
+  if (!isRecord(value)) {
+    return defaults;
+  }
+
+  return {
+    routeTimeout:
+      isNumber(value.routeTimeout) && value.routeTimeout > 0
+        ? value.routeTimeout
+        : defaults.routeTimeout,
+  };
+};
+
 const sanitizePeerConfiguration = (
   protocol: RoutingProtocol,
   configuration: unknown,
@@ -117,7 +132,7 @@ const sanitizePeerConfiguration = (
     case RoutingProtocol.OLSR:
       return sanitizeOlsrConfiguration(configuration);
     case RoutingProtocol.DSR:
-      return {};
+      return sanitizeDsrConfiguration(configuration);
   }
 };
 

@@ -77,7 +77,7 @@ const isValidConfiguration = (protocol: RoutingProtocol, value: unknown) => {
         value.tcInterval > 0
       );
     case RoutingProtocol.DSR:
-      return true;
+      return isFiniteNumber(value.routeTimeout) && value.routeTimeout > 0;
   }
 };
 

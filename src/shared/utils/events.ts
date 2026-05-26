@@ -170,6 +170,56 @@ const getOlsrEventDetailsType = (event: Event): EventDetailsType => {
   return EventDetailsType.Unknown;
 };
 
+const getDsrEventDetailsType = (event: Event): EventDetailsType => {
+  const { type, details } = event;
+
+  if (type === EventType.Broadcast) {
+    const { message, retransmit: isRetransmission } = details as BroadcastEventDetails;
+    if (message.type !== MessageType.DsrRouteRequestMessage) {
+      return EventDetailsType.Unknown;
+    }
+
+    return isRetransmission
+      ? EventDetailsType.DsrRouteRequestRetransmission
+      : EventDetailsType.DsrRouteRequestBroadcast;
+  }
+
+  if (type === EventType.Calculation) {
+    const { message, reason } = details as { message?: { type?: MessageType }; reason?: string };
+    if (message?.type === MessageType.DsrRouteReplyMessage) {
+      return EventDetailsType.DsrRouteReplyForwarded;
+    }
+
+    if (message?.type === MessageType.DsrRouteErrorMessage && reason?.includes("salvaging")) {
+      return EventDetailsType.DsrRouteSalvage;
+    }
+
+    return EventDetailsType.DsrControlProcessed;
+  }
+
+  if (type === EventType.GetRoute) {
+    return EventDetailsType.DsrRouteSelected;
+  }
+
+  if (type === EventType.AddRoute) {
+    return EventDetailsType.DsrRouteAdded;
+  }
+
+  if (type === EventType.UpdateRoute) {
+    return EventDetailsType.DsrRouteUpdated;
+  }
+
+  if (type === EventType.DeleteRoute) {
+    return EventDetailsType.DsrRouteRemoved;
+  }
+
+  if (type === EventType.Drop) {
+    return EventDetailsType.DsrRouteDropped;
+  }
+
+  return EventDetailsType.Unknown;
+};
+
 export const getEventDetailsType = (event: Event): EventDetailsType => {
   const { type } = event;
   const protocol = getEventProtocol(event);
@@ -200,6 +250,10 @@ export const getEventDetailsType = (event: Event): EventDetailsType => {
 
   if (protocol === RoutingProtocol.OLSR) {
     return getOlsrEventDetailsType(event);
+  }
+
+  if (protocol === RoutingProtocol.DSR) {
+    return getDsrEventDetailsType(event);
   }
 
   return EventDetailsType.Unknown;

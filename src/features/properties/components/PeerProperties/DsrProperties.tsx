@@ -1,0 +1,44 @@
+import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
+import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
+import { DSR_MIN_ROUTE_TIMEOUT } from "@/shared/constants/protocols/dsr";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { DsrConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
+import { getConfiguration, type PeerEntity } from "@/shared/types/model/peers";
+import { getOnConfigurationChange } from "@/shared/utils/properties";
+import { Clock3 } from "lucide-react";
+
+type DsrPropertiesProps = {
+  peer: PeerEntity;
+  updateConfiguration: (changes: Partial<PeerConfiguration>) => void;
+  updateConfigurationByProtocol: (
+    protocol: RoutingProtocol,
+    changes: Partial<PeerConfiguration>,
+  ) => void;
+};
+
+export default function DsrProperties({
+  peer,
+  updateConfiguration,
+  updateConfigurationByProtocol,
+}: DsrPropertiesProps) {
+  const { routeTimeout = DSR_MIN_ROUTE_TIMEOUT } = getConfiguration(peer) as DsrConfiguration;
+
+  const onChange = getOnConfigurationChange(
+    peer,
+    updateConfiguration,
+    updateConfigurationByProtocol,
+  );
+
+  return (
+    <PropertyGroup>
+      <NumberPropertyField
+        label="Route Timeout"
+        icon={<Clock3 size={12} />}
+        valid={routeTimeout >= DSR_MIN_ROUTE_TIMEOUT}
+        value={routeTimeout}
+        min={DSR_MIN_ROUTE_TIMEOUT}
+        onChange={(event) => onChange(event, "routeTimeout", DSR_MIN_ROUTE_TIMEOUT)}
+      />
+    </PropertyGroup>
+  );
+}

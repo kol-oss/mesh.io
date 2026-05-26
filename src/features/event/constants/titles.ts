@@ -39,6 +39,17 @@ const EVENT_TITLES = new Map<EventDetailsType, string>([
   [EventDetailsType.OlsrRouteUpdated, "OLSR Route Updated"],
   [EventDetailsType.OlsrRouteRemoved, "OLSR Route Removed"],
   [EventDetailsType.OlsrRouteDropped, "OLSR Route Dropped"],
+  // DSR-specific event details types
+  [EventDetailsType.DsrRouteRequestBroadcast, "DSR Route Request Broadcast"],
+  [EventDetailsType.DsrRouteRequestRetransmission, "DSR Route Request Retransmission"],
+  [EventDetailsType.DsrRouteReplyForwarded, "DSR Route Reply Forwarded"],
+  [EventDetailsType.DsrRouteSalvage, "DSR Packet Salvage"],
+  [EventDetailsType.DsrControlProcessed, "DSR Control Processed"],
+  [EventDetailsType.DsrRouteSelected, "DSR Route Selected"],
+  [EventDetailsType.DsrRouteAdded, "DSR Route Cached"],
+  [EventDetailsType.DsrRouteUpdated, "DSR Route Updated"],
+  [EventDetailsType.DsrRouteRemoved, "DSR Route Removed"],
+  [EventDetailsType.DsrRouteDropped, "DSR Route Dropped"],
 ]);
 
 export const getEventTitle = (eventType: EventDetailsType): string => {

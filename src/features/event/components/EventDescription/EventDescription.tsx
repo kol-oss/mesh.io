@@ -19,6 +19,7 @@ import { Link } from "react-router-dom";
 import { getEventTitle } from "../../constants/titles";
 import BatmanDescription from "./BatmanDescription";
 import DsdvDescription from "./DsdvDescription";
+import DsrDescription from "./DsrDescription";
 import OlsrDescription from "./OlsrDescription";
 import SystemDescription from "./SystemDescription";
 
@@ -202,6 +203,15 @@ export default function EventDescription({
 
         {protocol === RoutingProtocol.OLSR && (
           <OlsrDescription
+            event={currentEvent}
+            detailsType={detailsType}
+            peers={currentStepResult.snapshot.peers}
+            onPeerHover={onPeerHoverChange}
+          />
+        )}
+
+        {protocol === RoutingProtocol.DSR && (
+          <DsrDescription
             event={currentEvent}
             detailsType={detailsType}
             peers={currentStepResult.snapshot.peers}

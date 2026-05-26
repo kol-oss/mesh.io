@@ -172,4 +172,15 @@ export enum EventDetailsType {
   OlsrRouteUpdated,
   OlsrRouteRemoved,
   OlsrRouteDropped,
+  // DSR-specific event details types
+  DsrRouteRequestBroadcast,
+  DsrRouteRequestRetransmission,
+  DsrRouteReplyForwarded,
+  DsrRouteSalvage,
+  DsrControlProcessed,
+  DsrRouteSelected,
+  DsrRouteAdded,
+  DsrRouteUpdated,
+  DsrRouteRemoved,
+  DsrRouteDropped,
 }

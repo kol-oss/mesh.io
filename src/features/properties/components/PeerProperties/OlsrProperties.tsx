@@ -37,11 +37,10 @@ export default function OlsrProperties({
         <NumberPropertyField
           label="HELLO Interval"
           icon={<Clock3 size={12} />}
-          global
           valid={helloInterval >= OLSR_MIN_INTERVAL}
           value={helloInterval}
           min={OLSR_MIN_INTERVAL}
-          onChange={(event) => onChange(event, "helloInterval", OLSR_MIN_INTERVAL, true)}
+          onChange={(event) => onChange(event, "helloInterval", OLSR_MIN_INTERVAL)}
         />
       </PropertyGroup>
 
@@ -49,11 +48,10 @@ export default function OlsrProperties({
         <NumberPropertyField
           label="TC Interval"
           icon={<Clock3 size={12} />}
-          global
           valid={tcInterval >= OLSR_MIN_INTERVAL}
           value={tcInterval}
           min={OLSR_MIN_INTERVAL}
-          onChange={(event) => onChange(event, "tcInterval", OLSR_MIN_INTERVAL, true)}
+          onChange={(event) => onChange(event, "tcInterval", OLSR_MIN_INTERVAL)}
         />
       </PropertyGroup>
     </>
