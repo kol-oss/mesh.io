@@ -35,7 +35,7 @@ export const getDsdvUpdateMessageStructure = (
       blocked: false,
     },
     {
-      label: "Sequence Number",
+      label: "Sequence",
       value: String(entry.sequenceNumber),
       bits: 32,
       description: "Freshness indicator used to prefer newer DSDV advertisements.",

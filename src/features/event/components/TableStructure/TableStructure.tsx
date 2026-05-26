@@ -10,6 +10,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import BatmanTableStructure from "./BatmanTableStructure";
+import DsdvTableStructure from "./DsdvTableStructure";
 
 type TableStructureProps = {
   isOpen: boolean;
@@ -187,50 +188,11 @@ export default function TableStructure({
             onPeerNameHover={onPeerHoverChange}
           />
         ) : selectedProtocol === RoutingProtocol.DSDV ? (
-          renderCollapsibleBlock(
-            "dsdvRoutes",
-            "DSDV Routing Table",
-            <table className="simulation-panel__table-view">
-              <thead>
-                <tr>
-                  <th>{"Destination"}</th>
-                  <th>{"Next Hop"}</th>
-                  <th>{"Metric"}</th>
-                  <th>{"Sequence Number"}</th>
-                  <th>{"Last Update"}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {inspectedPeer.dsdvRoutingTable.length === 0 ? (
-                  <tr>
-                    <td colSpan={5}>{"No records"}</td>
-                  </tr>
-                ) : (
-                  inspectedPeer.dsdvRoutingTable.map((row, index) => (
-                    <tr key={`${row.destinationPeerId}-${row.nextHopPeerId}-${index}`}>
-                      <td>
-                        {renderPeerName(
-                          row.destinationPeerId,
-                          getPeerLabel(row.destinationPeerId, peerNameById),
-                          onPeerHoverChange,
-                        )}
-                      </td>
-                      <td>
-                        {renderPeerName(
-                          row.nextHopPeerId,
-                          getPeerLabel(row.nextHopPeerId, peerNameById),
-                          onPeerHoverChange,
-                        )}
-                      </td>
-                      <td>{row.metric}</td>
-                      <td>{row.sequenceNumber}</td>
-                      <td>{row.lastUpdateTick}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>,
-          )
+          <DsdvTableStructure
+            peer={inspectedPeer}
+            peers={inspectedSnapshot.peers}
+            onPeerNameHover={onPeerHoverChange}
+          />
         ) : selectedProtocol === RoutingProtocol.AODV ? (
           renderCollapsibleBlock(
             "aodvRoutes",

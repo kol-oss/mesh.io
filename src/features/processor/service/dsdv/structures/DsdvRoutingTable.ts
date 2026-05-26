@@ -20,25 +20,38 @@ type DsdvRouteState = {
   changed: boolean;
 };
 
+type DsdvFullDumpTiming = {
+  lastTick: number;
+  interval: number;
+};
+
 export class DsdvRoutingTable {
   private readonly routes = new Map<UUID, DsdvRouteState>();
   private readonly pendingWithdrawals = new Map<UUID, DsdvRouteState>();
+  private readonly fullDumpTimingByNeighbour = new Map<UUID, DsdvFullDumpTiming>();
   private readonly peer: NodeWrapper;
   private readonly eventRecorder: EventRecorder;
 
-  private routeTimeout: number;
-  private getRouteExpiryTick: (nextHopPeerId: UUID, fallbackTick: number) => number;
+  private readonly routeTimeout: number;
+  private readonly fullDumpInterval: number;
 
   constructor(params: {
     routingPeer: NodeWrapper;
     eventRecorder: EventRecorder;
     routeTimeout: number;
-    getRouteExpiryTick: (nextHopPeerId: UUID, fallbackTick: number) => number;
+    fullDumpInterval: number;
   }) {
     this.peer = params.routingPeer;
     this.eventRecorder = params.eventRecorder;
     this.routeTimeout = params.routeTimeout;
-    this.getRouteExpiryTick = params.getRouteExpiryTick;
+    this.fullDumpInterval = params.fullDumpInterval;
+  }
+
+  updateNeighbourFullDumpTiming(nextHopPeerId: UUID, lastTick: number, interval: number) {
+    this.fullDumpTimingByNeighbour.set(nextHopPeerId, {
+      lastTick,
+      interval,
+    });
   }
 
   upsertSelfRoute(sequenceNumber: number) {
@@ -232,6 +245,13 @@ export class DsdvRoutingTable {
     }
 
     return changed;
+  }
+
+  private getRouteExpiryTick(nextHopPeerId: UUID, fallbackTick: number): number {
+    const fullDumpTiming = this.fullDumpTimingByNeighbour.get(nextHopPeerId);
+    const fullDumpInterval = fullDumpTiming?.interval ?? this.fullDumpInterval;
+    const lastFullDumpTick = fullDumpTiming?.lastTick ?? fallbackTick;
+    return lastFullDumpTick + fullDumpInterval + this.routeTimeout;
   }
 
   getBestRoute(destinationPeerId: UUID): DsdvRouteRecord | null {

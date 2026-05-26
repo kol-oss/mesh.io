@@ -20,11 +20,6 @@ import type { DsdvConfiguration } from "@/shared/types/model/configurations";
 import { BaseModule } from "../BaseModule";
 import { DsdvRoutingTable } from "./structures/DsdvRoutingTable";
 
-type DsdvTimingRecord = {
-  lastTick: number;
-  interval: number;
-};
-
 const PROTOCOL = RoutingProtocol.DSDV;
 
 const clampInterval = (value: number) => {
@@ -39,7 +34,6 @@ const clampTimeout = (value: number) => {
 
 export class DsdvModule extends BaseModule {
   private readonly routingTable: DsdvRoutingTable;
-  private readonly timingByNeighbour = new Map<UUID, DsdvTimingRecord>();
 
   private ownSequenceNumber = DSDV_SEQUENCE_INITIAL;
 
@@ -54,14 +48,7 @@ export class DsdvModule extends BaseModule {
       routingPeer: peer,
       eventRecorder,
       routeTimeout: clampTimeout(configuration.routeTimeout),
-      getRouteExpiryTick: (nextHopPeerId, fallbackTick) => {
-        const fullDumpTiming = this.timingByNeighbour.get(nextHopPeerId);
-        const fullDumpInterval =
-          fullDumpTiming?.interval ?? clampInterval(configuration.fullDumpInterval);
-        const routeTimeout = clampTimeout(configuration.routeTimeout);
-        const lastFullDumpTick = fullDumpTiming?.lastTick ?? fallbackTick;
-        return lastFullDumpTick + fullDumpInterval + routeTimeout;
-      },
+      fullDumpInterval: clampInterval(configuration.fullDumpInterval),
     });
 
     this.routingTable.upsertSelfRoute(this.ownSequenceNumber);
@@ -111,10 +98,11 @@ export class DsdvModule extends BaseModule {
         return false;
       }
 
-      this.timingByNeighbour.set(message.senderPeerId, {
-        lastTick: this.eventRecorder.getCurrentTick(),
-        interval: clampInterval(senderConfiguration.fullDumpInterval),
-      });
+      this.routingTable.updateNeighbourFullDumpTiming(
+        message.senderPeerId,
+        this.eventRecorder.getCurrentTick(),
+        clampInterval(senderConfiguration.fullDumpInterval),
+      );
     }
 
     const acceptedDestinations: UUID[] = [];
