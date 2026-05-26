@@ -12,6 +12,7 @@ import {
   toggleSequenceDisclosure,
   toggleTqDisclosure,
 } from "@/shared/store/slices/simulationSlice";
+import { MessageType } from "@/shared/types/common/messages";
 import type { UUID } from "@/shared/types/common/uuid";
 
 export const useWindowStates = () => {
@@ -90,6 +91,13 @@ export const useWindowStates = () => {
 
   const handleMessageAnimationInspectRequest = useCallback(() => {
     if (!currentSimulationEvent) return;
+
+    const eventMessage =
+      "message" in currentSimulationEvent.details ? currentSimulationEvent.details.message : null;
+    if (eventMessage?.type === MessageType.Packet) {
+      return;
+    }
+
     dispatch(openPacketInspectorPinned(currentSimulationEvent.id));
   }, [currentSimulationEvent, dispatch]);
 

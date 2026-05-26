@@ -90,6 +90,10 @@ export default function MessageStructure({
   };
 
   const eventMessage = getEventMessage(currentEvent);
+  if (eventMessage?.type === MessageType.Packet) {
+    return null;
+  }
+
   const peerNameById = new Map(
     currentStepResult.snapshot.peers.map((peer) => [peer.id, peer.name]),
   );
