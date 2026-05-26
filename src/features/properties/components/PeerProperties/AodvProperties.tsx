@@ -36,11 +36,10 @@ export default function AodvProperties({
         <NumberPropertyField
           label="HELLO Interval"
           icon={<Clock3 size={12} />}
-          global
           valid={helloInterval >= AODV_MIN_HELLO_INTERVAL}
           value={helloInterval}
           min={AODV_MIN_HELLO_INTERVAL}
-          onChange={(event) => onChange(event, "helloInterval", AODV_MIN_HELLO_INTERVAL, true)}
+          onChange={(event) => onChange(event, "helloInterval", AODV_MIN_HELLO_INTERVAL)}
         />
       </PropertyGroup>
 

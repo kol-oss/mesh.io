@@ -11,10 +11,6 @@ import { MessageType } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 
 export const getEventProtocol = (event: Event): RoutingProtocol | undefined => {
-  if (event.protocol) {
-    return event.protocol;
-  }
-
   if (
     event.type === EventType.AddRoute ||
     event.type === EventType.UpdateRoute ||
@@ -29,6 +25,10 @@ export const getEventProtocol = (event: Event): RoutingProtocol | undefined => {
 
   if (event.type === EventType.Transfer) {
     return undefined;
+  }
+
+  if (event.protocol) {
+    return event.protocol;
   }
 
   return undefined;
@@ -121,6 +121,58 @@ const getDsdvEventDetailsType = (event: Event): EventDetailsType => {
 
   if (type === EventType.Drop) {
     return EventDetailsType.DsdvRouteDropped;
+  }
+
+  return EventDetailsType.Unknown;
+};
+
+const getAodvEventDetailsType = (event: Event): EventDetailsType => {
+  const { type, details } = event;
+
+  if (type === EventType.Broadcast) {
+    const { message, retransmit: isRetransmission } = details as BroadcastEventDetails;
+
+    if (message.type === MessageType.AodvHelloMessage) {
+      return EventDetailsType.AodvHelloMessageBroadcast;
+    }
+
+    if (message.type === MessageType.AodvRouteRequestMessage) {
+      return isRetransmission
+        ? EventDetailsType.AodvRouteRequestRetransmission
+        : EventDetailsType.AodvRouteRequestBroadcast;
+    }
+  }
+
+  if (type === EventType.Calculation) {
+    const { message } = details as { message?: { type?: MessageType } };
+
+    if (message?.type === MessageType.AodvRouteReplyMessage) {
+      return EventDetailsType.AodvRouteReplyForwarded;
+    }
+
+    if (message?.type === MessageType.AodvRouteErrorMessage) {
+      return EventDetailsType.AodvRouteErrorProcessed;
+    }
+  }
+
+  if (type === EventType.GetRoute) {
+    return EventDetailsType.AodvRouteSelected;
+  }
+
+  if (type === EventType.AddRoute) {
+    return EventDetailsType.AodvRouteAdded;
+  }
+
+  if (type === EventType.UpdateRoute) {
+    return EventDetailsType.AodvRouteUpdated;
+  }
+
+  if (type === EventType.DeleteRoute) {
+    return EventDetailsType.AodvRouteRemoved;
+  }
+
+  if (type === EventType.Drop) {
+    return EventDetailsType.AodvRouteDropped;
   }
 
   return EventDetailsType.Unknown;
@@ -246,6 +298,10 @@ export const getEventDetailsType = (event: Event): EventDetailsType => {
 
   if (protocol === RoutingProtocol.DSDV) {
     return getDsdvEventDetailsType(event);
+  }
+
+  if (protocol === RoutingProtocol.AODV) {
+    return getAodvEventDetailsType(event);
   }
 
   if (protocol === RoutingProtocol.OLSR) {

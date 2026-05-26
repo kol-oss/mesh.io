@@ -1,4 +1,5 @@
 import type {
+  AodvCalculationEventDetails,
   AodvRouteChangeEventDetails,
   AodvRouteRecord,
 } from "../../../features/processor/types/protocols/aodv";
@@ -59,7 +60,7 @@ export type BroadcastEventDetails = {
 };
 
 // for Calculation event
-export type CalculationEventDetails = BatmanCalculationEventDetails;
+export type CalculationEventDetails = BatmanCalculationEventDetails | AodvCalculationEventDetails;
 
 export enum DropReason {
   NoRoute = "NO_ROUTE",
@@ -162,6 +163,17 @@ export enum EventDetailsType {
   BatmanOriginatorUpdated,
   BatmanOriginatorRemoved,
   BatmanOriginatorMessageDropped,
+  // AODV-specific event details types
+  AodvHelloMessageBroadcast,
+  AodvRouteRequestBroadcast,
+  AodvRouteRequestRetransmission,
+  AodvRouteReplyForwarded,
+  AodvRouteErrorProcessed,
+  AodvRouteSelected,
+  AodvRouteAdded,
+  AodvRouteUpdated,
+  AodvRouteRemoved,
+  AodvRouteDropped,
   // OLSR-specific event details types
   OlsrHelloMessageBroadcast,
   OlsrTcMessageBroadcast,

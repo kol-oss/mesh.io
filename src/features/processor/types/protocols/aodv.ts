@@ -1,4 +1,8 @@
-import type { BaseMessage, Message, MessageType } from "../../../../shared/types/common/messages";
+import {
+  MessageType,
+  type BaseMessage,
+  type Message,
+} from "../../../../shared/types/common/messages";
 import type { RoutingProtocol } from "../../../../shared/types/common/protocols";
 import type { UUID } from "../../../../shared/types/common/uuid";
 
@@ -52,6 +56,28 @@ export type AodvHelloMessage = BaseMessage & {
   destinationSequenceNumber: number;
   lifetime: number;
   interval: number;
+};
+
+export type AodvControlMessage =
+  | AodvHelloMessage
+  | AodvRouteRequestMessage
+  | AodvRouteReplyMessage
+  | AodvRouteErrorMessage;
+
+export const cloneAodvMessage = <T extends Message>(message: T): T => {
+  return {
+    ...message,
+    ...(message.type === MessageType.AodvRouteErrorMessage
+      ? {
+          unreachableDestinations: message.unreachableDestinations.map((entry) => ({ ...entry })),
+        }
+      : {}),
+  };
+};
+
+export type AodvCalculationEventDetails = {
+  message: AodvHelloMessage | AodvRouteReplyMessage | AodvRouteErrorMessage;
+  reason: string;
 };
 
 // Routing Table record

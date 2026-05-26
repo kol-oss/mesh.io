@@ -4,6 +4,7 @@ import {
   type BatmanRouteRecord,
 } from "@/features/processor/types/protocols/batman";
 import {
+  DropReason,
   EventType,
   type DropEventDetails,
   type Event,
@@ -594,7 +595,10 @@ const isSourcePacketSendFailure = (event: Event, message: Message | null) => {
   }
 
   const details = event.details as DropEventDetails;
-  if (details.reasonCode === "NO_ROUTE" || details.reasonCode === "SOURCE_UNAVAILABLE") {
+  if (
+    details.reason === DropReason.NoRoute ||
+    details.reason === DropReason.DestinationUnavailable
+  ) {
     return true;
   }
 

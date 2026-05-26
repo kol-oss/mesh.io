@@ -29,6 +29,17 @@ const EVENT_TITLES = new Map<EventDetailsType, string>([
   [EventDetailsType.BatmanOriginatorUpdated, "Originator Updated"],
   [EventDetailsType.BatmanOriginatorRemoved, "Originator Removed"],
   [EventDetailsType.BatmanOriginatorMessageDropped, "OGMv2 Message Dropped"],
+  // AODV-specific event details types
+  [EventDetailsType.AodvHelloMessageBroadcast, "AODV HELLO Broadcast"],
+  [EventDetailsType.AodvRouteRequestBroadcast, "AODV Route Request Broadcast"],
+  [EventDetailsType.AodvRouteRequestRetransmission, "AODV Route Request Retransmission"],
+  [EventDetailsType.AodvRouteReplyForwarded, "AODV Route Reply Forwarded"],
+  [EventDetailsType.AodvRouteErrorProcessed, "AODV Route Error Processed"],
+  [EventDetailsType.AodvRouteSelected, "AODV Route Selected"],
+  [EventDetailsType.AodvRouteAdded, "AODV Route Added"],
+  [EventDetailsType.AodvRouteUpdated, "AODV Route Updated"],
+  [EventDetailsType.AodvRouteRemoved, "AODV Route Removed"],
+  [EventDetailsType.AodvRouteDropped, "AODV Route Dropped"],
   // OLSR-specific event details types
   [EventDetailsType.OlsrHelloMessageBroadcast, "OLSR HELLO Broadcast"],
   [EventDetailsType.OlsrTcMessageBroadcast, "OLSR TC Broadcast"],

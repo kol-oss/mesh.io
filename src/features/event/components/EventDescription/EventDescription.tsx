@@ -17,6 +17,7 @@ import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Link } from "react-router-dom";
 import { getEventTitle } from "../../constants/titles";
+import AodvDescription from "./AodvDescription";
 import BatmanDescription from "./BatmanDescription";
 import DsdvDescription from "./DsdvDescription";
 import DsrDescription from "./DsrDescription";
@@ -194,6 +195,15 @@ export default function EventDescription({
 
         {protocol === RoutingProtocol.DSDV && (
           <DsdvDescription
+            event={currentEvent}
+            detailsType={detailsType}
+            peers={currentStepResult.snapshot.peers}
+            onPeerHover={onPeerHoverChange}
+          />
+        )}
+
+        {protocol === RoutingProtocol.AODV && (
+          <AodvDescription
             event={currentEvent}
             detailsType={detailsType}
             peers={currentStepResult.snapshot.peers}
