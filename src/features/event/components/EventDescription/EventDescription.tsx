@@ -3,7 +3,7 @@ import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { type StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import { EntityType } from "@/shared/types/model/entities";
-import { getEventDetailsType } from "@/shared/utils/events";
+import { getEventDetailsType, getEventProtocol } from "@/shared/utils/events";
 import {
   getEventMessage,
   getPeerLabel,
@@ -19,6 +19,7 @@ import { Link } from "react-router-dom";
 import { getEventTitle } from "../../constants/titles";
 import BatmanDescription from "./BatmanDescription";
 import DsdvDescription from "./DsdvDescription";
+import OlsrDescription from "./OlsrDescription";
 import SystemDescription from "./SystemDescription";
 
 type EventDescriptionProps = {
@@ -164,7 +165,8 @@ export default function EventDescription({
     event.preventDefault();
   };
 
-  const { protocol } = currentEvent;
+  const protocol = getEventProtocol(currentEvent);
+
   return (
     <aside
       className={`simulation-panel simulation-panel--tooltip${isDragging ? " simulation-panel--dragging" : ""}`}
@@ -192,6 +194,15 @@ export default function EventDescription({
 
         {protocol === RoutingProtocol.DSDV && (
           <DsdvDescription
+            event={currentEvent}
+            detailsType={detailsType}
+            peers={currentStepResult.snapshot.peers}
+            onPeerHover={onPeerHoverChange}
+          />
+        )}
+
+        {protocol === RoutingProtocol.OLSR && (
+          <OlsrDescription
             event={currentEvent}
             detailsType={detailsType}
             peers={currentStepResult.snapshot.peers}

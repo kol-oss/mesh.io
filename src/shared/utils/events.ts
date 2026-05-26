@@ -4,9 +4,36 @@ import {
   EventType,
   type BroadcastEventDetails,
   type Event,
+  type GetRouteEventDetails,
+  type RouteChangeEventDetails,
+  type TransferEventDetails,
 } from "@/shared/types/common/events";
 import { MessageType } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
+
+export const getEventProtocol = (event: Event): RoutingProtocol | undefined => {
+  if (event.protocol) {
+    return event.protocol;
+  }
+
+  if (
+    event.type === EventType.AddRoute ||
+    event.type === EventType.UpdateRoute ||
+    event.type === EventType.DeleteRoute
+  ) {
+    return (event.details as RouteChangeEventDetails).protocol;
+  }
+
+  if (event.type === EventType.GetRoute) {
+    return (event.details as GetRouteEventDetails).protocol;
+  }
+
+  if (event.type === EventType.Transfer) {
+    return (event.details as TransferEventDetails).protocol;
+  }
+
+  return undefined;
+};
 
 const getBatmanEventDetailsType = (event: Event): EventDetailsType => {
   const { type, details } = event;
@@ -100,8 +127,53 @@ const getDsdvEventDetailsType = (event: Event): EventDetailsType => {
   return EventDetailsType.Unknown;
 };
 
+const getOlsrEventDetailsType = (event: Event): EventDetailsType => {
+  const { type, details } = event;
+
+  if (type === EventType.Broadcast) {
+    const { message, retransmit: isRetransmission } = details as BroadcastEventDetails;
+
+    if (message.type === MessageType.OlsrHelloMessage) {
+      return EventDetailsType.OlsrHelloMessageBroadcast;
+    }
+
+    if (message.type === MessageType.OlsrTcMessage) {
+      return isRetransmission
+        ? EventDetailsType.OlsrTcMessageRetransmission
+        : EventDetailsType.OlsrTcMessageBroadcast;
+    }
+  }
+
+  if (type === EventType.GetRoute) {
+    return EventDetailsType.OlsrRouteSelected;
+  }
+
+  if (type === EventType.Calculation) {
+    return EventDetailsType.OlsrRouteCalculation;
+  }
+
+  if (type === EventType.AddRoute) {
+    return EventDetailsType.OlsrRouteAdded;
+  }
+
+  if (type === EventType.UpdateRoute) {
+    return EventDetailsType.OlsrRouteUpdated;
+  }
+
+  if (type === EventType.DeleteRoute) {
+    return EventDetailsType.OlsrRouteRemoved;
+  }
+
+  if (type === EventType.Drop) {
+    return EventDetailsType.OlsrRouteDropped;
+  }
+
+  return EventDetailsType.Unknown;
+};
+
 export const getEventDetailsType = (event: Event): EventDetailsType => {
-  const { protocol, type } = event;
+  const { type } = event;
+  const protocol = getEventProtocol(event);
 
   if (type === EventType.Transfer) {
     return EventDetailsType.Transfer;
@@ -125,6 +197,10 @@ export const getEventDetailsType = (event: Event): EventDetailsType => {
 
   if (protocol === RoutingProtocol.DSDV) {
     return getDsdvEventDetailsType(event);
+  }
+
+  if (protocol === RoutingProtocol.OLSR) {
+    return getOlsrEventDetailsType(event);
   }
 
   return EventDetailsType.Unknown;

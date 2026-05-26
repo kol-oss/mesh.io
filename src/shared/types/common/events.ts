@@ -162,4 +162,14 @@ export enum EventDetailsType {
   BatmanOriginatorUpdated,
   BatmanOriginatorRemoved,
   BatmanOriginatorMessageDropped,
+  // OLSR-specific event details types
+  OlsrHelloMessageBroadcast,
+  OlsrTcMessageBroadcast,
+  OlsrTcMessageRetransmission,
+  OlsrRouteCalculation,
+  OlsrRouteSelected,
+  OlsrRouteAdded,
+  OlsrRouteUpdated,
+  OlsrRouteRemoved,
+  OlsrRouteDropped,
 }

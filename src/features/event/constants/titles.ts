@@ -28,6 +28,17 @@ const EVENT_TITLES = new Map<EventDetailsType, string>([
   [EventDetailsType.BatmanOriginatorAdded, "Originator Added"],
   [EventDetailsType.BatmanOriginatorUpdated, "Originator Updated"],
   [EventDetailsType.BatmanOriginatorRemoved, "Originator Removed"],
+  [EventDetailsType.BatmanOriginatorMessageDropped, "OGMv2 Message Dropped"],
+  // OLSR-specific event details types
+  [EventDetailsType.OlsrHelloMessageBroadcast, "OLSR HELLO Broadcast"],
+  [EventDetailsType.OlsrTcMessageBroadcast, "OLSR TC Broadcast"],
+  [EventDetailsType.OlsrTcMessageRetransmission, "OLSR TC Retransmission"],
+  [EventDetailsType.OlsrRouteCalculation, "OLSR Route Calculation"],
+  [EventDetailsType.OlsrRouteSelected, "OLSR Route Selected"],
+  [EventDetailsType.OlsrRouteAdded, "OLSR Route Added"],
+  [EventDetailsType.OlsrRouteUpdated, "OLSR Route Updated"],
+  [EventDetailsType.OlsrRouteRemoved, "OLSR Route Removed"],
+  [EventDetailsType.OlsrRouteDropped, "OLSR Route Dropped"],
 ]);
 
 export const getEventTitle = (eventType: EventDetailsType): string => {
