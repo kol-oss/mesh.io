@@ -1,3 +1,4 @@
+import { DsdvUpdateType } from "@/features/processor/types/protocols/dsdv";
 import {
   EventDetailsType,
   EventType,
@@ -52,6 +53,53 @@ const getBatmanEventDetailsType = (event: Event): EventDetailsType => {
   return EventDetailsType.Unknown;
 };
 
+const getDsdvEventDetailsType = (event: Event): EventDetailsType => {
+  const { type, details } = event;
+
+  if (type === EventType.Broadcast) {
+    const { message, retransmit: isRetransmission } = details as BroadcastEventDetails;
+    const { type: messageType } = message;
+
+    if (messageType !== MessageType.DsdvRouteUpdateMessage) {
+      return EventDetailsType.Unknown;
+    }
+
+    if (message.updateType === DsdvUpdateType.FullDump) {
+      return isRetransmission
+        ? EventDetailsType.DsdvFullDumpMessageRetransmission
+        : EventDetailsType.DsdvFullDumpMessageBroadcast;
+    }
+
+    if (message.updateType === DsdvUpdateType.Incremental) {
+      return isRetransmission
+        ? EventDetailsType.DsdvIncrementalMessageRetransmission
+        : EventDetailsType.DsdvIncrementalMessageBroadcast;
+    }
+  }
+
+  if (type === EventType.GetRoute) {
+    return EventDetailsType.DsdvRouteSelected;
+  }
+
+  if (type === EventType.AddRoute) {
+    return EventDetailsType.DsdvRouteAdded;
+  }
+
+  if (type === EventType.UpdateRoute) {
+    return EventDetailsType.DsdvRouteUpdated;
+  }
+
+  if (type === EventType.DeleteRoute) {
+    return EventDetailsType.DsdvRouteRemoved;
+  }
+
+  if (type === EventType.Drop) {
+    return EventDetailsType.DsdvRouteDropped;
+  }
+
+  return EventDetailsType.Unknown;
+};
+
 export const getEventDetailsType = (event: Event): EventDetailsType => {
   const { protocol, type } = event;
 
@@ -73,6 +121,10 @@ export const getEventDetailsType = (event: Event): EventDetailsType => {
 
   if (protocol === RoutingProtocol.BATMAN) {
     return getBatmanEventDetailsType(event);
+  }
+
+  if (protocol === RoutingProtocol.DSDV) {
+    return getDsdvEventDetailsType(event);
   }
 
   return EventDetailsType.Unknown;

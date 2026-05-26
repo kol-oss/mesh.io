@@ -1,4 +1,3 @@
-import { DsdvUpdateType } from "@/features/processor/types/protocols/dsdv";
 import {
   type OlsrHelloMessage,
   type OlsrTcMessage,
@@ -10,6 +9,7 @@ import { type StepResult } from "@/shared/types/common/simulation";
 import { ExternalLink, X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import BatmanMessageStructure from "./BatmanMessageStructure";
+import DsdvMessageStructure from "./DsdvMessageStructure";
 
 type MessageStructureProps = {
   isOpen: boolean;
@@ -134,40 +134,15 @@ export default function MessageStructure({
           />
         )}
 
-        {eventMessage?.type === MessageType.DsdvRouteUpdateMessage ? (
-          <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
-            {getDsdvStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
-              <div className="simulation-panel__packet-row" key={`packet-row-dsdv-${rowIndex}`}>
-                {row.map((field) => (
-                  <div
-                    key={`dsdv-${rowIndex}-${field.label}`}
-                    className={`simulation-panel__packet-field${field.blocked ? " simulation-panel__packet-field--blocked" : ""}`}
-                    style={{ flex: field.bits }}
-                  >
-                    <span className="simulation-panel__packet-field-label">{field.label}</span>
-                    <span className="simulation-panel__packet-field-value">{field.value}</span>
-                    <span className="simulation-panel__packet-tooltip" role="tooltip">
-                      <span className="simulation-panel__packet-tooltip-description">
-                        {field.description}
-                      </span>
-                      <span className="simulation-panel__packet-tooltip-bits">
-                        {field.bits} {"bits"}
-                      </span>
-                      {field.blocked ? (
-                        <span className="simulation-panel__packet-tooltip-note">
-                          {"Not modeled"}
-                        </span>
-                      ) : null}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        ) : eventMessage?.type === MessageType.AodvRouteRequestMessage ||
-          eventMessage?.type === MessageType.AodvRouteReplyMessage ||
-          eventMessage?.type === MessageType.AodvRouteErrorMessage ||
-          eventMessage?.type === MessageType.AodvHelloMessage ? (
+        {protocol == RoutingProtocol.DSDV &&
+          eventMessage?.type === MessageType.DsdvRouteUpdateMessage && (
+            <DsdvMessageStructure message={eventMessage} peers={currentStepResult.snapshot.peers} />
+          )}
+
+        {eventMessage?.type === MessageType.AodvRouteRequestMessage ||
+        eventMessage?.type === MessageType.AodvRouteReplyMessage ||
+        eventMessage?.type === MessageType.AodvRouteErrorMessage ||
+        eventMessage?.type === MessageType.AodvHelloMessage ? (
           <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>
             {getAodvStructureRows(eventMessage, peerNameById).map((row, rowIndex) => (
               <div className="simulation-panel__packet-row" key={`packet-row-aodv-${rowIndex}`}>
@@ -1016,73 +991,6 @@ const getOlsrTcStructureRows = (
       },
     ],
     ...advertisedRows,
-  ];
-};
-
-const getDsdvUpdateTypeLabel = (updateType: DsdvUpdateType) => {
-  return updateType === DsdvUpdateType.Incremental ? "0x02" : "0x01";
-};
-
-const getDsdvStructureRows = (
-  message: Message,
-  peerNameById: Map<string, string>,
-): PacketStructureField[][] => {
-  if (message.type !== MessageType.DsdvRouteUpdateMessage) {
-    return [];
-  }
-
-  const routeRows: PacketStructureField[][] = message.entries.map((entry) => [
-    {
-      label: "Destination",
-      value: peerNameById.get(entry.destinationPeerId) ?? entry.destinationPeerId,
-      bits: 32,
-      description: "The IP address of the destination node for this route entry.",
-      blocked: false,
-    },
-    {
-      label: "Sequence Number",
-      value: String(entry.sequenceNumber),
-      bits: 32,
-      description: "The latest sequence number received for this destination.",
-      blocked: false,
-    },
-    {
-      label: "Metric",
-      value: String(entry.metric),
-      bits: 32,
-      description: "The number of hops to reach the destination.",
-      blocked: false,
-    },
-  ]);
-
-  return [
-    [
-      {
-        label: "Packet Type",
-        value: getDsdvUpdateTypeLabel(message.updateType),
-        bits: 8,
-        description:
-          "Identifies the type of DSDV message: 0x01 for Full Dump; 0x02 for Incremental Update.",
-        blocked: false,
-      },
-      {
-        label: "Reserved",
-        value: "N/A",
-        bits: 24,
-        description: "Padding to maintain 32-bit alignment.",
-        blocked: true,
-      },
-    ],
-    [
-      {
-        label: "Entry Count",
-        value: String(message.entries.length),
-        bits: 32,
-        description: "The number of route entries contained in this packet.",
-        blocked: false,
-      },
-    ],
-    ...routeRows,
   ];
 };
 

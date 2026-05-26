@@ -18,6 +18,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { Link } from "react-router-dom";
 import { getEventTitle } from "../../constants/titles";
 import BatmanDescription from "./BatmanDescription";
+import DsdvDescription from "./DsdvDescription";
 import SystemDescription from "./SystemDescription";
 
 type EventDescriptionProps = {
@@ -182,6 +183,15 @@ export default function EventDescription({
       <section className="simulation-panel__section">
         {protocol === RoutingProtocol.BATMAN && (
           <BatmanDescription
+            event={currentEvent}
+            detailsType={detailsType}
+            peers={currentStepResult.snapshot.peers}
+            onPeerHover={onPeerHoverChange}
+          />
+        )}
+
+        {protocol === RoutingProtocol.DSDV && (
+          <DsdvDescription
             event={currentEvent}
             detailsType={detailsType}
             peers={currentStepResult.snapshot.peers}

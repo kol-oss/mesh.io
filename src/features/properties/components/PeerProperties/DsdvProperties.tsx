@@ -39,13 +39,10 @@ export default function DsdvProperties({
         <NumberPropertyField
           label="Incremental Update Interval"
           icon={<Clock3 size={12} />}
-          global
           valid={incrementalUpdateInterval >= DSDV_MIN_INTERVAL}
           value={incrementalUpdateInterval}
           min={DSDV_MIN_INTERVAL}
-          onChange={(event) =>
-            onChange(event, "incrementalUpdateInterval", DSDV_MIN_INTERVAL, true)
-          }
+          onChange={(event) => onChange(event, "incrementalUpdateInterval", DSDV_MIN_INTERVAL)}
         />
       </PropertyGroup>
 
@@ -53,11 +50,10 @@ export default function DsdvProperties({
         <NumberPropertyField
           label="Full Dump Interval"
           icon={<Clock3 size={12} />}
-          global
           valid={fullDumpInterval >= DSDV_MIN_INTERVAL}
           value={fullDumpInterval}
           min={DSDV_MIN_INTERVAL}
-          onChange={(event) => onChange(event, "fullDumpInterval", DSDV_MIN_INTERVAL, true)}
+          onChange={(event) => onChange(event, "fullDumpInterval", DSDV_MIN_INTERVAL)}
         />
       </PropertyGroup>
 

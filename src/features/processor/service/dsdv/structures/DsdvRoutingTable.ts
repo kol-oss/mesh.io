@@ -8,7 +8,7 @@ import { DSDV_METRIC_INFINITY } from "@/shared/constants/protocols/dsdv";
 import { EventType } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import { cloneDsdvMessage } from "./dsdvMessage";
+import { clone } from "@/features/processor/utils/messages";
 
 type DsdvRouteState = {
   destinationPeerId: UUID;
@@ -61,25 +61,35 @@ export class DsdvRoutingTable {
     this.routes.set(this.routingPeer.id, nextState);
 
     if (!previous) {
-      this.eventRecorder.record(this.routingPeer.id, EventType.AddRoute, {
-        protocol: RoutingProtocol.DSDV,
-        destinationPeerId: this.routingPeer.id,
-        nextHopPeerId: this.routingPeer.id,
-        previousRoute: null,
-        nextRoute: this.toRecord(nextState),
-        reason: "Initial self route created",
-      });
+      this.eventRecorder.record(
+        this.routingPeer.id,
+        EventType.AddRoute,
+        {
+          protocol: RoutingProtocol.DSDV,
+          destinationPeerId: this.routingPeer.id,
+          nextHopPeerId: this.routingPeer.id,
+          previousRoute: null,
+          nextRoute: this.toRecord(nextState),
+          reason: "Initial self route created",
+        },
+        RoutingProtocol.DSDV,
+      );
       return;
     }
 
-    this.eventRecorder.record(this.routingPeer.id, EventType.UpdateRoute, {
-      protocol: RoutingProtocol.DSDV,
-      destinationPeerId: this.routingPeer.id,
-      nextHopPeerId: this.routingPeer.id,
-      previousRoute: this.toRecord(previous),
-      nextRoute: this.toRecord(nextState),
-      reason: "Self sequence number advanced for periodic advertisement",
-    });
+    this.eventRecorder.record(
+      this.routingPeer.id,
+      EventType.UpdateRoute,
+      {
+        protocol: RoutingProtocol.DSDV,
+        destinationPeerId: this.routingPeer.id,
+        nextHopPeerId: this.routingPeer.id,
+        previousRoute: this.toRecord(previous),
+        nextRoute: this.toRecord(nextState),
+        reason: "Self sequence number advanced for periodic advertisement",
+      },
+      RoutingProtocol.DSDV,
+    );
   }
 
   processIncomingEntry(params: {
@@ -145,9 +155,10 @@ export class DsdvRoutingTable {
         nextHopPeerId: params.senderPeerId,
         previousRoute: current ? this.toRecord(current) : null,
         nextRoute: this.toRecord(nextState),
-        message: cloneDsdvMessage(params.message),
+        message: clone(params.message),
         reason,
       },
+      RoutingProtocol.DSDV,
     );
 
     return true;
@@ -182,14 +193,19 @@ export class DsdvRoutingTable {
         });
         changed = true;
 
-        this.eventRecorder.record(this.routingPeer.id, EventType.DeleteRoute, {
-          protocol: RoutingProtocol.DSDV,
-          destinationPeerId: previousRoute.destinationPeerId,
-          nextHopPeerId: previousRoute.nextHopPeerId,
-          previousRoute,
-          nextRoute: null,
-          reason: `Route deleted because no DSDV full dump was received from next hop ${previousRoute.nextHopPeerId} by tick ${tick}.`,
-        });
+        this.eventRecorder.record(
+          this.routingPeer.id,
+          EventType.DeleteRoute,
+          {
+            protocol: RoutingProtocol.DSDV,
+            destinationPeerId: previousRoute.destinationPeerId,
+            nextHopPeerId: previousRoute.nextHopPeerId,
+            previousRoute,
+            nextRoute: null,
+            reason: `Route deleted because no DSDV full dump was received from next hop ${previousRoute.nextHopPeerId} by tick ${tick}.`,
+          },
+          RoutingProtocol.DSDV,
+        );
 
         continue;
       }
@@ -203,14 +219,19 @@ export class DsdvRoutingTable {
         this.routes.delete(destinationPeerId);
         changed = true;
 
-        this.eventRecorder.record(this.routingPeer.id, EventType.DeleteRoute, {
-          protocol: RoutingProtocol.DSDV,
-          destinationPeerId: previousRoute.destinationPeerId,
-          nextHopPeerId: previousRoute.nextHopPeerId,
-          previousRoute,
-          nextRoute: null,
-          reason: `Invalid DSDV route garbage-collected after ${Math.max(1, this.getRouteTimeout())} ticks.`,
-        });
+        this.eventRecorder.record(
+          this.routingPeer.id,
+          EventType.DeleteRoute,
+          {
+            protocol: RoutingProtocol.DSDV,
+            destinationPeerId: previousRoute.destinationPeerId,
+            nextHopPeerId: previousRoute.nextHopPeerId,
+            previousRoute,
+            nextRoute: null,
+            reason: `Invalid DSDV route garbage-collected after ${Math.max(1, this.getRouteTimeout())} ticks.`,
+          },
+          RoutingProtocol.DSDV,
+        );
       }
     }
 

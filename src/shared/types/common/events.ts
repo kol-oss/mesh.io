@@ -142,6 +142,16 @@ export enum EventDetailsType {
   StatusChange,
   Drop,
   Unknown,
+  // DSDV-specific event details types
+  DsdvIncrementalMessageBroadcast,
+  DsdvIncrementalMessageRetransmission,
+  DsdvFullDumpMessageBroadcast,
+  DsdvFullDumpMessageRetransmission,
+  DsdvRouteSelected,
+  DsdvRouteAdded,
+  DsdvRouteUpdated,
+  DsdvRouteRemoved,
+  DsdvRouteDropped,
   // Batman-specific event details types
   BatmanThroughputCalculation,
   BatmanEchoLocationMessageBroadcast,

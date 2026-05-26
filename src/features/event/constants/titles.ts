@@ -9,6 +9,16 @@ const EVENT_TITLES = new Map<EventDetailsType, string>([
   [EventDetailsType.StatusChange, "Status Changed"],
   [EventDetailsType.Drop, "Message Dropped"],
   [EventDetailsType.Unknown, UNKNOWN_EVENT_TITLE],
+  // DSDV-specific event details types
+  [EventDetailsType.DsdvIncrementalMessageBroadcast, "DSDV Incremental Broadcast"],
+  [EventDetailsType.DsdvIncrementalMessageRetransmission, "DSDV Incremental Retransmission"],
+  [EventDetailsType.DsdvFullDumpMessageBroadcast, "DSDV Full Dump Broadcast"],
+  [EventDetailsType.DsdvFullDumpMessageRetransmission, "DSDV Full Dump Retransmission"],
+  [EventDetailsType.DsdvRouteSelected, "DSDV Route Selected"],
+  [EventDetailsType.DsdvRouteAdded, "DSDV Route Added"],
+  [EventDetailsType.DsdvRouteUpdated, "DSDV Route Updated"],
+  [EventDetailsType.DsdvRouteRemoved, "DSDV Route Removed"],
+  [EventDetailsType.DsdvRouteDropped, "DSDV Route Dropped"],
   // Batman-specific event details types
   [EventDetailsType.BatmanThroughputCalculation, "Throughput Calculation"],
   [EventDetailsType.BatmanEchoLocationMessageBroadcast, "ELP Broadcast"],
