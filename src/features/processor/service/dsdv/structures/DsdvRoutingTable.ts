@@ -4,11 +4,11 @@ import {
   type DsdvRouteRecord,
   type DsdvRouteUpdateMessage,
 } from "@/features/processor/types/protocols/dsdv";
+import { clone } from "@/features/processor/utils/messages";
 import { DSDV_METRIC_INFINITY } from "@/shared/constants/protocols/dsdv";
 import { EventType } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import { clone } from "@/features/processor/utils/messages";
 
 type DsdvRouteState = {
   destinationPeerId: UUID;
@@ -22,35 +22,31 @@ type DsdvRouteState = {
 
 export class DsdvRoutingTable {
   private readonly routes = new Map<UUID, DsdvRouteState>();
-
   private readonly pendingWithdrawals = new Map<UUID, DsdvRouteState>();
-
-  private readonly routingPeer: NodeWrapper;
-
+  private readonly peer: NodeWrapper;
   private readonly eventRecorder: EventRecorder;
 
-  private getRouteTimeout: () => number;
-
+  private routeTimeout: number;
   private getRouteExpiryTick: (nextHopPeerId: UUID, fallbackTick: number) => number;
 
   constructor(params: {
     routingPeer: NodeWrapper;
     eventRecorder: EventRecorder;
-    getRouteTimeout: () => number;
+    routeTimeout: number;
     getRouteExpiryTick: (nextHopPeerId: UUID, fallbackTick: number) => number;
   }) {
-    this.routingPeer = params.routingPeer;
+    this.peer = params.routingPeer;
     this.eventRecorder = params.eventRecorder;
-    this.getRouteTimeout = params.getRouteTimeout;
+    this.routeTimeout = params.routeTimeout;
     this.getRouteExpiryTick = params.getRouteExpiryTick;
   }
 
   upsertSelfRoute(sequenceNumber: number) {
     const tick = this.eventRecorder.getCurrentTick();
-    const previous = this.routes.get(this.routingPeer.id) ?? null;
+    const previous = this.routes.get(this.peer.id) ?? null;
     const nextState: DsdvRouteState = {
-      destinationPeerId: this.routingPeer.id,
-      nextHopPeerId: this.routingPeer.id,
+      destinationPeerId: this.peer.id,
+      nextHopPeerId: this.peer.id,
       metric: 0,
       sequenceNumber,
       lastUpdateTick: tick,
@@ -58,16 +54,16 @@ export class DsdvRoutingTable {
       changed: true,
     };
 
-    this.routes.set(this.routingPeer.id, nextState);
+    this.routes.set(this.peer.id, nextState);
 
     if (!previous) {
       this.eventRecorder.record(
-        this.routingPeer.id,
+        this.peer.id,
         EventType.AddRoute,
         {
           protocol: RoutingProtocol.DSDV,
-          destinationPeerId: this.routingPeer.id,
-          nextHopPeerId: this.routingPeer.id,
+          destinationPeerId: this.peer.id,
+          nextHopPeerId: this.peer.id,
           previousRoute: null,
           nextRoute: this.toRecord(nextState),
           reason: "Initial self route created",
@@ -78,12 +74,12 @@ export class DsdvRoutingTable {
     }
 
     this.eventRecorder.record(
-      this.routingPeer.id,
+      this.peer.id,
       EventType.UpdateRoute,
       {
         protocol: RoutingProtocol.DSDV,
-        destinationPeerId: this.routingPeer.id,
-        nextHopPeerId: this.routingPeer.id,
+        destinationPeerId: this.peer.id,
+        nextHopPeerId: this.peer.id,
         previousRoute: this.toRecord(previous),
         nextRoute: this.toRecord(nextState),
         reason: "Self sequence number advanced for periodic advertisement",
@@ -99,7 +95,7 @@ export class DsdvRoutingTable {
     incomingSequenceNumber: number;
     message: DsdvRouteUpdateMessage;
   }) {
-    if (params.destinationPeerId === this.routingPeer.id) {
+    if (params.destinationPeerId === this.peer.id) {
       return false;
     }
 
@@ -128,7 +124,7 @@ export class DsdvRoutingTable {
     }
 
     const tick = this.eventRecorder.getCurrentTick();
-    const routeTimeout = Math.max(1, this.getRouteTimeout());
+    const routeTimeout = Math.max(1, this.routeTimeout);
     const nextState: DsdvRouteState = {
       destinationPeerId: params.destinationPeerId,
       nextHopPeerId: params.senderPeerId,
@@ -147,7 +143,7 @@ export class DsdvRoutingTable {
       : `Discovered new DSDV route (seq ${params.incomingSequenceNumber}, metric ${metric}).`;
 
     this.eventRecorder.record(
-      this.routingPeer.id,
+      this.peer.id,
       current ? EventType.UpdateRoute : EventType.AddRoute,
       {
         protocol: RoutingProtocol.DSDV,
@@ -169,7 +165,7 @@ export class DsdvRoutingTable {
     let changed = false;
 
     for (const [destinationPeerId, route] of this.routes.entries()) {
-      if (destinationPeerId === this.routingPeer.id) {
+      if (destinationPeerId === this.peer.id) {
         continue;
       }
 
@@ -194,7 +190,7 @@ export class DsdvRoutingTable {
         changed = true;
 
         this.eventRecorder.record(
-          this.routingPeer.id,
+          this.peer.id,
           EventType.DeleteRoute,
           {
             protocol: RoutingProtocol.DSDV,
@@ -220,7 +216,7 @@ export class DsdvRoutingTable {
         changed = true;
 
         this.eventRecorder.record(
-          this.routingPeer.id,
+          this.peer.id,
           EventType.DeleteRoute,
           {
             protocol: RoutingProtocol.DSDV,
@@ -228,7 +224,7 @@ export class DsdvRoutingTable {
             nextHopPeerId: previousRoute.nextHopPeerId,
             previousRoute,
             nextRoute: null,
-            reason: `Invalid DSDV route garbage-collected after ${Math.max(1, this.getRouteTimeout())} ticks.`,
+            reason: `Invalid DSDV route garbage-collected after ${Math.max(1, this.routeTimeout)} ticks.`,
           },
           RoutingProtocol.DSDV,
         );

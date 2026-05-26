@@ -1,11 +1,12 @@
 import PeerDescription from "@/features/event/components/Description/PeerDescription";
 import TableDescription from "@/features/event/components/Description/TableDescription";
 import TextDescription from "@/features/event/components/Description/TextDescription";
-import { type DsdvRouteChangeEventDetails } from "@/features/processor/types/protocols/dsdv";
+import {
+  type DsdvRouteChangeEventDetails,
+  type DsdvRouteRecord,
+} from "@/features/processor/types/protocols/dsdv";
 import {
   EventDetailsType,
-  EventType,
-  type DropEventDetails,
   type Event,
   type GetRouteEventDetails,
 } from "@/shared/types/common/events";
@@ -35,7 +36,7 @@ export default function DsdvDescription({
   detailsType,
   onPeerHover,
 }: DsdvDescriptionProps) {
-  const { details, type } = event;
+  const { details } = event;
 
   if (detailsType === EventDetailsType.DsdvFullDumpMessageBroadcast) {
     return (
@@ -88,9 +89,9 @@ export default function DsdvDescription({
   }
 
   if (
-    type === EventType.AddRoute ||
-    type === EventType.UpdateRoute ||
-    type === EventType.DeleteRoute
+    detailsType === EventDetailsType.DsdvRouteAdded ||
+    detailsType === EventDetailsType.DsdvRouteUpdated ||
+    detailsType === EventDetailsType.DsdvRouteRemoved
   ) {
     const routeChange = details as DsdvRouteChangeEventDetails;
     if (routeChange.protocol !== RoutingProtocol.DSDV) {
@@ -120,16 +121,10 @@ export default function DsdvDescription({
     );
   }
 
-  if (type === EventType.GetRoute) {
+  if (detailsType === EventDetailsType.DsdvRouteSelected) {
     const routeSelection = details as GetRouteEventDetails;
-    if (
-      routeSelection.protocol !== RoutingProtocol.DSDV ||
-      !("nextHopPeerId" in routeSelection.selectedRoute)
-    ) {
-      return <></>;
-    }
+    const selectedRoute = routeSelection.selectedRoute as DsdvRouteRecord;
 
-    const selectedRoute = routeSelection.selectedRoute;
     return (
       <>
         <TextDescription>
@@ -154,16 +149,6 @@ export default function DsdvDescription({
           ]}
         />
       </>
-    );
-  }
-
-  if (type === EventType.Drop) {
-    const drop = details as DropEventDetails;
-    return (
-      <TextDescription>
-        DSDV packet or control handling was dropped at this node. Reason:{" "}
-        <i>{String(drop.reason)}</i>.
-      </TextDescription>
     );
   }
 
