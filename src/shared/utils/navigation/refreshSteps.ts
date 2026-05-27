@@ -1,12 +1,12 @@
 import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type {
+  AodvConfiguration,
+  BatmanConfiguration,
+  DsdvConfiguration,
+  OlsrConfiguration,
+} from "@/shared/types/model/configurations";
 import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
-import {
-  getAodvConfiguration,
-  getBatmanConfiguration,
-  getDsdvConfiguration,
-  getOlsrConfiguration,
-} from "@/shared/types/model/peers";
 import {
   RefreshAction,
   StepType,
@@ -100,7 +100,7 @@ const buildRefreshStepsForPeer = (
   });
 
   if (peer.protocol === RoutingProtocol.BATMAN) {
-    const configuration = getBatmanConfiguration(peer);
+    const configuration = peer.configuration as BatmanConfiguration;
     if (!configuration) {
       return refreshSteps;
     }
@@ -138,7 +138,7 @@ const buildRefreshStepsForPeer = (
   }
 
   if (peer.protocol === RoutingProtocol.DSDV) {
-    const configuration = getDsdvConfiguration(peer);
+    const configuration = peer.configuration as DsdvConfiguration;
     if (!configuration) {
       return refreshSteps;
     }
@@ -182,7 +182,7 @@ const buildRefreshStepsForPeer = (
   }
 
   if (peer.protocol === RoutingProtocol.AODV) {
-    const configuration = getAodvConfiguration(peer);
+    const configuration = peer.configuration as AodvConfiguration;
     if (!configuration) {
       return refreshSteps;
     }
@@ -207,7 +207,7 @@ const buildRefreshStepsForPeer = (
   }
 
   if (peer.protocol === RoutingProtocol.OLSR) {
-    const configuration = getOlsrConfiguration(peer);
+    const configuration = peer.configuration as OlsrConfiguration;
     if (!configuration) {
       return refreshSteps;
     }
