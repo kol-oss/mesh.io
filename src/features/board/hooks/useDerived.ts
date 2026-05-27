@@ -4,7 +4,7 @@ import {
   getConnectivityObstacleBounds,
   getRangedConnectionPairs,
   getRayDistanceWithObstacleBlocking,
-} from "@/features/processor/utils/connectivity";
+} from "@/features/processor/utils/math/connectivity";
 import { RANGE_SAMPLES } from "@/shared/constants/workspace";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as PlacementMode } from "@/shared/types/action";

@@ -3,7 +3,7 @@ import {
   canCreateRangedConnection,
   getConnectivityObstacleBounds,
   shouldCreateLinkedConnection,
-} from "@/features/processor/utils/connectivity";
+} from "@/features/processor/utils/math/connectivity";
 import type { Snapshot } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { LinkEntity, NetworkEntity, ObstacleEntity } from "@/shared/types/model/entities";

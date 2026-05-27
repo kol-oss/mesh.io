@@ -21,14 +21,14 @@ import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import type { BatmanConfiguration } from "@/shared/types/model/configurations.ts";
 import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
+import { getDistance } from "../../utils/math/connectivity.ts";
+import { smooth } from "../../utils/math/ewma.ts";
+import { clone } from "../../utils/messages.ts";
 import {
   applyDistancePenalty,
   applyReceptionPenalty,
   applyWirelessPenalty,
-} from "../../utils/batman.ts";
-import { getDistance } from "../../utils/connectivity.ts";
-import { smooth } from "../../utils/ewma.ts";
-import { clone } from "../../utils/messages.ts";
+} from "../../utils/protocol/batman.ts";
 import { BaseModule } from "../BaseModule.ts";
 import { NeighbourList } from "./structures/NeighbourList.ts";
 import { OriginatorTable } from "./structures/OriginatorTable.ts";

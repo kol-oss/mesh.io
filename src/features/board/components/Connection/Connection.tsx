@@ -1,4 +1,4 @@
-import { shortenLine } from "@/features/processor/utils/connectivity";
+import { shortenLine } from "@/features/processor/utils/math/connectivity";
 import { ConnectionType } from "@/shared/types/interaction";
 import type { Connection } from "@/shared/types/workspace/interaction";
 

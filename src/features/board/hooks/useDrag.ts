@@ -1,7 +1,7 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback } from "react";
 
-import { toInt } from "@/features/processor/utils/connectivity";
+import { toInt } from "@/features/processor/utils/math/connectivity";
 import { OBSTACLE_MIN_HEIGHT, OBSTACLE_MIN_WIDTH } from "@/shared/constants/entities/obstacle";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as PlacementMode } from "@/shared/types/action";

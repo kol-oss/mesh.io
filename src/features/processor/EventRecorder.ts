@@ -5,7 +5,7 @@ import { generateUUID, type UUID } from "@/shared/types/common/uuid";
 
 export class EventRecorder {
   private readonly events: Event[] = [];
-  private readonly listeners = new Set<EventListener>();
+  private listener: EventListener | null = null;
 
   private currentTick = START_TICK;
   private currentStepId: UUID | null = null;
@@ -26,13 +26,13 @@ export class EventRecorder {
     };
 
     this.events.push(event);
-    for (const listener of this.listeners) {
-      listener(event);
+    if (this.listener) {
+      this.listener(event);
     }
   }
 
-  addListener(listener: EventListener) {
-    this.listeners.add(listener);
+  setListener(listener: EventListener) {
+    this.listener = listener;
   }
 
   addTick(ticksNumber = 1) {

@@ -9,8 +9,8 @@ import {
 import { EventType } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import { toRouteRecord } from "../../../utils/batman";
 import { clone } from "../../../utils/messages";
+import { toRouteRecord } from "../../../utils/protocol/batman";
 import { SequenceWindow } from "./SequenceWindow";
 
 type BatmanProcessResult = {

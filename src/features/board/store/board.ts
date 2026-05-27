@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 
-import { runSimulation } from "@/features/processor/simulation";
+import { SimulationManager } from "@/features/processor/SimulationManager";
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
 import {
   selectCurrentSimulationEvent,
@@ -40,7 +40,7 @@ import { clearTexts, replaceTexts } from "@/shared/store/slices/textSlice";
 import { useToast } from "@/shared/toast/useToast";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as PlacementMode, ActionMode as ToolbarMode } from "@/shared/types/action";
-import type { SimulationResult } from "@/shared/types/common/simulation";
+import type { SimulationInput, SimulationResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import type {
   LinkEntity,
@@ -328,7 +328,8 @@ export function useBoardStore() {
     dispatch(setIsRunning(true));
 
     try {
-      const result = runSimulation({ entities, steps });
+      const manager = SimulationManager.prepare({ entities, steps } as SimulationInput);
+      const result = manager.run();
 
       dispatch(setInspectionMode(ToolbarMode.PacketStructure as SimulationInspectionMode));
       dispatch(simulationCompleted(result));

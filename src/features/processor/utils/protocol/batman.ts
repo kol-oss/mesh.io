@@ -1,6 +1,6 @@
 import { BATMAN_OGM_HOP_PENALTY_PERCENT } from "@/shared/constants/protocols/batman";
 import type { UUID } from "@/shared/types/common/uuid";
-import type { BatmanOriginatorRecord, BatmanRouteRecord } from "../types/protocols/batman";
+import type { BatmanOriginatorRecord, BatmanRouteRecord } from "../../types/protocols/batman";
 
 export const applyDistancePenalty = (
   throughput: number,

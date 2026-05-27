@@ -1,7 +1,7 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback } from "react";
 
-import { toInt } from "@/features/processor/utils/connectivity";
+import { toInt } from "@/features/processor/utils/math/connectivity";
 import { PAN_LIMIT } from "@/shared/constants/workspace";
 import { ActionMode as PlacementMode } from "@/shared/types/action";
 import type {
