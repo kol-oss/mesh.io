@@ -4,7 +4,7 @@ import {
   type DsdvRouteRecord,
   type DsdvRouteUpdateMessage,
 } from "@/features/processor/types/protocols/dsdv";
-import { clone } from "@/features/processor/utils/messages";
+import { clone } from "@/features/processor/utils/clone";
 import { DSDV_METRIC_INFINITY } from "@/shared/constants/protocols/dsdv";
 import { EventType } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";

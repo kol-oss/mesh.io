@@ -20,9 +20,9 @@ import { MessageType, type Message } from "@/shared/types/common/messages.ts";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import type { BatmanConfiguration } from "@/shared/types/model/configurations.ts";
+import { clone } from "../../utils/clone.ts";
 import { getDistance } from "../../utils/math/connectivity.ts";
 import { smooth } from "../../utils/math/ewma.ts";
-import { clone } from "../../utils/messages.ts";
 import {
   applyDistancePenalty,
   applyReceptionPenalty,

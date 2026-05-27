@@ -15,9 +15,8 @@ import {
   type ToggleStatusResult,
 } from "../types/network";
 import { RoutingStructure } from "../types/routing";
+import { clone } from "../utils/clone";
 import { NetworkNode } from "./NetworkNode";
-
-const clone = <T extends NetworkEntity>(entity: T): T => ({ ...entity });
 
 export class NetworkManager implements EntityManager, EventManager, StateManager {
   private readonly nodes = new Map<UUID, NetworkNode>();

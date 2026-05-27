@@ -9,7 +9,7 @@ import {
 import { EventType } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import { clone } from "../../../utils/messages";
+import { clone } from "../../../utils/clone";
 import { toRouteRecord } from "../../../utils/protocol/batman";
 import { SequenceWindow } from "./SequenceWindow";
 

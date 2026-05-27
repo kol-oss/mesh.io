@@ -5,7 +5,7 @@ import type { UUID } from "@/shared/types/common/uuid";
 import type { EventRecorder } from "../EventRecorder";
 import type { NodeWrapper } from "../types/node";
 import type { RoutingModule } from "../types/routing";
-import { clone } from "../utils/messages";
+import { clone } from "../utils/clone";
 
 export abstract class BaseModule implements RoutingModule {
   protected readonly peer: NodeWrapper;

@@ -11,7 +11,7 @@ import { MessageType, type Message } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { OlsrConfiguration } from "@/shared/types/model/configurations";
-import { clone } from "../../utils/messages";
+import { clone } from "../../utils/clone";
 import { BaseModule } from "../BaseModule";
 import { MprSet } from "./structures/MprSet";
 import { NeighbourTable } from "./structures/NeighbourTable";
