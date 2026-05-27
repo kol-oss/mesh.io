@@ -55,8 +55,7 @@ export class SimulationManager {
       const tick = this.eventRecorder.getCurrentTick();
 
       for (const step of steps) {
-        const { id: stepId } = step;
-        this.eventRecorder.setCurrentStep(stepId);
+        this.eventRecorder.setStep(step);
 
         // capturing of events and states
         const events: Event[] = [];
@@ -77,8 +76,6 @@ export class SimulationManager {
           snapshot: this.networkManager.snapshot(tick),
         } satisfies StepResult);
       }
-
-      this.eventRecorder.addTick(1);
     }
 
     return {

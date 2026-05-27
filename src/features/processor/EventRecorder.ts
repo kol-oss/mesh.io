@@ -1,24 +1,24 @@
-import { START_TICK } from "@/shared/constants/tick";
 import type { Event, EventDetails, EventListener, EventType } from "@/shared/types/common/events";
 import type { RoutingProtocol } from "@/shared/types/common/protocols";
 import { generateUUID, type UUID } from "@/shared/types/common/uuid";
+import type { Step } from "@/shared/types/model/steps";
 
 export class EventRecorder {
   private readonly events: Event[] = [];
   private listener: EventListener | null = null;
 
-  private currentTick = START_TICK;
-  private currentStepId: UUID | null = null;
-
-  setCurrentStep(stepId: UUID | null) {
-    this.currentStepId = stepId;
-  }
+  private currentStep: Step | null = null;
 
   record(peerId: UUID, type: EventType, details: EventDetails, protocol?: RoutingProtocol) {
+    if (!this.currentStep) {
+      throw new Error("Can not record event without step context");
+    }
+
+    const { id: stepId, tick } = this.currentStep;
     const event: Event = {
       id: generateUUID(),
-      tick: this.currentTick,
-      stepId: this.currentStepId,
+      tick,
+      stepId,
       peerId,
       type,
       protocol,
@@ -31,12 +31,12 @@ export class EventRecorder {
     }
   }
 
-  setListener(listener: EventListener) {
-    this.listener = listener;
+  setStep(step: Step | null) {
+    this.currentStep = step;
   }
 
-  addTick(ticksNumber = 1) {
-    this.currentTick += ticksNumber;
+  setListener(listener: EventListener) {
+    this.listener = listener;
   }
 
   getEvents() {
@@ -44,6 +44,6 @@ export class EventRecorder {
   }
 
   getCurrentTick() {
-    return this.currentTick;
+    return this.currentStep ? this.currentStep.tick : Number.NEGATIVE_INFINITY;
   }
 }
