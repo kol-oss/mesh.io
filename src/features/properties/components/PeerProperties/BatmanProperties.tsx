@@ -9,7 +9,7 @@ import {
 } from "@/shared/constants/protocols/batman";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { BatmanConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
-import { getConfiguration, type PeerEntity } from "@/shared/types/model/peers";
+import { type PeerEntity } from "@/shared/types/model/peers";
 import { getOnConfigurationChange } from "@/shared/utils/properties";
 import { Clock3, Percent, Ruler } from "lucide-react";
 
@@ -33,7 +33,7 @@ export default function BatmanProperties({
     purgeTimeout = BATMAN_MIN_PURGE_TIMEOUT,
     penaltyDistance = BATMAN_MIN_DISTANCE_PENALTY,
     penaltyPercent = BATMAN_MIN_PENALTY_PERCENT,
-  } = getConfiguration(peer) as BatmanConfiguration;
+  } = peer.configuration as BatmanConfiguration;
 
   const onChange = getOnConfigurationChange(
     peer,

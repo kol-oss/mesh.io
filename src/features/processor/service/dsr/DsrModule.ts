@@ -15,7 +15,7 @@ import { DropReason, EventType, type GetRouteEventDetails } from "@/shared/types
 import { MessageType, type Message, type Packet } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import { getDsrConfiguration } from "@/shared/types/model/peers";
+import type { DsrConfiguration } from "@/shared/types/model/configurations";
 import type { NodeWrapper } from "../../types/node";
 import { BaseModule } from "../BaseModule";
 import { RouteCache } from "./structures/RouteCache";
@@ -573,7 +573,7 @@ export class DsrModule extends BaseModule {
   }
 
   private getRouteTimeout() {
-    const configuration = getDsrConfiguration(this.peer.getEntity());
+    const configuration = this.peer.getConfiguration() as DsrConfiguration;
     if (!configuration) {
       throw new Error("DSR module requires a DSR peer entity.");
     }

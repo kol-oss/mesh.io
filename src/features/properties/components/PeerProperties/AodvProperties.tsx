@@ -3,7 +3,7 @@ import PropertyGroup from "@/features/properties/components/Property/PropertyGro
 import { AODV_MIN_HELLO_INTERVAL, AODV_MIN_ROUTE_TIMEOUT } from "@/shared/constants/protocols/aodv";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { AodvConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
-import { getConfiguration, type PeerEntity } from "@/shared/types/model/peers";
+import { type PeerEntity } from "@/shared/types/model/peers";
 import { getOnConfigurationChange } from "@/shared/utils/properties";
 import { Clock3 } from "lucide-react";
 
@@ -22,7 +22,7 @@ export default function AodvProperties({
   updateConfigurationByProtocol,
 }: AodvPropertiesProps) {
   const { helloInterval = AODV_MIN_HELLO_INTERVAL, routeTimeout = AODV_MIN_ROUTE_TIMEOUT } =
-    getConfiguration(peer) as AodvConfiguration;
+    peer.configuration as AodvConfiguration;
 
   const onChange = getOnConfigurationChange(
     peer,

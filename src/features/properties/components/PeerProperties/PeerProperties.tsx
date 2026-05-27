@@ -12,7 +12,6 @@ import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { PeerConfiguration } from "@/shared/types/model/configurations";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
-import { getConfiguration } from "@/shared/types/model/peers";
 import type { EntityPropertiesProps } from "@/shared/types/view/properties";
 import { updateEntity } from "@/shared/utils/mutation";
 import { parseNumber } from "@/shared/utils/properties";
@@ -38,7 +37,7 @@ export default function PeerProperties({ selected, entities, setEntities }: Peer
         return entity;
       }
 
-      const configuration = getConfiguration(selected);
+      const configuration = selected.configuration as PeerConfiguration;
       if (!configuration) {
         return entity;
       }
@@ -66,7 +65,7 @@ export default function PeerProperties({ selected, entities, setEntities }: Peer
         return entity;
       }
 
-      const configuration = getConfiguration(entity);
+      const configuration = entity.configuration as PeerConfiguration;
       if (!configuration) {
         return entity;
       }

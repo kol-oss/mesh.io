@@ -3,7 +3,7 @@ import PropertyGroup from "@/features/properties/components/Property/PropertyGro
 import { OLSR_MIN_INTERVAL } from "@/shared/constants/protocols/olsr";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { OlsrConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
-import { getConfiguration, type PeerEntity } from "@/shared/types/model/peers";
+import { type PeerEntity } from "@/shared/types/model/peers";
 import { getOnConfigurationChange } from "@/shared/utils/properties";
 import { Clock3 } from "lucide-react";
 
@@ -21,9 +21,8 @@ export default function OlsrProperties({
   updateConfiguration,
   updateConfigurationByProtocol,
 }: OlsrPropertiesProps) {
-  const { helloInterval = OLSR_MIN_INTERVAL, tcInterval = OLSR_MIN_INTERVAL } = getConfiguration(
-    peer,
-  ) as OlsrConfiguration;
+  const { helloInterval = OLSR_MIN_INTERVAL, tcInterval = OLSR_MIN_INTERVAL } =
+    peer.configuration as OlsrConfiguration;
 
   const onChange = getOnConfigurationChange(
     peer,

@@ -27,7 +27,7 @@ import {
 import { MessageType, type Message, type Packet } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import { getAodvConfiguration } from "@/shared/types/model/peers";
+import type { AodvConfiguration } from "@/shared/types/model/configurations";
 import { BaseModule } from "../BaseModule";
 import { RoutingTable, type AodvRouteEntry } from "./structures/RoutingTable";
 
@@ -873,7 +873,7 @@ export class AodvModule extends BaseModule {
   }
 
   private getHelloInterval() {
-    const configuration = getAodvConfiguration(this.peer.getEntity());
+    const configuration = this.peer.getConfiguration() as AodvConfiguration;
     if (!configuration) {
       return AODV_MIN_HELLO_INTERVAL;
     }
@@ -882,7 +882,7 @@ export class AodvModule extends BaseModule {
   }
 
   private getRouteTimeout() {
-    const configuration = getAodvConfiguration(this.peer.getEntity());
+    const configuration = this.peer.getConfiguration() as AodvConfiguration;
     if (!configuration) {
       return AODV_MIN_ROUTE_TIMEOUT;
     }

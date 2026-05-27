@@ -3,7 +3,7 @@ import PropertyGroup from "@/features/properties/components/Property/PropertyGro
 import { DSR_MIN_ROUTE_TIMEOUT } from "@/shared/constants/protocols/dsr";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { DsrConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
-import { getConfiguration, type PeerEntity } from "@/shared/types/model/peers";
+import { type PeerEntity } from "@/shared/types/model/peers";
 import { getOnConfigurationChange } from "@/shared/utils/properties";
 import { Clock3 } from "lucide-react";
 
@@ -21,7 +21,7 @@ export default function DsrProperties({
   updateConfiguration,
   updateConfigurationByProtocol,
 }: DsrPropertiesProps) {
-  const { routeTimeout = DSR_MIN_ROUTE_TIMEOUT } = getConfiguration(peer) as DsrConfiguration;
+  const { routeTimeout = DSR_MIN_ROUTE_TIMEOUT } = peer.configuration as DsrConfiguration;
 
   const onChange = getOnConfigurationChange(
     peer,

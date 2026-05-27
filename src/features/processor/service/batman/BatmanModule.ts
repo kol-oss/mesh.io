@@ -20,7 +20,6 @@ import { MessageType, type Message } from "@/shared/types/common/messages.ts";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import type { BatmanConfiguration } from "@/shared/types/model/configurations.ts";
-import { getBatmanConfiguration } from "@/shared/types/model/peers.ts";
 import { getDistance } from "../../utils/math/connectivity.ts";
 import { smooth } from "../../utils/math/ewma.ts";
 import { clone } from "../../utils/messages.ts";
@@ -51,7 +50,7 @@ export class BatmanModule extends BaseModule {
       MessageType.BatmanEchoLocationMessage,
     );
 
-    const configuration = getBatmanConfiguration(peer.getEntity());
+    const configuration = peer.getConfiguration() as BatmanConfiguration;
     if (!configuration) {
       throw new Error("BATMAN module requires a BATMAN peer entity.");
     }
@@ -285,7 +284,7 @@ export class BatmanModule extends BaseModule {
   refreshEchoLocation(): boolean {
     super.refresh();
 
-    const configuration = getBatmanConfiguration(this.peer.getEntity());
+    const configuration = this.peer.getConfiguration() as BatmanConfiguration;
     if (!configuration) {
       return false;
     }
