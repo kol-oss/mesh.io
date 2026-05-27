@@ -41,15 +41,12 @@ export class OlsrModule extends BaseModule {
 
   private ansn = 0;
 
-  constructor(routingPeer: NodeWrapper, eventRecorder: EventRecorder) {
-    super(routingPeer, eventRecorder);
+  constructor(node: NodeWrapper, eventRecorder: EventRecorder) {
+    super(node, eventRecorder);
+    this.INCOMING_MESSAGE_TYPES.push(MessageType.OlsrHelloMessage, MessageType.OlsrTcMessage);
   }
 
-  override read(message: Message): boolean {
-    if (message.type === MessageType.Packet) {
-      return super.read(message);
-    }
-
+  override process(message: Message): boolean {
     if (message.type === MessageType.OlsrHelloMessage) {
       return this.processHello(message);
     }
@@ -69,17 +66,17 @@ export class OlsrModule extends BaseModule {
 
   refreshHello() {
     super.refresh();
-    if (!this.peer.isActive()) {
+    if (!this.node.isActive()) {
       return;
     }
 
     this.recomputeMprSet();
 
-    const configuration = this.peer.getConfiguration() as OlsrConfiguration;
+    const configuration = this.node.getConfiguration() as OlsrConfiguration;
     const helloMessage: OlsrHelloMessage = {
       type: MessageType.OlsrHelloMessage,
-      sourcePeerId: this.peer.id,
-      senderPeerId: this.peer.id,
+      sourcePeerId: this.node.id,
+      senderPeerId: this.node.id,
       interval: clampInterval(configuration.helloInterval),
       neighbours: this.getLocalBroadcastNeighbours().map((peer) => peer.id),
       mprPeerIds: this.mprSet.toArray(),
@@ -94,22 +91,22 @@ export class OlsrModule extends BaseModule {
 
   refreshTc() {
     super.refresh();
-    if (!this.peer.isActive()) {
+    if (!this.node.isActive()) {
       return;
     }
 
     if (this.selectorSet.size === 0) {
       const tcMessage: OlsrTcMessage = {
         type: MessageType.OlsrTcMessage,
-        sourcePeerId: this.peer.id,
-        senderPeerId: this.peer.id,
+        sourcePeerId: this.node.id,
+        senderPeerId: this.node.id,
         ansn: this.ansn,
         timeToLive: OLSR_DEFAULT_TC_TTL,
         advertisedNeighbours: [],
       };
 
       this.eventRecorder.record(
-        this.peer.id,
+        this.node.id,
         EventType.Broadcast,
         {
           neighbourPeerIds: [],
@@ -124,8 +121,8 @@ export class OlsrModule extends BaseModule {
     this.ansn += 1;
     const tcMessage: OlsrTcMessage = {
       type: MessageType.OlsrTcMessage,
-      sourcePeerId: this.peer.id,
-      senderPeerId: this.peer.id,
+      sourcePeerId: this.node.id,
+      senderPeerId: this.node.id,
       ansn: this.ansn,
       timeToLive: OLSR_DEFAULT_TC_TTL,
       advertisedNeighbours: [...this.selectorSet.values()],
@@ -136,12 +133,12 @@ export class OlsrModule extends BaseModule {
 
   override tick() {
     super.tick();
-    if (!this.peer.isActive()) {
+    if (!this.node.isActive()) {
       return;
     }
 
     const tick = this.eventRecorder.getCurrentTick();
-    const configuration = this.peer.getConfiguration() as OlsrConfiguration;
+    const configuration = this.node.getConfiguration() as OlsrConfiguration;
     const helloExpiry = clampInterval(configuration.helloInterval) * 3;
     const tcExpiry = clampInterval(configuration.tcInterval) * 3;
 
@@ -181,8 +178,8 @@ export class OlsrModule extends BaseModule {
     }
   }
 
-  override getRoute(destinationPeerId: UUID): UUID | null {
-    const selectedRoute = this.routingTable.get(destinationPeerId);
+  override getRoute(destinationId: UUID): UUID | null {
+    const selectedRoute = this.routingTable.get(destinationId);
     if (!selectedRoute) {
       return null;
     }
@@ -191,7 +188,7 @@ export class OlsrModule extends BaseModule {
       EventType.GetRoute,
       {
         protocol: RoutingProtocol.OLSR,
-        destinationPeerId,
+        destinationPeerId: destinationId,
         selectedRoute,
       } as GetRouteEventDetails,
       RoutingProtocol.OLSR,
@@ -221,11 +218,11 @@ export class OlsrModule extends BaseModule {
   }
 
   private processHello(message: OlsrHelloMessage) {
-    if (message.sourcePeerId === this.peer.id) {
+    if (message.sourcePeerId === this.node.id) {
       return true;
     }
 
-    const sender = this.peer.getNeighbour(message.senderPeerId);
+    const sender = this.node.getNeighbour(message.senderPeerId);
     if (!sender || !sender.supports(RoutingProtocol.OLSR)) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),
@@ -237,7 +234,7 @@ export class OlsrModule extends BaseModule {
     const tick = this.eventRecorder.getCurrentTick();
     this.neighbourTable.set({
       neighbourPeerId: message.senderPeerId,
-      status: message.mprPeerIds.includes(this.peer.id) ? "MPR" : "SYMMETRIC",
+      status: message.mprPeerIds.includes(this.node.id) ? "MPR" : "SYMMETRIC",
       lastUpdateTick: tick,
     });
 
@@ -245,7 +242,7 @@ export class OlsrModule extends BaseModule {
 
     for (const destinationPeerId of message.neighbours) {
       if (
-        destinationPeerId === this.peer.id ||
+        destinationPeerId === this.node.id ||
         destinationPeerId === message.senderPeerId ||
         this.neighbourTable.has(destinationPeerId)
       ) {
@@ -259,7 +256,7 @@ export class OlsrModule extends BaseModule {
       });
     }
 
-    if (message.mprPeerIds.includes(this.peer.id)) {
+    if (message.mprPeerIds.includes(this.node.id)) {
       this.selectorSet.add(message.senderPeerId, tick);
     } else {
       this.selectorSet.delete(message.senderPeerId);
@@ -267,7 +264,7 @@ export class OlsrModule extends BaseModule {
 
     this.recomputeMprSet();
     this.recomputeRoutingTable(
-      `${this.peer.name} refreshed OLSR routes after HELLO from ${sender.name}.`,
+      `${this.node.name} refreshed OLSR routes after HELLO from ${sender.name}.`,
       message,
     );
 
@@ -275,11 +272,11 @@ export class OlsrModule extends BaseModule {
   }
 
   private processTc(message: OlsrTcMessage) {
-    if (message.sourcePeerId === this.peer.id) {
+    if (message.sourcePeerId === this.node.id) {
       return true;
     }
 
-    const sender = this.peer.getNeighbour(message.senderPeerId);
+    const sender = this.node.getNeighbour(message.senderPeerId);
     if (!sender || !sender.supports(RoutingProtocol.OLSR)) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),
@@ -308,14 +305,14 @@ export class OlsrModule extends BaseModule {
     }
 
     this.recomputeRoutingTable(
-      `${this.peer.name} recalculated OLSR routes after TC from ${sender.name} (ANSN ${message.ansn}).`,
+      `${this.node.name} recalculated OLSR routes after TC from ${sender.name} (ANSN ${message.ansn}).`,
       message,
     );
 
     if (this.selectorSet.size > 0 && message.timeToLive > 1) {
       const forwardedMessage: OlsrTcMessage = {
         ...message,
-        senderPeerId: this.peer.id,
+        senderPeerId: this.node.id,
         timeToLive: message.timeToLive - 1,
       };
       this.broadcastControlMessage(forwardedMessage, true, message.senderPeerId);
@@ -337,7 +334,7 @@ export class OlsrModule extends BaseModule {
       for (const neighbourOfNeighbour of this.twoHopTable.values()) {
         if (
           neighbourOfNeighbour.viaPeerId === neighbour.id &&
-          neighbourOfNeighbour.destinationPeerId !== this.peer.id &&
+          neighbourOfNeighbour.destinationPeerId !== this.node.id &&
           !directNeighbourIds.has(neighbourOfNeighbour.destinationPeerId)
         ) {
           twoHop.add(neighbourOfNeighbour.destinationPeerId);
@@ -420,7 +417,7 @@ export class OlsrModule extends BaseModule {
       }
 
       this.eventRecorder.record(
-        this.peer.id,
+        this.node.id,
         EventType.DeleteRoute,
         {
           protocol: RoutingProtocol.OLSR,
@@ -438,7 +435,7 @@ export class OlsrModule extends BaseModule {
       const previousRoute = previousRoutes.get(destinationPeerId) ?? null;
       if (!previousRoute) {
         this.eventRecorder.record(
-          this.peer.id,
+          this.node.id,
           EventType.AddRoute,
           {
             protocol: RoutingProtocol.OLSR,
@@ -459,7 +456,7 @@ export class OlsrModule extends BaseModule {
         previousRoute.sequenceNumber !== nextRoute.sequenceNumber
       ) {
         this.eventRecorder.record(
-          this.peer.id,
+          this.node.id,
           EventType.UpdateRoute,
           {
             protocol: RoutingProtocol.OLSR,
@@ -478,7 +475,7 @@ export class OlsrModule extends BaseModule {
 
     if (message) {
       this.eventRecorder.record(
-        this.peer.id,
+        this.node.id,
         EventType.Calculation,
         {
           message: clone(message),
@@ -564,7 +561,7 @@ export class OlsrModule extends BaseModule {
           continue;
         }
 
-        if (entry.destinationPeerId === this.peer.id) {
+        if (entry.destinationPeerId === this.node.id) {
           continue;
         }
 
@@ -586,7 +583,7 @@ export class OlsrModule extends BaseModule {
       }
     }
 
-    routes.delete(this.peer.id);
+    routes.delete(this.node.id);
 
     if (topologyExpansionDescriptions.length > 0) {
       steps.push(`Topology Table expanded routes: ${topologyExpansionDescriptions.join(", ")}.`);
@@ -636,7 +633,7 @@ export class OlsrModule extends BaseModule {
   }
 
   private getLocalBroadcastNeighbours() {
-    return this.peer
+    return this.node
       .getNeighbours()
       .filter((peer) => peer.supports(RoutingProtocol.OLSR) && peer.isActive());
   }
@@ -645,7 +642,7 @@ export class OlsrModule extends BaseModule {
     const neighbours: NodeWrapper[] = [];
 
     for (const record of this.neighbourTable.values()) {
-      const peer = this.peer.getNeighbour(record.neighbourPeerId);
+      const peer = this.node.getNeighbour(record.neighbourPeerId);
       if (peer?.supports(RoutingProtocol.OLSR) && peer.isActive()) {
         neighbours.push(peer);
       }
@@ -655,6 +652,6 @@ export class OlsrModule extends BaseModule {
   }
 
   private getPeerDisplayName(peerId: UUID) {
-    return this.peer.getNeighbour(peerId)?.name ?? "Unknown";
+    return this.node.getNeighbour(peerId)?.name ?? "Unknown";
   }
 }

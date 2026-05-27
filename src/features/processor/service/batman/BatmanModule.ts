@@ -43,20 +43,20 @@ export class BatmanModule extends BaseModule {
   private elpSequence: number = 0;
   private ogmSequence: number = 0;
 
-  constructor(peer: NodeWrapper, eventRecorder: EventRecorder) {
-    super(peer, eventRecorder);
+  constructor(node: NodeWrapper, eventRecorder: EventRecorder) {
+    super(node, eventRecorder);
     this.INCOMING_MESSAGE_TYPES.push(
       MessageType.BatmanOriginatorMessage,
       MessageType.BatmanEchoLocationMessage,
     );
 
-    const configuration = peer.getConfiguration() as BatmanConfiguration;
+    const configuration = node.getConfiguration() as BatmanConfiguration;
     if (!configuration) {
       throw new Error("BATMAN module requires a BATMAN peer entity.");
     }
 
     this.originatorTable = new OriginatorTable(
-      peer,
+      node,
       eventRecorder,
       Math.max(1, configuration.purgeTimeout),
       (hopPeerId) => {
@@ -65,8 +65,7 @@ export class BatmanModule extends BaseModule {
     );
   }
 
-  override read(message: Message): boolean {
-    super.read(message);
+  override process(message: Message): boolean {
     const { type: messageType } = message;
 
     // Echo Location Protocol message
@@ -86,7 +85,7 @@ export class BatmanModule extends BaseModule {
     const currentTick = this.eventRecorder.getCurrentTick();
     const { sourceId, senderId, timeToLive, interval } = message;
 
-    if (sourceId === this.peer.id) {
+    if (sourceId === this.node.id) {
       return true;
     }
 
@@ -102,15 +101,15 @@ export class BatmanModule extends BaseModule {
 
     // distance calculation
     const distance = getDistance(
-      this.peer.getEntity(),
-      this.peer.getNeighbour(senderId)!.getEntity(),
+      this.node.getEntity(),
+      this.node.getNeighbour(senderId)!.getEntity(),
     );
 
-    const isWiredLink = this.peer.isLinkedNeighbour(senderId);
-    const isWirelessLink = !isWiredLink && this.peer.isRangedNeighbour(senderId);
+    const isWiredLink = this.node.isLinkedNeighbour(senderId);
+    const isWirelessLink = !isWiredLink && this.node.isRangedNeighbour(senderId);
 
     // throughput calculation
-    const { penaltyDistance, penaltyPercent } = this.peer.getConfiguration() as BatmanConfiguration;
+    const { penaltyDistance, penaltyPercent } = this.node.getConfiguration() as BatmanConfiguration;
     const linkThroughput = isWirelessLink
       ? BATMAN_WIRELESS_BASE_THROUGHPUT
       : BATMAN_WIRED_BASE_THROUGHPUT;
@@ -173,7 +172,7 @@ export class BatmanModule extends BaseModule {
     const { sourceId, senderId, timeToLive, throughput } = message;
 
     // drop if the message is from the same node
-    if (sourceId === this.peer.id) {
+    if (sourceId === this.node.id) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),
         reason: DropReason.SourceIsTarget,
@@ -197,8 +196,8 @@ export class BatmanModule extends BaseModule {
     const neighbourThroughput = this.neighbourList.get(senderId)!.throughput;
     const selectedThroughput = Math.min(throughput, neighbourThroughput);
 
-    const isWiredHop = this.peer.isLinkedNeighbour(senderId);
-    const isWirelessHop = !isWiredHop && this.peer.isRangedNeighbour(senderId);
+    const isWiredHop = this.node.isLinkedNeighbour(senderId);
+    const isWirelessHop = !isWiredHop && this.node.isRangedNeighbour(senderId);
 
     const nextThroughput = isWirelessHop
       ? applyWirelessPenalty(selectedThroughput)
@@ -250,7 +249,7 @@ export class BatmanModule extends BaseModule {
     // message rebroadcasting
     const forwarded: BatmanOriginatorMessage = {
       ...message,
-      senderId: this.peer.id,
+      senderId: this.node.id,
       timeToLive: nextTimeToLive,
       throughput: nextThroughput,
     };
@@ -284,7 +283,7 @@ export class BatmanModule extends BaseModule {
   refreshEchoLocation(): boolean {
     super.refresh();
 
-    const configuration = this.peer.getConfiguration() as BatmanConfiguration;
+    const configuration = this.node.getConfiguration() as BatmanConfiguration;
     if (!configuration) {
       return false;
     }
@@ -295,8 +294,8 @@ export class BatmanModule extends BaseModule {
     const message: BatmanEchoLocationMessage = {
       type: MessageType.BatmanEchoLocationMessage,
       version: BATMAN_VERSION,
-      sourceId: this.peer.id,
-      senderId: this.peer.id,
+      sourceId: this.node.id,
+      senderId: this.node.id,
       timeToLive: BATMAN_TIME_TO_LIVE,
       numNeighbours: neighbours.length,
       sequence: this.elpSequence,
@@ -319,8 +318,8 @@ export class BatmanModule extends BaseModule {
     const message: BatmanOriginatorMessage = {
       type: MessageType.BatmanOriginatorMessage,
       version: BATMAN_VERSION,
-      sourceId: this.peer.id,
-      senderId: this.peer.id,
+      sourceId: this.node.id,
+      senderId: this.node.id,
       sequence: this.ogmSequence,
       timeToLive: BATMAN_TIME_TO_LIVE,
       throughput: BATMAN_MAX_THROUGHPUT,

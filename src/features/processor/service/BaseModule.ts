@@ -6,41 +6,44 @@ import type { EventRecorder } from "../EventRecorder";
 import type { NodeWrapper } from "../types/node";
 import type { RoutingModule } from "../types/routing";
 import { clone } from "../utils/clone";
+import { isReactive } from "../utils/protocol/protocols";
 
 export abstract class BaseModule implements RoutingModule {
-  protected readonly peer: NodeWrapper;
+  protected readonly node: NodeWrapper;
   protected readonly eventRecorder: EventRecorder;
 
   protected readonly INCOMING_MESSAGE_TYPES: MessageType[] = [MessageType.Packet];
 
-  constructor(peer: NodeWrapper, eventRecorder: EventRecorder) {
-    this.peer = peer;
+  constructor(node: NodeWrapper, eventRecorder: EventRecorder) {
+    this.node = node;
     this.eventRecorder = eventRecorder;
   }
 
-  abstract getRoute(destinationPeerId: UUID): UUID | null;
+  abstract process(message: Message): boolean;
+
+  abstract getRoute(destinationId: UUID): UUID | null;
 
   // process incoming messages
   read(message: Message): boolean {
-    if (!this.peer.isActive()) return false;
+    if (!this.node.isActive()) return false;
     const { type: messageType } = message;
 
     if (!this.INCOMING_MESSAGE_TYPES.includes(messageType)) {
       return false;
     }
 
-    if (messageType === MessageType.Packet) {
+    if (messageType === MessageType.Packet && !isReactive(this.node.getProtocol())) {
       return this.processPacket(message as Packet);
     }
 
-    return true;
+    return this.process(message);
   }
 
   // process routed traffic
   protected processPacket(message: Packet): boolean {
-    if (!this.peer.isActive()) return false;
+    if (!this.node.isActive()) return false;
 
-    const { id } = this.peer.getEntity();
+    const { id } = this.node.getEntity();
     if (message.destinationPeerId === id) {
       return true;
     }
@@ -74,7 +77,7 @@ export abstract class BaseModule implements RoutingModule {
 
   // send message to a specific neighbour
   protected write(message: Message, hopPeerId: UUID): boolean {
-    if (!this.peer.isActive()) {
+    if (!this.node.isActive()) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),
         reason: DropReason.DestinationUnavailable,
@@ -83,7 +86,7 @@ export abstract class BaseModule implements RoutingModule {
       return false;
     }
 
-    const hop = this.peer.getNeighbour(hopPeerId);
+    const hop = this.node.getNeighbour(hopPeerId);
     if (!hop) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),
@@ -102,7 +105,7 @@ export abstract class BaseModule implements RoutingModule {
       return false;
     }
 
-    const { id, protocol } = this.peer.getEntity();
+    const { id, protocol } = this.node.getEntity();
     if (!hop.supports(protocol)) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),
@@ -133,10 +136,10 @@ export abstract class BaseModule implements RoutingModule {
 
   // send message to all neighbours
   protected broadcast(message: Message, retransmit = false): boolean {
-    if (!this.peer.isActive()) return false;
+    if (!this.node.isActive()) return false;
 
-    const { protocol } = this.peer.getEntity();
-    const neighbours = this.peer.getNeighbours().filter((peer) => peer.supports(protocol));
+    const { protocol } = this.node.getEntity();
+    const neighbours = this.node.getNeighbours().filter((peer) => peer.supports(protocol));
 
     this.recordEvent(
       EventType.Broadcast,
@@ -159,7 +162,7 @@ export abstract class BaseModule implements RoutingModule {
 
   // routes and sends traffic immitation packet
   send(packet: Packet): boolean {
-    if (!this.peer.isActive()) {
+    if (!this.node.isActive()) {
       this.recordEvent(EventType.Drop, {
         message: clone(packet),
         reason: DropReason.DestinationUnavailable,
@@ -168,7 +171,7 @@ export abstract class BaseModule implements RoutingModule {
       return false;
     }
 
-    const { protocol } = this.peer.getEntity();
+    const { protocol } = this.node.getEntity();
 
     const { destinationPeerId } = packet;
     const nextHopId = this.getRoute(destinationPeerId);
@@ -190,14 +193,14 @@ export abstract class BaseModule implements RoutingModule {
   }
 
   protected recordEvent(type: EventType, details: EventDetails, protocol?: RoutingProtocol) {
-    this.eventRecorder.record(this.peer.id, type, details, protocol);
+    this.eventRecorder.record(this.node.id, type, details, protocol);
   }
 
   refresh(): void {
-    if (!this.peer.isActive()) return;
+    if (!this.node.isActive()) return;
   }
 
   tick(): void {
-    if (!this.peer.isActive()) return;
+    if (!this.node.isActive()) return;
   }
 }
