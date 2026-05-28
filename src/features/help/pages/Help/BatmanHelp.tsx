@@ -97,7 +97,7 @@ export default function BatmanHelp() {
         <ModellingTrap>
           <TextBlock>
             As throughput values are part of the Link Layer, inside the simulation they were made
-            static and could be modified only by degradation via _penalty mechanism_ inside
+            static and could be modified only by degradation via *penalty mechanism* inside
             configuration. By default wired link throughput is **1000 Mbps**, when for dynamic
             wireless link this value is **100 Mbps**.
           </TextBlock>

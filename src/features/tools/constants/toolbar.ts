@@ -16,12 +16,7 @@ import {
 } from "lucide-react";
 
 import type { ActionToolMode } from "@/shared/types/action";
-import {
-  ActionMode as PlacementMode,
-  ActionCommand as ToolbarActionKey,
-  ActionGroup as ToolbarGroup,
-  ActionMode as ToolbarMode,
-} from "@/shared/types/action";
+import { ActionCommand, ActionGroup, ActionMode } from "@/shared/types/action";
 
 export type ToolMode = ActionToolMode;
 
@@ -33,14 +28,14 @@ export type Mode = {
 };
 
 export type ModeGroup = {
-  id: ToolbarGroup;
+  id: ActionGroup;
   items: Mode[];
   defaultKey: ToolMode;
   hasMenu: boolean;
 };
 
 export type Action = {
-  key: ToolbarActionKey;
+  key: ActionCommand;
   label: string;
   icon: LucideIcon;
   locked?: boolean;
@@ -52,7 +47,7 @@ export const TOOLBAR_MENU_CHECK_SIZE = 13;
 export const TOOLBAR_ICON_STROKE_WIDTH = 1.2;
 
 export const getModeIconClassName = (mode: ToolMode): string | undefined => {
-  if (mode === PlacementMode.Move) {
+  if (mode === ActionMode.Move) {
     return "toolbar__chevrons-icon";
   }
   return undefined;
@@ -60,58 +55,58 @@ export const getModeIconClassName = (mode: ToolMode): string | undefined => {
 
 export const MODE_GROUPS: ModeGroup[] = [
   {
-    id: ToolbarGroup.Navigation,
-    defaultKey: ToolbarMode.NavigationMove,
+    id: ActionGroup.Navigation,
+    defaultKey: ActionMode.NavigationMove,
     hasMenu: true,
-    items: [{ key: ToolbarMode.NavigationMove, label: "Move", icon: MousePointer2 }],
+    items: [{ key: ActionMode.NavigationMove, label: "Move", icon: MousePointer2 }],
   },
   {
-    id: ToolbarGroup.Entities,
-    defaultKey: PlacementMode.Peer,
+    id: ActionGroup.Entities,
+    defaultKey: ActionMode.Peer,
     hasMenu: true,
     items: [
-      { key: PlacementMode.Peer, label: "Peer", icon: Radio },
-      { key: PlacementMode.Link, label: "Link", icon: Link2 },
-      { key: PlacementMode.Obstacle, label: "Obstacle", icon: SquareSlash },
+      { key: ActionMode.Peer, label: "Peer", icon: Radio },
+      { key: ActionMode.Link, label: "Link", icon: Link2 },
+      { key: ActionMode.Obstacle, label: "Obstacle", icon: SquareSlash },
     ],
   },
   {
-    id: ToolbarGroup.Steps,
-    defaultKey: PlacementMode.Message,
+    id: ActionGroup.Steps,
+    defaultKey: ActionMode.Message,
     hasMenu: true,
     items: [
-      { key: PlacementMode.Message, label: "Message", icon: Mail },
-      { key: PlacementMode.Move, label: "Move", icon: ChevronsRight },
-      { key: PlacementMode.Toggle, label: "Toggle", icon: Activity },
+      { key: ActionMode.Message, label: "Message", icon: Mail },
+      { key: ActionMode.Move, label: "Move", icon: ChevronsRight },
+      { key: ActionMode.Toggle, label: "Toggle", icon: Activity },
     ],
   },
   {
-    id: ToolbarGroup.Inspection,
-    defaultKey: ToolbarMode.RoutingTable,
+    id: ActionGroup.Inspection,
+    defaultKey: ActionMode.RoutingTable,
     hasMenu: true,
     items: [
-      { key: ToolbarMode.RoutingTable, label: "Table", icon: TableProperties, locked: true },
-      { key: ToolbarMode.PacketStructure, label: "Packet", icon: PackageSearch, locked: true },
+      { key: ActionMode.RoutingTable, label: "Table", icon: TableProperties, locked: true },
+      { key: ActionMode.PacketStructure, label: "Packet", icon: PackageSearch, locked: true },
     ],
   },
   {
-    id: ToolbarGroup.Text,
-    defaultKey: PlacementMode.Text,
+    id: ActionGroup.Text,
+    defaultKey: ActionMode.Text,
     hasMenu: false,
-    items: [{ key: PlacementMode.Text, label: "Text", icon: Type }],
+    items: [{ key: ActionMode.Text, label: "Text", icon: Type }],
   },
 ];
 
 export const ACTIONS: Action[] = [
-  { key: ToolbarActionKey.Run, label: "Run", icon: Play },
-  { key: ToolbarActionKey.Prev, label: "Previous step", icon: ArrowLeftCircle, locked: true },
-  { key: ToolbarActionKey.Next, label: "Next step", icon: ArrowRightCircle, locked: true },
+  { key: ActionCommand.Run, label: "Run", icon: Play },
+  { key: ActionCommand.Prev, label: "Previous step", icon: ArrowLeftCircle, locked: true },
+  { key: ActionCommand.Next, label: "Next step", icon: ArrowRightCircle, locked: true },
 ];
 
-export const TOOLBAR_GROUP_LABELS: Record<ToolbarGroup, string> = {
-  [ToolbarGroup.Navigation]: "Navigation",
-  [ToolbarGroup.Entities]: "Entities",
-  [ToolbarGroup.Steps]: "Steps",
-  [ToolbarGroup.Inspection]: "Inspection",
-  [ToolbarGroup.Text]: "Text",
+export const TOOLBAR_GROUP_LABELS: Record<ActionGroup, string> = {
+  [ActionGroup.Navigation]: "Navigation",
+  [ActionGroup.Entities]: "Entities",
+  [ActionGroup.Steps]: "Steps",
+  [ActionGroup.Inspection]: "Inspection",
+  [ActionGroup.Text]: "Text",
 };
