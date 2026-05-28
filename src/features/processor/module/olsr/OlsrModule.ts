@@ -262,9 +262,12 @@ export class OlsrModule extends BaseModule {
       this.selectorSet.delete(message.senderPeerId);
     }
 
+    const { name } = this.node.getEntity();
+    const { name: senderName } = sender.getEntity();
+
     this.recomputeMprSet();
     this.recomputeRoutingTable(
-      `${this.node.name} refreshed OLSR routes after HELLO from ${sender.name}.`,
+      `${name} refreshed OLSR routes after HELLO from ${senderName}.`,
       message,
     );
 
@@ -304,8 +307,11 @@ export class OlsrModule extends BaseModule {
       });
     }
 
+    const { name } = this.node.getEntity();
+    const { name: senderName } = sender.getEntity();
+
     this.recomputeRoutingTable(
-      `${this.node.name} recalculated OLSR routes after TC from ${sender.name} (ANSN ${message.ansn}).`,
+      `${name} recalculated OLSR routes after TC from ${senderName} (ANSN ${message.ansn}).`,
       message,
     );
 
@@ -652,6 +658,7 @@ export class OlsrModule extends BaseModule {
   }
 
   private getPeerDisplayName(peerId: UUID) {
-    return this.node.getNeighbour(peerId)?.name ?? "Unknown";
+    const peer = this.node.getNeighbour(peerId);
+    return peer?.getEntity()?.name ?? "Unknown";
   }
 }

@@ -6,7 +6,6 @@ import type { RoutingModule, RoutingStructureType } from "./routing";
 
 export interface PeerWrapper {
   readonly id: UUID;
-  readonly name: string;
   getEntity(): PeerEntity;
   getProtocol(): RoutingProtocol;
   getConfiguration(): PeerConfiguration;

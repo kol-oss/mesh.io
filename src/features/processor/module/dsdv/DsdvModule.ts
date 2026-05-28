@@ -54,7 +54,7 @@ export class DsdvModule extends BaseModule {
     this.routingTable.clearChangedFlags();
   }
 
-  override read(message: Message): boolean {
+  override process(message: Message): boolean {
     const { type: messageType } = message;
     if (messageType === MessageType.Packet) {
       return super.read(message);

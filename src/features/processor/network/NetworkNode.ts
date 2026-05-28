@@ -26,10 +26,6 @@ export class NetworkNode implements NodeWrapper {
     return this.entity.id;
   }
 
-  get name() {
-    return this.entity.name;
-  }
-
   getEntity() {
     return this.entity;
   }
