@@ -1,8 +1,8 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
 import { AodvModule } from "@/features/processor/module/aodv/AodvModule";
 import { DsdvModule } from "@/features/processor/module/dsdv/DsdvModule";
-import { NetworkManager } from "@/features/processor/module/NetworkManager";
 import { OlsrModule } from "@/features/processor/module/olsr/OlsrModule";
+import { NetworkManager } from "@/features/processor/network/NetworkManager";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import {
   type SimulationInput,
