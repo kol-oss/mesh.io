@@ -1,10 +1,10 @@
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { EventRecorder } from "../EventRecorder";
-import { AodvModule } from "../service/aodv/AodvModule";
-import { BatmanModule } from "../service/batman/BatmanModule";
-import { DsdvModule } from "../service/dsdv/DsdvModule";
-import { DsrModule } from "../service/dsr/DsrModule";
-import { OlsrModule } from "../service/olsr/OlsrModule";
+import { AodvModule } from "../module/aodv/AodvModule";
+import { BatmanModule } from "../module/batman/BatmanModule";
+import { DsdvModule } from "../module/dsdv/DsdvModule";
+import { DsrModule } from "../module/dsr/DsrModule";
+import { OlsrModule } from "../module/olsr/OlsrModule";
 import type { NodeWrapper } from "../types/node";
 import { RoutingStructure, type RoutingModule, type RoutingStructureType } from "../types/routing";
 

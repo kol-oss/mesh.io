@@ -1,8 +1,8 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
-import { AodvModule } from "@/features/processor/service/aodv/AodvModule";
-import { DsdvModule } from "@/features/processor/service/dsdv/DsdvModule";
-import { NetworkManager } from "@/features/processor/service/NetworkManager";
-import { OlsrModule } from "@/features/processor/service/olsr/OlsrModule";
+import { AodvModule } from "@/features/processor/module/aodv/AodvModule";
+import { DsdvModule } from "@/features/processor/module/dsdv/DsdvModule";
+import { NetworkManager } from "@/features/processor/module/NetworkManager";
+import { OlsrModule } from "@/features/processor/module/olsr/OlsrModule";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import {
   type SimulationInput,
@@ -28,7 +28,7 @@ import {
 } from "../../shared/types/common/events";
 import { MessageType, type Packet } from "../../shared/types/common/messages";
 import { DEFAULT_TIME_TO_LIVE } from "./constants/message";
-import { BatmanModule } from "./service/batman/BatmanModule";
+import { BatmanModule } from "./module/batman/BatmanModule";
 import { groupStepsByTick } from "./utils/steps";
 
 export class SimulationManager {
