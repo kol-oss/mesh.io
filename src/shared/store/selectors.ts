@@ -1,8 +1,8 @@
 import { createSelector } from "@reduxjs/toolkit";
 
-import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
-import type { NetworkEntity } from "@/shared/types/model/entities";
 import type { RootState } from "@/shared/store/store";
+import type { NetworkEntity } from "@/shared/types/model/entities";
+import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import {
   composeStepsWithRefresh,
   normalizeManualSteps,
@@ -20,7 +20,8 @@ export const selectEntities = createSelector(
 
 export const selectNormalizedSteps = createSelector(
   (state: RootState) => state.step,
-  (steps) => normalizeManualSteps(steps),
+  selectEntities,
+  (steps, entities) => normalizeManualSteps(steps, entities),
 );
 
 export const selectSteps = createSelector(

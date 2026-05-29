@@ -32,6 +32,7 @@ export const convertStep = (step: Step, type: StepType): Step => {
       ...base,
       type: StepType.Toggle,
       entityId: null,
+      status: false,
     } satisfies ToggleStep;
   }
 

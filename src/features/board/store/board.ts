@@ -136,9 +136,9 @@ export function useBoardStore() {
   const setSteps = useCallback(
     (nextSteps: Step[]) => {
       invalidateSimulation();
-      dispatch(replaceSteps(normalizeManualSteps(nextSteps)));
+      dispatch(replaceSteps(normalizeManualSteps(nextSteps, entities)));
     },
-    [dispatch, invalidateSimulation],
+    [dispatch, entities, invalidateSimulation],
   );
 
   const setEntities = useCallback(
@@ -263,7 +263,7 @@ export function useBoardStore() {
       peers: rawPeers,
       links: rawLinks,
       obstacles: rawObstacles,
-      steps: sanitizeManualSteps(manualSteps),
+      steps: sanitizeManualSteps(manualSteps, entities),
       texts,
       display,
     };
@@ -288,7 +288,15 @@ export function useBoardStore() {
         dispatch(replacePeers(payload.peers));
         dispatch(replaceLinks(payload.links));
         dispatch(replaceObstacles(payload.obstacles));
-        dispatch(replaceSteps(sanitizeManualSteps(payload.steps)));
+        dispatch(
+          replaceSteps(
+            sanitizeManualSteps(payload.steps, [
+              ...payload.peers,
+              ...payload.links,
+              ...payload.obstacles,
+            ]),
+          ),
+        );
         dispatch(replaceTexts(payload.texts));
         dispatch(clearState());
         dispatch(replaceDisplay(payload.display));

@@ -239,6 +239,7 @@ export default function StepList({ step: currentSimulationStepResult }: StepList
               type: StepType.Toggle,
               tick: nextTick,
               entityId: null,
+              status: false,
             } satisfies ToggleStep)
           : ({
               id: generateUUID(),

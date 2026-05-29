@@ -40,6 +40,7 @@ export interface MoveStep extends BaseStep {
 export interface ToggleStep extends BaseStep {
   type: StepType.Toggle;
   entityId: UUID | null;
+  status: boolean;
 }
 
 export interface RefreshStep extends BaseStep {

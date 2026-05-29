@@ -40,13 +40,14 @@ const buildBatmanRefreshTicks = (
   interval: number,
 ) => {
   const normalizedInterval = Math.max(1, Math.floor(interval));
-  const toggleParityByTick = new Map<number, number>();
+  const toggleStatusByTick = new Map<number, boolean>();
 
   for (const step of manualSteps) {
     if (step.type !== StepType.Toggle || step.entityId !== peer.id) {
       continue;
     }
-    toggleParityByTick.set(step.tick, (toggleParityByTick.get(step.tick) ?? 0) + 1);
+
+    toggleStatusByTick.set(step.tick, step.status);
   }
 
   let isEnabled = peer.enabled;
@@ -54,8 +55,7 @@ const buildBatmanRefreshTicks = (
   const refreshTicks: Array<{ tick: number; startTick: number }> = [];
 
   for (let tick = 0; tick <= maxTick; tick += 1) {
-    const toggleCount = toggleParityByTick.get(tick) ?? 0;
-    const nextEnabled = toggleCount % 2 === 0 ? isEnabled : !isEnabled;
+    const nextEnabled = toggleStatusByTick.get(tick) ?? isEnabled;
 
     if (!isEnabled && nextEnabled) {
       activeStartTick = tick;
@@ -285,7 +285,36 @@ const normalizeToggleStep = (step: ToggleStep, index: number): ToggleStep => {
     ...base,
     type: StepType.Toggle,
     entityId: step.entityId,
+    status: typeof step.status === "boolean" ? step.status : false,
   };
+};
+
+const resolveToggleStatuses = (steps: UserStep[], entities: NetworkEntity[]): UserStep[] => {
+  const statusByEntityId = new Map<string, boolean>();
+  for (const entity of entities) {
+    if (entity.type === EntityType.Peer || entity.type === EntityType.Link) {
+      statusByEntityId.set(entity.id, entity.enabled);
+    }
+  }
+
+  return steps.map((step) => {
+    if (step.type !== StepType.Toggle || step.entityId === null) {
+      return step;
+    }
+
+    const currentStatus = statusByEntityId.get(step.entityId);
+    if (typeof currentStatus !== "boolean") {
+      return step;
+    }
+
+    const nextStatus = !currentStatus;
+    statusByEntityId.set(step.entityId, nextStatus);
+
+    return {
+      ...step,
+      status: nextStatus,
+    } satisfies ToggleStep;
+  });
 };
 
 const normalizeManualStep = (step: Step, index: number): UserStep | null => {
@@ -308,10 +337,16 @@ const normalizeManualStep = (step: Step, index: number): UserStep | null => {
   return null;
 };
 
-export const normalizeManualSteps = (steps: Step[]) => {
-  return steps
+export const normalizeManualSteps = (steps: Step[], entities?: NetworkEntity[]) => {
+  const normalized = steps
     .map((step, index) => normalizeManualStep(step, index))
     .filter((step): step is UserStep => step !== null);
+
+  if (!entities) {
+    return normalized;
+  }
+
+  return resolveToggleStatuses(normalized, entities);
 };
 
 const isExecutableManualStep = (step: UserStep) => {
@@ -328,12 +363,12 @@ const isExecutableManualStep = (step: UserStep) => {
   return step.entityId !== null;
 };
 
-export const sanitizeManualSteps = (steps: Step[]) => {
-  return normalizeManualSteps(steps).filter(isExecutableManualStep);
+export const sanitizeManualSteps = (steps: Step[], entities?: NetworkEntity[]) => {
+  return normalizeManualSteps(steps, entities).filter(isExecutableManualStep);
 };
 
 export const composeStepsWithRefresh = (steps: Step[], entities: NetworkEntity[]) => {
-  const manualSteps = normalizeManualSteps(sortStepsByTick(steps));
+  const manualSteps = normalizeManualSteps(sortStepsByTick(steps), entities);
   const executableManualSteps = manualSteps.filter(isExecutableManualStep);
   const peers = entities.filter((entity): entity is PeerEntity => entity.type === EntityType.Peer);
   const maxTick =

@@ -122,12 +122,12 @@ export class SimulationManager {
   }
 
   private processToggleStep(step: ToggleStep): void {
-    const { entityId } = step;
+    const { entityId, status } = step;
     if (!entityId) {
       throw new Error("Toggle step must have an entity id");
     }
 
-    const result = this.networkGraph.toggleStatus(entityId);
+    const result = this.networkGraph.setStatus(entityId, status);
     if (!result) {
       throw new Error("Toggle step must have a valid configuration");
     }

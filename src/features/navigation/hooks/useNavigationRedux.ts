@@ -58,7 +58,7 @@ export const useNavigationRedux = () => {
   }, [links, obstacles, peers]);
 
   const steps = useMemo(
-    () => composeStepsWithRefresh(normalizeManualSteps(manualSteps), entities),
+    () => composeStepsWithRefresh(normalizeManualSteps(manualSteps, entities), entities),
     [entities, manualSteps],
   );
 
@@ -101,9 +101,9 @@ export const useNavigationRedux = () => {
 
   const setSteps = useCallback(
     (value: Step[]) => {
-      dispatch(replaceSteps(normalizeManualSteps(value)));
+      dispatch(replaceSteps(normalizeManualSteps(value, entities)));
     },
-    [dispatch],
+    [dispatch, entities],
   );
 
   const clearSelection = useCallback(() => {
@@ -188,7 +188,7 @@ export const useNavigationRedux = () => {
       peers,
       links,
       obstacles,
-      steps: sanitizeManualSteps(manualSteps),
+      steps: sanitizeManualSteps(manualSteps, entities),
       texts,
       display,
     };
@@ -212,7 +212,15 @@ export const useNavigationRedux = () => {
         dispatch(replacePeers(payload.peers));
         dispatch(replaceLinks(payload.links));
         dispatch(replaceObstacles(payload.obstacles));
-        dispatch(replaceSteps(sanitizeManualSteps(payload.steps)));
+        dispatch(
+          replaceSteps(
+            sanitizeManualSteps(payload.steps, [
+              ...payload.peers,
+              ...payload.links,
+              ...payload.obstacles,
+            ]),
+          ),
+        );
         dispatch(replaceTexts(payload.texts));
         dispatch(clearState());
         dispatch(replaceDisplay(payload.display));

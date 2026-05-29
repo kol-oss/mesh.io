@@ -37,10 +37,15 @@ export const getDefaultMoveStep = (
 });
 
 // default TOGGLE_STATUS step properties
-export const getDefaultToggleStep = (entityId: UUID, tick: number): ToggleStep => ({
+export const getDefaultToggleStep = (
+  entityId: UUID,
+  tick: number,
+  status: boolean,
+): ToggleStep => ({
   id: generateUUID(),
   title: "Toggle",
   type: StepType.Toggle,
   tick,
   entityId: entityId,
+  status,
 });

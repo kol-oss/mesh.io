@@ -146,14 +146,6 @@ export class NetworkGraph {
     }
   }
 
-  // update all routing modules
-  tick() {
-    for (const peerId of this.graph.nodes()) {
-      const node = this.graph.getNodeAttributes(peerId);
-      node.module.tick();
-    }
-  }
-
   // update node position and refresh ranged links
   moveNode(nodeId: UUID, x: number, y: number) {
     const node = this.graph.getNodeAttributes(nodeId);
@@ -164,12 +156,11 @@ export class NetworkGraph {
     this.refreshRangedLinks();
   }
 
-  // change status of the node or edge
-  toggleStatus(entityId: UUID): ToggleStatusResult {
+  // set status of the node or edge
+  setStatus(entityId: UUID, nextEnabled: boolean): ToggleStatusResult {
     const node = this.graph.getNodeAttributes(entityId);
     if (node) {
       const previousEnabled = node.active;
-      const nextEnabled = !previousEnabled;
 
       node.active = nextEnabled;
       return {
@@ -184,7 +175,6 @@ export class NetworkGraph {
       const edge = this.graph.getEdgeAttributes(edgeId);
 
       const previousEnabled = edge.active;
-      const nextEnabled = !previousEnabled;
       edge.active = nextEnabled;
 
       return {

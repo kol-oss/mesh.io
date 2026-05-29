@@ -33,7 +33,7 @@ export const usePropertiesRedux = () => {
   }, [links, obstacles, peers]);
 
   const steps = useMemo(() => {
-    return composeStepsWithRefresh(normalizeManualSteps(manualSteps), entities);
+    return composeStepsWithRefresh(normalizeManualSteps(manualSteps, entities), entities);
   }, [entities, manualSteps]);
 
   const source = useMemo(() => {
@@ -75,9 +75,9 @@ export const usePropertiesRedux = () => {
 
   const setSteps = useCallback(
     (value: Step[]) => {
-      dispatch(replaceSteps(normalizeManualSteps(value)));
+      dispatch(replaceSteps(normalizeManualSteps(value, entities)));
     },
-    [dispatch],
+    [dispatch, entities],
   );
 
   return {

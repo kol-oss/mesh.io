@@ -28,7 +28,6 @@ export default function ToggleStepProperties({
     (entity): entity is PeerEntity | LinkEntity =>
       entity.type === EntityType.Peer || entity.type === EntityType.Link,
   );
-  const selected = targets.find((entity) => entity.id === step.entityId);
   const entityOptions: SelectOption<UUID>[] = targets.map((target) => {
     return {
       label: target.name,
@@ -50,7 +49,7 @@ export default function ToggleStepProperties({
         <BooleanPropertyField
           label="New Status"
           icon={<Activity size={12} />}
-          value={!selected?.enabled || false}
+          value={step.status}
           content={{ true: "Enabled", false: "Disabled" }}
           disabled
         />

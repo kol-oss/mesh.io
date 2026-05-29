@@ -38,6 +38,8 @@ type LegacyStep = Partial<{
   sourcePeerId: UUID | null;
   destinationPeerId: UUID | null;
   targetEntityId: UUID | null;
+  targetStatus: boolean;
+  status: boolean;
   movePeerId: UUID | null;
   x: number;
   y: number;
@@ -78,6 +80,13 @@ const normalizeMoveStep = (rawStep: LegacyStep, index: number): MoveStep => {
 };
 
 const normalizeToggleStep = (rawStep: LegacyStep, index: number): ToggleStep => {
+  const normalizedStatus =
+    typeof rawStep.status === "boolean"
+      ? rawStep.status
+      : typeof rawStep.targetStatus === "boolean"
+        ? rawStep.targetStatus
+        : false;
+
   return {
     ...createStepBase({
       id: hasNonEmptyString(rawStep.id) ? rawStep.id : generateUUID(),
@@ -86,6 +95,7 @@ const normalizeToggleStep = (rawStep: LegacyStep, index: number): ToggleStep => 
     }),
     type: StepType.Toggle,
     entityId: hasNonEmptyString(rawStep.targetEntityId) ? rawStep.targetEntityId : null,
+    status: normalizedStatus,
   };
 };
 
@@ -105,7 +115,8 @@ export const migrateSteps = (steps: Step[]) => {
         (!hasOwn(rawStep, "entityId") ||
           typeof rawStep.x !== "number" ||
           typeof rawStep.y !== "number")) ||
-      (normalizedType === StepType.Toggle && !hasOwn(rawStep, "entityId"))
+      (normalizedType === StepType.Toggle &&
+        (!hasOwn(rawStep, "entityId") || !hasOwn(rawStep, "status")))
     );
   });
 

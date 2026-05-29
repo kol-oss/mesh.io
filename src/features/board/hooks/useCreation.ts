@@ -97,10 +97,12 @@ export function useCreation({ entities, steps, texts, setters, callbacks }: UseC
 
   const createToggleStep = useCallback(
     (targetEntityId: UUID) => {
-      const step = getDefaultToggleStep(targetEntityId, getNextManualStepTick());
+      const target = entities.find((entity) => entity.id === targetEntityId);
+      const nextStatus = target && "enabled" in target ? !target.enabled : false;
+      const step = getDefaultToggleStep(targetEntityId, getNextManualStepTick(), nextStatus);
       createStep(step);
     },
-    [createStep, getNextManualStepTick],
+    [createStep, entities, getNextManualStepTick],
   );
 
   const createTextAt = useCallback(
