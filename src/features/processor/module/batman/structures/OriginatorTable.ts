@@ -28,18 +28,16 @@ export class OriginatorTable {
   private readonly originators = new Map<UUID, Map<UUID, BatmanOriginatorRecord>>();
   private readonly purgeTimeout: number;
 
-  private readonly onRouteDeleted?: (hopId: UUID) => void;
+  private onRouteDeleted?: (hopId: UUID) => void;
 
-  constructor(
-    peerId: UUID,
-    eventRecorder: EventRecorder,
-    purgeTimeout: number,
-    onRouteDeleted?: (hopId: UUID) => void,
-  ) {
+  constructor(peerId: UUID, eventRecorder: EventRecorder, purgeTimeout: number) {
     this.peerId = peerId;
     this.eventRecorder = eventRecorder;
     this.purgeTimeout = purgeTimeout;
-    this.onRouteDeleted = onRouteDeleted;
+  }
+
+  setPurgeListener(listener: (hopId: UUID) => void) {
+    this.onRouteDeleted = listener;
   }
 
   // adds new route or creates new route record if it doesn't exist

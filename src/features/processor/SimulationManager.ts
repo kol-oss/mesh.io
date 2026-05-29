@@ -1,8 +1,4 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
-import { AodvModule } from "@/features/processor/module/aodv/AodvModule";
-import { DsdvModule } from "@/features/processor/module/dsdv/DsdvModule";
-import { OlsrModule } from "@/features/processor/module/olsr/OlsrModule";
-import { RoutingProtocol } from "@/shared/types/common/protocols";
 import {
   type SimulationInput,
   type SimulationResult,
@@ -11,7 +7,6 @@ import {
 } from "@/shared/types/common/simulation";
 import { EntityType, type NetworkEntity } from "@/shared/types/model/entities";
 import {
-  RefreshAction,
   StepType,
   type MessageStep,
   type MoveStep,
@@ -27,7 +22,6 @@ import {
 } from "../../shared/types/common/events";
 import { MessageType, type Packet } from "../../shared/types/common/messages";
 import { DEFAULT_TIME_TO_LIVE } from "./constants/message";
-import { BatmanModule } from "./module/batman/BatmanModule";
 import { NetworkGraph } from "./network/NetworkGraph";
 import { groupStepsByTick } from "./utils/steps";
 
@@ -175,7 +169,7 @@ export class SimulationManager {
   }
 
   private processRefreshStep(step: RefreshStep): void {
-    const { peerId, protocol, action } = step;
+    const { peerId, action } = step;
 
     const peer = this.networkGraph.getNode(peerId);
     if (!peer) {
@@ -191,45 +185,10 @@ export class SimulationManager {
       throw new Error("Refresh step must have a valid action");
     }
 
-    module.tick();
-    if (protocol === RoutingProtocol.DSDV) {
-      this.processDsdvRefreshStep(action, module as DsdvModule);
-    } else if (protocol === RoutingProtocol.OLSR) {
-      this.processOlsrRefreshStep(action, module as OlsrModule);
-    } else if (protocol === RoutingProtocol.BATMAN) {
-      this.processBatmanRefreshStep(action, module as BatmanModule);
-    } else if (protocol === RoutingProtocol.AODV) {
-      this.processAodvRefreshStep(action, module as AodvModule);
-    }
-  }
+    // empty refresh for timeout processing
+    module.refresh();
 
-  private processBatmanRefreshStep(action: RefreshAction, module: BatmanModule): void {
-    if (action === RefreshAction.BatmanElp) {
-      module.refreshEchoLocation();
-    } else if (action === RefreshAction.BatmanOgm) {
-      module.refreshOriginators();
-    }
-  }
-
-  private processDsdvRefreshStep(action: RefreshAction, module: DsdvModule): void {
-    if (action === RefreshAction.DsdvFullDump) {
-      module.refreshFullDump();
-    } else if (action === RefreshAction.DsdvIncremental) {
-      module.refreshIncremental();
-    }
-  }
-
-  private processOlsrRefreshStep(action: RefreshAction, module: OlsrModule): void {
-    if (action === RefreshAction.OlsrHello) {
-      module.refreshHello();
-    } else if (action === RefreshAction.OlsrTc) {
-      module.refreshTc();
-    }
-  }
-
-  private processAodvRefreshStep(action: RefreshAction, module: AodvModule): void {
-    if (action === RefreshAction.AodvHello) {
-      module.refreshHello();
-    }
+    // specific refresh actions for protocol
+    module.refresh(action);
   }
 }

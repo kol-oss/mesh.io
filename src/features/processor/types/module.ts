@@ -1,4 +1,5 @@
 import type { Message, Packet } from "@/shared/types/common/messages";
+import type { RefreshAction } from "@/shared/types/model/steps";
 import type { AodvRouteRecord } from "./protocols/aodv";
 import type { BatmanNeighbourRecord, BatmanRouteRecord } from "./protocols/batman";
 import type { DsdvRouteRecord } from "./protocols/dsdv";
@@ -14,8 +15,7 @@ import type {
 export interface RoutingModule {
   read(message: Message): boolean;
   send(packet: Packet): boolean;
-  refresh(): void;
-  tick(): void;
+  refresh(action?: RefreshAction): void;
 }
 
 export enum RoutingStructure {

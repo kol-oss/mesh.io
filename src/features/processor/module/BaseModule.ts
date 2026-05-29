@@ -2,6 +2,7 @@ import { DropReason, EventType, type EventDetails } from "@/shared/types/common/
 import { MessageType, type Message, type Packet } from "@/shared/types/common/messages";
 import type { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
+import type { RefreshAction } from "@/shared/types/model/steps";
 import type { EventRecorder } from "../EventRecorder";
 import type { NetworkGraph } from "../network/NetworkGraph";
 import type { RoutingModule, RoutingStructureType } from "../types/module";
@@ -205,15 +206,23 @@ export abstract class BaseModule implements RoutingModule {
     return this.write(packet, nextHopId);
   }
 
+  // optional periodic update method for modules
+  refresh(action?: RefreshAction): void {
+    if (!this.peer.active) return;
+
+    if (action) {
+      this.processRefresh(action);
+    } else {
+      this.processTick();
+    }
+  }
+
+  abstract processRefresh(action: RefreshAction): void;
+
+  abstract processTick(): void;
+
+  // record events related to the module's operations
   protected recordEvent(type: EventType, details: EventDetails, protocol?: RoutingProtocol) {
-    this.eventRecorder.record(this.peer.id, type, details, protocol);
-  }
-
-  refresh(): void {
-    if (!this.peer.active) return;
-  }
-
-  tick(): void {
-    if (!this.peer.active) return;
+    this.eventRecorder.record(this.peerId, type, details, protocol);
   }
 }

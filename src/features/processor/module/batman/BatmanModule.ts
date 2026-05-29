@@ -4,7 +4,6 @@ import {
   type BatmanEchoLocationMessage,
   type BatmanNeighbourRecord,
   type BatmanOriginatorMessage,
-  type BatmanRouteRecord,
 } from "@/features/processor/types/protocols/batman.ts";
 import {
   BATMAN_MAX_THROUGHPUT,
@@ -19,6 +18,7 @@ import { MessageType, type Message } from "@/shared/types/common/messages.ts";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import type { BatmanConfiguration } from "@/shared/types/model/configurations.ts";
+import { RefreshAction } from "@/shared/types/model/steps.ts";
 import type { NetworkGraph } from "../../network/NetworkGraph.ts";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module.ts";
 import { LinkType } from "../../types/network/link.ts";
@@ -34,11 +34,12 @@ import { BaseModule } from "../BaseModule.ts";
 import { NeighbourList } from "./structures/NeighbourList.ts";
 import { OriginatorTable } from "./structures/OriginatorTable.ts";
 
+// module for B.A.T.M.A.N. V protocol
 const PROTOCOL = RoutingProtocol.BATMAN;
 
 export class BatmanModule extends BaseModule {
   // routing structures
-  private readonly neighbourList = new NeighbourList();
+  private neighbourList!: NeighbourList;
   private originatorTable!: OriginatorTable;
 
   // sequence numbers
@@ -59,14 +60,16 @@ export class BatmanModule extends BaseModule {
       throw new Error("BATMAN module requires a BATMAN peer entity.");
     }
 
+    this.neighbourList = new NeighbourList();
     this.originatorTable = new OriginatorTable(
       this.peerId,
       this.eventRecorder,
-      Math.max(1, configuration.purgeTimeout),
-      (hopPeerId) => {
-        this.neighbourList.delete(hopPeerId);
-      },
+      configuration.purgeTimeout,
     );
+
+    this.originatorTable.setPurgeListener((hopId: UUID) => {
+      this.neighbourList.delete(hopId);
+    });
   }
 
   override process(message: Message): boolean {
@@ -275,24 +278,16 @@ export class BatmanModule extends BaseModule {
     return route?.hopId ?? null;
   }
 
-  override tick() {
-    super.tick();
-
-    this.originatorTable.tick();
-  }
-
-  override getTables(): RoutingStructureType {
-    const tables: RoutingStructureType = {} as RoutingStructureType;
-    tables[RoutingStructure.BatmanNeighboursList] = this.neighbourList.getAll();
-    tables[RoutingStructure.BatmanOriginatorTable] = this.originatorTable.getAllRoutes();
-
-    return tables;
+  override processRefresh(action: RefreshAction) {
+    if (action === RefreshAction.BatmanElp) {
+      this.refreshEchoLocation();
+    } else if (action === RefreshAction.BatmanOgm) {
+      this.refreshOriginators();
+    }
   }
 
   // broadcasts ELP message and updates neighbour list
-  refreshEchoLocation(): boolean {
-    super.refresh();
-
+  private refreshEchoLocation(): boolean {
     const configuration = this.peer.configuration as BatmanConfiguration;
     if (!configuration) {
       return false;
@@ -316,14 +311,8 @@ export class BatmanModule extends BaseModule {
     return super.broadcast(message);
   }
 
-  getNeighboursList(): BatmanNeighbourRecord[] {
-    return this.neighbourList.getAll();
-  }
-
   // broadcasts OGMv2 messages and updates originator table
-  refreshOriginators(): boolean {
-    super.refresh();
-
+  private refreshOriginators(): boolean {
     this.ogmSequence += 1;
     const message: BatmanOriginatorMessage = {
       type: MessageType.BatmanOriginatorMessage,
@@ -338,7 +327,15 @@ export class BatmanModule extends BaseModule {
     return super.broadcast(message, false);
   }
 
-  getOriginatorTable(): BatmanRouteRecord[] {
-    return this.originatorTable.getAllRoutes();
+  override processTick() {
+    this.originatorTable.tick();
+  }
+
+  override getTables(): RoutingStructureType {
+    const tables: RoutingStructureType = {} as RoutingStructureType;
+    tables[RoutingStructure.BatmanNeighboursList] = this.neighbourList.getAll();
+    tables[RoutingStructure.BatmanOriginatorTable] = this.originatorTable.getAllRoutes();
+
+    return tables;
   }
 }
