@@ -1,6 +1,6 @@
 import { OBSTACLE_MIN_HEIGHT, OBSTACLE_MIN_WIDTH } from "@/shared/constants/entities/obstacle";
 import type { UUID } from "@/shared/types/common/uuid";
-import type { LinkEntity, ObstacleEntity, PeerEntity } from "@/shared/types/model/entities";
+import type { ObstacleEntity, PeerEntity } from "@/shared/types/model/entities";
 import type { ObstacleBounds } from "@/shared/types/workspace/interaction";
 
 export const toInt = (value: number) => Math.round(value);
@@ -240,16 +240,4 @@ export const getRangedConnectionPairs = (
   }
 
   return pairs;
-};
-
-export const shouldCreateLinkedConnection = (
-  link: LinkEntity,
-  sourcePeer: PeerEntity | null,
-  destinationPeer: PeerEntity | null,
-) => {
-  if (!link.enabled || !link.sourcePeerId || !link.destinationPeerId) {
-    return false;
-  }
-
-  return Boolean(sourcePeer && destinationPeer && sourcePeer.enabled && destinationPeer.enabled);
 };

@@ -6,6 +6,7 @@ import type { RoutingModule } from "../module";
 
 export type Peer = {
   id: UUID;
+  name: string;
   active: boolean;
   configuration: PeerConfiguration;
   coordinates: Coordinate;

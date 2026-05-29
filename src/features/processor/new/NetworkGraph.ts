@@ -1,21 +1,22 @@
 import type { Snapshot } from "@/shared/types/common/simulation";
 import { generateUUID, type UUID } from "@/shared/types/common/uuid";
-import type { Coordinate } from "@/shared/types/model/base";
 import {
   EntityType,
   type LinkEntity,
   type ObstacleEntity,
   type PeerEntity,
 } from "@/shared/types/model/entities";
-import type { ObstacleBounds } from "@/shared/types/workspace/interaction";
 import Graph, { UndirectedGraph } from "graphology";
 import type { EventRecorder } from "../EventRecorder";
 import type { BaseModule } from "../module/BaseModule";
+import type { BoundingBox } from "../types/bound";
 import { RoutingStructure } from "../types/module";
 import { LinkType, type Link } from "../types/network/link";
 import type { Peer } from "../types/network/peer";
 import type { ToggleStatusResult } from "../types/network/step";
-import { canCreateRangedConnection, getObstacleBounds } from "../utils/math/connectivity";
+import { isRangedConnected } from "../utils/connection";
+import { mapEntityToNode, mapNodeToEntity } from "../utils/mapper";
+import { getBoundingBox } from "../utils/math/bound";
 import { createModule } from "../utils/module";
 
 export class NetworkGraph {
@@ -72,24 +73,16 @@ export class NetworkGraph {
     this.obstacles = obstacles;
     this.links = links;
 
-    // converting peer entities into graph nodes
+    // adding nodes based on peer entities
     for (const peerEntity of this.peers) {
-      const { id, protocol, range, configuration, x, y, enabled } = peerEntity;
-
+      const { id } = peerEntity;
       const module = createModule(peerEntity, this, this.eventRecorder);
-      const peer = {
-        id: id,
-        active: enabled,
-        configuration: configuration,
-        coordinates: { x: x, y: y } as Coordinate,
-        range: range,
-        protocol: protocol,
-        module: module,
-      } satisfies Peer;
-      this.graph.addNode(id, peer);
+
+      const node = mapEntityToNode(peerEntity, module);
+      this.graph.addNode(id, node);
     }
 
-    // processing linked connections based on link entities
+    // adding edges based on link entities
     for (const linkEntity of links) {
       const { sourcePeerId: sourceId, destinationPeerId: destinationId, enabled } = linkEntity;
       const isEdgeExists = this.graph.hasEdge(sourceId, destinationId);
@@ -103,97 +96,48 @@ export class NetworkGraph {
       }
     }
 
-    // processing ranged links based on peer and obstacle positions
-    const bounds: ObstacleBounds[] = obstacles.map(getObstacleBounds);
-    for (const source of peers) {
-      const { id: sourceId } = source;
+    // adding edges based on peer ranges and obstacles
+    this.refreshRangedLinks();
 
-      for (const destination of peers) {
-        const { id: destinationId } = destination;
-        if (sourceId === destinationId) {
-          continue;
-        }
-
-        const isEdgeExists = this.graph.hasEdge(sourceId, destinationId);
-        if (!isEdgeExists && canCreateRangedConnection(source, destination, bounds)) {
-          this.graph.addEdge(source.id, destination.id, {
-            id: generateUUID(),
-            type: LinkType.Ranged,
-            active: true,
-          } satisfies Link);
-        }
-      }
-    }
-
+    // initializing modules for all peers
     for (const nodes of this.graph.nodes()) {
       const node = this.graph.getNodeAttributes(nodes);
       (node.module as BaseModule).init();
     }
   }
 
-  private refreshLinks(): void {
-    // processing ranged links based on peer and obstacle positions
-    const bounds: ObstacleBounds[] = this.obstacles.map(getObstacleBounds);
+  // processing ranged links based on peer and obstacle positions
+  private refreshRangedLinks(): void {
+    // retrieve bounding boxes for all obstacles
+    const bounds: BoundingBox[] = this.obstacles.map((obstacle) =>
+      getBoundingBox(obstacle, obstacle.width, obstacle.height),
+    );
+
     for (const node of this.graph.nodes()) {
       const source = this.graph.getNodeAttributes(node);
       const { id: sourceId } = source;
 
-      for (const destinationNode of this.graph.nodes()) {
-        const destination = this.graph.getNodeAttributes(destinationNode);
+      for (const otherNode of this.graph.nodes()) {
+        const destination = this.graph.getNodeAttributes(otherNode);
         const { id: destinationId } = destination;
         if (sourceId === destinationId) {
           continue;
         }
 
-        const sourcePeer = this.peers.find((peer) => peer.id === sourceId)!;
-        const destinationPeer = this.peers.find((peer) => peer.id === destinationId)!;
-
-        const sourceNode = this.graph.getNodeAttributes(sourceId);
-
-        const source = {
-          ...sourcePeer,
-          x: sourceNode.coordinates.x,
-          y: sourceNode.coordinates.y,
-          enabled: sourceNode.active,
-        };
-
-        const dest = {
-          ...destinationPeer,
-          x: destination.coordinates.x,
-          y: destination.coordinates.y,
-          enabled: destination.active,
-        };
-
         const isEdgeExists = this.graph.hasEdge(sourceId, destinationId);
-        if (!isEdgeExists) {
-          if (canCreateRangedConnection(source, dest, bounds)) {
-            this.graph.addEdge(source.id, destination.id, {
-              id: generateUUID(),
-              type: LinkType.Ranged,
-              active: true,
-            } satisfies Link);
-          }
-        } else {
+        // if no edge exists but can, then new ranged edge is added
+        if (!isEdgeExists && isRangedConnected(source, destination, bounds)) {
+          this.graph.addEdge(sourceId, destinationId, {
+            id: generateUUID(),
+            type: LinkType.Ranged,
+            active: true,
+          } satisfies Link);
+        }
+        // if edge exists but cannot be connected, then edge is removed
+        else if (isEdgeExists) {
           const edge = this.graph.getEdgeAttributes(sourceId, destinationId);
-          if (edge?.type === LinkType.Ranged) {
-            const sourceNode = this.graph.getNodeAttributes(sourceId);
-            const destinationNode = this.graph.getNodeAttributes(destinationId);
-
-            const source = {
-              ...sourcePeer,
-              x: sourceNode.coordinates.x,
-              y: sourceNode.coordinates.y,
-              enabled: sourceNode.active,
-            };
-
-            const destination = {
-              ...destinationPeer,
-              x: destinationNode.coordinates.x,
-              y: destinationNode.coordinates.y,
-              enabled: destinationNode.active,
-            };
-
-            if (!canCreateRangedConnection(source, destination, bounds)) {
+          if (edge.type === LinkType.Ranged) {
+            if (!isRangedConnected(source, destination, bounds)) {
               this.graph.dropEdge(sourceId, destinationId);
             }
           }
@@ -210,23 +154,24 @@ export class NetworkGraph {
     }
   }
 
-  // update peer position
-  moveNode(peerId: UUID, x: number, y: number) {
-    const node = this.graph.getNodeAttributes(peerId);
+  // update node position and refresh ranged links
+  moveNode(nodeId: UUID, x: number, y: number) {
+    const node = this.graph.getNodeAttributes(nodeId);
 
     node.coordinates.x = x;
     node.coordinates.y = y;
 
-    this.refreshLinks();
+    this.refreshRangedLinks();
   }
 
+  // change status of the node or edge
   toggleStatus(entityId: UUID): ToggleStatusResult {
-    const peer = this.graph.getNodeAttributes(entityId);
-    if (peer) {
-      const previousEnabled = peer.active;
+    const node = this.graph.getNodeAttributes(entityId);
+    if (node) {
+      const previousEnabled = node.active;
       const nextEnabled = !previousEnabled;
 
-      peer.active = nextEnabled;
+      node.active = nextEnabled;
       return {
         entityType: EntityType.Peer,
         previousEnabled,
@@ -234,9 +179,10 @@ export class NetworkGraph {
       };
     }
 
-    const linkId = this.graph.findEdge((_, attributes) => attributes.id === entityId);
-    if (linkId) {
-      const edge = this.graph.getEdgeAttributes(linkId);
+    const edgeId = this.graph.findEdge((_, attributes) => attributes.id === entityId);
+    if (edgeId) {
+      const edge = this.graph.getEdgeAttributes(edgeId);
+
       const previousEnabled = edge.active;
       const nextEnabled = !previousEnabled;
       edge.active = nextEnabled;
@@ -252,26 +198,20 @@ export class NetworkGraph {
   }
 
   snapshot(tick: number): Snapshot {
-    const peers = this.graph.nodes().map((nodeId) => {
-      const peer = this.peers.find((p) => p.id === nodeId)!;
-      const node = this.graph.getNodeAttributes(nodeId);
-      return {
-        ...peer,
-        enabled: node.active,
-        x: node.coordinates.x,
-        y: node.coordinates.y,
-      };
+    const entities = this.graph.nodes().map((id) => {
+      const node = this.graph.getNodeAttributes(id);
+      return mapNodeToEntity(node);
     });
 
     return {
       tick,
-      entities: [...peers, ...this.obstacles, ...this.links],
+      entities: [...entities, ...this.obstacles, ...this.links],
       peers: this.graph.nodes().map((nodeId) => {
         const peer = this.graph.getNodeAttributes(nodeId);
         const structures = (peer.module as BaseModule).getTables();
 
         return {
-          ...peers.find((p) => p.id === nodeId)!,
+          ...mapNodeToEntity(peer),
           batmanRoutingTable: structures[RoutingStructure.BatmanOriginatorTable] ?? [],
           batmanNeighboursTable: structures[RoutingStructure.BatmanNeighboursList] ?? [],
           dsdvRoutingTable: structures[RoutingStructure.DsdvRoutingTable] ?? [],
