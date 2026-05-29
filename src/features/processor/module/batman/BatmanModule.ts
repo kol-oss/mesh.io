@@ -19,7 +19,7 @@ import { MessageType, type Message } from "@/shared/types/common/messages.ts";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import type { BatmanConfiguration } from "@/shared/types/model/configurations.ts";
-import type { NetworkGraph } from "../../new/NetworkGraph.ts";
+import type { NetworkGraph } from "../../network/NetworkGraph.ts";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module.ts";
 import { LinkType } from "../../types/network/link.ts";
 import { clone } from "../../utils/clone.ts";

@@ -27,7 +27,7 @@ import { MessageType, type Message, type Packet } from "@/shared/types/common/me
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { AodvConfiguration } from "@/shared/types/model/configurations";
-import type { NetworkGraph } from "../../new/NetworkGraph";
+import type { NetworkGraph } from "../../network/NetworkGraph";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module";
 import type { Peer } from "../../types/network/peer";
 import { BaseModule } from "../BaseModule";

@@ -28,7 +28,7 @@ import {
 import { MessageType, type Packet } from "../../shared/types/common/messages";
 import { DEFAULT_TIME_TO_LIVE } from "./constants/message";
 import { BatmanModule } from "./module/batman/BatmanModule";
-import { NetworkGraph } from "./new/NetworkGraph";
+import { NetworkGraph } from "./network/NetworkGraph";
 import { groupStepsByTick } from "./utils/steps";
 
 export class SimulationManager {

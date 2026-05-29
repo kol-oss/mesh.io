@@ -10,7 +10,7 @@ import { MessageType, type Message } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { OlsrConfiguration } from "@/shared/types/model/configurations";
-import type { NetworkGraph } from "../../new/NetworkGraph";
+import type { NetworkGraph } from "../../network/NetworkGraph";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module";
 import type { Peer } from "../../types/network/peer";
 import { clone } from "../../utils/clone";

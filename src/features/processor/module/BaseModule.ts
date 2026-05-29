@@ -3,7 +3,7 @@ import { MessageType, type Message, type Packet } from "@/shared/types/common/me
 import type { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { EventRecorder } from "../EventRecorder";
-import type { NetworkGraph } from "../new/NetworkGraph";
+import type { NetworkGraph } from "../network/NetworkGraph";
 import type { RoutingModule, RoutingStructureType } from "../types/module";
 import { clone } from "../utils/clone";
 import { isReactive } from "../utils/protocol/protocols";

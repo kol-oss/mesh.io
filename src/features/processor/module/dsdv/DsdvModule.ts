@@ -16,7 +16,7 @@ import { MessageType, type Message } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { DsdvConfiguration } from "@/shared/types/model/configurations";
-import type { NetworkGraph } from "../../new/NetworkGraph";
+import type { NetworkGraph } from "../../network/NetworkGraph";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module";
 import { BaseModule } from "../BaseModule";
 import { DsdvRoutingTable } from "./structures/DsdvRoutingTable";

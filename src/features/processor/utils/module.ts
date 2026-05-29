@@ -6,7 +6,7 @@ import { BatmanModule } from "../module/batman/BatmanModule";
 import { DsdvModule } from "../module/dsdv/DsdvModule";
 import { DsrModule } from "../module/dsr/DsrModule";
 import { OlsrModule } from "../module/olsr/OlsrModule";
-import type { NetworkGraph } from "../new/NetworkGraph";
+import type { NetworkGraph } from "../network/NetworkGraph";
 import { RoutingStructure, type RoutingModule, type RoutingStructureType } from "../types/module";
 
 export const createModule = (
