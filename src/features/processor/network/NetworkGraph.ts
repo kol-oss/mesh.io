@@ -1,4 +1,4 @@
-import type { Snapshot } from "@/shared/types/common/simulation";
+import type { PeerSnapshot, Snapshot } from "@/shared/types/common/simulation";
 import { generateUUID, type UUID } from "@/shared/types/common/uuid";
 import {
   EntityType,
@@ -196,24 +196,29 @@ export class NetworkGraph {
     return {
       tick,
       entities: [...entities, ...this.obstacles, ...this.links],
-      peers: this.graph.nodes().map((nodeId) => {
-        const peer = this.graph.getNodeAttributes(nodeId);
-        const structures = (peer.module as BaseModule).getTables();
-
-        return {
-          ...mapNodeToEntity(peer),
-          batmanRoutingTable: structures[RoutingStructure.BatmanOriginatorTable] ?? [],
-          batmanNeighboursTable: structures[RoutingStructure.BatmanNeighboursList] ?? [],
-          dsdvRoutingTable: structures[RoutingStructure.DsdvRoutingTable] ?? [],
-          aodvRoutingTable: structures[RoutingStructure.AodvRoutingTable] ?? [],
-          dsrRoutingTable: structures[RoutingStructure.DsrRoutingTable] ?? [],
-          olsrNeighbourTable: structures[RoutingStructure.OlsrNeighbourTable] ?? [],
-          olsrTwoHopTable: structures[RoutingStructure.OlsrTwoHopTable] ?? [],
-          olsrSelectorTable: structures[RoutingStructure.OlsrSelectorTable] ?? [],
-          olsrTopologyTable: structures[RoutingStructure.OlsrTopologyTable] ?? [],
-          olsrRoutingTable: structures[RoutingStructure.OlsrRoutingTable] ?? [],
-        };
-      }),
+      peers: entities,
     };
+  }
+
+  // extracts full routing table data for all peers at the current state
+  peerTables(): PeerSnapshot[] {
+    return this.graph.nodes().map((nodeId) => {
+      const peer = this.graph.getNodeAttributes(nodeId);
+      const structures = (peer.module as BaseModule).getTables();
+
+      return {
+        ...mapNodeToEntity(peer),
+        batmanRoutingTable: structures[RoutingStructure.BatmanOriginatorTable] ?? [],
+        batmanNeighboursTable: structures[RoutingStructure.BatmanNeighboursList] ?? [],
+        dsdvRoutingTable: structures[RoutingStructure.DsdvRoutingTable] ?? [],
+        aodvRoutingTable: structures[RoutingStructure.AodvRoutingTable] ?? [],
+        dsrRoutingTable: structures[RoutingStructure.DsrRoutingTable] ?? [],
+        olsrNeighbourTable: structures[RoutingStructure.OlsrNeighbourTable] ?? [],
+        olsrTwoHopTable: structures[RoutingStructure.OlsrTwoHopTable] ?? [],
+        olsrSelectorTable: structures[RoutingStructure.OlsrSelectorTable] ?? [],
+        olsrTopologyTable: structures[RoutingStructure.OlsrTopologyTable] ?? [],
+        olsrRoutingTable: structures[RoutingStructure.OlsrRoutingTable] ?? [],
+      };
+    });
   }
 }

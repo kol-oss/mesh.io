@@ -14,10 +14,12 @@ export default function Workspace() {
     currentSimulationEventIndex,
     currentSimulationEvents,
     currentSimulationStepResult,
+    currentStepPeerTables,
     entities,
     handleNextSimulationEvent,
     handleNextSimulationStep,
     isSimulationActive,
+    simulationIsRunning,
     placementMode,
     setSimulationInspectionMode,
     simulationInspectionMode,
@@ -38,6 +40,8 @@ export default function Workspace() {
     clearSelection,
   } = useBoardStore();
 
+  const isSimulationLocked = isSimulationActive || simulationIsRunning;
+
   return (
     <div className="workspace-page">
       <div className="workspace-page__nav">
@@ -56,9 +60,10 @@ export default function Workspace() {
           currentSimulationEventIndex={currentSimulationEventIndex}
           currentSimulationEventsTotal={currentSimulationEvents.length}
           currentSimulationStepResult={currentSimulationStepResult}
+          currentStepPeerTables={currentStepPeerTables}
           canGoPrevSimulationEvent={canGoPrevEvent}
           canGoNextSimulationEvent={canGoNextEvent}
-          isSimulationActive={isSimulationActive}
+          isSimulationActive={isSimulationLocked}
           onPrevSimulationEvent={handlePrevSimulationEvent}
           onNextSimulationEvent={handleNextSimulationEvent}
           selectedId={selectedId}
@@ -79,11 +84,11 @@ export default function Workspace() {
           onInspectionModeChange={setSimulationInspectionMode}
           prevExist={canGoPrevStep}
           nextExist={canGoNextStep}
-          isRuntime={isSimulationActive}
+          isRuntime={isSimulationLocked}
         />
       </div>
       <div className="workspace-page__properties">
-        <Properties isRuntime={!!currentSimulationStepResult} isLocked={isSimulationActive} />
+        <Properties isRuntime={!!currentSimulationStepResult} isLocked={isSimulationLocked} />
       </div>
     </div>
   );

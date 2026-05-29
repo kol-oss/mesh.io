@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import { ActionMode } from "@/shared/types/action";
-import type { SimulationResult } from "@/shared/types/common/simulation";
+import type { PeerSnapshot, SimulationResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 
 export type SimulationInspectionMode = ActionMode.PacketStructure | ActionMode.RoutingTable;
@@ -33,6 +33,7 @@ export interface SimulationState {
   result: SimulationResult | null;
   currentStepIndex: number;
   currentEventIndex: number;
+  currentStepPeerTables: PeerSnapshot[] | null;
   isRunning: boolean;
   inspectionMode: SimulationInspectionMode;
   packetInspectorWindows: PacketInspectorWindow[];
@@ -47,6 +48,7 @@ const initialState: SimulationState = {
   result: null,
   currentStepIndex: 0,
   currentEventIndex: 0,
+  currentStepPeerTables: null,
   isRunning: false,
   inspectionMode: ActionMode.PacketStructure,
   packetInspectorWindows: [],
@@ -74,6 +76,7 @@ const simulationSlice = createSlice({
       state.result = action.payload;
       state.currentStepIndex = 0;
       state.currentEventIndex = 0;
+      state.currentStepPeerTables = null;
       state.isRunning = false;
       resetWindowState(state);
     },
@@ -81,11 +84,15 @@ const simulationSlice = createSlice({
       state.result = null;
       state.currentStepIndex = 0;
       state.currentEventIndex = 0;
+      state.currentStepPeerTables = null;
       state.isRunning = false;
       resetWindowState(state);
     },
     setIsRunning(state, action: PayloadAction<boolean>) {
       state.isRunning = action.payload;
+    },
+    setCurrentStepPeerTables(state, action: PayloadAction<PeerSnapshot[]>) {
+      state.currentStepPeerTables = action.payload;
     },
     setCurrentStepIndex(state, action: PayloadAction<number>) {
       state.currentStepIndex = action.payload;
@@ -220,6 +227,7 @@ export const {
   simulationCompleted,
   clearSimulation,
   setIsRunning,
+  setCurrentStepPeerTables,
   setCurrentStepIndex,
   setCurrentEventIndex,
   setInspectionMode,

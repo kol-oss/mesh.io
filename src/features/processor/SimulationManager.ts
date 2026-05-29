@@ -1,8 +1,8 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
 import {
+  type PeerSnapshot,
   type SimulationInput,
   type SimulationResult,
-  type Snapshot,
   type StepResult,
 } from "@/shared/types/common/simulation";
 import { EntityType, type NetworkEntity } from "@/shared/types/model/entities";
@@ -30,6 +30,9 @@ export class SimulationManager {
 
   private readonly stepsByTick: Step[][];
   private readonly networkGraph: NetworkGraph = new NetworkGraph(this.eventRecorder);
+  private readonly stepPeerTables: PeerSnapshot[][] = [];
+  // per-event tables: eventPeerTables[stepIndex][rawEventIndex]
+  private readonly eventPeerTables: PeerSnapshot[][][] = [];
 
   private constructor(entities: NetworkEntity[], steps: Step[]) {
     this.networkGraph.init(
@@ -56,22 +59,24 @@ export class SimulationManager {
       for (const step of steps) {
         this.eventRecorder.setStep(step);
 
-        // capturing of events and states
+        // capturing events emitted during this step
         const events: Event[] = [];
-        const snapshots: Snapshot[] = [];
+        const eventTables: PeerSnapshot[][] = [];
 
         this.eventRecorder.setListener((event) => {
           events.push(event);
-          snapshots.push(this.networkGraph.snapshot(tick));
+          // capture tables immediately after each event so per-event state is preserved
+          eventTables.push(this.networkGraph.peerTables());
         });
 
         // processing of the step
         this.processStep(step);
+        this.stepPeerTables.push(this.networkGraph.peerTables());
+        this.eventPeerTables.push(eventTables);
 
         result.push({
           step,
           events,
-          eventSnapshots: snapshots,
           snapshot: this.networkGraph.snapshot(tick),
         } satisfies StepResult);
       }
@@ -82,6 +87,16 @@ export class SimulationManager {
       steps: [],
       stepResults: result,
     } satisfies SimulationResult;
+  }
+
+  // returns full peer routing table data for a specific step index
+  getStepPeerTables(stepIndex: number): PeerSnapshot[] | null {
+    return this.stepPeerTables[stepIndex] ?? null;
+  }
+
+  // returns full peer routing table data after a specific raw event within a step
+  getEventPeerTables(stepIndex: number, rawEventIndex: number): PeerSnapshot[] | null {
+    return this.eventPeerTables[stepIndex]?.[rawEventIndex] ?? null;
   }
 
   // processes a single step and updates the state of the network

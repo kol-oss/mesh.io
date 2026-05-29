@@ -10,7 +10,6 @@ import type {
 import { EventType } from "@/shared/types/common/events";
 import type { Message } from "@/shared/types/common/messages";
 import { MessageType } from "@/shared/types/common/messages";
-import type { PeerSnapshot } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import type {
@@ -22,7 +21,7 @@ import type {
 export const buildSimulationMessageAnimations = (
   currentEvent: Event | null,
   currentStepResult: {
-    snapshot: { peers: PeerSnapshot[] };
+    snapshot: { peers: PeerEntity[] };
     events: Event[];
   } | null,
   fallbackPeers: PeerEntity[],
@@ -31,7 +30,7 @@ export const buildSimulationMessageAnimations = (
     return [];
   }
 
-  const peerById = new Map<UUID, PeerSnapshot | PeerEntity>();
+  const peerById = new Map<UUID, PeerEntity>();
 
   for (const peer of currentStepResult.snapshot.peers) {
     peerById.set(peer.id, peer);

@@ -1,5 +1,5 @@
 import { RoutingProtocol } from "@/shared/types/common/protocols";
-import type { StepResult } from "@/shared/types/common/simulation";
+import type { PeerSnapshot, StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import { ChevronRight, ExternalLink, X } from "lucide-react";
 import {
@@ -16,8 +16,8 @@ import OlsrTableStructure from "./OlsrTableStructure";
 type TableStructureProps = {
   isOpen: boolean;
   currentStepResult: StepResult | null;
-  currentEventId: UUID | null;
   inspectedPeerId: UUID | null;
+  peerTables: PeerSnapshot[] | null;
   onClose: () => void;
   onPeerHoverChange: (peerId: UUID | null) => void;
 };
@@ -25,8 +25,8 @@ type TableStructureProps = {
 export default function TableStructure({
   isOpen,
   currentStepResult,
-  currentEventId,
   inspectedPeerId,
+  peerTables,
   onClose,
   onPeerHoverChange,
 }: TableStructureProps) {
@@ -97,15 +97,10 @@ export default function TableStructure({
     return null;
   }
 
-  const eventIndex = currentEventId
-    ? currentStepResult.events.findIndex((event) => event.id === currentEventId)
-    : -1;
-  const snapshotForEvent =
-    eventIndex >= 0 ? (currentStepResult.eventSnapshots[eventIndex] ?? null) : null;
-  const inspectedSnapshot = snapshotForEvent ?? currentStepResult.snapshot;
-
-  const peerNameById = new Map(inspectedSnapshot.peers.map((peer) => [peer.id, peer.name]));
-  const inspectedPeer = inspectedSnapshot.peers.find((peer) => peer.id === inspectedPeerId);
+  const peerNameById = new Map(
+    currentStepResult.snapshot.peers.map((peer) => [peer.id, peer.name]),
+  );
+  const inspectedPeer = peerTables?.find((peer) => peer.id === inspectedPeerId) ?? null;
 
   if (!inspectedPeer) {
     return null;
@@ -185,13 +180,13 @@ export default function TableStructure({
         {selectedProtocol === RoutingProtocol.BATMAN ? (
           <BatmanTableStructure
             peer={inspectedPeer}
-            peers={inspectedSnapshot.peers}
+            peers={currentStepResult.snapshot.peers}
             onPeerNameHover={onPeerHoverChange}
           />
         ) : selectedProtocol === RoutingProtocol.DSDV ? (
           <DsdvTableStructure
             peer={inspectedPeer}
-            peers={inspectedSnapshot.peers}
+            peers={currentStepResult.snapshot.peers}
             onPeerNameHover={onPeerHoverChange}
           />
         ) : selectedProtocol === RoutingProtocol.AODV ? (
@@ -301,7 +296,7 @@ export default function TableStructure({
         ) : selectedProtocol === RoutingProtocol.OLSR ? (
           <OlsrTableStructure
             peer={inspectedPeer}
-            peers={inspectedSnapshot.peers}
+            peers={currentStepResult.snapshot.peers}
             onPeerNameHover={onPeerHoverChange}
           />
         ) : null}

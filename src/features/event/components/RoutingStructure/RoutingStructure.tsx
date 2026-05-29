@@ -1,5 +1,5 @@
 import type { Event } from "@/shared/types/common/events";
-import type { StepResult } from "@/shared/types/common/simulation";
+import type { PeerSnapshot, StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import MessageStructure from "../MessageStructure/MessageStructure";
 import TableStructure from "../TableStructure/TableStructure";
@@ -24,6 +24,7 @@ type RoutingStructureProps = {
   currentStepId: UUID | null;
   currentSimulationStepResult: StepResult | null;
   currentSimulationEvent: Event | null;
+  currentStepPeerTables: PeerSnapshot[] | null;
   onPacketInspectorClose: (eventId: UUID) => void;
   onTableInspectionClose: (peerId: UUID) => void;
   onSimulationPeerHoverChange: (peerId: UUID | null) => void;
@@ -36,6 +37,7 @@ export default function RoutingStructure({
   currentStepId,
   currentSimulationStepResult,
   currentSimulationEvent,
+  currentStepPeerTables,
   onPacketInspectorClose,
   onTableInspectionClose,
   onSimulationPeerHoverChange,
@@ -75,8 +77,8 @@ export default function RoutingStructure({
               key={`table-window-${windowState.peerId}`}
               isOpen={true}
               currentStepResult={currentSimulationStepResult}
-              currentEventId={currentSimulationEvent?.id ?? null}
               inspectedPeerId={windowState.peerId}
+              peerTables={currentStepPeerTables}
               onClose={() => onTableInspectionClose(windowState.peerId)}
               onPeerHoverChange={onSimulationPeerHoverChange}
             />

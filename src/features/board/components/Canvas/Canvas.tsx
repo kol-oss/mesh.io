@@ -20,7 +20,7 @@ import { useToast } from "@/shared/toast/useToast";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as ToolbarMode } from "@/shared/types/action";
 import { type Event } from "@/shared/types/common/events";
-import { type StepResult } from "@/shared/types/common/simulation";
+import type { PeerSnapshot, StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { NetworkEntity } from "@/shared/types/model/entities";
 import type { Step } from "@/shared/types/model/steps";
@@ -44,6 +44,7 @@ type CanvasProps = {
   currentSimulationEventIndex: number;
   currentSimulationEventsTotal: number;
   currentSimulationStepResult: StepResult | null;
+  currentStepPeerTables: PeerSnapshot[] | null;
   canGoPrevSimulationEvent: boolean;
   canGoNextSimulationEvent: boolean;
   isSimulationActive: boolean;
@@ -69,6 +70,7 @@ export default function Canvas({
   currentSimulationEventIndex,
   currentSimulationEventsTotal,
   currentSimulationStepResult,
+  currentStepPeerTables,
   canGoPrevSimulationEvent,
   canGoNextSimulationEvent,
   isSimulationActive,
@@ -425,6 +427,7 @@ export default function Canvas({
         currentStepId={currentStepId}
         currentSimulationStepResult={currentSimulationStepResult}
         currentSimulationEvent={currentSimulationEvent}
+        currentStepPeerTables={currentStepPeerTables}
         onPacketInspectorClose={handlePacketInspectorClose}
         onTableInspectionClose={handleTableInspectionClose}
         onSimulationPeerHoverChange={handleSimulationPeerHoverChange}

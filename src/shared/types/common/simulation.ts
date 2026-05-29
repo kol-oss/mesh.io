@@ -32,13 +32,12 @@ export type PeerSnapshot = PeerEntity & {
 export type Snapshot = {
   tick: number;
   entities: NetworkEntity[];
-  peers: PeerSnapshot[];
+  peers: PeerEntity[];
 };
 
 export type StepResult = {
   step: Step;
   events: Event[];
-  eventSnapshots: Snapshot[];
   snapshot: Snapshot;
 };
 

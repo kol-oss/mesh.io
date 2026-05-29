@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef } from "react";
 
-import { SimulationManager } from "@/features/processor/SimulationManager";
+import type {
+  SimulationWorkerInput,
+  SimulationWorkerRequest,
+  SimulationWorkerResponse,
+} from "@/features/processor/types/simulationWorker";
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
 import {
   selectCurrentSimulationEvent,
@@ -30,6 +34,7 @@ import {
   clearSimulation,
   setCurrentEventIndex,
   setCurrentStepIndex,
+  setCurrentStepPeerTables,
   setInspectionMode,
   setIsRunning,
   simulationCompleted,
@@ -40,7 +45,7 @@ import { clearTexts, replaceTexts } from "@/shared/store/slices/textSlice";
 import { useToast } from "@/shared/toast/useToast";
 import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as PlacementMode, ActionMode as ToolbarMode } from "@/shared/types/action";
-import type { SimulationInput, SimulationResult } from "@/shared/types/common/simulation";
+import type { SimulationResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import type {
   LinkEntity,
@@ -63,6 +68,8 @@ export function useBoardStore() {
   const { showToast } = useToast();
   const dispatch = useAppDispatch();
   const simulationRunLockRef = useRef(false);
+  const simulationWorkerRef = useRef<Worker | null>(null);
+  const simulationRequestIdRef = useRef(0);
 
   const placementMode = useAppSelector((state) => state.board.placementMode);
   const display = useAppSelector((state) => state.display);
@@ -94,6 +101,119 @@ export function useBoardStore() {
   const simulationResult = useAppSelector((state) => state.simulation.result);
   const simulationCurrentStepIndex = useAppSelector((state) => state.simulation.currentStepIndex);
   const simulationCurrentEventIndex = useAppSelector((state) => state.simulation.currentEventIndex);
+  const currentStepPeerTables = useAppSelector((state) => state.simulation.currentStepPeerTables);
+
+  // when the active step or event changes, request the matching routing table state from the worker
+  useEffect(() => {
+    if (!simulationResult || !simulationWorkerRef.current) {
+      return;
+    }
+
+    // map the collapsed-event index shown in the UI to the raw event index stored in the worker
+    let rawEventIndex: number | null = null;
+    if (currentSimulationEvents.length > 0) {
+      const collapsedEvent = currentSimulationEvents[normalizedCurrentEventIndex];
+      if (collapsedEvent) {
+        const stepResult = simulationResult.stepResults[simulationCurrentStepIndex];
+        const idx = stepResult?.events.findIndex((e) => e.id === collapsedEvent.id) ?? -1;
+        if (idx !== -1) {
+          rawEventIndex = idx;
+        }
+      }
+    }
+
+    const request: SimulationWorkerRequest = {
+      type: "GET_STEP_TABLES",
+      stepIndex: simulationCurrentStepIndex,
+      eventIndex: rawEventIndex,
+    };
+    simulationWorkerRef.current.postMessage(request);
+  }, [
+    simulationCurrentStepIndex,
+    normalizedCurrentEventIndex,
+    currentSimulationEvents,
+    simulationResult,
+  ]);
+
+  const terminateSimulationWorker = useCallback(() => {
+    if (!simulationWorkerRef.current) {
+      return;
+    }
+
+    simulationWorkerRef.current.terminate();
+    simulationWorkerRef.current = null;
+  }, []);
+
+  const runSimulationInWorker = useCallback(
+    (input: SimulationWorkerInput) => {
+      // terminate any worker left alive from a previous simulation
+      terminateSimulationWorker();
+
+      const requestId = simulationRequestIdRef.current;
+
+      return new Promise<SimulationResult>((resolve, reject) => {
+        const worker = new Worker(
+          new URL("../../processor/worker/simulation.worker.ts", import.meta.url),
+          {
+            type: "module",
+          },
+        );
+
+        simulationWorkerRef.current = worker;
+
+        worker.onmessage = (event: MessageEvent<SimulationWorkerResponse>) => {
+          const { data } = event;
+
+          // routing table data arriving after the initial result
+          if (data.type === "STEP_TABLES_SUCCESS") {
+            if (simulationWorkerRef.current === worker) {
+              dispatch(setCurrentStepPeerTables(data.peers));
+            }
+            return;
+          }
+
+          if (requestId !== simulationRequestIdRef.current) {
+            worker.terminate();
+            return;
+          }
+
+          if (data.type === "SIMULATION_SUCCESS") {
+            // keep the worker alive — it holds per-step peer tables for on-demand queries
+            resolve(data.payload);
+            return;
+          }
+
+          // SIMULATION_ERROR
+          if (simulationWorkerRef.current === worker) {
+            simulationWorkerRef.current = null;
+          }
+          worker.terminate();
+          reject(new Error(data.error));
+        };
+
+        worker.onerror = () => {
+          if (requestId !== simulationRequestIdRef.current) {
+            worker.terminate();
+            return;
+          }
+
+          if (simulationWorkerRef.current === worker) {
+            simulationWorkerRef.current = null;
+          }
+          worker.terminate();
+
+          reject(new Error("Simulation worker failed"));
+        };
+
+        const request: SimulationWorkerRequest = {
+          type: "RUN_SIMULATION",
+          payload: input,
+        };
+        worker.postMessage(request);
+      });
+    },
+    [dispatch, terminateSimulationWorker],
+  );
 
   const invalidateSimulation = useCallback(() => {
     dispatch(clearSimulation());
@@ -321,7 +441,7 @@ export function useBoardStore() {
     [setDisplaySelectedId],
   );
 
-  const handleRunSimulation = useCallback(() => {
+  const handleRunSimulation = useCallback(async () => {
     if (simulationRunLockRef.current || simulationIsRunning) {
       showToast("Simulation is already running");
       return;
@@ -333,24 +453,47 @@ export function useBoardStore() {
     }
 
     simulationRunLockRef.current = true;
+    simulationRequestIdRef.current += 1;
+    const requestId = simulationRequestIdRef.current;
     dispatch(setIsRunning(true));
+    showToast("Simulation compiling...");
 
     try {
-      const manager = SimulationManager.prepare({ entities, steps } as SimulationInput);
-      const result = manager.run();
+      const result = await runSimulationInWorker({
+        entities,
+        manualSteps: normalizedManualSteps,
+      });
+      if (requestId !== simulationRequestIdRef.current) {
+        return;
+      }
 
       dispatch(setInspectionMode(ToolbarMode.PacketStructure as SimulationInspectionMode));
       dispatch(simulationCompleted(result));
       focusSimulationStep(0, result);
-      showToast(`Simulation finished with ${result.events.length} events`);
+      showToast(`Simulation completed with ${result.events.length} events`);
     } catch (error) {
+      if (requestId !== simulationRequestIdRef.current) {
+        return;
+      }
+
       const message = error instanceof Error ? error.message : "Simulation failed";
       dispatch(setIsRunning(false));
       showToast(message);
     } finally {
-      simulationRunLockRef.current = false;
+      if (requestId === simulationRequestIdRef.current) {
+        simulationRunLockRef.current = false;
+      }
     }
-  }, [dispatch, entities, focusSimulationStep, showToast, simulationIsRunning, steps]);
+  }, [
+    dispatch,
+    entities,
+    focusSimulationStep,
+    normalizedManualSteps,
+    runSimulationInWorker,
+    showToast,
+    simulationIsRunning,
+    steps.length,
+  ]);
 
   const navigateSimulationStep = useCallback(
     (direction: -1 | 1) => {
@@ -385,9 +528,18 @@ export function useBoardStore() {
   );
 
   const handleStopSimulation = useCallback(() => {
+    simulationRequestIdRef.current += 1;
+    terminateSimulationWorker();
+    simulationRunLockRef.current = false;
     invalidateSimulation();
     showToast("Simulation stopped");
-  }, [invalidateSimulation, showToast]);
+  }, [invalidateSimulation, showToast, terminateSimulationWorker]);
+
+  useEffect(() => {
+    return () => {
+      terminateSimulationWorker();
+    };
+  }, [terminateSimulationWorker]);
 
   useEffect(() => {
     if (!selectedId || selectedSource !== null) {
@@ -461,10 +613,12 @@ export function useBoardStore() {
     handleStopSimulation,
     handleStepSelect,
     isSimulationActive,
+    simulationIsRunning,
     handleWorkspaceEntitySelect,
     handleWorkspaceStepSelect,
     setSimulationInspectionMode: handleSimulationInspectionModeChange,
     simulationInspectionMode,
+    currentStepPeerTables,
     clearSelection,
   };
 }
