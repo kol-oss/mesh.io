@@ -157,17 +157,17 @@ export class NetworkGraph {
   }
 
   // set status of the node or edge
-  setStatus(entityId: UUID, nextEnabled: boolean): ToggleStatusResult {
+  setStatus(entityId: UUID, active: boolean): ToggleStatusResult {
     const node = this.graph.getNodeAttributes(entityId);
     if (node) {
       const previousEnabled = node.active;
 
-      node.active = nextEnabled;
+      node.active = active;
       return {
         entityType: EntityType.Peer,
         previousEnabled,
-        nextEnabled,
-      };
+        nextEnabled: active,
+      } satisfies ToggleStatusResult;
     }
 
     const edgeId = this.graph.findEdge((_, attributes) => attributes.id === entityId);
@@ -175,13 +175,13 @@ export class NetworkGraph {
       const edge = this.graph.getEdgeAttributes(edgeId);
 
       const previousEnabled = edge.active;
-      edge.active = nextEnabled;
+      edge.active = active;
 
       return {
         entityType: EntityType.Link,
         previousEnabled,
-        nextEnabled,
-      };
+        nextEnabled: active,
+      } satisfies ToggleStatusResult;
     }
 
     return null;
