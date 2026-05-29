@@ -56,9 +56,6 @@ export class BatmanModule extends BaseModule {
 
   override init() {
     const configuration = this.peer.configuration as BatmanConfiguration;
-    if (!configuration) {
-      throw new Error("BATMAN module requires a BATMAN peer entity.");
-    }
 
     this.neighbourList = new NeighbourList();
     this.originatorTable = new OriginatorTable(
