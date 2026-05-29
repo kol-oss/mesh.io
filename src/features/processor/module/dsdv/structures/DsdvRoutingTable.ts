@@ -1,5 +1,4 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
-import type { NodeWrapper } from "@/features/processor/types/node";
 import {
   type DsdvRouteRecord,
   type DsdvRouteUpdateMessage,
@@ -29,19 +28,19 @@ export class DsdvRoutingTable {
   private readonly routes = new Map<UUID, DsdvRouteState>();
   private readonly pendingWithdrawals = new Map<UUID, DsdvRouteState>();
   private readonly fullDumpTimingByNeighbour = new Map<UUID, DsdvFullDumpTiming>();
-  private readonly peer: NodeWrapper;
+  private readonly peerId: UUID;
   private readonly eventRecorder: EventRecorder;
 
   private readonly routeTimeout: number;
   private readonly fullDumpInterval: number;
 
   constructor(params: {
-    routingPeer: NodeWrapper;
+    peerId: UUID;
     eventRecorder: EventRecorder;
     routeTimeout: number;
     fullDumpInterval: number;
   }) {
-    this.peer = params.routingPeer;
+    this.peerId = params.peerId;
     this.eventRecorder = params.eventRecorder;
     this.routeTimeout = params.routeTimeout;
     this.fullDumpInterval = params.fullDumpInterval;
@@ -56,10 +55,10 @@ export class DsdvRoutingTable {
 
   upsertSelfRoute(sequenceNumber: number) {
     const tick = this.eventRecorder.getCurrentTick();
-    const previous = this.routes.get(this.peer.id) ?? null;
+    const previous = this.routes.get(this.peerId) ?? null;
     const nextState: DsdvRouteState = {
-      destinationPeerId: this.peer.id,
-      nextHopPeerId: this.peer.id,
+      destinationPeerId: this.peerId,
+      nextHopPeerId: this.peerId,
       metric: 0,
       sequenceNumber,
       lastUpdateTick: tick,
@@ -67,16 +66,16 @@ export class DsdvRoutingTable {
       changed: true,
     };
 
-    this.routes.set(this.peer.id, nextState);
+    this.routes.set(this.peerId, nextState);
 
     if (!previous) {
       this.eventRecorder.record(
-        this.peer.id,
+        this.peerId,
         EventType.AddRoute,
         {
           protocol: RoutingProtocol.DSDV,
-          destinationPeerId: this.peer.id,
-          nextHopPeerId: this.peer.id,
+          destinationPeerId: this.peerId,
+          nextHopPeerId: this.peerId,
           previousRoute: null,
           nextRoute: this.toRecord(nextState),
         },
@@ -86,12 +85,12 @@ export class DsdvRoutingTable {
     }
 
     this.eventRecorder.record(
-      this.peer.id,
+      this.peerId,
       EventType.UpdateRoute,
       {
         protocol: RoutingProtocol.DSDV,
-        destinationPeerId: this.peer.id,
-        nextHopPeerId: this.peer.id,
+        destinationPeerId: this.peerId,
+        nextHopPeerId: this.peerId,
         previousRoute: this.toRecord(previous),
         nextRoute: this.toRecord(nextState),
       },
@@ -106,7 +105,7 @@ export class DsdvRoutingTable {
     incomingSequenceNumber: number;
     message: DsdvRouteUpdateMessage;
   }) {
-    if (params.destinationPeerId === this.peer.id) {
+    if (params.destinationPeerId === this.peerId) {
       return false;
     }
 
@@ -150,7 +149,7 @@ export class DsdvRoutingTable {
     this.routes.set(params.destinationPeerId, nextState);
 
     this.eventRecorder.record(
-      this.peer.id,
+      this.peerId,
       current ? EventType.UpdateRoute : EventType.AddRoute,
       {
         protocol: RoutingProtocol.DSDV,
@@ -171,7 +170,7 @@ export class DsdvRoutingTable {
     let changed = false;
 
     for (const [destinationPeerId, route] of this.routes.entries()) {
-      if (destinationPeerId === this.peer.id) {
+      if (destinationPeerId === this.peerId) {
         continue;
       }
 
@@ -196,7 +195,7 @@ export class DsdvRoutingTable {
         changed = true;
 
         this.eventRecorder.record(
-          this.peer.id,
+          this.peerId,
           EventType.DeleteRoute,
           {
             protocol: RoutingProtocol.DSDV,
@@ -221,7 +220,7 @@ export class DsdvRoutingTable {
         changed = true;
 
         this.eventRecorder.record(
-          this.peer.id,
+          this.peerId,
           EventType.DeleteRoute,
           {
             protocol: RoutingProtocol.DSDV,

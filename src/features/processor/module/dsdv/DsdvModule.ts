@@ -1,5 +1,4 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
-import type { NodeWrapper } from "@/features/processor/types/node";
 import {
   DsdvUpdateType,
   type DsdvRouteRecord,
@@ -17,6 +16,8 @@ import { MessageType, type Message } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { DsdvConfiguration } from "@/shared/types/model/configurations";
+import type { NetworkGraph } from "../../new/NetworkGraph";
+import { RoutingStructure, type RoutingStructureType } from "../../types/module";
 import { BaseModule } from "../BaseModule";
 import { DsdvRoutingTable } from "./structures/DsdvRoutingTable";
 
@@ -39,12 +40,12 @@ export class DsdvModule extends BaseModule {
 
   private hasSentFullDump = false;
 
-  constructor(node: NodeWrapper, eventRecorder: EventRecorder) {
-    super(node, eventRecorder);
+  constructor(peerId: UUID, graph: NetworkGraph, eventRecorder: EventRecorder) {
+    super(peerId, graph, eventRecorder);
 
-    const configuration = node.getConfiguration() as DsdvConfiguration;
+    const configuration = this.peer.configuration as DsdvConfiguration;
     this.routingTable = new DsdvRoutingTable({
-      routingPeer: node,
+      peerId: this.peerId,
       eventRecorder,
       routeTimeout: clampTimeout(configuration.routeTimeout),
       fullDumpInterval: clampInterval(configuration.fullDumpInterval),
@@ -69,7 +70,7 @@ export class DsdvModule extends BaseModule {
   }
 
   private processRouteUpdate(message: DsdvRouteUpdateMessage) {
-    if (message.sourcePeerId === this.node.id) {
+    if (message.sourcePeerId === this.peer.id) {
       this.recordEvent(EventType.Drop, {
         message: { ...message },
         reason: DropReason.SourceIsTarget,
@@ -78,8 +79,8 @@ export class DsdvModule extends BaseModule {
       return false;
     }
 
-    const sender = this.node.getNeighbour(message.senderPeerId);
-    if (!sender || !sender.supports(PROTOCOL)) {
+    const sender = this.graph.getNode(message.senderPeerId);
+    if (!sender) {
       this.recordEvent(EventType.Drop, {
         message: { ...message },
         reason: DropReason.UnsupportedProtocol,
@@ -89,8 +90,7 @@ export class DsdvModule extends BaseModule {
     }
 
     if (message.updateType === DsdvUpdateType.FullDump) {
-      const senderPeer = sender.getEntity();
-      const senderConfiguration = senderPeer.configuration as DsdvConfiguration;
+      const senderConfiguration = sender.configuration as DsdvConfiguration;
       if (!senderConfiguration) {
         return false;
       }
@@ -166,7 +166,7 @@ export class DsdvModule extends BaseModule {
 
   override tick() {
     super.tick();
-    if (!this.node.isActive()) {
+    if (!this.peer.active) {
       return;
     }
 
@@ -181,7 +181,7 @@ export class DsdvModule extends BaseModule {
 
   refreshFullDump() {
     super.refresh();
-    if (!this.node.isActive()) {
+    if (!this.peer.active) {
       return;
     }
 
@@ -199,7 +199,7 @@ export class DsdvModule extends BaseModule {
 
   refreshIncremental() {
     super.refresh();
-    if (!this.node.isActive()) {
+    if (!this.peer.active) {
       return;
     }
 
@@ -214,6 +214,13 @@ export class DsdvModule extends BaseModule {
       updateType: DsdvUpdateType.Incremental,
       retransmit: false,
     });
+  }
+
+  override getTables() {
+    const tables: RoutingStructureType = {} as RoutingStructureType;
+    tables[RoutingStructure.DsdvRoutingTable] = this.routingTable.getRoutes();
+
+    return tables;
   }
 
   getRoutes() {
@@ -249,8 +256,8 @@ export class DsdvModule extends BaseModule {
         const emptyIncrementalMessage: DsdvRouteUpdateMessage = {
           type: MessageType.DsdvRouteUpdateMessage,
           updateType: DsdvUpdateType.Incremental,
-          sourcePeerId: this.node.id,
-          senderPeerId: this.node.id,
+          sourcePeerId: this.peer.id,
+          senderPeerId: this.peer.id,
           hopCount: 0,
           entries: [],
         };
@@ -268,13 +275,15 @@ export class DsdvModule extends BaseModule {
       return false;
     }
 
-    const neighbours = this.node.getNeighbours().filter((peer) => peer.supports(PROTOCOL));
+    const neighbours = this.graph
+      .getNeighbours(this.peerId)
+      .filter((peer) => peer.protocol === PROTOCOL);
 
     const message: DsdvRouteUpdateMessage = {
       type: MessageType.DsdvRouteUpdateMessage,
       updateType: params.updateType,
-      sourcePeerId: params.sourcePeerId ?? this.node.id,
-      senderPeerId: this.node.id,
+      sourcePeerId: params.sourcePeerId ?? this.peer.id,
+      senderPeerId: this.peer.id,
       hopCount: params.hopCount ?? 0,
       entries: routes,
     };

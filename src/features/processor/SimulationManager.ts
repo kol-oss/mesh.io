@@ -2,7 +2,6 @@ import { EventRecorder } from "@/features/processor/EventRecorder";
 import { AodvModule } from "@/features/processor/module/aodv/AodvModule";
 import { DsdvModule } from "@/features/processor/module/dsdv/DsdvModule";
 import { OlsrModule } from "@/features/processor/module/olsr/OlsrModule";
-import { NetworkManager } from "@/features/processor/network/NetworkManager";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import {
   type SimulationInput,
@@ -10,7 +9,7 @@ import {
   type Snapshot,
   type StepResult,
 } from "@/shared/types/common/simulation";
-import type { NetworkEntity } from "@/shared/types/model/entities";
+import { EntityType, type NetworkEntity } from "@/shared/types/model/entities";
 import {
   RefreshAction,
   StepType,
@@ -29,16 +28,22 @@ import {
 import { MessageType, type Packet } from "../../shared/types/common/messages";
 import { DEFAULT_TIME_TO_LIVE } from "./constants/message";
 import { BatmanModule } from "./module/batman/BatmanModule";
+import { NetworkGraph } from "./new/NetworkGraph";
 import { groupStepsByTick } from "./utils/steps";
 
 export class SimulationManager {
   private readonly eventRecorder: EventRecorder = new EventRecorder();
 
-  private readonly networkManager: NetworkManager;
   private readonly stepsByTick: Step[][];
+  private readonly networkGraph: NetworkGraph = new NetworkGraph(this.eventRecorder);
 
   private constructor(entities: NetworkEntity[], steps: Step[]) {
-    this.networkManager = new NetworkManager(entities, this.eventRecorder);
+    this.networkGraph.init(
+      entities.filter((entity) => entity.type === EntityType.Peer),
+      entities.filter((entity) => entity.type === EntityType.Obstacle),
+      entities.filter((entity) => entity.type === EntityType.Link),
+    );
+
     this.stepsByTick = groupStepsByTick(steps);
   }
 
@@ -63,7 +68,7 @@ export class SimulationManager {
 
         this.eventRecorder.setListener((event) => {
           events.push(event);
-          snapshots.push(this.networkManager.snapshot(tick));
+          snapshots.push(this.networkGraph.snapshot(tick));
         });
 
         // processing of the step
@@ -73,7 +78,7 @@ export class SimulationManager {
           step,
           events,
           eventSnapshots: snapshots,
-          snapshot: this.networkManager.snapshot(tick),
+          snapshot: this.networkGraph.snapshot(tick),
         } satisfies StepResult);
       }
     }
@@ -105,23 +110,20 @@ export class SimulationManager {
       throw new Error("Move step must have an entity id");
     }
 
-    const node = this.networkManager.getPeer(entityId);
+    const node = this.networkGraph.getNode(entityId);
     if (!node) {
       throw new Error("Move step must have a valid entity id");
     }
 
-    const peer = node.getEntity();
     const details: MoveEventDetails = {
       peerId: entityId,
-      fromX: peer.x,
-      fromY: peer.y,
+      fromX: node.coordinates.x,
+      fromY: node.coordinates.y,
       toX: x,
       toY: y,
     };
 
-    this.networkManager.move(entityId, x, y);
-    this.networkManager.refresh();
-
+    this.networkGraph.moveNode(entityId, x, y);
     this.eventRecorder.record(entityId, EventType.Move, details);
   }
 
@@ -131,12 +133,11 @@ export class SimulationManager {
       throw new Error("Toggle step must have an entity id");
     }
 
-    const result = this.networkManager.toggleStatus(entityId);
+    const result = this.networkGraph.toggleStatus(entityId);
     if (!result) {
       throw new Error("Toggle step must have a valid configuration");
     }
 
-    this.networkManager.refresh();
     const details: StatusChangeEventDetails = {
       entityId,
       entityType: result.entityType,
@@ -153,14 +154,12 @@ export class SimulationManager {
       throw new Error("Message step must have a valid source and destination id");
     }
 
-    const peer = this.networkManager.getPeer(sourceId);
+    const peer = this.networkGraph.getNode(sourceId);
     if (!peer) {
       throw new Error("Message step must have a valid source");
     }
 
-    const protocol = peer.getProtocol();
-    const module = peer.getModule(protocol);
-
+    const module = peer.module;
     if (!module) {
       throw new Error("Source peer does not support the configured protocol");
     }
@@ -178,12 +177,12 @@ export class SimulationManager {
   private processRefreshStep(step: RefreshStep): void {
     const { peerId, protocol, action } = step;
 
-    const peer = this.networkManager.getPeer(peerId);
+    const peer = this.networkGraph.getNode(peerId);
     if (!peer) {
       throw new Error("Refresh step must have a valid peer id");
     }
 
-    const module = peer.getModule(protocol);
+    const module = peer.module;
     if (!module) {
       throw new Error("Refresh step must have a valid module for the given protocol");
     }

@@ -1,23 +1,34 @@
 import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { PeerEntity } from "@/shared/types/model/entities";
 import type { EventRecorder } from "../EventRecorder";
 import { AodvModule } from "../module/aodv/AodvModule";
 import { BatmanModule } from "../module/batman/BatmanModule";
 import { DsdvModule } from "../module/dsdv/DsdvModule";
 import { DsrModule } from "../module/dsr/DsrModule";
 import { OlsrModule } from "../module/olsr/OlsrModule";
-import type { NodeWrapper } from "../types/node";
-import { RoutingStructure, type RoutingModule, type RoutingStructureType } from "../types/routing";
+import type { NetworkGraph } from "../new/NetworkGraph";
+import { RoutingStructure, type RoutingModule, type RoutingStructureType } from "../types/module";
 
-export const MODULE_FACTORY_BY_PROTOCOL: Map<
-  RoutingProtocol,
-  (node: NodeWrapper, eventRecorder: EventRecorder) => RoutingModule
-> = new Map<RoutingProtocol, (node: NodeWrapper, eventRecorder: EventRecorder) => RoutingModule>([
-  [RoutingProtocol.BATMAN, (node, eventRecorder) => new BatmanModule(node, eventRecorder)],
-  [RoutingProtocol.DSDV, (node, eventRecorder) => new DsdvModule(node, eventRecorder)],
-  [RoutingProtocol.AODV, (node, eventRecorder) => new AodvModule(node, eventRecorder)],
-  [RoutingProtocol.DSR, (node, eventRecorder) => new DsrModule(node, eventRecorder)],
-  [RoutingProtocol.OLSR, (node, eventRecorder) => new OlsrModule(node, eventRecorder)],
-]);
+export const createModule = (
+  peer: PeerEntity,
+  graph: NetworkGraph,
+  eventRecorder: EventRecorder,
+): RoutingModule => {
+  const { id, protocol } = peer;
+  if (protocol === RoutingProtocol.BATMAN) {
+    return new BatmanModule(id, graph, eventRecorder);
+  } else if (protocol === RoutingProtocol.DSDV) {
+    return new DsdvModule(id, graph, eventRecorder);
+  } else if (protocol === RoutingProtocol.AODV) {
+    return new AodvModule(id, graph, eventRecorder);
+  } else if (protocol === RoutingProtocol.OLSR) {
+    return new OlsrModule(id, graph, eventRecorder);
+  } else if (protocol === RoutingProtocol.DSR) {
+    return new DsrModule(id, graph, eventRecorder);
+  }
+
+  throw new Error(`Protocol must be specified to create a module for peer ${id}`);
+};
 
 export const getStructuresByProtocol = (
   protocol: RoutingProtocol,

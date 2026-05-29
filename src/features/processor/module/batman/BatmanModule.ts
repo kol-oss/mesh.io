@@ -1,5 +1,4 @@
 import { EventRecorder } from "@/features/processor/EventRecorder.ts";
-import type { NodeWrapper } from "@/features/processor/types/node.ts";
 import {
   type BatmanCalculationEventDetails,
   type BatmanEchoLocationMessage,
@@ -20,6 +19,9 @@ import { MessageType, type Message } from "@/shared/types/common/messages.ts";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import type { BatmanConfiguration } from "@/shared/types/model/configurations.ts";
+import type { NetworkGraph } from "../../new/NetworkGraph.ts";
+import { RoutingStructure, type RoutingStructureType } from "../../types/module.ts";
+import { LinkType } from "../../types/network/link.ts";
 import { clone } from "../../utils/clone.ts";
 import { getDistance } from "../../utils/math/connectivity.ts";
 import { smooth } from "../../utils/math/ewma.ts";
@@ -36,28 +38,30 @@ const PROTOCOL = RoutingProtocol.BATMAN;
 
 export class BatmanModule extends BaseModule {
   // routing structures
-  private readonly originatorTable: OriginatorTable;
   private readonly neighbourList = new NeighbourList();
+  private originatorTable!: OriginatorTable;
 
   // sequence numbers
   private elpSequence: number = 0;
   private ogmSequence: number = 0;
 
-  constructor(node: NodeWrapper, eventRecorder: EventRecorder) {
-    super(node, eventRecorder);
+  constructor(peerId: UUID, graph: NetworkGraph, eventRecorder: EventRecorder) {
+    super(peerId, graph, eventRecorder);
     this.INCOMING_MESSAGE_TYPES.push(
       MessageType.BatmanOriginatorMessage,
       MessageType.BatmanEchoLocationMessage,
     );
+  }
 
-    const configuration = node.getConfiguration() as BatmanConfiguration;
+  override init() {
+    const configuration = this.peer.configuration as BatmanConfiguration;
     if (!configuration) {
       throw new Error("BATMAN module requires a BATMAN peer entity.");
     }
 
     this.originatorTable = new OriginatorTable(
-      node,
-      eventRecorder,
+      this.peerId,
+      this.eventRecorder,
       Math.max(1, configuration.purgeTimeout),
       (hopPeerId) => {
         this.neighbourList.delete(hopPeerId);
@@ -85,7 +89,7 @@ export class BatmanModule extends BaseModule {
     const currentTick = this.eventRecorder.getCurrentTick();
     const { sourceId, senderId, timeToLive, interval } = message;
 
-    if (sourceId === this.node.id) {
+    if (sourceId === this.peer.id) {
       return true;
     }
 
@@ -100,16 +104,14 @@ export class BatmanModule extends BaseModule {
     }
 
     // distance calculation
-    const distance = getDistance(
-      this.node.getEntity(),
-      this.node.getNeighbour(senderId)!.getEntity(),
-    );
+    const sender = this.graph.getNode(senderId);
+    const distance = getDistance(this.peer.coordinates, sender.coordinates);
 
-    const isWiredLink = this.node.isLinkedNeighbour(senderId);
-    const isWirelessLink = !isWiredLink && this.node.isRangedNeighbour(senderId);
+    const isWiredLink = this.graph.hasLink(this.peer.id, senderId, LinkType.Wired);
+    const isWirelessLink = !isWiredLink && this.graph.hasLink(this.peer.id, senderId);
 
     // throughput calculation
-    const { penaltyDistance, penaltyPercent } = this.node.getConfiguration() as BatmanConfiguration;
+    const { penaltyDistance, penaltyPercent } = this.peer.configuration as BatmanConfiguration;
     const linkThroughput = isWirelessLink
       ? BATMAN_WIRELESS_BASE_THROUGHPUT
       : BATMAN_WIRED_BASE_THROUGHPUT;
@@ -172,7 +174,7 @@ export class BatmanModule extends BaseModule {
     const { sourceId, senderId, timeToLive, throughput } = message;
 
     // drop if the message is from the same node
-    if (sourceId === this.node.id) {
+    if (sourceId === this.peer.id) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),
         reason: DropReason.SourceIsTarget,
@@ -196,8 +198,8 @@ export class BatmanModule extends BaseModule {
     const neighbourThroughput = this.neighbourList.get(senderId)!.throughput;
     const selectedThroughput = Math.min(throughput, neighbourThroughput);
 
-    const isWiredHop = this.node.isLinkedNeighbour(senderId);
-    const isWirelessHop = !isWiredHop && this.node.isRangedNeighbour(senderId);
+    const isWiredHop = this.graph.hasLink(this.peer.id, senderId, LinkType.Wired);
+    const isWirelessHop = !isWiredHop && this.graph.hasLink(this.peer.id, senderId);
 
     const nextThroughput = isWirelessHop
       ? applyWirelessPenalty(selectedThroughput)
@@ -249,7 +251,7 @@ export class BatmanModule extends BaseModule {
     // message rebroadcasting
     const forwarded: BatmanOriginatorMessage = {
       ...message,
-      senderId: this.node.id,
+      senderId: this.peer.id,
       timeToLive: nextTimeToLive,
       throughput: nextThroughput,
     };
@@ -279,11 +281,19 @@ export class BatmanModule extends BaseModule {
     this.originatorTable.tick();
   }
 
+  override getTables(): RoutingStructureType {
+    const tables: RoutingStructureType = {} as RoutingStructureType;
+    tables[RoutingStructure.BatmanNeighboursList] = this.neighbourList.getAll();
+    tables[RoutingStructure.BatmanOriginatorTable] = this.originatorTable.getAllRoutes();
+
+    return tables;
+  }
+
   // broadcasts ELP message and updates neighbour list
   refreshEchoLocation(): boolean {
     super.refresh();
 
-    const configuration = this.node.getConfiguration() as BatmanConfiguration;
+    const configuration = this.peer.configuration as BatmanConfiguration;
     if (!configuration) {
       return false;
     }
@@ -294,8 +304,8 @@ export class BatmanModule extends BaseModule {
     const message: BatmanEchoLocationMessage = {
       type: MessageType.BatmanEchoLocationMessage,
       version: BATMAN_VERSION,
-      sourceId: this.node.id,
-      senderId: this.node.id,
+      sourceId: this.peer.id,
+      senderId: this.peer.id,
       timeToLive: BATMAN_TIME_TO_LIVE,
       numNeighbours: neighbours.length,
       sequence: this.elpSequence,
@@ -318,8 +328,8 @@ export class BatmanModule extends BaseModule {
     const message: BatmanOriginatorMessage = {
       type: MessageType.BatmanOriginatorMessage,
       version: BATMAN_VERSION,
-      sourceId: this.node.id,
-      senderId: this.node.id,
+      sourceId: this.peer.id,
+      senderId: this.peer.id,
       sequence: this.ogmSequence,
       timeToLive: BATMAN_TIME_TO_LIVE,
       throughput: BATMAN_MAX_THROUGHPUT,

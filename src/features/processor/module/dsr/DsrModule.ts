@@ -16,7 +16,9 @@ import { MessageType, type Message, type Packet } from "@/shared/types/common/me
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { DsrConfiguration } from "@/shared/types/model/configurations";
-import type { NodeWrapper } from "../../types/node";
+import type { NetworkGraph } from "../../new/NetworkGraph";
+import { RoutingStructure, type RoutingStructureType } from "../../types/module";
+import type { Peer } from "../../types/network/peer";
 import { BaseModule } from "../BaseModule";
 import { RouteCache } from "./structures/RouteCache";
 
@@ -47,8 +49,8 @@ export class DsrModule extends BaseModule {
 
   private requestSequence = 0;
 
-  constructor(node: NodeWrapper, eventRecorder: EventRecorder) {
-    super(node, eventRecorder);
+  constructor(peerId: UUID, graph: NetworkGraph, eventRecorder: EventRecorder) {
+    super(peerId, graph, eventRecorder);
     this.INCOMING_MESSAGE_TYPES.push(
       MessageType.DsrRouteRequestMessage,
       MessageType.DsrRouteReplyMessage,
@@ -60,7 +62,7 @@ export class DsrModule extends BaseModule {
     const { type: messageType } = message;
 
     if (messageType === MessageType.Packet) {
-      if (message.destinationPeerId === this.node.id) {
+      if (message.destinationPeerId === this.peer.id) {
         return true;
       }
 
@@ -75,19 +77,26 @@ export class DsrModule extends BaseModule {
     return false;
   }
 
+  override getTables(): RoutingStructureType {
+    const tables: RoutingStructureType = {} as RoutingStructureType;
+    tables[RoutingStructure.DsrRoutingTable] = this.getRoutes();
+
+    return tables;
+  }
+
   override tick() {
     super.tick();
-    if (!this.node.isActive()) {
+    if (!this.peer.active) {
       return;
     }
 
     const currentTick = this.eventRecorder.getCurrentTick();
     const routeTimeout = this.getRouteTimeout();
-    const expiredRoutes = this.routeCache.removeExpired(this.node.id, currentTick, routeTimeout);
+    const expiredRoutes = this.routeCache.removeExpired(this.peer.id, currentTick, routeTimeout);
 
     for (const { destinationPeerId, route } of expiredRoutes) {
       this.eventRecorder.record(
-        this.node.id,
+        this.peer.id,
         EventType.DeleteRoute,
         {
           protocol: PROTOCOL,
@@ -102,7 +111,7 @@ export class DsrModule extends BaseModule {
   }
 
   override send(packet: Packet): boolean {
-    if (!this.node.isActive()) {
+    if (!this.peer.active) {
       this.recordDrop(packet, DropReason.DestinationUnavailable);
       return false;
     }
@@ -113,9 +122,9 @@ export class DsrModule extends BaseModule {
     }
 
     const sourcePacket: Packet =
-      packet.sourcePeerId === null ? { ...packet, sourcePeerId: this.node.id } : packet;
+      packet.sourcePeerId === null ? { ...packet, sourcePeerId: this.peer.id } : packet;
 
-    if (sourcePacket.destinationPeerId === this.node.id) {
+    if (sourcePacket.destinationPeerId === this.peer.id) {
       return true;
     }
 
@@ -157,11 +166,11 @@ export class DsrModule extends BaseModule {
     this.requestSequence += 1;
     const requestId = this.requestSequence;
 
-    const queue: Array<{ peer: NodeWrapper; pathPeerIds: UUID[] }> = [
-      { peer: this.node, pathPeerIds: [this.node.id] },
+    const queue: Array<{ peer: Peer; pathPeerIds: UUID[] }> = [
+      { peer: this.peer, pathPeerIds: [this.peer.id] },
     ];
 
-    const discoveredDepthByPeer = new Map<UUID, number>([[this.node.id, 0]]);
+    const discoveredDepthByPeer = new Map<UUID, number>([[this.peer.id, 0]]);
     let discoveredPath: UUID[] | null = null;
 
     while (queue.length > 0) {
@@ -171,13 +180,13 @@ export class DsrModule extends BaseModule {
       }
 
       const currentDepth = current.pathPeerIds.length - 1;
-      const neighbours = current.peer
-        .getNeighbours()
-        .filter((peer) => peer.supports(RoutingProtocol.DSR) && peer.isActive());
+      const neighbours = this.graph
+        .getNeighbours(current.peer.id)
+        .filter((peer) => peer.protocol === RoutingProtocol.DSR && peer.active);
 
       const requestMessage: DsrRouteRequestMessage = {
         type: MessageType.DsrRouteRequestMessage,
-        sourcePeerId: this.node.id,
+        sourcePeerId: this.peer.id,
         senderPeerId: current.peer.id,
         targetPeerId: destinationId,
         requestId,
@@ -190,7 +199,7 @@ export class DsrModule extends BaseModule {
         EventType.Broadcast,
         {
           neighbourPeerIds: neighbours.map((peer) => peer.id),
-          retransmit: current.peer.id !== this.node.id,
+          retransmit: current.peer.id !== this.peer.id,
           message: cloneDsrMessage(requestMessage),
         },
         PROTOCOL,
@@ -240,7 +249,7 @@ export class DsrModule extends BaseModule {
     for (let index = pathPeerIds.length - 1; index > 0; index -= 1) {
       const senderPeerId = pathPeerIds[index];
       const senderModule = modulesAlongPath[index] ?? null;
-      const senderPeer = senderModule?.node;
+      const senderPeer = senderModule?.peer;
       if (!senderPeer) {
         continue;
       }
@@ -299,10 +308,10 @@ export class DsrModule extends BaseModule {
     salvageCount: number,
   ): boolean {
     if (routePeerIds.length < 2) {
-      return packet.destinationPeerId === this.node.id;
+      return packet.destinationPeerId === this.peer.id;
     }
 
-    let currentPeer = this.node;
+    let currentPeer = this.peer;
     let currentPacket = { ...packet };
 
     for (let index = 0; index < routePeerIds.length - 1; index += 1) {
@@ -310,7 +319,7 @@ export class DsrModule extends BaseModule {
       const nextPeerId = routePeerIds[index + 1];
 
       if (currentPeer.id !== currentPeerId) {
-        const alignedPeer = currentPeer.getNeighbour(currentPeerId);
+        const alignedPeer = this.graph.getNode(currentPeerId);
         if (!alignedPeer) {
           this.eventRecorder.record(
             currentPeer.id,
@@ -360,8 +369,8 @@ export class DsrModule extends BaseModule {
         PROTOCOL,
       );
 
-      const nextPeer = currentPeer.getNeighbour(nextPeerId);
-      if (!nextPeer || !nextPeer.supports(RoutingProtocol.DSR)) {
+      const nextPeer = this.graph.getNode(nextPeerId);
+      if (!nextPeer || !(nextPeer.protocol === RoutingProtocol.DSR)) {
         const routeError = this.createRouteError(packet, currentPeerId, nextPeerId, salvageCount);
         this.eventRecorder.record(
           currentPeer.id,
@@ -424,7 +433,7 @@ export class DsrModule extends BaseModule {
   }
 
   private getUsableRoute(destinationPeerId: UUID, options?: { excludedLink?: [UUID, UUID] }) {
-    return this.routeCache.findUsable(this.node.id, destinationPeerId, options);
+    return this.routeCache.findUsable(this.peer.id, destinationPeerId, options);
   }
 
   private upsertRoute(
@@ -433,7 +442,7 @@ export class DsrModule extends BaseModule {
     message: DsrRouteRequestMessage | DsrRouteReplyMessage,
   ) {
     const upsertResult = this.routeCache.upsert(
-      this.node.id,
+      this.peer.id,
       destinationPeerId,
       pathPeerIds,
       message.requestId,
@@ -485,7 +494,7 @@ export class DsrModule extends BaseModule {
   ): DsrRouteErrorMessage {
     return {
       type: MessageType.DsrRouteErrorMessage,
-      sourcePeerId: packet.sourcePeerId ?? this.node.id,
+      sourcePeerId: packet.sourcePeerId ?? this.peer.id,
       senderPeerId: brokenFromPeerId,
       destinationPeerId: packet.destinationPeerId,
       brokenFromPeerId,
@@ -531,7 +540,7 @@ export class DsrModule extends BaseModule {
 
   private getModulesAlongPath(pathPeerIds: UUID[]) {
     const modules: DsrModule[] = [];
-    let currentPeer: NodeWrapper | null = this.node;
+    let currentPeer: Peer | null = this.peer;
 
     for (let index = 0; index < pathPeerIds.length; index += 1) {
       const expectedPeerId = pathPeerIds[index];
@@ -539,7 +548,7 @@ export class DsrModule extends BaseModule {
         break;
       }
 
-      const module = currentPeer.getModule(RoutingProtocol.DSR);
+      const module = currentPeer.module;
       if (!(module instanceof DsrModule)) {
         break;
       }
@@ -550,7 +559,7 @@ export class DsrModule extends BaseModule {
         continue;
       }
 
-      currentPeer = currentPeer.getNeighbour(pathPeerIds[index + 1]);
+      currentPeer = this.graph.getNode(pathPeerIds[index + 1]);
     }
 
     return modules;
@@ -568,7 +577,7 @@ export class DsrModule extends BaseModule {
   }
 
   private getRouteTimeout() {
-    const configuration = this.node.getConfiguration() as DsrConfiguration;
+    const configuration = this.peer.configuration as DsrConfiguration;
     if (!configuration) {
       throw new Error("DSR module requires a DSR peer entity.");
     }

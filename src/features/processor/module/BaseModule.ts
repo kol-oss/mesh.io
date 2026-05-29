@@ -3,19 +3,21 @@ import { MessageType, type Message, type Packet } from "@/shared/types/common/me
 import type { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { EventRecorder } from "../EventRecorder";
-import type { NodeWrapper } from "../types/node";
-import type { RoutingModule } from "../types/routing";
+import type { NetworkGraph } from "../new/NetworkGraph";
+import type { RoutingModule, RoutingStructureType } from "../types/module";
 import { clone } from "../utils/clone";
 import { isReactive } from "../utils/protocol/protocols";
 
 export abstract class BaseModule implements RoutingModule {
-  protected readonly node: NodeWrapper;
+  protected readonly peerId: UUID;
+  protected readonly graph: NetworkGraph;
   protected readonly eventRecorder: EventRecorder;
 
   protected readonly INCOMING_MESSAGE_TYPES: MessageType[] = [MessageType.Packet];
 
-  constructor(node: NodeWrapper, eventRecorder: EventRecorder) {
-    this.node = node;
+  constructor(peerId: UUID, graph: NetworkGraph, eventRecorder: EventRecorder) {
+    this.peerId = peerId;
+    this.graph = graph;
     this.eventRecorder = eventRecorder;
   }
 
@@ -23,16 +25,25 @@ export abstract class BaseModule implements RoutingModule {
 
   abstract getRoute(destinationId: UUID): UUID | null;
 
+  abstract getTables(): RoutingStructureType;
+
+  protected get peer() {
+    return this.graph.getNode(this.peerId);
+  }
+
+  // optional initialization method for modules
+  init(): void {}
+
   // process incoming messages
   read(message: Message): boolean {
-    if (!this.node.isActive()) return false;
+    if (!this.peer.active) return false;
     const { type: messageType } = message;
 
     if (!this.INCOMING_MESSAGE_TYPES.includes(messageType)) {
       return false;
     }
 
-    if (messageType === MessageType.Packet && !isReactive(this.node.getProtocol())) {
+    if (messageType === MessageType.Packet && !isReactive(this.peer.protocol)) {
       return this.processPacket(message as Packet);
     }
 
@@ -41,9 +52,9 @@ export abstract class BaseModule implements RoutingModule {
 
   // process routed traffic
   protected processPacket(message: Packet): boolean {
-    if (!this.node.isActive()) return false;
+    if (!this.peer.active) return false;
 
-    const { id } = this.node.getEntity();
+    const { id } = this.peer;
     if (message.destinationPeerId === id) {
       return true;
     }
@@ -77,7 +88,7 @@ export abstract class BaseModule implements RoutingModule {
 
   // send message to a specific neighbour
   protected write(message: Message, hopPeerId: UUID): boolean {
-    if (!this.node.isActive()) {
+    if (!this.peer.active) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),
         reason: DropReason.DestinationUnavailable,
@@ -86,7 +97,7 @@ export abstract class BaseModule implements RoutingModule {
       return false;
     }
 
-    const hop = this.node.getNeighbour(hopPeerId);
+    const hop = this.graph.getNode(hopPeerId);
     if (!hop) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),
@@ -96,7 +107,7 @@ export abstract class BaseModule implements RoutingModule {
       return false;
     }
 
-    if (!hop.isActive()) {
+    if (!hop.active) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),
         reason: DropReason.DestinationUnavailable,
@@ -105,8 +116,8 @@ export abstract class BaseModule implements RoutingModule {
       return false;
     }
 
-    const { id, protocol } = this.node.getEntity();
-    if (!hop.supports(protocol)) {
+    const { id, protocol } = this.peer;
+    if (hop.protocol !== protocol) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),
         reason: DropReason.UnsupportedProtocol,
@@ -130,16 +141,18 @@ export abstract class BaseModule implements RoutingModule {
       });
     }
 
-    const targetModule = hop.getModule(protocol);
-    return targetModule?.read(forwarded) ?? false;
+    const targetModule = hop.module;
+    return targetModule.read(forwarded) ?? false;
   }
 
   // send message to all neighbours
   protected broadcast(message: Message, retransmit = false): boolean {
-    if (!this.node.isActive()) return false;
+    if (!this.peer.active) return false;
 
-    const { protocol } = this.node.getEntity();
-    const neighbours = this.node.getNeighbours().filter((peer) => peer.supports(protocol));
+    const { protocol } = this.peer;
+    const neighbours = this.graph
+      .getNeighbours(this.peer.id)
+      .filter((peer) => peer.protocol === protocol);
 
     this.recordEvent(
       EventType.Broadcast,
@@ -162,7 +175,7 @@ export abstract class BaseModule implements RoutingModule {
 
   // routes and sends traffic immitation packet
   send(packet: Packet): boolean {
-    if (!this.node.isActive()) {
+    if (!this.peer.active) {
       this.recordEvent(EventType.Drop, {
         message: clone(packet),
         reason: DropReason.DestinationUnavailable,
@@ -171,7 +184,7 @@ export abstract class BaseModule implements RoutingModule {
       return false;
     }
 
-    const { protocol } = this.node.getEntity();
+    const { protocol } = this.peer;
 
     const { destinationPeerId } = packet;
     const nextHopId = this.getRoute(destinationPeerId);
@@ -193,14 +206,14 @@ export abstract class BaseModule implements RoutingModule {
   }
 
   protected recordEvent(type: EventType, details: EventDetails, protocol?: RoutingProtocol) {
-    this.eventRecorder.record(this.node.id, type, details, protocol);
+    this.eventRecorder.record(this.peer.id, type, details, protocol);
   }
 
   refresh(): void {
-    if (!this.node.isActive()) return;
+    if (!this.peer.active) return;
   }
 
   tick(): void {
-    if (!this.node.isActive()) return;
+    if (!this.peer.active) return;
   }
 }
