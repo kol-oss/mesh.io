@@ -60,6 +60,7 @@ export type BatmanCalculationEventDetails = {
     linkThroughput: number;
     receptionedThroughput: number;
     previousThroughput: number | null;
+    receptionRatio: number;
     smoothedThroughput: number;
     distance: number;
     penaltyDistance: number;

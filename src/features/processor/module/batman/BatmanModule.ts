@@ -27,8 +27,8 @@ import { getDistance } from "../../utils/math/connectivity.ts";
 import { smooth } from "../../utils/math/ewma.ts";
 import {
   applyDistancePenalty,
-  applyReceptionPenalty,
   applyWirelessPenalty,
+  getReceptionRatio,
 } from "../../utils/protocol/batman.ts";
 import { BaseModule } from "../BaseModule.ts";
 import { NeighbourList } from "./structures/NeighbourList.ts";
@@ -54,6 +54,7 @@ export class BatmanModule extends BaseModule {
     );
   }
 
+  // initialization of neighbours list and originators table
   override init() {
     const configuration = this.peer.configuration as BatmanConfiguration;
 
@@ -130,12 +131,9 @@ export class BatmanModule extends BaseModule {
 
     // reception penalting
     const neighbourRecord = this.neighbourList.get(senderId);
-    const receptionedThroughput = applyReceptionPenalty(
-      newThroughput,
-      currentTick,
-      neighbourRecord?.lastTick ?? 0,
-      interval,
-    );
+
+    const receptionRatio = getReceptionRatio(currentTick, neighbourRecord?.lastTick ?? 0, interval);
+    const receptionedThroughput = Math.round(newThroughput * receptionRatio);
 
     // EWMA smoothing
     const smoothedThroughput = smooth(receptionedThroughput, neighbourRecord?.throughput ?? null);
@@ -158,6 +156,7 @@ export class BatmanModule extends BaseModule {
           linkThroughput,
           receptionedThroughput,
           previousThroughput,
+          receptionRatio,
           smoothedThroughput: smoothedThroughput,
           distance,
           penaltyDistance,

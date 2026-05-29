@@ -410,7 +410,9 @@ export default function BatmanHelp() {
         <ModellingTrap>
           <TextBlock>
             The size for **Sequence Protection Window** in B.A.T.M.A.N. V is configurable and
-            typically set to **64 bits**, that was actually implemented in the simulator.
+            typically set to **64 bits**, that was actually implemented in the simulator, but in
+            order to provide good user experience, the size of *displayed* sequence window is
+            limited to the first 16 bits.
           </TextBlock>
         </ModellingTrap>
       </ChapterBlock>

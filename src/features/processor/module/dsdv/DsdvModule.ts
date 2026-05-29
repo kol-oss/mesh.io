@@ -5,17 +5,13 @@ import {
   type DsdvRouteUpdateMessage,
   type DsdvRouteUpdateRecordEntry,
 } from "@/features/processor/types/protocols/dsdv";
-import {
-  DSDV_METRIC_INFINITY,
-  DSDV_MIN_INTERVAL,
-  DSDV_MIN_TIMEOUT,
-  DSDV_SEQUENCE_INITIAL,
-} from "@/shared/constants/protocols/dsdv";
+import { DSDV_METRIC_INFINITY } from "@/shared/constants/protocols/dsdv";
 import { DropReason, EventType, type GetRouteEventDetails } from "@/shared/types/common/events";
 import { MessageType, type Message } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { DsdvConfiguration } from "@/shared/types/model/configurations";
+import { RefreshAction } from "@/shared/types/model/steps";
 import type { NetworkGraph } from "../../network/NetworkGraph";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module";
 import { BaseModule } from "../BaseModule";
@@ -23,32 +19,28 @@ import { DsdvRoutingTable } from "./structures/DsdvRoutingTable";
 
 const PROTOCOL = RoutingProtocol.DSDV;
 
-const clampInterval = (value: number) => {
-  const normalized = Math.floor(value);
-  return Math.max(DSDV_MIN_INTERVAL, normalized);
-};
-
-const clampTimeout = (value: number) => {
-  const normalized = Math.floor(value);
-  return Math.max(DSDV_MIN_TIMEOUT, normalized);
-};
-
 export class DsdvModule extends BaseModule {
-  private readonly routingTable: DsdvRoutingTable;
+  // routing structures
+  private routingTable!: DsdvRoutingTable;
 
-  private ownSequenceNumber = DSDV_SEQUENCE_INITIAL;
+  // sequence numbers
+  private ownSequenceNumber: number = 0;
 
   private hasSentFullDump = false;
 
   constructor(peerId: UUID, graph: NetworkGraph, eventRecorder: EventRecorder) {
     super(peerId, graph, eventRecorder);
+  }
 
+  // initialization of routing table
+  override init() {
     const configuration = this.peer.configuration as DsdvConfiguration;
+
     this.routingTable = new DsdvRoutingTable({
       peerId: this.peerId,
-      eventRecorder,
-      routeTimeout: clampTimeout(configuration.routeTimeout),
-      fullDumpInterval: clampInterval(configuration.fullDumpInterval),
+      eventRecorder: this.eventRecorder,
+      routeTimeout: configuration.routeTimeout,
+      fullDumpInterval: configuration.fullDumpInterval,
     });
 
     this.routingTable.upsertSelfRoute(this.ownSequenceNumber);
@@ -98,7 +90,7 @@ export class DsdvModule extends BaseModule {
       this.routingTable.updateNeighbourFullDumpTiming(
         message.senderPeerId,
         this.eventRecorder.getCurrentTick(),
-        clampInterval(senderConfiguration.fullDumpInterval),
+        senderConfiguration.fullDumpInterval,
       );
     }
 
@@ -164,22 +156,19 @@ export class DsdvModule extends BaseModule {
     return selectedRoute?.nextHopPeerId ?? null;
   }
 
-  override tick() {
-    super.tick();
-    if (!this.peer.active) {
-      return;
-    }
-
+  override processTick() {
     this.routingTable.tick();
   }
 
-  override refresh() {
-    super.refresh();
-
-    this.refreshIncremental();
+  override processRefresh(action?: RefreshAction) {
+    if (action === RefreshAction.DsdvFullDump) {
+      this.refreshFullDump();
+    } else if (action === RefreshAction.DsdvIncremental) {
+      this.refreshIncremental();
+    }
   }
 
-  refreshFullDump() {
+  private refreshFullDump() {
     super.refresh();
     if (!this.peer.active) {
       return;
@@ -197,7 +186,7 @@ export class DsdvModule extends BaseModule {
     this.hasSentFullDump = true;
   }
 
-  refreshIncremental() {
+  private refreshIncremental() {
     super.refresh();
     if (!this.peer.active) {
       return;

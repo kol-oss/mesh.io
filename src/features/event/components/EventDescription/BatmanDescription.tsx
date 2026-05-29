@@ -99,9 +99,11 @@ export default function BatmanDescription({
         penaltyDistance: penaltyDistance,
         penaltyPercent: penaltyPercent,
         newThroughput: baseThroughput,
+        receptionRatio,
         distance,
-        smoothedThroughput: nextEwma,
-        previousThroughput: previousEwma,
+        receptionedThroughput,
+        smoothedThroughput,
+        previousThroughput,
       } = breakdown;
 
       const isWireless = breakdown?.linkThroughput === BATMAN_WIRELESS_BASE_THROUGHPUT;
@@ -135,6 +137,21 @@ export default function BatmanDescription({
                   applied, which reduces the effective throughput to <u>{baseThroughput}</u>.
                 </>
               )}
+              {!isWireless && (
+                <>
+                  Since this is a wired connection, no distance penalty is applied and effective
+                  throughput remains unchanged.
+                </>
+              )}
+            </p>
+            <br />
+            <p>
+              After the effective throughput is calculated, the node applies the{" "}
+              <VariableDescription value={"Reception Ratio = " + receptionRatio}>
+                reception ratio
+              </VariableDescription>
+              , calculated from Interval and Last Seen fields from Neighbours List, resulting in the
+              receptioned throughput of <u>{receptionedThroughput}</u>.
             </p>
             <br />
             <p>
@@ -144,18 +161,18 @@ export default function BatmanDescription({
                   "(1 - " +
                   EWMA_ALPHA +
                   ") * " +
-                  (previousEwma || baseThroughput) +
+                  (previousThroughput || receptionedThroughput) +
                   " + " +
                   EWMA_ALPHA +
                   " * " +
-                  baseThroughput +
+                  receptionedThroughput +
                   " = " +
-                  nextEwma
+                  smoothedThroughput
                 }
               >
                 Exponentially Weighted Moving Average (EWMA) filter
               </VariableDescription>{" "}
-              to prevent rapid fluctuations, giving the result of {nextEwma}.
+              to prevent rapid fluctuations, giving the result of {smoothedThroughput}.
             </p>
           </SecondaryDescription>
         </>

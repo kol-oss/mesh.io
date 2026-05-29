@@ -9,7 +9,7 @@ export const getDistance = (
   source: { x: number; y: number },
   destination: { x: number; y: number },
 ) => {
-  return Math.hypot(destination.x - source.x, destination.y - source.y);
+  return Math.round(Math.hypot(destination.x - source.x, destination.y - source.y) * 10) / 10;
 };
 
 export const shortenLine = (x1: number, y1: number, x2: number, y2: number, amount: number) => {

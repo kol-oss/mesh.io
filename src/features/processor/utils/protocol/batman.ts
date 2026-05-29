@@ -23,17 +23,12 @@ export const applyWirelessPenalty = (throughput: number) => {
   return Math.max(0, Math.floor(penalized));
 };
 
-export const applyReceptionPenalty = (
-  throughput: number,
-  tick: number,
-  lastTick: number,
-  interval: number,
-) => {
+export const getReceptionRatio = (tick: number, lastTick: number, interval: number) => {
   const tickGap = Math.max(1, tick - lastTick);
   const expectedGap = Math.max(1, interval);
 
   const receptionRatio = Math.min(1, expectedGap / tickGap);
-  return throughput * receptionRatio;
+  return Math.round(receptionRatio * 100) / 100;
 };
 
 export const toRouteRecord = (
