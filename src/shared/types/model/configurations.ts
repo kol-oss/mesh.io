@@ -7,8 +7,8 @@ export interface BatmanConfiguration {
 }
 
 export interface DsdvConfiguration {
-  incrementalUpdateInterval: number;
-  fullDumpInterval: number;
+  refreshInterval: number;
+  dumpInterval: number;
   routeTimeout: number;
 }
 

@@ -1,6 +1,6 @@
 import { RoutingProtocol } from "@/shared/types/common/protocols";
+import type { BatmanConfiguration, DsdvConfiguration } from "@/shared/types/model/configurations";
 import type { LinkEntity, NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
-import { getBatmanConfiguration, getDsdvConfiguration } from "@/shared/types/model/peers";
 
 export class EntityValidator {
   static isNameValid(name: string): boolean {
@@ -34,8 +34,8 @@ export function validatePeer(
   minimums: Record<string, number>,
 ): PeerValidationState {
   const selectedProtocol = peer.protocol;
-  const batmanConfiguration = getBatmanConfiguration(peer);
-  const dsdvConfiguration = getDsdvConfiguration(peer);
+  const batmanConfiguration = peer.configuration as BatmanConfiguration;
+  const dsdvConfiguration = peer.configuration as DsdvConfiguration;
   return {
     isNameMissing: !EntityValidator.isNameValid(peer.name),
     isProtocolMissing: false,
@@ -56,10 +56,10 @@ export function validatePeer(
       (batmanConfiguration?.penaltyPercent ?? 0) < minimums.penaltyPercent,
     isDsdvIncrementalMissing:
       selectedProtocol === RoutingProtocol.DSDV &&
-      (dsdvConfiguration?.incrementalUpdateInterval ?? 0) < minimums.dsdvIncremental,
+      (dsdvConfiguration?.refreshInterval ?? 0) < minimums.dsdvIncremental,
     isDsdvFullDumpMissing:
       selectedProtocol === RoutingProtocol.DSDV &&
-      (dsdvConfiguration?.fullDumpInterval ?? 0) < minimums.dsdvFullDump,
+      (dsdvConfiguration?.dumpInterval ?? 0) < minimums.dsdvFullDump,
     isDsdvRouteTimeoutMissing:
       selectedProtocol === RoutingProtocol.DSDV &&
       (dsdvConfiguration?.routeTimeout ?? 0) < minimums.dsdvRouteTimeout,

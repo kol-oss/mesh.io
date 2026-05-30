@@ -12,9 +12,9 @@ export const DSDV_MIN_TIMEOUT = 1;
 export const DSDV_METRIC_INFINITY = 16;
 
 export const DSDV_DEFAULT_CONFIGURATION = {
-  incrementalUpdateInterval: 1,
-  fullDumpInterval: 5,
-  routeTimeout: 10,
+  refreshInterval: 1,
+  dumpInterval: 2,
+  routeTimeout: 5,
 };
 
 const getDsdvUpdateTypeLabel = (updateType: DsdvUpdateType) => {

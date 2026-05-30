@@ -86,14 +86,14 @@ const normalizeDsdvConfiguration = (value: unknown) => {
   }
 
   return {
-    incrementalUpdateInterval:
-      typeof value.incrementalUpdateInterval === "number" && value.incrementalUpdateInterval > 0
-        ? value.incrementalUpdateInterval
-        : defaults.incrementalUpdateInterval,
-    fullDumpInterval:
-      typeof value.fullDumpInterval === "number" && value.fullDumpInterval > 0
-        ? value.fullDumpInterval
-        : defaults.fullDumpInterval,
+    refreshInterval:
+      typeof value.refreshInterval === "number" && value.refreshInterval > 0
+        ? value.refreshInterval
+        : defaults.refreshInterval,
+    dumpInterval:
+      typeof value.dumpInterval === "number" && value.dumpInterval > 0
+        ? value.dumpInterval
+        : defaults.dumpInterval,
     routeTimeout:
       typeof value.routeTimeout === "number" && value.routeTimeout > 0
         ? value.routeTimeout

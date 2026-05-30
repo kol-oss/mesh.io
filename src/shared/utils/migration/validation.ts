@@ -55,10 +55,10 @@ const isValidConfiguration = (protocol: RoutingProtocol, value: unknown) => {
       );
     case RoutingProtocol.DSDV:
       return (
-        isFiniteNumber(value.incrementalUpdateInterval) &&
-        value.incrementalUpdateInterval > 0 &&
-        isFiniteNumber(value.fullDumpInterval) &&
-        value.fullDumpInterval > 0 &&
+        isFiniteNumber(value.refreshInterval) &&
+        value.refreshInterval > 0 &&
+        isFiniteNumber(value.dumpInterval) &&
+        value.dumpInterval > 0 &&
         isFiniteNumber(value.routeTimeout) &&
         value.routeTimeout > 0
       );

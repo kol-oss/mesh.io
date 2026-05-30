@@ -143,8 +143,8 @@ const buildRefreshStepsForPeer = (
       return refreshSteps;
     }
 
-    const fullDumpInterval = Math.max(1, Math.floor(configuration.fullDumpInterval));
-    const incrementalInterval = Math.max(1, Math.floor(configuration.incrementalUpdateInterval));
+    const fullDumpInterval = Math.max(1, Math.floor(configuration.dumpInterval));
+    const incrementalInterval = Math.max(1, Math.floor(configuration.refreshInterval));
 
     const fullDumpSteps = buildBatmanRefreshTicks(manualSteps, peer, maxTick, fullDumpInterval).map(
       ({ tick, startTick }) =>

@@ -22,8 +22,8 @@ export default function DsdvProperties({
   updateConfigurationByProtocol,
 }: DsdvPropertiesProps) {
   const {
-    incrementalUpdateInterval = DSDV_MIN_INTERVAL,
-    fullDumpInterval = DSDV_MIN_INTERVAL,
+    refreshInterval = DSDV_MIN_INTERVAL,
+    dumpInterval = DSDV_MIN_INTERVAL,
     routeTimeout = DSDV_MIN_TIMEOUT,
   } = peer.configuration as DsdvConfiguration;
 
@@ -39,11 +39,11 @@ export default function DsdvProperties({
         <NumberPropertyField
           label="Full Dump Interval"
           icon={<Clock3 size={12} />}
-          valid={fullDumpInterval >= DSDV_MIN_INTERVAL}
-          value={fullDumpInterval}
+          valid={dumpInterval >= DSDV_MIN_INTERVAL}
+          value={dumpInterval}
           min={DSDV_MIN_INTERVAL}
           global
-          onChange={(event) => onChange(event, "fullDumpInterval", DSDV_MIN_INTERVAL, true)}
+          onChange={(event) => onChange(event, "dumpInterval", DSDV_MIN_INTERVAL, true)}
         />
       </PropertyGroup>
 
@@ -51,10 +51,10 @@ export default function DsdvProperties({
         <NumberPropertyField
           label="Incremental Update Interval"
           icon={<Clock3 size={12} />}
-          valid={incrementalUpdateInterval >= DSDV_MIN_INTERVAL}
-          value={incrementalUpdateInterval}
+          valid={refreshInterval >= DSDV_MIN_INTERVAL}
+          value={refreshInterval}
           min={DSDV_MIN_INTERVAL}
-          onChange={(event) => onChange(event, "incrementalUpdateInterval", DSDV_MIN_INTERVAL)}
+          onChange={(event) => onChange(event, "refreshInterval", DSDV_MIN_INTERVAL)}
         />
       </PropertyGroup>
 
@@ -62,7 +62,7 @@ export default function DsdvProperties({
         <NumberPropertyField
           label="Route Timeout"
           icon={<Clock3 size={12} />}
-          valid={routeTimeout >= DSDV_MIN_TIMEOUT && routeTimeout > fullDumpInterval}
+          valid={routeTimeout >= DSDV_MIN_TIMEOUT && routeTimeout > dumpInterval}
           value={routeTimeout}
           min={DSDV_MIN_TIMEOUT}
           onChange={(event) => onChange(event, "routeTimeout", DSDV_MIN_TIMEOUT)}

@@ -35,8 +35,11 @@ export default function DsdvDescription({
   const { details, peerId } = event;
   const peer = findById(peerId, peers)!;
 
-  const { fullDumpInterval, incrementalUpdateInterval, routeTimeout } =
-    peer.configuration as DsdvConfiguration;
+  const {
+    dumpInterval: fullDumpInterval,
+    refreshInterval,
+    routeTimeout,
+  } = peer.configuration as DsdvConfiguration;
 
   if (detailsType === EventDetailsType.DsdvFullDumpMessageBroadcast) {
     return (
@@ -61,7 +64,7 @@ export default function DsdvDescription({
         </TextDescription>
         <SecondaryDescription title="Why updates are sent periodically?">
           Because of implementation reasons, in this system the message is sent every{" "}
-          <VariableDescription value={incrementalUpdateInterval}>
+          <VariableDescription value={refreshInterval}>
             Incremental Update Interval
           </VariableDescription>
           , but in real-life implementations it would be sent right after the change for faster

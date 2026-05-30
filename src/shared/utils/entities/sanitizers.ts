@@ -55,14 +55,14 @@ const sanitizeDsdvConfiguration = (value: unknown): DsdvConfiguration => {
   }
 
   return {
-    incrementalUpdateInterval:
-      isNumber(value.incrementalUpdateInterval) && value.incrementalUpdateInterval > 0
-        ? value.incrementalUpdateInterval
-        : defaults.incrementalUpdateInterval,
-    fullDumpInterval:
-      isNumber(value.fullDumpInterval) && value.fullDumpInterval > 0
-        ? value.fullDumpInterval
-        : defaults.fullDumpInterval,
+    refreshInterval:
+      isNumber(value.refreshInterval) && value.refreshInterval > 0
+        ? value.refreshInterval
+        : defaults.refreshInterval,
+    dumpInterval:
+      isNumber(value.dumpInterval) && value.dumpInterval > 0
+        ? value.dumpInterval
+        : defaults.dumpInterval,
     routeTimeout:
       isNumber(value.routeTimeout) && value.routeTimeout > 0
         ? value.routeTimeout
