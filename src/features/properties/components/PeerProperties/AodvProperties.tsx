@@ -1,6 +1,7 @@
 import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
 import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
 import { AODV_MIN_HELLO_INTERVAL, AODV_MIN_ROUTE_TIMEOUT } from "@/shared/constants/protocols/aodv";
+import { AodvConfigurationSchema } from "@/shared/schemas/configuration/AodvConfigurationSchema";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { AodvConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
 import { type PeerEntity } from "@/shared/types/model/peers";
@@ -30,13 +31,16 @@ export default function AodvProperties({
     updateConfigurationByProtocol,
   );
 
+  const validation = AodvConfigurationSchema.safeParse(peer.configuration);
+  const errors = validation.success ? null : validation.error.flatten().fieldErrors;
+
   return (
     <>
       <PropertyGroup>
         <NumberPropertyField
           label="HELLO Interval"
           icon={<Clock3 size={12} />}
-          valid={helloInterval >= AODV_MIN_HELLO_INTERVAL}
+          valid={!errors?.helloInterval}
           value={helloInterval}
           min={AODV_MIN_HELLO_INTERVAL}
           onChange={(event) => onChange(event, "helloInterval", AODV_MIN_HELLO_INTERVAL)}
@@ -47,7 +51,7 @@ export default function AodvProperties({
         <NumberPropertyField
           label="Route Timeout"
           icon={<Clock3 size={12} />}
-          valid={routeTimeout >= AODV_MIN_ROUTE_TIMEOUT}
+          valid={!errors?.routeTimeout}
           value={routeTimeout}
           min={AODV_MIN_ROUTE_TIMEOUT}
           onChange={(event) => onChange(event, "routeTimeout", AODV_MIN_ROUTE_TIMEOUT)}

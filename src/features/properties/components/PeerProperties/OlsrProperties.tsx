@@ -1,6 +1,7 @@
 import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
 import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
 import { OLSR_MIN_INTERVAL } from "@/shared/constants/protocols/olsr";
+import { OlsrConfigurationSchema } from "@/shared/schemas/configuration/OlsrConfigurationSchema";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { OlsrConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
 import { type PeerEntity } from "@/shared/types/model/peers";
@@ -30,13 +31,16 @@ export default function OlsrProperties({
     updateConfigurationByProtocol,
   );
 
+  const validation = OlsrConfigurationSchema.safeParse(peer.configuration);
+  const errors = validation.success ? null : validation.error.flatten().fieldErrors;
+
   return (
     <>
       <PropertyGroup>
         <NumberPropertyField
           label="HELLO Interval"
           icon={<Clock3 size={12} />}
-          valid={helloInterval >= OLSR_MIN_INTERVAL}
+          valid={!errors?.helloInterval}
           value={helloInterval}
           min={OLSR_MIN_INTERVAL}
           onChange={(event) => onChange(event, "helloInterval", OLSR_MIN_INTERVAL)}
@@ -47,7 +51,7 @@ export default function OlsrProperties({
         <NumberPropertyField
           label="TC Interval"
           icon={<Clock3 size={12} />}
-          valid={tcInterval >= OLSR_MIN_INTERVAL}
+          valid={!errors?.tcInterval}
           value={tcInterval}
           min={OLSR_MIN_INTERVAL}
           onChange={(event) => onChange(event, "tcInterval", OLSR_MIN_INTERVAL)}

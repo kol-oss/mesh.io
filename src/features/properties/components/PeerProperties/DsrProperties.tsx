@@ -1,6 +1,7 @@
 import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
 import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
 import { DSR_MIN_ROUTE_TIMEOUT } from "@/shared/constants/protocols/dsr";
+import { DsrConfigurationSchema } from "@/shared/schemas/configuration/DsrConfigurationSchema";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { DsrConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
 import { type PeerEntity } from "@/shared/types/model/peers";
@@ -29,12 +30,15 @@ export default function DsrProperties({
     updateConfigurationByProtocol,
   );
 
+  const validation = DsrConfigurationSchema.safeParse(peer.configuration);
+  const errors = validation.success ? null : validation.error.flatten().fieldErrors;
+
   return (
     <PropertyGroup>
       <NumberPropertyField
         label="Route Timeout"
         icon={<Clock3 size={12} />}
-        valid={routeTimeout >= DSR_MIN_ROUTE_TIMEOUT}
+        valid={!errors?.routeTimeout}
         value={routeTimeout}
         min={DSR_MIN_ROUTE_TIMEOUT}
         onChange={(event) => onChange(event, "routeTimeout", DSR_MIN_ROUTE_TIMEOUT)}

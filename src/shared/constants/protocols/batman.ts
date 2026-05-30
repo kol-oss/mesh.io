@@ -8,11 +8,11 @@ import type { PeerEntity } from "../../types/model/entities";
 import { getNameById } from "../../utils/peers";
 
 // validation
-export const BATMAN_MIN_OGM_INTERVAL = 1;
+export const BATMAN_MIN_DISTANCE_PENALTY = 0;
+export const BATMAN_MIN_PENALTY_PERCENT = 0;
 export const BATMAN_MIN_ELP_INTERVAL = 1;
+export const BATMAN_MIN_OGM_INTERVAL = 1;
 export const BATMAN_MIN_PURGE_TIMEOUT = 1;
-export const BATMAN_MIN_DISTANCE_PENALTY = 1;
-export const BATMAN_MIN_PENALTY_PERCENT = 1;
 
 // simulation configuration
 export const BATMAN_VERSION = 5;

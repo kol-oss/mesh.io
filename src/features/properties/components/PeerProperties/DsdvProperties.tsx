@@ -1,6 +1,7 @@
 import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
 import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
 import { DSDV_MIN_INTERVAL, DSDV_MIN_TIMEOUT } from "@/shared/constants/protocols/dsdv";
+import { DsdvConfigurationSchema } from "@/shared/schemas/configuration/DsdvConfigurationSchema";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { DsdvConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
 import { type PeerEntity } from "@/shared/types/model/peers";
@@ -33,13 +34,16 @@ export default function DsdvProperties({
     updateConfigurationByProtocol,
   );
 
+  const validation = DsdvConfigurationSchema.safeParse(peer.configuration);
+  const errors = validation.success ? null : validation.error.flatten().fieldErrors;
+
   return (
     <>
       <PropertyGroup>
         <NumberPropertyField
           label="Full Dump Interval"
           icon={<Clock3 size={12} />}
-          valid={dumpInterval >= DSDV_MIN_INTERVAL}
+          valid={!errors?.dumpInterval}
           value={dumpInterval}
           min={DSDV_MIN_INTERVAL}
           global
@@ -51,7 +55,7 @@ export default function DsdvProperties({
         <NumberPropertyField
           label="Incremental Update Interval"
           icon={<Clock3 size={12} />}
-          valid={refreshInterval >= DSDV_MIN_INTERVAL}
+          valid={!errors?.refreshInterval}
           value={refreshInterval}
           min={DSDV_MIN_INTERVAL}
           onChange={(event) => onChange(event, "refreshInterval", DSDV_MIN_INTERVAL)}
@@ -62,7 +66,7 @@ export default function DsdvProperties({
         <NumberPropertyField
           label="Route Timeout"
           icon={<Clock3 size={12} />}
-          valid={routeTimeout >= DSDV_MIN_TIMEOUT && routeTimeout > dumpInterval}
+          valid={!errors?.routeTimeout}
           value={routeTimeout}
           min={DSDV_MIN_TIMEOUT}
           onChange={(event) => onChange(event, "routeTimeout", DSDV_MIN_TIMEOUT)}

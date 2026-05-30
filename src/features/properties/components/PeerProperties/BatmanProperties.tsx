@@ -7,6 +7,7 @@ import {
   BATMAN_MIN_PENALTY_PERCENT,
   BATMAN_MIN_PURGE_TIMEOUT,
 } from "@/shared/constants/protocols/batman";
+import { BatmanConfigurationSchema } from "@/shared/schemas/configuration/BatmanConfigurationSchema";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { BatmanConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
 import { type PeerEntity } from "@/shared/types/model/peers";
@@ -40,12 +41,16 @@ export default function BatmanProperties({
     updateConfiguration,
     updateConfigurationByProtocol,
   );
+
+  const validation = BatmanConfigurationSchema.safeParse(peer.configuration);
+  const errors = validation.success ? null : validation.error.flatten().fieldErrors;
+
   return (
     <>
       <PropertyGroup label="Distance Penalty" global>
         <NumberPropertyField
           icon={<Ruler size={12} />}
-          valid={penaltyDistance >= BATMAN_MIN_DISTANCE_PENALTY}
+          valid={!errors?.penaltyDistance}
           value={penaltyDistance}
           min={BATMAN_MIN_DISTANCE_PENALTY}
           onChange={(event) =>
@@ -54,7 +59,7 @@ export default function BatmanProperties({
         />
         <NumberPropertyField
           icon={<Percent size={12} />}
-          valid={penaltyPercent >= BATMAN_MIN_PENALTY_PERCENT}
+          valid={!errors?.penaltyPercent}
           value={penaltyPercent}
           min={BATMAN_MIN_PENALTY_PERCENT}
           onChange={(event) => onChange(event, "penaltyPercent", BATMAN_MIN_PENALTY_PERCENT, true)}
@@ -65,7 +70,7 @@ export default function BatmanProperties({
         <NumberPropertyField
           label="ELP Interval"
           icon={<Clock3 size={12} />}
-          valid={elpInterval >= BATMAN_MIN_ELP_INTERVAL}
+          valid={!errors?.elpInterval}
           value={elpInterval}
           min={BATMAN_MIN_ELP_INTERVAL}
           onChange={(event) => onChange(event, "elpInterval", BATMAN_MIN_ELP_INTERVAL)}
@@ -76,7 +81,7 @@ export default function BatmanProperties({
         <NumberPropertyField
           label="OGM Interval"
           icon={<Clock3 size={12} />}
-          valid={ogmInterval >= BATMAN_MIN_OGM_INTERVAL}
+          valid={!errors?.ogmInterval}
           value={ogmInterval}
           min={BATMAN_MIN_OGM_INTERVAL}
           onChange={(event) => onChange(event, "ogmInterval", BATMAN_MIN_OGM_INTERVAL)}
@@ -87,7 +92,7 @@ export default function BatmanProperties({
         <NumberPropertyField
           label="Purge Timeout"
           icon={<Clock3 size={12} />}
-          valid={purgeTimeout >= BATMAN_MIN_PURGE_TIMEOUT}
+          valid={!errors?.purgeTimeout}
           value={purgeTimeout}
           min={BATMAN_MIN_PURGE_TIMEOUT}
           onChange={(event) => onChange(event, "purgeTimeout", BATMAN_MIN_PURGE_TIMEOUT)}

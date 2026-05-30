@@ -1,4 +1,5 @@
 import { peerRoutingProtocols, workflowStepTypes } from "@/shared/constants/protocols/protocol";
+import { getConfigurationSchema } from "@/shared/schemas/configuration/ConfigurationSchema";
 import type { DisplayState } from "@/shared/store/slices/displaySlice";
 import { TABS } from "@/shared/store/slices/displaySlice";
 import { ActionGroup, ActionMode, type ActionModesByGroup } from "@/shared/types/action";
@@ -34,53 +35,6 @@ const isValidProtocol = (value: unknown): value is RoutingProtocol => {
   return typeof value === "string" && peerRoutingProtocols.includes(value as RoutingProtocol);
 };
 
-const isValidConfiguration = (protocol: RoutingProtocol, value: unknown) => {
-  if (!isRecord(value)) {
-    return false;
-  }
-
-  switch (protocol) {
-    case RoutingProtocol.BATMAN:
-      return (
-        isFiniteNumber(value.penaltyDistance) &&
-        value.penaltyDistance > 0 &&
-        isFiniteNumber(value.penaltyPercent) &&
-        value.penaltyPercent >= 0 &&
-        isFiniteNumber(value.elpInterval) &&
-        value.elpInterval > 0 &&
-        isFiniteNumber(value.ogmInterval) &&
-        value.ogmInterval > 0 &&
-        isFiniteNumber(value.purgeTimeout) &&
-        value.purgeTimeout > 0
-      );
-    case RoutingProtocol.DSDV:
-      return (
-        isFiniteNumber(value.refreshInterval) &&
-        value.refreshInterval > 0 &&
-        isFiniteNumber(value.dumpInterval) &&
-        value.dumpInterval > 0 &&
-        isFiniteNumber(value.routeTimeout) &&
-        value.routeTimeout > 0
-      );
-    case RoutingProtocol.AODV:
-      return (
-        isFiniteNumber(value.helloInterval) &&
-        value.helloInterval > 0 &&
-        isFiniteNumber(value.routeTimeout) &&
-        value.routeTimeout > 0
-      );
-    case RoutingProtocol.OLSR:
-      return (
-        isFiniteNumber(value.helloInterval) &&
-        value.helloInterval > 0 &&
-        isFiniteNumber(value.tcInterval) &&
-        value.tcInterval > 0
-      );
-    case RoutingProtocol.DSR:
-      return isFiniteNumber(value.routeTimeout) && value.routeTimeout > 0;
-  }
-};
-
 const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
   if (!isRecord(value) || typeof value.id !== "string" || typeof value.name !== "string") {
     return false;
@@ -91,14 +45,19 @@ const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
   }
 
   if (value.type === EntityType.Peer) {
+    if (!isValidProtocol(value.protocol)) {
+      return false;
+    }
+
+    const configurationSchema = getConfigurationSchema(value.protocol);
+
     return (
       isFiniteNumber(value.x) &&
       isFiniteNumber(value.y) &&
       isFiniteNumber(value.range) &&
       value.range > 0 &&
       typeof value.enabled === "boolean" &&
-      isValidProtocol(value.protocol) &&
-      isValidConfiguration(value.protocol, value.configuration)
+      configurationSchema.safeParse(value.configuration).success
     );
   }
 
