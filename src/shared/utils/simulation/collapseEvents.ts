@@ -2,10 +2,6 @@ import type { Event, RouteChangeEventDetails } from "@/shared/types/common/event
 import { EventType } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 
-/**
- * Collapses consecutive BATMAN originator RoutingTableInsert+Update event pairs into just the
- * Update event, removing the redundant Insert that immediately precedes it for the same originator.
- */
 export function collapseOriginatorInsertUpdateEvents(events: Event[]): Event[] {
   const skipIds = new Set<string>();
 

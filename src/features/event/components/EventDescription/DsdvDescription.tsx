@@ -2,6 +2,8 @@ import PeerDescription from "@/features/event/components/Description/PeerDescrip
 import TableDescription from "@/features/event/components/Description/TableDescription";
 import TextDescription from "@/features/event/components/Description/TextDescription";
 import {
+  type DsdvCalculationEventDetails,
+  type DsdvDropRouteEventDetails,
   type DsdvRouteChangeEventDetails,
   type DsdvRouteRecord,
 } from "@/features/processor/types/protocols/dsdv";
@@ -10,10 +12,12 @@ import {
   type Event,
   type GetRouteEventDetails,
 } from "@/shared/types/common/events";
-import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
+import type { DsdvConfiguration } from "@/shared/types/model/configurations";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
+import SecondaryDescription from "../Description/SecondaryDescription";
+import VariableDescription from "../Description/VariableDescription";
 
 type DsdvDescriptionProps = {
   peers: PeerEntity[];
@@ -22,39 +26,26 @@ type DsdvDescriptionProps = {
   onPeerHover: (peerId: UUID) => void;
 };
 
-const getRouteRows = (details: DsdvRouteChangeEventDetails) => {
-  if (details.nextRoute) {
-    return [details.nextRoute];
-  }
-
-  return details.previousRoute ? [details.previousRoute] : [];
-};
-
 export default function DsdvDescription({
   peers,
   event,
   detailsType,
   onPeerHover,
 }: DsdvDescriptionProps) {
-  const { details } = event;
+  const { details, peerId } = event;
+  const peer = findById(peerId, peers)!;
+
+  const { fullDumpInterval, incrementalUpdateInterval, routeTimeout } =
+    peer.configuration as DsdvConfiguration;
 
   if (detailsType === EventDetailsType.DsdvFullDumpMessageBroadcast) {
     return (
       <>
         <TextDescription>
-          Every <u>Full Dump Interval</u>, a DSDV node broadcasts a heavy weighted <i>Full Dump</i>{" "}
-          routing update message to neighboring nodes to synchronize their routing tables.
-        </TextDescription>
-      </>
-    );
-  }
-
-  if (detailsType === EventDetailsType.DsdvFullDumpMessageRetransmission) {
-    return (
-      <>
-        <TextDescription>
-          Node retransmits a <i>Full Dump</i> of routing table to distribute the updated route state
-          to neighbouring peers.
+          Every{" "}
+          <VariableDescription value={fullDumpInterval}>Full Dump Interval</VariableDescription>, a
+          node broadcasts a heavy weighted <i>Full Dump</i> routing update message, that contains
+          node's full <i>Routing Table</i>, to neighboring nodes for complete synchronization.
         </TextDescription>
       </>
     );
@@ -64,39 +55,62 @@ export default function DsdvDescription({
     return (
       <>
         <TextDescription>
-          Every <u>Incremental Update Interval</u>, a DSDV node broadcasts a lightweight{" "}
-          <i>Incremental</i> routing update message to neighboring nodes to notify them about the
-          latest changes inside routing tables.
+          To indicate nearby nodes about the changes in the routing information, a node sends a
+          lightweight <i>Incremental Update</i> message every time a change in the routing table
+          occurs, that contains only the changed routing entries.
         </TextDescription>
-        <TextDescription>
-          Unlike the <i>Full Dump</i> messages, the <i>Incremental Update</i> contains only the
-          changed routing entries and is purposed for rapid updates, rather than complete
-          synchronization.
-        </TextDescription>
+        <SecondaryDescription title="Why updates are sent periodically?">
+          Because of implementation reasons, in this system the message is sent every{" "}
+          <VariableDescription value={incrementalUpdateInterval}>
+            Incremental Update Interval
+          </VariableDescription>
+          , but in real-life implementations it would be sent right after the change for faster
+          propagation.
+        </SecondaryDescription>
       </>
     );
   }
 
-  if (detailsType === EventDetailsType.DsdvIncrementalMessageRetransmission) {
+  if (detailsType === EventDetailsType.DsdvRouteAdded) {
+    const { nextRoute: newRoute } = details as DsdvRouteChangeEventDetails;
+    const {
+      destinationPeerId: destinationId,
+      nextHopPeerId: hopId,
+      metric,
+      sequenceNumber,
+      lastUpdateTick,
+    } = newRoute!;
+
+    const isSelfRecord = destinationId === peerId && hopId === peerId;
+    const text = isSelfRecord
+      ? "The node added the self-route to its Routing Table for further population of the route to this node via Full Dump messages."
+      : "The node evaluated a route and added it to it's Routing Table because it has the freshest sequence number or the lowest metric.";
+
     return (
       <>
-        <TextDescription>
-          Node retransmits a <i>Incremental</i> routing update message to distribute the updated
-          route state to neighbouring peers.
-        </TextDescription>
+        <TextDescription>{text}</TextDescription>
+        <TableDescription
+          headers={["Destination", "Next Hop", "Metric", "Sequence", "Last Seen"]}
+          rows={[
+            [
+              <PeerDescription peer={findById(destinationId, peers)} onHover={onPeerHover} />,
+              <PeerDescription peer={findById(hopId, peers)} onHover={onPeerHover} />,
+              metric,
+              sequenceNumber,
+              lastUpdateTick,
+            ],
+          ]}
+        />
       </>
     );
   }
 
   if (
-    detailsType === EventDetailsType.DsdvRouteAdded ||
     detailsType === EventDetailsType.DsdvRouteUpdated ||
     detailsType === EventDetailsType.DsdvRouteRemoved
   ) {
-    const routeChange = details as DsdvRouteChangeEventDetails;
-    if (routeChange.protocol !== RoutingProtocol.DSDV) {
-      return <></>;
-    }
+    const { nextRoute, previousRoute } = details as DsdvRouteChangeEventDetails;
+    const route = nextRoute ?? previousRoute!;
 
     return (
       <>
@@ -106,16 +120,18 @@ export default function DsdvDescription({
         </TextDescription>
         <TableDescription
           headers={["Destination", "Next Hop", "Metric", "Sequence", "Last Seen"]}
-          rows={getRouteRows(routeChange).map((route) => [
-            <PeerDescription
-              peer={findById(route.destinationPeerId, peers)}
-              onHover={onPeerHover}
-            />,
-            <PeerDescription peer={findById(route.nextHopPeerId, peers)} onHover={onPeerHover} />,
-            route.metric,
-            route.sequenceNumber,
-            route.lastUpdateTick,
-          ])}
+          rows={[
+            [
+              <PeerDescription
+                peer={findById(route.destinationPeerId, peers)}
+                onHover={onPeerHover}
+              />,
+              <PeerDescription peer={findById(route.nextHopPeerId, peers)} onHover={onPeerHover} />,
+              route.metric,
+              route.sequenceNumber,
+              route.lastUpdateTick,
+            ],
+          ]}
         />
       </>
     );
@@ -128,7 +144,8 @@ export default function DsdvDescription({
     return (
       <>
         <TextDescription>
-          Node selected a DSDV next hop for packet forwarding using the current best route entry.
+          The node selected the route to the destination peer based on the existing route in the{" "}
+          <i>Routing Table</i>.
         </TextDescription>
         <TableDescription
           headers={["Destination", "Next Hop", "Metric", "Sequence", "Last Seen"]}
@@ -152,5 +169,98 @@ export default function DsdvDescription({
     );
   }
 
+  if (detailsType === EventDetailsType.DsdvRouteDropped) {
+    const { record } = details as DsdvDropRouteEventDetails;
+
+    return (
+      <>
+        <TextDescription>
+          A route was dropped by the module because there are better route with fresher sequence
+          number or lower hop count already present in the <i>Routing Table</i>.
+        </TextDescription>
+        <TableDescription
+          headers={["Destination", "Next Hop", "Metric", "Sequence"]}
+          rows={[
+            [
+              <PeerDescription
+                peer={findById(record.destinationPeerId, peers)}
+                onHover={onPeerHover}
+              />,
+              <PeerDescription
+                peer={findById(record.nextHopPeerId, peers)}
+                onHover={onPeerHover}
+              />,
+              record.metric + 1,
+              record.sequenceNumber,
+            ],
+          ]}
+        />
+      </>
+    );
+  }
+
+  if (detailsType === EventDetailsType.DsdvRefreshSkipped) {
+    return (
+      <>
+        <TextDescription>
+          There was no updates in the <i>Routing Table</i> during the interval, so there are no need
+          to send an <i>Incremental Update</i> message.
+        </TextDescription>
+      </>
+    );
+  }
+
+  if (detailsType === EventDetailsType.DsdvRouteExpiredCalculation) {
+    const { route, sequence } = details as DsdvCalculationEventDetails;
+    return (
+      <>
+        <TextDescription>
+          The route is considered expired because there were no corresponding updates in the{" "}
+          <i>Routing Table</i> for a{" "}
+          <VariableDescription value={routeTimeout}>Route Timeout</VariableDescription>. The route
+          is updated and will be used in next <i>Incremental Update</i> to notify other nodes about
+          the route unavailability.
+        </TextDescription>
+        <TableDescription
+          headers={["Destination", "Next Hop", "Metric", "Sequence", "Last Seen"]}
+          rows={[
+            [
+              <PeerDescription
+                peer={findById(route.destinationPeerId, peers)}
+                onHover={onPeerHover}
+              />,
+              <PeerDescription peer={findById(route.nextHopPeerId, peers)} onHover={onPeerHover} />,
+              route.metric,
+              route.sequenceNumber,
+              route.lastUpdateTick,
+            ],
+          ]}
+        />
+        <SecondaryDescription title="Why the metric become 16?">
+          The value of 16 is considered as <i>Infinity</i> in the DSDV protocol, indicating that the
+          route is no longer reachable. When other node receives an update with metric equal to{" "}
+          <i>Infinity</i>, it will remove the route from its routing table.
+        </SecondaryDescription>
+        <SecondaryDescription title="Why the sequence number is odd?">
+          <p>
+            The odd sequence number indicates that the route is unreachable, while even sequence
+            numbers indicate valid routes. The odd number is calculated by incremeting the expired
+            route sequence number.
+          </p>
+          <br />
+          <p>
+            The sequence number of the route was {sequence} before the update. Because the route{" "}
+            <VariableDescription
+              value={`Last updated at ${route.lastUpdateTick}, passed ${routeTimeout} ticks`}
+            >
+              was last seen
+            </VariableDescription>{" "}
+            before <i>Route Timeout</i>, it became unreachable, and its sequence number incremented
+            to {route.sequenceNumber}.
+          </p>
+        </SecondaryDescription>
+      </>
+    );
+  }
   return <></>;
 }

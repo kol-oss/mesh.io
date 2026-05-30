@@ -92,53 +92,6 @@ export const getSimulationReadMorePath = (
   return "/docs/batman#what-you-need-to-know";
 };
 
-export const getEventDescription = (event: Event, peerNameById: Map<UUID, string>) => {
-  const actor = "Node";
-  const routeChange = getRouteChange(event);
-  const message = getEventMessage(event);
-
-  if (routeChange) {
-    if (event.type === EventType.AddRoute) {
-      return getRouteInsertDescription();
-    }
-
-    if (event.type === EventType.UpdateRoute) {
-      return getRouteUpdateDescription();
-    }
-
-    return getRouteRemoveDescription();
-  }
-
-  switch (event.type) {
-    case EventType.Broadcast:
-      return getBroadcastDescription(event, message);
-    case EventType.GetRoute: {
-      const details = event.details as GetRouteEventDetails;
-      if (!isBatmanRoute(details.selectedRoute)) {
-        return `${actor} emitted a simulation event.`;
-      }
-      return `Selected route to ${getPeerDisplayName(details.selectedRoute.originatorId, peerNameById)} via ${getPeerDisplayName(details.selectedRoute.hopId, peerNameById)} with throughput ${details.selectedRoute.throughput}.`;
-    }
-    case EventType.Transfer:
-      return `${actor} forwarded a packet to the selected next hop.`;
-    case EventType.Calculation:
-      return getThroughputCalculatedDescription(actor, event);
-    case EventType.Drop:
-      return getDroppedDescription(actor, event, message);
-    case EventType.Move: {
-      const details = event.details as MoveEventDetails;
-      return `Peer is moved to point (${details.toX}, ${details.toY}).`;
-    }
-    case EventType.StatusChange: {
-      const details = event.details as StatusChangeEventDetails;
-      const entityLabel = details.entityType === EntityType.Link ? "Link" : "Peer";
-      return `${entityLabel} is now ${details.nextEnabled ? "enabled" : "disabled"}.`;
-    }
-    default:
-      return `${actor} emitted a simulation event.`;
-  }
-};
-
 export const getRouteChange = (event: Event): RouteChangeEventDetails | null => {
   if (
     event.type !== EventType.AddRoute &&
@@ -324,90 +277,6 @@ const getDroppedTitle = (event: Event, message: Message | null) => {
   return "Drop Message";
 };
 
-const getBroadcastDescription = (event: Event, message: Message | null) => {
-  if (message?.type === MessageType.BatmanEchoLocationMessage) {
-    return (
-      <>{`Every ELP Interval B.A.T.M.A.N. node broadcast an Echo Location Protocol (ELP) message to neighbours. If this node wants to announce its' neighbors it should append a neighbor entry message for each neighbor to be announced and fill the "Number of Neighbors" field accordingly.`}</>
-    );
-  }
-
-  if (message?.type === MessageType.BatmanOriginatorMessage) {
-    if ("retransmit" in event.details && event.details.retransmit) {
-      return (
-        <>
-          {
-            "The node rebroadcasts an OGMv2 after receiving it from a neighbour. This forwards throughput-aware evidence deeper into the mesh so downstream nodes can compare candidate next hops for the same originator."
-          }
-        </>
-      );
-    }
-
-    return (
-      <>
-        {
-          "Every OGM interval, an Originator Message v2 (OGMv2) is broadcast to announce presence and publish throughput information. Neighbours may rebroadcast OGMv2 across the mesh when best-path rules allow it, enabling B.A.T.M.A.N. V nodes to choose the strongest next hop."
-        }
-      </>
-    );
-  }
-
-  if (message?.type === MessageType.Packet) {
-    return <>{"The node broadcast a packet message to neighbouring nodes."}</>;
-  }
-
-  return <>{"The node broadcast a message to neighbouring nodes."}</>;
-};
-
-const getDroppedDescription = (actor: string, event: Event, message: Message | null) => {
-  if (isSourcePacketSendFailure(event, message)) {
-    const details = event.details as DropEventDetails;
-    return (
-      <>{`The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${details.reason}.`}</>
-    );
-  }
-
-  if (message?.type === MessageType.BatmanEchoLocationMessage) {
-    return <>{`${actor} dropped a message during processing.`}</>;
-  }
-
-  if (message?.type === MessageType.BatmanOriginatorMessage) {
-    return (
-      <>{`${actor} already received OGMv2 with such originator and sequence number with better throughput, so it did not continue processing this OGMv2, and B.A.T.M.A.N. V propagation stopped at this hop.`}</>
-    );
-  }
-
-  if (message?.type === MessageType.Packet) {
-    return <>{`${actor} could not forward this packet, so delivery stopped at this hop.`}</>;
-  }
-
-  return <>{`${actor} dropped a message during processing.`}</>;
-};
-
-const getThroughputCalculatedDescription = (actor: string, event: Event) => {
-  const details = event.details as BatmanCalculationEventDetails;
-  if (details.message.type === MessageType.BatmanEchoLocationMessage) {
-    return (
-      <>
-        {
-          "Throughput is an estimate of how much useful data can be successfully transferred over a link per unit of time. In ELP and B.A.T.M.A.N. V, throughput is used as a link-quality metric to help select better routes by favoring links that deliver more reliable and higher data rates."
-        }
-      </>
-    );
-  }
-
-  if (details.message.type === MessageType.BatmanOriginatorMessage) {
-    return (
-      <>
-        {
-          "For OGMv2 forwarding, throughput estimation compares the throughput carried by the received OGMv2 message with the throughput recorded in the Neighbours Table from ELP calculations. The minimum of these two values is selected as the forwarding candidate."
-        }
-      </>
-    );
-  }
-
-  return <>{`${actor} completed a protocol calculation step.`}</>;
-};
-
 export const getThroughputBreakdown = (event: Event) => {
   if (event.type !== EventType.Calculation) {
     return null;
@@ -518,28 +387,6 @@ const getRouteRemoveTitle = (
   return "Route Removed";
 };
 
-const getRouteInsertDescription = () => {
-  return (
-    <>
-      {"The node created a new originator-table entry."}{" "}
-      {
-        "The record was accepted from a valid OGMv2, and the node stored originator and sender context for this path."
-      }
-    </>
-  );
-};
-
-const getRouteUpdateDescription = () => {
-  return (
-    <>
-      {"The node refreshed an originator-table entry."}{" "}
-      {
-        "The update came from processing a valid OGMv2 for that originator, keeping sequence progress and last-seen timing fresh."
-      }
-    </>
-  );
-};
-
 export const getRouteSequenceWindowExplanation = (event: Event) => {
   if (event.type !== EventType.AddRoute && event.type !== EventType.UpdateRoute) {
     return null;
@@ -553,17 +400,6 @@ export const getRouteSequenceWindowExplanation = (event: Event) => {
   }
 
   return `Sequence Protection Window tracks accepted (message.sequence) numbers and blocks duplicates or out-of-range OGMs. The (message.sequence) number of received OGM: ${message.sequence}.`;
-};
-
-const getRouteRemoveDescription = () => {
-  return (
-    <>
-      {"The node removed an originator-table entry."} {"The route is no longer treated as valid"}.{" "}
-      {
-        "B.A.T.M.A.N. V drops this record when the route becomes stale, so this next hop is no longer trusted as a valid path to that originator."
-      }
-    </>
-  );
 };
 
 export const renderPeerName = (
@@ -584,10 +420,6 @@ export const renderPeerName = (
 
 export const getPeerLabel = (peerId: UUID, peerNameById: Map<UUID, string>) => {
   return peerNameById.get(peerId) ?? peerId;
-};
-
-const getPeerDisplayName = (peerId: UUID, peerNameById: Map<UUID, string>) => {
-  return peerNameById.get(peerId) ?? "Unknown";
 };
 
 const isSourcePacketSendFailure = (event: Event, message: Message | null) => {

@@ -1,247 +1,198 @@
-import { EventRecorder } from "@/features/processor/EventRecorder";
-import {
-  type DsdvRouteRecord,
-  type DsdvRouteUpdateMessage,
+import type { EventRecorder } from "@/features/processor/EventRecorder";
+import type {
+  DsdvCalculationEventDetails,
+  DsdvDropRouteEventDetails,
+  DsdvRouteChangeEventDetails,
+  DsdvRouteRecord,
+  DsdvRouteUpdateMessage,
 } from "@/features/processor/types/protocols/dsdv";
 import { clone } from "@/features/processor/utils/clone";
 import { DSDV_METRIC_INFINITY } from "@/shared/constants/protocols/dsdv";
-import { EventType } from "@/shared/types/common/events";
+import { DropReason, EventType } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 
-type DsdvRouteState = {
-  destinationPeerId: UUID;
-  nextHopPeerId: UUID;
-  metric: number;
-  sequenceNumber: number;
-  lastUpdateTick: number;
-  deleteAfterTick: number | null;
-  changed: boolean;
-};
-
-type DsdvFullDumpTiming = {
-  lastTick: number;
-  interval: number;
-};
+const ROUTING_PROTOCOL = RoutingProtocol.DSDV;
 
 export class DsdvRoutingTable {
-  private readonly routes = new Map<UUID, DsdvRouteState>();
-  private readonly pendingWithdrawals = new Map<UUID, DsdvRouteState>();
-  private readonly fullDumpTimingByNeighbour = new Map<UUID, DsdvFullDumpTiming>();
   private readonly peerId: UUID;
   private readonly eventRecorder: EventRecorder;
 
+  // routing substructures
+  private readonly routes = new Map<UUID, DsdvRouteRecord>();
+  private readonly pendingRoutes = new Set<DsdvRouteRecord>();
+
+  // timeouts and intervals
   private readonly routeTimeout: number;
-  private readonly fullDumpInterval: number;
 
-  constructor(params: {
-    peerId: UUID;
-    eventRecorder: EventRecorder;
-    routeTimeout: number;
-    fullDumpInterval: number;
-  }) {
-    this.peerId = params.peerId;
-    this.eventRecorder = params.eventRecorder;
-    this.routeTimeout = params.routeTimeout;
-    this.fullDumpInterval = params.fullDumpInterval;
+  constructor(peerId: UUID, eventRecorder: EventRecorder, routeTimeout: number) {
+    this.peerId = peerId;
+    this.eventRecorder = eventRecorder;
+    this.routeTimeout = routeTimeout;
   }
 
-  updateNeighbourFullDumpTiming(nextHopPeerId: UUID, lastTick: number, interval: number) {
-    this.fullDumpTimingByNeighbour.set(nextHopPeerId, {
-      lastTick,
-      interval,
-    });
+  process(message: DsdvRouteUpdateMessage): void {
+    const { senderPeerId: hopId, entries } = message;
+
+    for (const entry of entries) {
+      const { destinationPeerId: destinationId, sequenceNumber: sequence, metric } = entry;
+      const route = this.routes.get(destinationId);
+
+      // if the entry contains infinity metric and odd sequence, then the route is removed
+      if (metric >= DSDV_METRIC_INFINITY && sequence % 2 === 1) {
+        const route = this.remove(destinationId);
+        this.pendingRoutes.add(route);
+
+        return;
+      }
+
+      const hopCount = metric + 1;
+      // if the entry is new row, then just insert
+      if (!route) {
+        const newRoute = this.insert(destinationId, hopId, hopCount, sequence);
+        this.pendingRoutes.add(newRoute);
+      }
+      // if the route is already present, then sequence and metric comparison
+      else {
+        const routeSequence = route.sequenceNumber;
+        const isNewSequence = sequence > routeSequence;
+        const isBetterRoute = sequence === routeSequence && hopCount < route.metric;
+
+        if (isNewSequence || isBetterRoute) {
+          this.pendingRoutes.add(route);
+          this.update(destinationId, hopId, hopCount, sequence);
+
+          this.pendingRoutes.add(route);
+        } else {
+          this.eventRecorder.record(
+            this.peerId,
+            EventType.Drop,
+            {
+              message: clone(message),
+              reason: DropReason.NotOptimalRoute,
+              record: clone(entry),
+            } as DsdvDropRouteEventDetails,
+            ROUTING_PROTOCOL,
+          );
+        }
+      }
+    }
   }
 
-  upsertSelfRoute(sequenceNumber: number) {
+  contains(destinationId: UUID): boolean {
+    return this.routes.has(destinationId);
+  }
+
+  insert(
+    destination: UUID,
+    nextHop: UUID,
+    metric: number = 0,
+    sequence: number = 0,
+  ): DsdvRouteRecord {
     const tick = this.eventRecorder.getCurrentTick();
-    const previous = this.routes.get(this.peerId) ?? null;
-    const nextState: DsdvRouteState = {
-      destinationPeerId: this.peerId,
-      nextHopPeerId: this.peerId,
-      metric: 0,
-      sequenceNumber,
+    const route = {
+      destinationPeerId: destination,
+      nextHopPeerId: nextHop,
+      metric,
+      sequenceNumber: sequence,
       lastUpdateTick: tick,
-      deleteAfterTick: null,
-      changed: true,
-    };
+    } satisfies DsdvRouteRecord;
 
-    this.routes.set(this.peerId, nextState);
+    this.routes.set(destination, route);
+    this.eventRecorder.record(
+      this.peerId,
+      EventType.AddRoute,
+      {
+        protocol: ROUTING_PROTOCOL,
+        destinationPeerId: this.peerId,
+        nextHopPeerId: this.peerId,
+        previousRoute: null,
+        nextRoute: clone(route),
+      },
+      ROUTING_PROTOCOL,
+    );
+
+    return route;
+  }
+
+  update(destination: UUID, nextHop: UUID, metric: number, sequence: number): void {
+    const tick = this.eventRecorder.getCurrentTick();
+    const previous = this.routes.get(destination);
 
     if (!previous) {
-      this.eventRecorder.record(
-        this.peerId,
-        EventType.AddRoute,
-        {
-          protocol: RoutingProtocol.DSDV,
-          destinationPeerId: this.peerId,
-          nextHopPeerId: this.peerId,
-          previousRoute: null,
-          nextRoute: this.toRecord(nextState),
-        },
-        RoutingProtocol.DSDV,
-      );
-      return;
+      throw new Error("Cannot update non-existing route. Use insert method instead.");
     }
+
+    const route = {
+      destinationPeerId: destination,
+      nextHopPeerId: nextHop,
+      metric,
+      sequenceNumber: sequence,
+      lastUpdateTick: tick,
+    } satisfies DsdvRouteRecord;
+    this.routes.set(destination, route);
 
     this.eventRecorder.record(
       this.peerId,
       EventType.UpdateRoute,
       {
-        protocol: RoutingProtocol.DSDV,
+        protocol: ROUTING_PROTOCOL,
         destinationPeerId: this.peerId,
         nextHopPeerId: this.peerId,
-        previousRoute: this.toRecord(previous),
-        nextRoute: this.toRecord(nextState),
+        previousRoute: clone(previous),
+        nextRoute: clone(route),
       },
-      RoutingProtocol.DSDV,
+      ROUTING_PROTOCOL,
     );
   }
 
-  processIncomingEntry(params: {
-    senderPeerId: UUID;
-    destinationPeerId: UUID;
-    incomingMetric: number;
-    incomingSequenceNumber: number;
-    message: DsdvRouteUpdateMessage;
-  }) {
-    if (params.destinationPeerId === this.peerId) {
-      return false;
+  remove(destination: UUID): DsdvRouteRecord {
+    const route = this.routes.get(destination);
+    if (!route) {
+      throw new Error("Cannot remove non-existing route.");
     }
-
-    const metric = Math.min(DSDV_METRIC_INFINITY, Math.max(0, params.incomingMetric));
-    const current = this.routes.get(params.destinationPeerId) ?? null;
-    const hasSequenceIncrease =
-      current !== null && params.incomingSequenceNumber > current.sequenceNumber;
-    const hasLowerMetricAtSameSequence =
-      current !== null &&
-      params.incomingSequenceNumber === current.sequenceNumber &&
-      metric < current.metric;
-    const hasNextHopChangeAtSameCost =
-      current !== null &&
-      params.incomingSequenceNumber === current.sequenceNumber &&
-      metric === current.metric &&
-      current.nextHopPeerId !== params.senderPeerId;
-
-    const shouldAccept =
-      current === null ||
-      hasSequenceIncrease ||
-      hasLowerMetricAtSameSequence ||
-      hasNextHopChangeAtSameCost;
-
-    if (!shouldAccept) {
-      return false;
-    }
-
-    const tick = this.eventRecorder.getCurrentTick();
-    const routeTimeout = Math.max(1, this.routeTimeout);
-    const nextState: DsdvRouteState = {
-      destinationPeerId: params.destinationPeerId,
-      nextHopPeerId: params.senderPeerId,
-      metric,
-      sequenceNumber: params.incomingSequenceNumber,
-      lastUpdateTick: tick,
-      deleteAfterTick: metric >= DSDV_METRIC_INFINITY ? tick + routeTimeout : null,
-      changed: true,
-    };
-
-    this.pendingWithdrawals.delete(params.destinationPeerId);
-    this.routes.set(params.destinationPeerId, nextState);
+    this.routes.delete(destination);
 
     this.eventRecorder.record(
       this.peerId,
-      current ? EventType.UpdateRoute : EventType.AddRoute,
+      EventType.DeleteRoute,
       {
-        protocol: RoutingProtocol.DSDV,
-        destinationPeerId: params.destinationPeerId,
-        nextHopPeerId: params.senderPeerId,
-        previousRoute: current ? this.toRecord(current) : null,
-        nextRoute: this.toRecord(nextState),
-        message: clone(params.message),
-      },
-      RoutingProtocol.DSDV,
+        protocol: ROUTING_PROTOCOL,
+        destinationPeerId: this.peerId,
+        nextHopPeerId: this.peerId,
+        previousRoute: clone(route),
+        nextRoute: null,
+      } satisfies DsdvRouteChangeEventDetails,
+      ROUTING_PROTOCOL,
     );
 
-    return true;
+    return route;
   }
 
-  tick() {
+  tick(): void {
     const tick = this.eventRecorder.getCurrentTick();
-    let changed = false;
 
-    for (const [destinationPeerId, route] of this.routes.entries()) {
-      if (destinationPeerId === this.peerId) {
-        continue;
-      }
+    for (const route of this.routes.values()) {
+      const { destinationPeerId: destinationId, lastUpdateTick, sequenceNumber: sequence } = route;
 
-      if (
-        route.metric < DSDV_METRIC_INFINITY &&
-        tick >= this.getRouteExpiryTick(route.nextHopPeerId, route.lastUpdateTick)
-      ) {
-        const previousRoute = this.toRecord(route);
-        const withdrawalSequenceNumber =
-          route.sequenceNumber % 2 === 0 ? route.sequenceNumber + 1 : route.sequenceNumber;
-
-        this.routes.delete(destinationPeerId);
-        this.pendingWithdrawals.set(destinationPeerId, {
-          destinationPeerId: previousRoute.destinationPeerId,
-          nextHopPeerId: previousRoute.nextHopPeerId,
-          metric: DSDV_METRIC_INFINITY,
-          sequenceNumber: withdrawalSequenceNumber,
-          lastUpdateTick: tick,
-          deleteAfterTick: null,
-          changed: true,
-        });
-        changed = true;
+      if (lastUpdateTick + this.routeTimeout <= tick) {
+        route.metric = DSDV_METRIC_INFINITY;
+        route.sequenceNumber += 1;
 
         this.eventRecorder.record(
           this.peerId,
-          EventType.DeleteRoute,
+          EventType.Calculation,
           {
-            protocol: RoutingProtocol.DSDV,
-            destinationPeerId: previousRoute.destinationPeerId,
-            nextHopPeerId: previousRoute.nextHopPeerId,
-            previousRoute,
-            nextRoute: null,
-          },
+            sequence: sequence,
+            route: route,
+          } satisfies DsdvCalculationEventDetails,
           RoutingProtocol.DSDV,
         );
 
-        continue;
-      }
-
-      if (
-        route.metric >= DSDV_METRIC_INFINITY &&
-        route.deleteAfterTick !== null &&
-        tick >= route.deleteAfterTick
-      ) {
-        const previousRoute = this.toRecord(route);
-        this.routes.delete(destinationPeerId);
-        changed = true;
-
-        this.eventRecorder.record(
-          this.peerId,
-          EventType.DeleteRoute,
-          {
-            protocol: RoutingProtocol.DSDV,
-            destinationPeerId: previousRoute.destinationPeerId,
-            nextHopPeerId: previousRoute.nextHopPeerId,
-            previousRoute,
-            nextRoute: null,
-          },
-          RoutingProtocol.DSDV,
-        );
+        this.pendingRoutes.add(route);
+        this.remove(destinationId);
       }
     }
-
-    return changed;
-  }
-
-  private getRouteExpiryTick(nextHopPeerId: UUID, fallbackTick: number): number {
-    const fullDumpTiming = this.fullDumpTimingByNeighbour.get(nextHopPeerId);
-    const fullDumpInterval = fullDumpTiming?.interval ?? this.fullDumpInterval;
-    const lastFullDumpTick = fullDumpTiming?.lastTick ?? fallbackTick;
-    return lastFullDumpTick + fullDumpInterval + this.routeTimeout;
   }
 
   getBestRoute(destinationPeerId: UUID): DsdvRouteRecord | null {
@@ -250,36 +201,18 @@ export class DsdvRoutingTable {
       return null;
     }
 
-    return this.toRecord(route);
+    return route;
   }
 
-  getChangedRoutes() {
-    return [...this.routes.values(), ...this.pendingWithdrawals.values()]
-      .filter((route) => route.changed)
-      .map((route) => this.toRecord(route));
+  getPendingRoutes(): DsdvRouteRecord[] {
+    return Array.from(this.pendingRoutes);
   }
 
-  clearChangedFlags() {
-    for (const route of this.routes.values()) {
-      route.changed = false;
-    }
-
-    this.pendingWithdrawals.clear();
+  getRoutes(): DsdvRouteRecord[] {
+    return Array.from(this.routes.values()).map((route) => clone(route));
   }
 
-  getRoutes() {
-    return [...this.routes.values()]
-      .map((route) => this.toRecord(route))
-      .sort((left, right) => left.destinationPeerId.localeCompare(right.destinationPeerId));
-  }
-
-  private toRecord(route: DsdvRouteState): DsdvRouteRecord {
-    return {
-      destinationPeerId: route.destinationPeerId,
-      nextHopPeerId: route.nextHopPeerId,
-      metric: route.metric,
-      sequenceNumber: route.sequenceNumber,
-      lastUpdateTick: route.lastUpdateTick,
-    };
+  clearPendingRoutes(): void {
+    this.pendingRoutes.clear();
   }
 }

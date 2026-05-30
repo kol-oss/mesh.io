@@ -10,6 +10,7 @@ import type {
 import { EventType } from "@/shared/types/common/events";
 import type { Message } from "@/shared/types/common/messages";
 import { MessageType } from "@/shared/types/common/messages";
+import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import type {
@@ -102,112 +103,29 @@ export const buildSimulationMessageAnimations = (
   }
 
   if (currentEvent.type === EventType.Calculation) {
-    const details = currentEvent.details as BatmanCalculationEventDetails;
-    if (details.message.type === MessageType.BatmanOriginatorMessage) {
-      return toMessageAnimations([
-        createAnimation(
-          details.message.senderId,
-          currentEvent.peerId,
-          "throughput",
-          "route-change",
-        ),
-      ]);
-    }
+    if (currentEvent.protocol === RoutingProtocol.BATMAN) {
+      const details = currentEvent.details as BatmanCalculationEventDetails;
+      if (details.message.type === MessageType.BatmanOriginatorMessage) {
+        return toMessageAnimations([
+          createAnimation(
+            details.message.senderId,
+            currentEvent.peerId,
+            "throughput",
+            "route-change",
+          ),
+        ]);
+      }
 
-    if (details.message.type === MessageType.BatmanEchoLocationMessage) {
-      return toMessageAnimations([
-        createAnimation(
-          details.message.senderId,
-          currentEvent.peerId,
-          "throughput",
-          "route-change",
-        ),
-      ]);
-    }
-
-    if (details.message.type === MessageType.DsdvRouteUpdateMessage) {
-      return toMessageAnimations([
-        createAnimation(
-          details.message.senderPeerId,
-          currentEvent.peerId,
-          "throughput",
-          "route-change",
-        ),
-      ]);
-    }
-
-    if (details.message.type === MessageType.AodvRouteReplyMessage) {
-      return toMessageAnimations([
-        createAnimation(
-          details.message.senderPeerId,
-          details.message.targetPeerId,
-          "throughput",
-          "route-change",
-        ),
-      ]);
-    }
-
-    if (details.message.type === MessageType.AodvRouteErrorMessage) {
-      return toMessageAnimations([
-        createAnimation(
-          details.message.senderPeerId,
-          details.message.targetPeerId,
-          "throughput",
-          "route-change",
-        ),
-      ]);
-    }
-
-    if (details.message.type === MessageType.OlsrHelloMessage) {
-      return toMessageAnimations([
-        createAnimation(
-          details.message.senderPeerId,
-          currentEvent.peerId,
-          "throughput",
-          "route-change",
-        ),
-      ]);
-    }
-
-    if (details.message.type === MessageType.OlsrTcMessage) {
-      return toMessageAnimations([
-        createAnimation(
-          details.message.senderPeerId,
-          currentEvent.peerId,
-          "throughput",
-          "route-change",
-        ),
-      ]);
-    }
-
-    if (details.message.type === MessageType.DsrRouteRequestMessage) {
-      const previousHopPeerId =
-        details.message.routePeerIds.length > 1
-          ? details.message.routePeerIds[details.message.routePeerIds.length - 2]
-          : null;
-      return toMessageAnimations([
-        createAnimation(previousHopPeerId, currentEvent.peerId, "throughput", "route-change"),
-      ]);
-    }
-
-    if (details.message.type === MessageType.DsrRouteReplyMessage) {
-      const senderPeerId = details.message.senderPeerId;
-      const senderIndex = details.message.routePeerIds.indexOf(senderPeerId);
-      const targetPeerId = senderIndex > 0 ? details.message.routePeerIds[senderIndex - 1] : null;
-      return toMessageAnimations([
-        createAnimation(senderPeerId, targetPeerId, "throughput", "route-change"),
-      ]);
-    }
-
-    if (details.message.type === MessageType.DsrRouteErrorMessage) {
-      return toMessageAnimations([
-        createAnimation(
-          details.message.brokenFromPeerId,
-          details.message.brokenToPeerId,
-          "throughput",
-          "route-change",
-        ),
-      ]);
+      if (details.message.type === MessageType.BatmanEchoLocationMessage) {
+        return toMessageAnimations([
+          createAnimation(
+            details.message.senderId,
+            currentEvent.peerId,
+            "throughput",
+            "route-change",
+          ),
+        ]);
+      }
     }
 
     return [];
@@ -340,9 +258,7 @@ const getDroppedMessageAnimation = (
     return { sourcePeerId: message.sourcePeerId, targetPeerId: eventPeerId };
   }
 
-  return message.destinationPeerId !== eventPeerId
-    ? { sourcePeerId: eventPeerId, targetPeerId: message.destinationPeerId }
-    : null;
+  return null;
 };
 
 const toMessageAnimations = (animations: Array<MessageAnimation | null>) => {

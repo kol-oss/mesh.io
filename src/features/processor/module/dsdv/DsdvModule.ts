@@ -3,9 +3,7 @@ import {
   DsdvUpdateType,
   type DsdvRouteRecord,
   type DsdvRouteUpdateMessage,
-  type DsdvRouteUpdateRecordEntry,
 } from "@/features/processor/types/protocols/dsdv";
-import { DSDV_METRIC_INFINITY } from "@/shared/constants/protocols/dsdv";
 import { DropReason, EventType, type GetRouteEventDetails } from "@/shared/types/common/events";
 import { MessageType, type Message } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
@@ -14,9 +12,12 @@ import type { DsdvConfiguration } from "@/shared/types/model/configurations";
 import { RefreshAction } from "@/shared/types/model/steps";
 import type { NetworkGraph } from "../../network/NetworkGraph";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module";
+import { clone } from "../../utils/clone";
+import { toMessageRecord } from "../../utils/protocol/dsdv";
 import { BaseModule } from "../BaseModule";
 import { DsdvRoutingTable } from "./structures/DsdvRoutingTable";
 
+// module for DSDV protocol
 const PROTOCOL = RoutingProtocol.DSDV;
 
 export class DsdvModule extends BaseModule {
@@ -24,185 +25,122 @@ export class DsdvModule extends BaseModule {
   private routingTable!: DsdvRoutingTable;
 
   // sequence numbers
-  private ownSequenceNumber: number = 0;
-
-  private hasSentFullDump = false;
+  private sequence: number = 0;
 
   constructor(peerId: UUID, graph: NetworkGraph, eventRecorder: EventRecorder) {
     super(peerId, graph, eventRecorder);
+    this.INCOMING_MESSAGE_TYPES.push(MessageType.DsdvRouteUpdateMessage);
   }
 
   // initialization of routing table
   override init() {
     const configuration = this.peer.configuration as DsdvConfiguration;
 
-    this.routingTable = new DsdvRoutingTable({
-      peerId: this.peerId,
-      eventRecorder: this.eventRecorder,
-      routeTimeout: configuration.routeTimeout,
-      fullDumpInterval: configuration.fullDumpInterval,
-    });
-
-    this.routingTable.upsertSelfRoute(this.ownSequenceNumber);
-    this.routingTable.clearChangedFlags();
+    this.routingTable = new DsdvRoutingTable(
+      this.peerId,
+      this.eventRecorder,
+      configuration.routeTimeout,
+    );
   }
 
   override process(message: Message): boolean {
     const { type: messageType } = message;
-    if (messageType === MessageType.Packet) {
-      return super.read(message);
+
+    // Route Update (Full Dump / Incremental Update) message
+    if (messageType === MessageType.DsdvRouteUpdateMessage) {
+      return this.processRouteUpdate(message);
     }
 
-    // Full or Incremental Route Update message
-    if (messageType !== MessageType.DsdvRouteUpdateMessage) {
-      return false;
-    }
-
-    return this.processRouteUpdate(message);
+    return false;
   }
 
   private processRouteUpdate(message: DsdvRouteUpdateMessage) {
-    if (message.sourcePeerId === this.peer.id) {
+    const { sourcePeerId: sourceId } = message;
+    if (sourceId === this.peerId) {
       this.recordEvent(EventType.Drop, {
-        message: { ...message },
+        message: clone(message),
         reason: DropReason.SourceIsTarget,
       });
 
       return false;
     }
 
-    const sender = this.graph.getNode(message.senderPeerId);
-    if (!sender) {
-      this.recordEvent(EventType.Drop, {
-        message: { ...message },
-        reason: DropReason.UnsupportedProtocol,
-      });
-
-      return false;
-    }
-
-    if (message.updateType === DsdvUpdateType.FullDump) {
-      const senderConfiguration = sender.configuration as DsdvConfiguration;
-      if (!senderConfiguration) {
-        return false;
-      }
-
-      this.routingTable.updateNeighbourFullDumpTiming(
-        message.senderPeerId,
-        this.eventRecorder.getCurrentTick(),
-        senderConfiguration.fullDumpInterval,
-      );
-    }
-
-    const acceptedDestinations: UUID[] = [];
-    for (const entry of message.entries) {
-      const accepted = this.routingTable.processIncomingEntry({
-        senderPeerId: message.senderPeerId,
-        destinationPeerId: entry.destinationPeerId,
-        incomingMetric: Math.min(DSDV_METRIC_INFINITY, entry.metric + 1),
-        incomingSequenceNumber: entry.sequenceNumber,
-        message,
-      });
-
-      if (accepted) {
-        acceptedDestinations.push(entry.destinationPeerId);
-      }
-    }
-
-    if (acceptedDestinations.length === 0) {
-      return true;
-    }
-
-    const acceptedSet = new Set(acceptedDestinations);
-    const retransmitEntries = this.routingTable
-      .getRoutes()
-      .filter((route) => acceptedSet.has(route.destinationPeerId))
-      .map(
-        (route): DsdvRouteUpdateRecordEntry => ({
-          destinationPeerId: route.destinationPeerId,
-          nextHopPeerId: route.nextHopPeerId,
-          sequenceNumber: route.sequenceNumber,
-          metric: route.metric,
-        }),
-      );
-
-    if (retransmitEntries.length > 0) {
-      return this.broadcastRouteUpdate({
-        updateType: message.updateType,
-        retransmit: true,
-        sourcePeerId: message.sourcePeerId,
-        hopCount: message.hopCount + 1,
-        entries: retransmitEntries,
-      });
-    }
-
+    this.routingTable.process(message);
     return true;
   }
 
   override getRoute(destinationId: UUID): UUID | null {
-    const selectedRoute = this.routingTable.getBestRoute(destinationId);
-    if (selectedRoute) {
+    const route = this.routingTable.getBestRoute(destinationId);
+
+    if (route) {
       this.recordEvent(
         EventType.GetRoute,
         {
           protocol: PROTOCOL,
           destinationPeerId: destinationId,
-          selectedRoute,
+          selectedRoute: clone(route),
         } as GetRouteEventDetails,
         PROTOCOL,
       );
     }
 
-    return selectedRoute?.nextHopPeerId ?? null;
+    return route?.nextHopPeerId ?? null;
   }
 
   override processTick() {
     this.routingTable.tick();
   }
 
-  override processRefresh(action?: RefreshAction) {
+  override processRefresh(action: RefreshAction) {
     if (action === RefreshAction.DsdvFullDump) {
-      this.refreshFullDump();
+      this.processDumpRefresh();
     } else if (action === RefreshAction.DsdvIncremental) {
-      this.refreshIncremental();
+      this.processIncrementalRefresh();
     }
   }
 
-  private refreshFullDump() {
-    super.refresh();
-    if (!this.peer.active) {
-      return;
+  private processDumpRefresh(): void {
+    const selfRouteExists = this.routingTable.contains(this.peerId);
+    if (!selfRouteExists) {
+      this.routingTable.insert(this.peerId, this.peerId, 0, this.sequence);
+    } else {
+      this.sequence += 2;
+      this.routingTable.update(this.peerId, this.peerId, 0, this.sequence);
     }
 
-    if (this.hasSentFullDump) {
-      this.ownSequenceNumber += 2;
-      this.routingTable.upsertSelfRoute(this.ownSequenceNumber);
-    }
-
-    this.broadcastRouteUpdate({
-      updateType: DsdvUpdateType.FullDump,
-      retransmit: false,
-    });
-    this.hasSentFullDump = true;
+    const routes = this.routingTable.getRoutes();
+    this.broadcastRoutes(routes, DsdvUpdateType.FullDump);
   }
 
-  private refreshIncremental() {
-    super.refresh();
-    if (!this.peer.active) {
+  private processIncrementalRefresh() {
+    const changes = this.routingTable.getPendingRoutes();
+    if (changes.length === 0) {
+      super.recordEvent(
+        EventType.Drop,
+        {
+          reason: DropReason.Skip,
+        },
+        PROTOCOL,
+      );
+
       return;
     }
 
-    // Increment sequence number on any changes to broadcast
-    const changedRoutes = this.routingTable.getChangedRoutes();
-    if (changedRoutes.length > 0) {
-      this.ownSequenceNumber += 2;
-      this.routingTable.upsertSelfRoute(this.ownSequenceNumber);
-    }
+    this.routingTable.clearPendingRoutes();
+    this.broadcastRoutes(changes, DsdvUpdateType.Incremental);
+  }
 
-    this.broadcastRouteUpdate({
-      updateType: DsdvUpdateType.Incremental,
-      retransmit: false,
-    });
+  private broadcastRoutes(routes: DsdvRouteRecord[], type: DsdvUpdateType): void {
+    const message: Message = {
+      type: MessageType.DsdvRouteUpdateMessage,
+      updateType: type,
+      sourcePeerId: this.peerId,
+      senderPeerId: this.peerId,
+      hopCount: 0,
+      entries: routes.map(toMessageRecord),
+    } satisfies DsdvRouteUpdateMessage;
+
+    super.broadcast(message);
   }
 
   override getTables() {
@@ -210,91 +148,5 @@ export class DsdvModule extends BaseModule {
     tables[RoutingStructure.DsdvRoutingTable] = this.routingTable.getRoutes();
 
     return tables;
-  }
-
-  getRoutes() {
-    return this.routingTable.getRoutes();
-  }
-
-  private toRouteUpdateEntries(routes: DsdvRouteRecord[]): DsdvRouteUpdateRecordEntry[] {
-    return routes.map(
-      (route): DsdvRouteUpdateRecordEntry => ({
-        destinationPeerId: route.destinationPeerId,
-        nextHopPeerId: route.nextHopPeerId,
-        sequenceNumber: route.sequenceNumber,
-        metric: route.metric,
-      }),
-    );
-  }
-
-  private broadcastRouteUpdate(params: {
-    updateType: DsdvUpdateType;
-    retransmit: boolean;
-    sourcePeerId?: UUID;
-    hopCount?: number;
-    entries?: DsdvRouteUpdateRecordEntry[];
-  }): boolean {
-    const routes =
-      params.entries ??
-      (params.updateType === DsdvUpdateType.FullDump
-        ? this.toRouteUpdateEntries(this.routingTable.getRoutes())
-        : this.toRouteUpdateEntries(this.routingTable.getChangedRoutes()));
-
-    if (routes.length === 0) {
-      if (params.updateType === DsdvUpdateType.Incremental && !params.retransmit) {
-        const emptyIncrementalMessage: DsdvRouteUpdateMessage = {
-          type: MessageType.DsdvRouteUpdateMessage,
-          updateType: DsdvUpdateType.Incremental,
-          sourcePeerId: this.peer.id,
-          senderPeerId: this.peer.id,
-          hopCount: 0,
-          entries: [],
-        };
-
-        this.recordEvent(
-          EventType.Broadcast,
-          {
-            neighbourPeerIds: [],
-            retransmit: false,
-            message: { ...emptyIncrementalMessage },
-          },
-          PROTOCOL,
-        );
-      }
-      return false;
-    }
-
-    const neighbours = this.graph
-      .getNeighbours(this.peerId)
-      .filter((peer) => peer.protocol === PROTOCOL);
-
-    const message: DsdvRouteUpdateMessage = {
-      type: MessageType.DsdvRouteUpdateMessage,
-      updateType: params.updateType,
-      sourcePeerId: params.sourcePeerId ?? this.peer.id,
-      senderPeerId: this.peer.id,
-      hopCount: params.hopCount ?? 0,
-      entries: routes,
-    };
-
-    this.recordEvent(
-      EventType.Broadcast,
-      {
-        neighbourPeerIds: neighbours.map((peer) => peer.id),
-        retransmit: params.retransmit,
-        message: { ...message },
-      },
-      PROTOCOL,
-    );
-
-    for (const neighbour of neighbours) {
-      super.write(message, neighbour.id);
-    }
-
-    if (!params.retransmit) {
-      this.routingTable.clearChangedFlags();
-    }
-
-    return true;
   }
 }

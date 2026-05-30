@@ -14,7 +14,7 @@ const SECTIONS = [
 ];
 
 export default function OlsrHelp() {
-  useScroll(SECTIONS);
+  useScroll("olsr", SECTIONS);
 
   return (
     <section className="help-page__section" id="olsr">

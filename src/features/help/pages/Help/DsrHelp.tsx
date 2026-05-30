@@ -15,7 +15,7 @@ const SECTIONS = [
 ];
 
 export default function DsrHelp() {
-  useScroll(SECTIONS);
+  useScroll("dsr", SECTIONS);
 
   return (
     <section className="help-page__section" id="dsr">

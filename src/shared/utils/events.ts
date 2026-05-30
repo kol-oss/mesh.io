@@ -1,8 +1,10 @@
 import { DsdvUpdateType } from "@/features/processor/types/protocols/dsdv";
 import {
+  DropReason,
   EventDetailsType,
   EventType,
   type BroadcastEventDetails,
+  type DropEventDetails,
   type Event,
   type GetRouteEventDetails,
   type RouteChangeEventDetails,
@@ -83,7 +85,7 @@ const getDsdvEventDetailsType = (event: Event): EventDetailsType => {
   const { type, details } = event;
 
   if (type === EventType.Broadcast) {
-    const { message, retransmit: isRetransmission } = details as BroadcastEventDetails;
+    const { message } = details as BroadcastEventDetails;
     const { type: messageType } = message;
 
     if (messageType !== MessageType.DsdvRouteUpdateMessage) {
@@ -91,15 +93,11 @@ const getDsdvEventDetailsType = (event: Event): EventDetailsType => {
     }
 
     if (message.updateType === DsdvUpdateType.FullDump) {
-      return isRetransmission
-        ? EventDetailsType.DsdvFullDumpMessageRetransmission
-        : EventDetailsType.DsdvFullDumpMessageBroadcast;
+      return EventDetailsType.DsdvFullDumpMessageBroadcast;
     }
 
     if (message.updateType === DsdvUpdateType.Incremental) {
-      return isRetransmission
-        ? EventDetailsType.DsdvIncrementalMessageRetransmission
-        : EventDetailsType.DsdvIncrementalMessageBroadcast;
+      return EventDetailsType.DsdvIncrementalMessageBroadcast;
     }
   }
 
@@ -119,7 +117,14 @@ const getDsdvEventDetailsType = (event: Event): EventDetailsType => {
     return EventDetailsType.DsdvRouteRemoved;
   }
 
+  if (type === EventType.Calculation) {
+    return EventDetailsType.DsdvRouteExpiredCalculation;
+  }
+
   if (type === EventType.Drop) {
+    const { reason } = details as DropEventDetails;
+    if (reason === DropReason.Skip) return EventDetailsType.DsdvRefreshSkipped;
+
     return EventDetailsType.DsdvRouteDropped;
   }
 

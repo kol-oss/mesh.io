@@ -98,7 +98,7 @@ export abstract class BaseModule implements RoutingModule {
       return false;
     }
 
-    const hop = this.graph.getNode(hopPeerId);
+    const hop = this.graph.getNeighbours(this.peerId).find((peer) => peer.id === hopPeerId);
     if (!hop) {
       this.recordEvent(EventType.Drop, {
         message: clone(message),

@@ -4,18 +4,11 @@ import { type StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import { EntityType } from "@/shared/types/model/entities";
 import { getEventDetailsType, getEventProtocol } from "@/shared/utils/events";
-import {
-  getEventMessage,
-  getPeerLabel,
-  getRouteChange,
-  getRouteSequenceWindowExplanation,
-  getSimulationReadMorePath,
-  getThroughputBreakdown,
-  renderPeerName,
-} from "@/shared/utils/simulation/eventPresentation";
+import { getPeerLabel, renderPeerName } from "@/shared/utils/simulation/eventPresentation";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Link } from "react-router-dom";
+import { getEventLink } from "../../constants/links";
 import { getEventTitle } from "../../constants/titles";
 import AodvDescription from "./AodvDescription";
 import BatmanDescription from "./BatmanDescription";
@@ -104,8 +97,6 @@ export default function EventDescription({
   const peerNameById = new Map(
     currentStepResult.snapshot.peers.map((peer) => [peer.id, peer.name]),
   );
-  const routeChange = getRouteChange(currentEvent);
-  const currentMessage = getEventMessage(currentEvent);
 
   const detailsType = getEventDetailsType(currentEvent);
   const title = getEventTitle(detailsType);
@@ -135,17 +126,7 @@ export default function EventDescription({
       : currentEvent.peerId;
   })();
 
-  const throughputBreakdown = getThroughputBreakdown(currentEvent);
-  const routeSequenceWindowExplanation = routeChange
-    ? getRouteSequenceWindowExplanation(currentEvent)
-    : null;
-  const readMorePath = getSimulationReadMorePath(
-    currentEvent,
-    currentMessage,
-    routeChange !== null,
-    throughputBreakdown !== null,
-    routeSequenceWindowExplanation !== null,
-  );
+  const documentationLink = getEventLink(currentEvent, detailsType);
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     event.stopPropagation();
@@ -242,7 +223,7 @@ export default function EventDescription({
       <footer className="simulation-panel__footer">
         <Link
           className="simulation-panel__read-more"
-          to={readMorePath}
+          to={documentationLink}
           target="_blank"
           rel="noreferrer"
         >

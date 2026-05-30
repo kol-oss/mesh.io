@@ -1,3 +1,4 @@
+import type { DropEventDetails } from "@/shared/types/common/events";
 import type { BaseMessage, Message, MessageType } from "../../../../shared/types/common/messages";
 import type { RoutingProtocol } from "../../../../shared/types/common/protocols";
 import type { UUID } from "../../../../shared/types/common/uuid";
@@ -34,6 +35,12 @@ export type DsdvRouteUpdateMessage = BaseMessage & {
   entries: DsdvRouteUpdateRecordEntry[];
 };
 
+// Calculation details
+export type DsdvCalculationEventDetails = {
+  sequence: number;
+  route: DsdvRouteRecord;
+};
+
 // AddRoute, UpdateRoute, and DeleteRoute details
 export type DsdvRouteChangeEventDetails = {
   protocol: typeof RoutingProtocol.DSDV;
@@ -42,4 +49,8 @@ export type DsdvRouteChangeEventDetails = {
   previousRoute: DsdvRouteRecord | null;
   nextRoute: DsdvRouteRecord | null;
   message?: Message;
+};
+
+export type DsdvDropRouteEventDetails = DropEventDetails & {
+  record: DsdvRouteUpdateRecordEntry;
 };

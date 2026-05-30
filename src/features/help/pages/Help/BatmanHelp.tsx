@@ -20,7 +20,7 @@ const SECTIONS = [
 ];
 
 export default function BatmanHelp() {
-  useScroll(SECTIONS);
+  useScroll("batman", SECTIONS);
 
   return (
     <section className="help-page__section" id="batman">

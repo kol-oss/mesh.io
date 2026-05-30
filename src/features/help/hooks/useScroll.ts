@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export const useScroll = (sections: string[]) => {
+export const useScroll = (page: string, sections: string[]) => {
   useEffect(() => {
     const scrollToHashSection = () => {
       const sectionId = window.location.hash.replace("#", "");
@@ -32,7 +32,7 @@ export const useScroll = (sections: string[]) => {
         const sectionId = sections[i];
         const element = document.getElementById(sectionId);
         if (element && element.offsetTop <= scrollPosition) {
-          window.history.replaceState(null, "", `/docs/olsr#${sectionId}`);
+          window.history.replaceState(null, "", `/docs/${page}#${sectionId}`);
           break;
         }
       }
@@ -40,5 +40,5 @@ export const useScroll = (sections: string[]) => {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [sections]);
+  }, [sections, page]);
 };

@@ -9,13 +9,13 @@ const SECTIONS = [
   "dsdv",
   "what-you-need-to-know",
   "sequence-numbering-and-metrics",
-  "full-dumps-and-incremental-updates",
+  "updates-sharing",
   "routing-maintenance",
   "route-selection",
 ];
 
 export default function DsdvHelp() {
-  useScroll(SECTIONS);
+  useScroll("dsdv", SECTIONS);
 
   return (
     <section className="help-page__section" id="dsdv">
@@ -115,7 +115,7 @@ export default function DsdvHelp() {
           that time.
         </TextBlock>
       </div>
-      <div className="help-page__chapter" id="full-and-incremental-updates">
+      <div className="help-page__chapter" id="updates-sharing">
         <h2 className="help-page__chapter-title">Full Dump and Incremental Update</h2>
         <TextBlock>
           Routing information in DSDV is maintained using two different types of routing messages:
@@ -136,14 +136,12 @@ export default function DsdvHelp() {
               },
               {
                 label: "Reserved",
-                bits: 24,
+                bits: 8,
                 description: "Padding to maintain 32-bit alignment.",
               },
-            ],
-            [
               {
                 label: "Entry Count",
-                bits: 32,
+                bits: 16,
                 description: "The number of route entries contained in this packet.",
               },
             ],
@@ -197,10 +195,11 @@ export default function DsdvHelp() {
         </TextBlock>
         <ModellingTrap>
           <TextBlock>
-            Due to the sequential and deterministic nature of the system, both Incremental Updates
-            and Full Dumps are sent in specified intervals. In the real world, Full Dumps are sent
-            **every 15-30 seconds**, but it is recommended to set their value as 5 ticks inside the
-            simulator.
+            In the real world, the interval is applied only for **Full Dumps**, while **Incremental
+            Updates** are sent immediately after changes in the *Routing Table*. Due to
+            implementation reasons, in this simulation both types of updates are sent in specified
+            intervals, but if there were no changes during Icremental Update interval, the step will
+            end with Skip event.
           </TextBlock>
         </ModellingTrap>
       </div>
@@ -251,13 +250,6 @@ export default function DsdvHelp() {
           infinity**. This localized broken link realization is then rapidly broadcast to other
           nodes to purge the dead route from the wider network.
         </TextBlock>
-        <ModellingTrap>
-          <TextBlock>
-            The algorithm for detecting broken links is simplified to make simulation faster and
-            more deterministic. The connection to the node will be considered broken if the was no
-            routing messages from it during **one Full Dump interval plus Route Timeout** ticks.
-          </TextBlock>
-        </ModellingTrap>
         <TextBlock>
           To prevent excessive broadcasting and network congestion, the theoretical DSDV protocol
           utilizes a mechanism known as **Settling Time**. In a wireless mesh, a node might receive

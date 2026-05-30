@@ -9,6 +9,7 @@ import type {
   BatmanRouteRecord,
 } from "../../../features/processor/types/protocols/batman";
 import type {
+  DsdvCalculationEventDetails,
   DsdvRouteChangeEventDetails,
   DsdvRouteRecord,
 } from "../../../features/processor/types/protocols/dsdv";
@@ -59,7 +60,10 @@ export type BroadcastEventDetails = {
 };
 
 // for Calculation event
-export type CalculationEventDetails = BatmanCalculationEventDetails | AodvCalculationEventDetails;
+export type CalculationEventDetails =
+  | BatmanCalculationEventDetails
+  | DsdvCalculationEventDetails
+  | AodvCalculationEventDetails;
 
 export enum DropReason {
   NoRoute = "NO_ROUTE",
@@ -69,6 +73,7 @@ export enum DropReason {
   Duplicate = "DUPLICATE",
   SourceIsTarget = "SOURCE_IS_TARGET",
   NotOptimalRoute = "NOT_OPTIMAL_ROUTE",
+  Skip = "SKIP",
 }
 
 // for Drop event
@@ -144,14 +149,14 @@ export enum EventDetailsType {
   Unknown,
   // DSDV-specific event details types
   DsdvIncrementalMessageBroadcast,
-  DsdvIncrementalMessageRetransmission,
   DsdvFullDumpMessageBroadcast,
-  DsdvFullDumpMessageRetransmission,
   DsdvRouteSelected,
   DsdvRouteAdded,
   DsdvRouteUpdated,
   DsdvRouteRemoved,
   DsdvRouteDropped,
+  DsdvRefreshSkipped,
+  DsdvRouteExpiredCalculation,
   // Batman-specific event details types
   BatmanThroughputCalculation,
   BatmanEchoLocationMessageBroadcast,

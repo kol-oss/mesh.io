@@ -23,21 +23,16 @@ import {
 } from "@/features/processor/types/protocols/olsr";
 import {
   EventType,
-  type DropEventDetails,
   type Event,
   type GetRouteEventDetails,
-  type MoveEventDetails,
   type RouteChangeEventDetails,
-  type StatusChangeEventDetails,
   type TransferEventDetails,
 } from "@/shared/types/common/events";
 import { MessageType, type Message } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import { EntityType } from "@/shared/types/model/entities";
 import {
   formatFixed,
-  getEventDescription as getBatmanEventDescription,
   getEventMessage as getBatmanEventMessage,
   getEventTitle as getBatmanEventTitle,
   getMessageSummary as getBatmanMessageSummary,
@@ -361,182 +356,6 @@ export const getEventTitle = (event: Event) => {
   return "Simulation Event";
 };
 
-export const getEventDescription = (event: Event, peerNameById: Map<UUID, string>) => {
-  if (event.type === EventType.Move) {
-    const details = event.details as MoveEventDetails;
-    return `Peer is moved to the position (${details.toX}, ${details.toY}).`;
-  }
-
-  if (event.type === EventType.StatusChange) {
-    const details = event.details as StatusChangeEventDetails;
-    const entityLabel = details.entityType === EntityType.Link ? "Link" : "Peer";
-    return `${entityLabel} status changed to ${details.nextEnabled ? "enabled" : "disabled"}.`;
-  }
-
-  const message = getEventMessage(event);
-  const protocol = detectEventProtocol(event, message);
-
-  if (protocol === RoutingProtocol.BATMAN) {
-    return getBatmanEventDescription(event, peerNameById);
-  }
-
-  if (protocol !== RoutingProtocol.DSDV) {
-    if (
-      protocol !== RoutingProtocol.AODV &&
-      protocol !== RoutingProtocol.OLSR &&
-      protocol !== RoutingProtocol.DSR
-    ) {
-      return "Node emitted a simulation event.";
-    }
-
-    if (protocol === RoutingProtocol.AODV) {
-      const routeChange = getRouteChange(event);
-      if (routeChange && routeChange.protocol === RoutingProtocol.AODV) {
-        if (event.type === EventType.AddRoute) {
-          return "Node inserted a new AODV route after route discovery or neighbour sensing.";
-        }
-
-        if (event.type === EventType.UpdateRoute) {
-          return "Node updated an existing AODV route using sequence-number and hop-count comparison.";
-        }
-
-        return "Node removed or invalidated an AODV route after timeout or link-break processing.";
-      }
-
-      if (event.type === EventType.Broadcast) {
-        return "Node processed AODV control traffic.";
-      }
-
-      if (event.type === EventType.Drop) {
-        const details = event.details as DropEventDetails;
-        return `The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${details.reason}.`;
-      }
-
-      if (event.type === EventType.GetRoute) {
-        const details = event.details as GetRouteEventDetails;
-        if ("nextHopPeerId" in details.selectedRoute) {
-          return `Selected AODV route to ${getPeerNameForDescription(details.destinationPeerId, peerNameById)} via ${getPeerNameForDescription(details.selectedRoute.nextHopPeerId, peerNameById)} with hop count ${details.selectedRoute.metric} and destination sequence ${details.selectedRoute.sequenceNumber}.`;
-        }
-      }
-
-      if (event.type === EventType.Calculation) {
-        return "Node processed an AODV control calculation step.";
-      }
-
-      return "Node emitted a simulation event.";
-    }
-
-    if (protocol === RoutingProtocol.DSR) {
-      const routeChange = getRouteChange(event);
-      if (routeChange && routeChange.protocol === RoutingProtocol.DSR) {
-        if (event.type === EventType.AddRoute) {
-          return "Node inserted a DSR Route Cache entry from a discovered source route.";
-        }
-
-        if (event.type === EventType.UpdateRoute) {
-          return "Node updated a DSR Route Cache entry after receiving fresher route knowledge.";
-        }
-
-        return "Node removed a DSR Route Cache entry after link failure or expiration.";
-      }
-
-      if (event.type === EventType.Broadcast) {
-        return "Node flooded a DSR Route Request.";
-      }
-
-      if (event.type === EventType.Drop) {
-        const details = event.details as DropEventDetails;
-        return `The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${details.reason}.`;
-      }
-
-      if (event.type === EventType.GetRoute) {
-        const details = event.details as GetRouteEventDetails;
-        if ("pathPeerIds" in details.selectedRoute) {
-          return `Selected DSR source route to ${getPeerNameForDescription(details.destinationPeerId, peerNameById)} via ${getPeerNameForDescription(details.selectedRoute.nextHopPeerId, peerNameById)} (${details.selectedRoute.metric} hops). Full path: ${details.selectedRoute.pathPeerIds
-            .map((peerId) => getPeerNameForDescription(peerId, peerNameById))
-            .join(" -> ")}.`;
-        }
-      }
-
-      if (event.type === EventType.Calculation) {
-        return "Node processed a DSR control calculation step.";
-      }
-
-      return "Node emitted a simulation event.";
-    }
-
-    const routeChange = getRouteChange(event);
-    if (routeChange && routeChange.protocol === RoutingProtocol.OLSR) {
-      if (event.type === EventType.AddRoute) {
-        return "Node inserted a new OLSR route after recalculating routes from the Neighbor Set, 2-Hop Neighbor Set, and Topology Table.";
-      }
-
-      if (event.type === EventType.UpdateRoute) {
-        return "Node updated an OLSR route after recalculating routes from learned OLSR topology state.";
-      }
-
-      return "Node removed an OLSR route after neighbour or topology information changed.";
-    }
-
-    if (event.type === EventType.Broadcast) {
-      return "OLSR control-message handling executed for this node.";
-    }
-
-    if (event.type === EventType.Drop) {
-      const details = event.details as DropEventDetails;
-      return `The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${details.reason}.`;
-    }
-
-    if (event.type === EventType.GetRoute) {
-      const details = event.details as GetRouteEventDetails;
-      if ("nextHopPeerId" in details.selectedRoute) {
-        return `Selected OLSR route to ${getPeerNameForDescription(details.destinationPeerId, peerNameById)} via ${getPeerNameForDescription(details.selectedRoute.nextHopPeerId, peerNameById)} with hop metric ${details.selectedRoute.metric}.`;
-      }
-    }
-
-    if (event.type === EventType.Calculation) {
-      return "Node recalculated OLSR routing state from neighbour and topology information.";
-    }
-
-    return "Node emitted a simulation event.";
-  }
-
-  const routeChange = getRouteChange(event);
-  if (routeChange && routeChange.protocol === RoutingProtocol.DSDV) {
-    if (event.type === EventType.AddRoute) {
-      return "Node inserted a new DSDV route after accepting an incoming update.";
-    }
-
-    if (event.type === EventType.UpdateRoute) {
-      return "Node updated an existing DSDV route using the DSDV acceptance rule.";
-    }
-
-    return "Node removed a DSDV route after timeout-based garbage collection.";
-  }
-
-  if (event.type === EventType.Broadcast && isDsdvMessage(message)) {
-    const fallbackNote =
-      message.updateType === DsdvUpdateType.Incremental
-        ? `Incremental update with ${message.entries.length} changed route entr${message.entries.length === 1 ? "y" : "ies"}.`
-        : `Full dump update with ${message.entries.length} route entr${message.entries.length === 1 ? "y" : "ies"}.`;
-    return `Node broadcast a DSDV routing update. ${fallbackNote}`;
-  }
-
-  if (event.type === EventType.Drop) {
-    const details = event.details as DropEventDetails;
-    return `The node could not send this MESSAGE-step packet because no valid next-hop route could be selected from the routing table at this tick. Details: ${details.reason}.`;
-  }
-
-  if (event.type === EventType.GetRoute) {
-    const details = event.details as GetRouteEventDetails;
-    if ("nextHopPeerId" in details.selectedRoute) {
-      return `Selected DSDV route to ${getPeerLabel(details.destinationPeerId, peerNameById)} via ${getPeerLabel(details.selectedRoute.nextHopPeerId, peerNameById)} with metric ${details.selectedRoute.metric} and sequence ${details.selectedRoute.sequenceNumber}.`;
-    }
-  }
-
-  return "Node emitted a simulation event.";
-};
-
 export const getSimulationReadMorePath = (
   event: Event,
   message: Message | null,
@@ -799,10 +618,6 @@ export const getMessageSummary = (
   }
 
   return null;
-};
-
-const getPeerNameForDescription = (peerId: UUID, peerNameById: Map<UUID, string>) => {
-  return peerNameById.get(peerId) ?? "Unknown";
 };
 
 export {

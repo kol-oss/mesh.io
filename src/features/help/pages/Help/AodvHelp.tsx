@@ -15,7 +15,7 @@ const SECTIONS = [
 ];
 
 export default function AodvHelp() {
-  useScroll(SECTIONS);
+  useScroll("aodv", SECTIONS);
 
   return (
     <section className="help-page__section" id="aodv">

@@ -62,16 +62,14 @@ export const getDsdvUpdateMessageStructure = (
       {
         label: "Reserved",
         value: "N/A",
-        bits: 24,
+        bits: 8,
         description: "Padding used to maintain 32-bit alignment in this simplified model.",
         blocked: true,
       },
-    ],
-    [
       {
         label: "Entry Count",
         value: String(message.entries.length),
-        bits: 32,
+        bits: 16,
         description: "Total number of route entries carried by this update.",
         blocked: false,
       },

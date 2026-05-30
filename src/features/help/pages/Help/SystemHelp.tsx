@@ -15,7 +15,7 @@ const SECTIONS = [
 ];
 
 export default function SystemHelp() {
-  useScroll(SECTIONS);
+  useScroll("system", SECTIONS);
 
   return (
     <section className="help-page__section" id="system">

@@ -35,11 +35,7 @@ export const getStructuresByProtocol = (
   module: RoutingModule,
 ): RoutingStructureType => {
   const result: RoutingStructureType = {} as RoutingStructureType;
-  if (protocol == RoutingProtocol.DSDV) {
-    const dsdvModule = module as DsdvModule;
-
-    result[RoutingStructure.DsdvRoutingTable] = dsdvModule.getRoutes();
-  } else if (protocol == RoutingProtocol.AODV) {
+  if (protocol == RoutingProtocol.AODV) {
     const aodvModule = module as AodvModule;
 
     result[RoutingStructure.AodvRoutingTable] = aodvModule.getRoutes();
