@@ -5,6 +5,12 @@ import type {
   SimulationWorkerRequest,
   SimulationWorkerResponse,
 } from "@/features/processor/types/simulationWorker";
+import { createLinkPropertiesSchema } from "@/shared/schemas/entity/LinkEntitySchema";
+import { ObstaclePropertiesSchema } from "@/shared/schemas/entity/ObstacleSchema";
+import { PeerEntitySchema, PeerPropertiesSchema } from "@/shared/schemas/entity/PeerEntitySchema";
+import { createMessageStepPropertiesSchema } from "@/shared/schemas/step/MessageStepSchema";
+import { createMoveStepPropertiesSchema } from "@/shared/schemas/step/MoveStepSchema";
+import { createToggleStepPropertiesSchema } from "@/shared/schemas/step/ToggleStepSchema";
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
 import {
   selectCurrentSimulationEvent,
@@ -54,7 +60,7 @@ import type {
   PeerEntity,
 } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
-import type { Step } from "@/shared/types/model/steps";
+import { StepType, type Step } from "@/shared/types/model/steps";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import type { TextItem } from "@/shared/types/workspace/text";
 import {
@@ -390,7 +396,7 @@ export function useBoardStore() {
 
     exportState(payload);
     showToast("Workspace exported as JSON");
-  }, [display, manualSteps, rawLinks, rawObstacles, rawPeers, showToast, texts]);
+  }, [display, entities, manualSteps, rawLinks, rawObstacles, rawPeers, showToast, texts]);
 
   const handleImportWorkspace = useCallback(
     async (file: File) => {
@@ -452,6 +458,79 @@ export function useBoardStore() {
       return;
     }
 
+    const peers = entities.filter(
+      (entity): entity is PeerEntity => entity.type === EntityType.Peer,
+    );
+    const peerIds = new Set(peers.map((peer) => peer.id));
+    const toggleEntityIds = new Set(
+      entities
+        .filter((entity) => entity.type === EntityType.Peer || entity.type === EntityType.Link)
+        .map((entity) => entity.id),
+    );
+
+    const firstInvalidEntity = entities.find((entity) => {
+      if (entity.type === EntityType.Peer) {
+        return (
+          !PeerPropertiesSchema.safeParse({ name: entity.name, range: entity.range }).success ||
+          !PeerEntitySchema.safeParse(entity).success
+        );
+      }
+
+      if (entity.type === EntityType.Link) {
+        return !createLinkPropertiesSchema(peerIds).safeParse({
+          name: entity.name,
+          sourcePeerId: entity.sourcePeerId,
+          destinationPeerId: entity.destinationPeerId,
+        }).success;
+      }
+
+      return !ObstaclePropertiesSchema.safeParse({
+        name: entity.name,
+        width: entity.width,
+        height: entity.height,
+      }).success;
+    });
+
+    if (firstInvalidEntity) {
+      dispatch(setOpenedTab({ tab: TABS.ENTITIES, opened: true }));
+      handleWorkspaceEntitySelect(firstInvalidEntity.id);
+      showToast("Simulation cannot start because validation failed");
+      return;
+    }
+
+    const firstInvalidStep = manualSteps.find((step) => {
+      if (step.type === StepType.Message) {
+        return !createMessageStepPropertiesSchema(peerIds).safeParse({
+          title: step.title,
+          sourceId: step.sourceId,
+          destinationId: step.destinationId,
+        }).success;
+      }
+
+      if (step.type === StepType.Move) {
+        return !createMoveStepPropertiesSchema(peerIds).safeParse({
+          title: step.title,
+          entityId: step.entityId,
+        }).success;
+      }
+
+      if (step.type === StepType.Toggle) {
+        return !createToggleStepPropertiesSchema(toggleEntityIds).safeParse({
+          title: step.title,
+          entityId: step.entityId,
+        }).success;
+      }
+
+      return false;
+    });
+
+    if (firstInvalidStep) {
+      dispatch(setOpenedTab({ tab: TABS.STEPS, opened: true }));
+      handleWorkspaceStepSelect(firstInvalidStep.id);
+      showToast("Simulation cannot start because validation failed");
+      return;
+    }
+
     simulationRunLockRef.current = true;
     simulationRequestIdRef.current += 1;
     const requestId = simulationRequestIdRef.current;
@@ -488,6 +567,9 @@ export function useBoardStore() {
     dispatch,
     entities,
     focusSimulationStep,
+    handleWorkspaceEntitySelect,
+    handleWorkspaceStepSelect,
+    manualSteps,
     normalizedManualSteps,
     runSimulationInWorker,
     showToast,

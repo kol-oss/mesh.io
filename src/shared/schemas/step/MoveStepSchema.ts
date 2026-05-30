@@ -8,3 +8,22 @@ export const MoveStepSchema = BaseStepSchema.extend({
   x: z.number().finite(),
   y: z.number().finite(),
 });
+
+export const createMoveStepPropertiesSchema = (peerIds: Set<string>) => {
+  return MoveStepSchema.pick({
+    title: true,
+    entityId: true,
+  })
+    .extend({
+      title: z.string().min(1),
+    })
+    .superRefine((value, context) => {
+      if (!value.entityId || !peerIds.has(value.entityId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["entityId"],
+          message: "Peer is required.",
+        });
+      }
+    });
+};
