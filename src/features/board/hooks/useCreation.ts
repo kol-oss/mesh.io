@@ -11,6 +11,7 @@ import {
 } from "@/shared/constants/steps/step";
 import { type UUID } from "@/shared/types/common/uuid.ts";
 import type { NetworkEntity, ObstacleEntity, PeerEntity } from "@/shared/types/model/entities.ts";
+import { EntityType } from "@/shared/types/model/entities.ts";
 import type { Step, UserStep } from "@/shared/types/model/steps.ts";
 import type {
   WorkspaceCreationCallbacks,
@@ -30,7 +31,10 @@ type UseCreationParams = {
 export function useCreation({ entities, steps, texts, setters, callbacks }: UseCreationParams) {
   const createPeerAt = useCallback(
     (x: number, y: number) => {
-      const nextPeer: PeerEntity = getDefaultPeer(x, y);
+      const peers = entities.filter(
+        (entity): entity is PeerEntity => entity.type === EntityType.Peer,
+      );
+      const nextPeer: PeerEntity = getDefaultPeer(x, y, peers);
 
       setters.setEntities([...entities, nextPeer]);
       callbacks.onEntitySelect(nextPeer.id);
