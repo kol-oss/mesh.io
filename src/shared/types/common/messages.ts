@@ -13,6 +13,8 @@ import type {
   DsrRouteErrorMessage,
   DsrRouteReplyMessage,
   DsrRouteRequestMessage,
+  NewDsrRouteReplyMessage,
+  NewDsrRouteRequestMessage,
 } from "../../../features/processor/types/protocols/dsr";
 import type {
   OlsrHelloMessage,
@@ -60,4 +62,6 @@ export type Message =
   | OlsrTcMessage
   | DsrRouteRequestMessage
   | DsrRouteReplyMessage
-  | DsrRouteErrorMessage;
+  | DsrRouteErrorMessage
+  | NewDsrRouteRequestMessage
+  | NewDsrRouteReplyMessage;

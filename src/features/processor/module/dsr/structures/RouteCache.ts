@@ -1,7 +1,6 @@
 import type { DsrRouteRecord } from "@/features/processor/types/protocols/dsr";
+import { clone } from "@/features/processor/utils/clone";
 import type { UUID } from "@/shared/types/common/uuid";
-
-type RouteKey = UUID;
 
 type ExcludedLink = [UUID, UUID];
 
@@ -12,20 +11,14 @@ export type RouteCacheUpsertResult = {
 };
 
 export class RouteCache {
-  private readonly routes = new Map<RouteKey, DsrRouteRecord>();
+  private readonly routes = new Map<UUID, DsrRouteRecord>();
 
-  get(destinationPeerId: UUID) {
-    return this.routes.get(destinationPeerId) ?? null;
-  }
-
-  entries() {
-    return this.routes.entries();
+  get(destinationId: UUID): DsrRouteRecord | null {
+    return this.routes.get(destinationId) ?? null;
   }
 
   getAll() {
-    return [...this.routes.values()].sort((left, right) =>
-      left.destinationPeerId.localeCompare(right.destinationPeerId),
-    );
+    return Array.from(this.routes.values()).map((route) => clone(route));
   }
 
   upsert(

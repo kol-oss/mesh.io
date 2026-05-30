@@ -129,37 +129,28 @@ export default function MessageStructure({
           />
         )}
 
-        {protocol == RoutingProtocol.DSDV &&
-          eventMessage?.type === MessageType.DsdvRouteUpdateMessage && (
-            <DsdvMessageStructure message={eventMessage} peers={currentStepResult.snapshot.peers} />
-          )}
+        {protocol == RoutingProtocol.DSDV && (
+          <DsdvMessageStructure message={eventMessage!} peers={currentStepResult.snapshot.peers} />
+        )}
 
-        {eventMessage?.type === MessageType.AodvRouteRequestMessage ||
-        eventMessage?.type === MessageType.AodvRouteReplyMessage ||
-        eventMessage?.type === MessageType.AodvRouteErrorMessage ||
-        eventMessage?.type === MessageType.AodvHelloMessage ? (
+        {protocol == RoutingProtocol.DSR && (
+          <DsrMessageStructure message={eventMessage!} peers={currentStepResult.snapshot.peers} />
+        )}
+
+        {protocol == RoutingProtocol.AODV && (
           <AodvMessageStructure
-            message={eventMessage}
+            message={eventMessage!}
             peerNameById={peerNameById}
             packetStructureAria={packetStructureAria}
           />
-        ) : eventMessage?.type === MessageType.OlsrHelloMessage ||
-          eventMessage?.type === MessageType.OlsrTcMessage ? (
+        )}
+
+        {protocol == RoutingProtocol.OLSR && (
           <OlsrMessageStructure
-            message={eventMessage}
+            message={eventMessage!}
             peerNameById={peerNameById}
             packetStructureAria={packetStructureAria}
           />
-        ) : eventMessage?.type === MessageType.DsrRouteRequestMessage ||
-          eventMessage?.type === MessageType.DsrRouteReplyMessage ||
-          eventMessage?.type === MessageType.DsrRouteErrorMessage ? (
-          <DsrMessageStructure
-            message={eventMessage}
-            peerNameById={peerNameById}
-            packetStructureAria={packetStructureAria}
-          />
-        ) : (
-          <></>
         )}
       </section>
       <footer className="simulation-panel__footer">

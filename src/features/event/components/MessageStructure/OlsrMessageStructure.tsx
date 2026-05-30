@@ -2,7 +2,7 @@ import {
   type OlsrHelloMessage,
   type OlsrTcMessage,
 } from "@/features/processor/types/protocols/olsr";
-import { MessageType } from "@/shared/types/common/messages";
+import { MessageType, type Message } from "@/shared/types/common/messages";
 
 type PacketStructureField = {
   label: string;
@@ -13,7 +13,7 @@ type PacketStructureField = {
 };
 
 type OlsrMessageStructureProps = {
-  message: OlsrHelloMessage | OlsrTcMessage;
+  message: Message;
   peerNameById: Map<string, string>;
   packetStructureAria: string;
 };
@@ -179,7 +179,7 @@ export default function OlsrMessageStructure({
   const rows =
     message.type === MessageType.OlsrHelloMessage
       ? getOlsrHelloStructureRows(message, peerNameById)
-      : getOlsrTcStructureRows(message, peerNameById);
+      : getOlsrTcStructureRows(message as OlsrTcMessage, peerNameById);
 
   return (
     <div className="simulation-panel__packet-structure" aria-label={packetStructureAria}>

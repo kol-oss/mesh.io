@@ -47,10 +47,6 @@ export const getStructuresByProtocol = (
     result[RoutingStructure.OlsrTwoHopTable] = olsrModule.getTwoHopTable();
     result[RoutingStructure.OlsrSelectorTable] = olsrModule.getSelectorTable();
     result[RoutingStructure.OlsrRoutingTable] = olsrModule.getRoutes();
-  } else if (protocol == RoutingProtocol.DSR) {
-    const dsrModule = module as DsrModule;
-
-    result[RoutingStructure.DsrRoutingTable] = dsrModule.getRoutes();
   }
 
   return result;

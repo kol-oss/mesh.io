@@ -1,10 +1,5 @@
-import {
-  type AodvHelloMessage,
-  type AodvRouteErrorMessage,
-  type AodvRouteReplyMessage,
-  type AodvRouteRequestMessage,
-} from "@/features/processor/types/protocols/aodv";
-import { MessageType } from "@/shared/types/common/messages";
+import { type AodvHelloMessage } from "@/features/processor/types/protocols/aodv";
+import { MessageType, type Message } from "@/shared/types/common/messages";
 
 type PacketStructureField = {
   label: string;
@@ -15,21 +10,13 @@ type PacketStructureField = {
 };
 
 type AodvMessageStructureProps = {
-  message:
-    | AodvRouteRequestMessage
-    | AodvRouteReplyMessage
-    | AodvRouteErrorMessage
-    | AodvHelloMessage;
+  message: Message;
   peerNameById: Map<string, string>;
   packetStructureAria: string;
 };
 
 const getAodvStructureRows = (
-  message:
-    | AodvRouteRequestMessage
-    | AodvRouteReplyMessage
-    | AodvRouteErrorMessage
-    | AodvHelloMessage,
+  message: Message,
   peerNameById: Map<string, string>,
 ): PacketStructureField[][] => {
   if (message.type === MessageType.AodvRouteRequestMessage) {
@@ -223,6 +210,7 @@ const getAodvStructureRows = (
     ];
   }
 
+  const aodvMessage = message as AodvHelloMessage;
   return [
     [
       {
@@ -234,7 +222,7 @@ const getAodvStructureRows = (
       },
       {
         label: "Destination Sequence Number",
-        value: String(message.destinationSequenceNumber),
+        value: String(aodvMessage.destinationSequenceNumber),
         bits: 32,
         description: "Sequence number that keeps the direct neighbour route fresh.",
         blocked: false,
@@ -243,14 +231,14 @@ const getAodvStructureRows = (
     [
       {
         label: "Lifetime",
-        value: String(message.lifetime),
+        value: String(aodvMessage.lifetime),
         bits: 32,
         description: "Time for which receivers should treat the neighbour route as active.",
         blocked: false,
       },
       {
         label: "Interval",
-        value: String(message.interval),
+        value: String(aodvMessage.interval),
         bits: 32,
         description: "HELLO emission interval advertised to neighbours.",
         blocked: false,

@@ -13,6 +13,15 @@ export type DsrRouteRequestMessage = BaseMessage & {
   routePeerIds: UUID[];
 };
 
+// RREQ message
+export type NewDsrRouteRequestMessage = BaseMessage & {
+  type: MessageType.DsrRouteRequestMessage;
+  identification: number;
+  sourceId: UUID;
+  destinationId: UUID;
+  addresses: UUID[];
+};
+
 // RREP message
 export type DsrRouteReplyMessage = BaseMessage & {
   type: MessageType.DsrRouteReplyMessage;
@@ -22,6 +31,15 @@ export type DsrRouteReplyMessage = BaseMessage & {
   requestId: number;
   hopLimit: number;
   routePeerIds: UUID[];
+};
+
+// RREP message
+export type NewDsrRouteReplyMessage = BaseMessage & {
+  type: MessageType.DsrRouteReplyMessage;
+  identification: number;
+  sourceId: UUID;
+  destinationId: UUID;
+  addresses: UUID[];
 };
 
 // RERR message
