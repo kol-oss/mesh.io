@@ -4,6 +4,8 @@ import PropertyGroup from "@/features/properties/components/Property/PropertyGro
 import PropertyHeader from "@/features/properties/components/Property/PropertyHeader";
 import TextPropertyField from "@/features/properties/components/Property/TextPropertyField";
 import Letter from "@/shared/components/Letter/Letter";
+import { OBSTACLE_MIN_HEIGHT, OBSTACLE_MIN_WIDTH } from "@/shared/constants/entities/obstacle";
+import { ObstaclePropertiesSchema } from "@/shared/schemas/entity/ObstacleSchema";
 import type { ObstacleEntity } from "@/shared/types/model/entities";
 import type { EntityPropertiesProps } from "@/shared/types/view/properties";
 import { updateEntity } from "@/shared/utils/mutation";
@@ -18,6 +20,16 @@ export default function ObstacleProperties({
   setEntities,
 }: ObstaclePropertiesProps) {
   const { name, locked: isLocked } = selected;
+
+  const obstacleValidation = ObstaclePropertiesSchema.safeParse({
+    name,
+    width: selected.width,
+    height: selected.height,
+  });
+  const obstacleErrors = obstacleValidation.success
+    ? null
+    : obstacleValidation.error.flatten().fieldErrors;
+
   const updateObstacle = (changes: Partial<ObstacleEntity>) => {
     setEntities(updateEntity(selected, entities, changes));
   };
@@ -37,7 +49,7 @@ export default function ObstacleProperties({
           <TextPropertyField
             label="Name"
             value={name}
-            valid={!!name}
+            valid={!obstacleErrors?.name}
             onChange={(event) => updateObstacle({ name: event.target.value })}
             disabled={isLocked}
           />
@@ -65,22 +77,32 @@ export default function ObstacleProperties({
         <PropertyGroup label="Size">
           <NumberPropertyField
             icon={<MoveHorizontal size={12} />}
+            valid={!obstacleErrors?.width}
             value={selected.width}
-            min={1}
+            min={OBSTACLE_MIN_WIDTH}
             onChange={(event) =>
               updateObstacle({
-                width: parsePositiveNumberValue(event.target.value, selected.width),
+                width: parsePositiveNumberValue(
+                  event.target.value,
+                  selected.width,
+                  OBSTACLE_MIN_WIDTH,
+                ),
               })
             }
             disabled={isLocked}
           />
           <NumberPropertyField
             icon={<MoveVertical size={12} />}
+            valid={!obstacleErrors?.height}
             value={selected.height}
-            min={1}
+            min={OBSTACLE_MIN_HEIGHT}
             onChange={(event) =>
               updateObstacle({
-                height: parsePositiveNumberValue(event.target.value, selected.height),
+                height: parsePositiveNumberValue(
+                  event.target.value,
+                  selected.height,
+                  OBSTACLE_MIN_HEIGHT,
+                ),
               })
             }
             disabled={isLocked}

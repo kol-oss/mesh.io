@@ -1,17 +1,13 @@
 import { peerRoutingProtocols, workflowStepTypes } from "@/shared/constants/protocols/protocol";
-import { getConfigurationSchema } from "@/shared/schemas/configuration/ConfigurationSchema";
+import { LinkEntitySchema } from "@/shared/schemas/entity/LinkEntitySchema";
+import { ObstacleEntitySchema } from "@/shared/schemas/entity/ObstacleSchema";
+import { PeerEntitySchema } from "@/shared/schemas/entity/PeerEntitySchema";
 import type { DisplayState } from "@/shared/store/slices/displaySlice";
 import { TABS } from "@/shared/store/slices/displaySlice";
 import { ActionGroup, ActionMode, type ActionModesByGroup } from "@/shared/types/action";
 import type { ImportPayload } from "@/shared/types/common/migration";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
-import type {
-  LinkEntity,
-  NetworkEntity,
-  ObstacleEntity,
-  PeerEntity,
-} from "@/shared/types/model/entities";
-import { EntityType } from "@/shared/types/model/entities";
+import type { LinkEntity, ObstacleEntity, PeerEntity } from "@/shared/types/model/entities";
 import { RefreshAction, StepType, type Step } from "@/shared/types/model/steps";
 import type { TextItem } from "@/shared/types/workspace/text";
 
@@ -31,56 +27,16 @@ const isBoolean = (value: unknown): value is boolean => {
   return typeof value === "boolean";
 };
 
-const isValidProtocol = (value: unknown): value is RoutingProtocol => {
-  return typeof value === "string" && peerRoutingProtocols.includes(value as RoutingProtocol);
+const isValidPeerEntity = (value: unknown): value is PeerEntity => {
+  return PeerEntitySchema.safeParse(value).success;
 };
 
-const isValidNetworkEntity = (value: unknown): value is NetworkEntity => {
-  if (!isRecord(value) || typeof value.id !== "string" || typeof value.name !== "string") {
-    return false;
-  }
+const isValidLinkEntity = (value: unknown): value is LinkEntity => {
+  return LinkEntitySchema.safeParse(value).success;
+};
 
-  if ("locked" in value && typeof value.locked !== "boolean") {
-    return false;
-  }
-
-  if (value.type === EntityType.Peer) {
-    if (!isValidProtocol(value.protocol)) {
-      return false;
-    }
-
-    const configurationSchema = getConfigurationSchema(value.protocol);
-
-    return (
-      isFiniteNumber(value.x) &&
-      isFiniteNumber(value.y) &&
-      isFiniteNumber(value.range) &&
-      value.range > 0 &&
-      typeof value.enabled === "boolean" &&
-      configurationSchema.safeParse(value.configuration).success
-    );
-  }
-
-  if (value.type === EntityType.Link) {
-    return (
-      isNullableString(value.sourcePeerId) &&
-      isNullableString(value.destinationPeerId) &&
-      typeof value.enabled === "boolean"
-    );
-  }
-
-  if (value.type === EntityType.Obstacle) {
-    return (
-      isFiniteNumber(value.x) &&
-      isFiniteNumber(value.y) &&
-      isFiniteNumber(value.width) &&
-      value.width > 0 &&
-      isFiniteNumber(value.height) &&
-      value.height > 0
-    );
-  }
-
-  return false;
+const isValidObstacleEntity = (value: unknown): value is ObstacleEntity => {
+  return ObstacleEntitySchema.safeParse(value).success;
 };
 
 const isValidTextItem = (value: unknown): value is TextItem => {
@@ -200,16 +156,11 @@ export const validateAndParseImportPayload = (raw: string): ImportPayload => {
 
   if (
     Array.isArray(parsed.peers) &&
-    parsed.peers.every(isValidNetworkEntity) &&
-    parsed.peers.every((entity): entity is PeerEntity => entity.type === EntityType.Peer) &&
+    parsed.peers.every(isValidPeerEntity) &&
     Array.isArray(parsed.links) &&
-    parsed.links.every(isValidNetworkEntity) &&
-    parsed.links.every((entity): entity is LinkEntity => entity.type === EntityType.Link) &&
+    parsed.links.every(isValidLinkEntity) &&
     Array.isArray(parsed.obstacles) &&
-    parsed.obstacles.every(isValidNetworkEntity) &&
-    parsed.obstacles.every(
-      (entity): entity is ObstacleEntity => entity.type === EntityType.Obstacle,
-    ) &&
+    parsed.obstacles.every(isValidObstacleEntity) &&
     Array.isArray(parsed.steps) &&
     parsed.steps.every(isValidWorkflowStep) &&
     (!("texts" in parsed) ||

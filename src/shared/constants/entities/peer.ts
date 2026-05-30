@@ -5,6 +5,9 @@ import { EntityType } from "@/shared/types/model/entities";
 import type { PeerEntity } from "@/shared/types/model/peers";
 import { getDefaultPeerConfiguration } from "../protocols/protocol";
 
+// validation
+export const PEER_MIN_RANGE = 1;
+
 // default properties
 export const getDefaultPeer = (x: number, y: number): PeerEntity => ({
   id: generateUUID(),

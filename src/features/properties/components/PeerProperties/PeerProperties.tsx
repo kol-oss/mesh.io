@@ -8,13 +8,15 @@ import PropertyHeader from "@/features/properties/components/Property/PropertyHe
 import ProtocolField from "@/features/properties/components/Property/ProtocolField";
 import TextPropertyField from "@/features/properties/components/Property/TextPropertyField";
 import Letter from "@/shared/components/Letter/Letter";
+import { PEER_MIN_RANGE } from "@/shared/constants/entities/peer";
+import { PeerPropertiesSchema } from "@/shared/schemas/entity/PeerEntitySchema";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { PeerConfiguration } from "@/shared/types/model/configurations";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
 import type { EntityPropertiesProps } from "@/shared/types/view/properties";
 import { updateEntity } from "@/shared/utils/mutation";
-import { parseNumber } from "@/shared/utils/properties";
+import { parseNumber, parsePositiveNumberValue } from "@/shared/utils/properties";
 import AodvProperties from "./AodvProperties";
 import BatmanProperties from "./BatmanProperties";
 import DsdvProperties from "./DsdvProperties";
@@ -25,6 +27,13 @@ type PeerPropertiesProps = EntityPropertiesProps<PeerEntity>;
 
 export default function PeerProperties({ selected, entities, setEntities }: PeerPropertiesProps) {
   const { locked: isLocked, protocol } = selected;
+
+  const peerValidation = PeerPropertiesSchema.safeParse({
+    name: selected.name,
+    range: selected.range,
+  });
+  const errors = peerValidation.success ? null : peerValidation.error.flatten().fieldErrors;
+
   const updatePeer = (changes: Partial<PeerEntity>) => {
     setEntities(updateEntity(selected, entities, changes));
   };
@@ -98,7 +107,7 @@ export default function PeerProperties({ selected, entities, setEntities }: Peer
           <TextPropertyField
             label="Name"
             value={selected.name}
-            valid={!!selected.name}
+            valid={!errors?.name}
             disabled={isLocked}
             onChange={(event) => updatePeer({ name: event.target.value })}
           />
@@ -123,13 +132,15 @@ export default function PeerProperties({ selected, entities, setEntities }: Peer
           <NumberPropertyField
             label="Range"
             icon={<CircleDot size={12} />}
+            valid={!errors?.range}
             value={selected.range}
+            min={PEER_MIN_RANGE}
             disabled={isLocked}
-            onChange={(event) =>
+            onChange={(event) => {
               updatePeer({
-                range: parseNumber(event.target.value, selected.range),
-              })
-            }
+                range: parsePositiveNumberValue(event.target.value, selected.range, PEER_MIN_RANGE),
+              });
+            }}
           />
           <BooleanPropertyField
             label="Status"

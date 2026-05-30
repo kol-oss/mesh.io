@@ -5,6 +5,7 @@ import PropertyHeader from "@/features/properties/components/Property/PropertyHe
 import SelectPropertyField from "@/features/properties/components/Property/SelectPropertyField";
 import TextPropertyField from "@/features/properties/components/Property/TextPropertyField";
 import { getEntityTypeIcon } from "@/shared/constants/common/icons";
+import { createLinkPropertiesSchema } from "@/shared/schemas/entity/LinkEntitySchema";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { LinkEntity, PeerEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
@@ -28,6 +29,14 @@ export default function LinkProperties({ selected, entities, setEntities }: Link
     icon: getEntityTypeIcon(peer.type),
   }));
 
+  const peerIds = new Set(peers.map((peer) => peer.id));
+  const linkValidation = createLinkPropertiesSchema(peerIds).safeParse({
+    name,
+    sourcePeerId: sourceValue,
+    destinationPeerId: destinationValue,
+  });
+  const linkErrors = linkValidation.success ? null : linkValidation.error.flatten().fieldErrors;
+
   const updateLink = (changes: Partial<LinkEntity>) => {
     setEntities(updateEntity(selected, entities, changes));
   };
@@ -47,7 +56,7 @@ export default function LinkProperties({ selected, entities, setEntities }: Link
           <TextPropertyField
             label="Name"
             value={name}
-            valid={!!name}
+            valid={!linkErrors?.name}
             onChange={(event) => updateLink({ name: event.target.value })}
             disabled={isLocked}
           />
@@ -57,7 +66,7 @@ export default function LinkProperties({ selected, entities, setEntities }: Link
           <SelectPropertyField
             label="Source"
             value={sourceValue}
-            valid={!!sourceValue}
+            valid={!linkErrors?.sourcePeerId}
             options={peerOptions}
             onChange={(value: UUID | null) => {
               const nextDestination =
@@ -73,7 +82,7 @@ export default function LinkProperties({ selected, entities, setEntities }: Link
           <SelectPropertyField
             label="Destination"
             value={destinationValue}
-            valid={!!destinationValue}
+            valid={!linkErrors?.destinationPeerId}
             options={peerOptions.filter((peer) => peer.value !== sourceValue)}
             onChange={(value: UUID | null) => {
               if (value && value === sourceValue) {

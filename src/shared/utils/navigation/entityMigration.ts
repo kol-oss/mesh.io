@@ -270,11 +270,14 @@ export const migrateEntities = (entities: NetworkEntity[]): NetworkEntity[] | nu
     }
 
     const protocol = normalizePeerProtocol(entityRecord.protocol);
+    const normalizedRange =
+      typeof entity.range === "number" && entity.range > 0 ? entity.range : peerDefaults.range;
 
     return sanitizePeerEntity({
       ...peerDefaults,
       ...baseEntity,
       type: EntityType.Peer,
+      range: normalizedRange,
       protocol,
       configuration: normalizePeerConfiguration(entityRecord.configuration, protocol),
     });
