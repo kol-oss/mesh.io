@@ -14,7 +14,6 @@ import type {
 import { StepType } from "@/shared/types/model/steps";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import { isRefreshStep } from "@/shared/utils/navigation/refreshSteps";
-import { migrateSteps } from "@/shared/utils/navigation/stepMigration";
 import { Activity, ChevronRight, ChevronsRight, Eye, EyeOff, Mail, Plus } from "lucide-react";
 import {
   Fragment,
@@ -116,14 +115,6 @@ export default function StepList({ step: currentSimulationStepResult }: StepList
       };
     },
   });
-
-  useEffect(() => {
-    const migratedSteps = migrateSteps(steps);
-    if (!migratedSteps) {
-      return;
-    }
-    setSteps(migratedSteps);
-  }, [setSteps, steps]);
 
   const handleDeleteStep = useCallback(() => {
     if (!selectedStepId) {

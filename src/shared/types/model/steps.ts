@@ -1,5 +1,9 @@
-import { RoutingProtocol } from "@/shared/types/common/protocols";
-import type { UUID } from "@/shared/types/common/uuid";
+import type { BaseStepSchema } from "@/shared/schemas/step/BaseStepSchema";
+import type { MessageStepSchema } from "@/shared/schemas/step/MessageStepSchema";
+import type { MoveStepSchema } from "@/shared/schemas/step/MoveStepSchema";
+import type { RefreshStepSchema } from "@/shared/schemas/step/RefreshStepSchema";
+import type { ToggleStepSchema } from "@/shared/schemas/step/ToggleStepSchema";
+import { z } from "zod";
 
 export enum StepType {
   Move = "MOVE",
@@ -18,42 +22,12 @@ export enum RefreshAction {
   OlsrTc = "OLSR_TC",
 }
 
-export interface BaseStep {
-  id: UUID;
-  title: string;
-  tick: number;
-}
-
-export interface MessageStep extends BaseStep {
-  type: StepType.Message;
-  sourceId: UUID | null;
-  destinationId: UUID | null;
-}
-
-export interface MoveStep extends BaseStep {
-  type: StepType.Move;
-  entityId: UUID | null;
-  x: number;
-  y: number;
-}
-
-export interface ToggleStep extends BaseStep {
-  type: StepType.Toggle;
-  entityId: UUID | null;
-  status: boolean;
-}
-
-export interface RefreshStep extends BaseStep {
-  type: StepType.Refresh;
-  peerId: UUID;
-  protocol: RoutingProtocol;
-  action?: RefreshAction;
-  startTick: number;
-  interval: number;
-}
-
+export type BaseStep = z.infer<typeof BaseStepSchema>;
+export type MessageStep = z.infer<typeof MessageStepSchema>;
+export type MoveStep = z.infer<typeof MoveStepSchema>;
+export type ToggleStep = z.infer<typeof ToggleStepSchema>;
+export type RefreshStep = z.infer<typeof RefreshStepSchema>;
 export type UserStep = MessageStep | MoveStep | ToggleStep;
-
 export type Step = UserStep | RefreshStep;
 
 export const isMessageStep = (step: Step): step is MessageStep => {
