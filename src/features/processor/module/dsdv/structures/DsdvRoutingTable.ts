@@ -20,7 +20,7 @@ export class DsdvRoutingTable {
 
   // routing substructures
   private readonly routes = new Map<UUID, DsdvRouteRecord>();
-  private readonly pendingRoutes = new Set<DsdvRouteRecord>();
+  private readonly pendingRoutes = new Map<UUID, DsdvRouteRecord>();
 
   // timeouts and intervals
   private readonly routeTimeout: number;
@@ -38,10 +38,14 @@ export class DsdvRoutingTable {
       const { destinationPeerId: destinationId, sequenceNumber: sequence, metric } = entry;
       const route = this.routes.get(destinationId);
 
+      if (this.pendingRoutes.has(destinationId)) {
+        continue;
+      }
+
       // if the entry contains infinity metric and odd sequence, then the route is removed
       if (metric >= DSDV_METRIC_INFINITY && sequence % 2 === 1) {
         const route = this.remove(destinationId);
-        this.pendingRoutes.add(route);
+        this.pendingRoutes.set(destinationId, route);
 
         return;
       }
@@ -50,7 +54,7 @@ export class DsdvRoutingTable {
       // if the entry is new row, then just insert
       if (!route) {
         const newRoute = this.insert(destinationId, hopId, hopCount, sequence);
-        this.pendingRoutes.add(newRoute);
+        this.pendingRoutes.set(destinationId, newRoute);
       }
       // if the route is already present, then sequence and metric comparison
       else {
@@ -59,10 +63,9 @@ export class DsdvRoutingTable {
         const isBetterRoute = sequence === routeSequence && hopCount < route.metric;
 
         if (isNewSequence || isBetterRoute) {
-          this.pendingRoutes.add(route);
           this.update(destinationId, hopId, hopCount, sequence);
 
-          this.pendingRoutes.add(route);
+          this.pendingRoutes.set(destinationId, route);
         } else {
           this.eventRecorder.record(
             this.peerId,
@@ -189,7 +192,7 @@ export class DsdvRoutingTable {
           RoutingProtocol.DSDV,
         );
 
-        this.pendingRoutes.add(route);
+        this.pendingRoutes.set(destinationId, route);
         this.remove(destinationId);
       }
     }
@@ -205,7 +208,7 @@ export class DsdvRoutingTable {
   }
 
   getPendingRoutes(): DsdvRouteRecord[] {
-    return Array.from(this.pendingRoutes);
+    return Array.from(this.pendingRoutes.values()).map((route) => clone(route));
   }
 
   getRoutes(): DsdvRouteRecord[] {

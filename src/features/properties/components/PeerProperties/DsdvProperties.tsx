@@ -62,7 +62,7 @@ export default function DsdvProperties({
         <NumberPropertyField
           label="Route Timeout"
           icon={<Clock3 size={12} />}
-          valid={routeTimeout >= DSDV_MIN_TIMEOUT}
+          valid={routeTimeout >= DSDV_MIN_TIMEOUT && routeTimeout > fullDumpInterval}
           value={routeTimeout}
           min={DSDV_MIN_TIMEOUT}
           onChange={(event) => onChange(event, "routeTimeout", DSDV_MIN_TIMEOUT)}
