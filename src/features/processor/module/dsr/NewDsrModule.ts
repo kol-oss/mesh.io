@@ -40,7 +40,13 @@ export class DsrModule extends BaseModule {
     const { type: messageType } = message;
 
     if (messageType === MessageType.DsrRouteRequestMessage) {
+      console.log(this.peer.name + " received RREQ");
       return this.processRouteRequest(message as NewDsrRouteRequestMessage);
+    }
+
+    if (messageType === MessageType.DsrRouteReplyMessage) {
+      console.log(this.peer.name + " received RREP");
+      return this.processRouteReply(message as NewDsrRouteReplyMessage);
     }
 
     return false;
@@ -78,10 +84,14 @@ export class DsrModule extends BaseModule {
         addresses: [],
       } satisfies NewDsrRouteRequestMessage;
 
+      console.log(this.peer.name + " broadcasted RREQ");
       super.broadcast(request);
     }
 
-    return this.cache.get(destinationId)?.nextHopPeerId || null;
+    console.log(this.peer.name + " checked it's cache for route to " + destinationId);
+    console.log(this.peer.name + " cache: ", this.cache.getAll());
+
+    return this.cache.get(destinationId)?.pathPeerIds[0] || null;
   }
 
   private processRouteRequest(message: NewDsrRouteRequestMessage): boolean {
@@ -98,6 +108,7 @@ export class DsrModule extends BaseModule {
     }
 
     if (this.peerId === destinationId) {
+      console.log(this.peer.name + " determined that he is the destination of RREQ");
       const reversed = [...addresses].reverse();
 
       const path = [this.peerId, ...reversed];
@@ -110,8 +121,10 @@ export class DsrModule extends BaseModule {
       };
 
       // TODO: Add calculation event
+      console.log(this.peer.name + " created RREP", reply);
 
-      return super.write(reply, reversed[0]);
+      console.log(this.peer.name + " sending RREP to ", reversed[0] || sourceId);
+      return super.write(reply, reversed[0] || sourceId);
     }
 
     // node knows the way to the destination
@@ -129,7 +142,6 @@ export class DsrModule extends BaseModule {
       };
 
       // TODO: Add calculation event
-
       return super.write(reply, reversed[0]);
     }
 
@@ -140,5 +152,35 @@ export class DsrModule extends BaseModule {
     } satisfies NewDsrRouteRequestMessage;
 
     return super.broadcast(request);
+  }
+
+  private processRouteReply(message: NewDsrRouteReplyMessage): boolean {
+    const { destinationId, sourceId, addresses } = message;
+
+    if (this.peerId === sourceId) {
+      // TODO: Add drop event
+      return true;
+    }
+
+    if (!addresses.includes(this.peerId) && this.peerId !== destinationId) {
+      return true;
+    }
+
+    if (this.peerId === destinationId) {
+      this.cache.insert(sourceId, addresses, 1);
+
+      return true;
+    }
+
+    const indexInPath = addresses.indexOf(this.peerId);
+    const nextHop = addresses[indexInPath + 1] || destinationId;
+
+    const sourcePath = addresses.slice(0, indexInPath - 1);
+    this.cache.insert(sourceId, sourcePath, 1);
+
+    const destinationPath = addresses.slice(indexInPath + 1);
+    this.cache.insert(destinationId, destinationPath, 1);
+
+    return super.write(message, nextHop);
   }
 }

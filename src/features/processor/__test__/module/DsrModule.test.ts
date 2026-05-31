@@ -1,4 +1,4 @@
-import { describe, test } from "@jest/globals";
+import { describe, test, expect } from "@jest/globals";
 import { NetworkGraph } from "@/features/processor/network/NetworkGraph.ts";
 import { EventRecorder } from "@/features/processor/EventRecorder.ts";
 import type { PeerEntity } from "@/shared/types/model/peers.ts";
@@ -18,7 +18,7 @@ const A = {
   x: 0,
   y: 0,
   type: EntityType.Peer,
-  range: 150,
+  range: 100,
   enabled: true,
   protocol: RoutingProtocol.DSR,
   configuration: {
@@ -29,10 +29,24 @@ const A = {
 const B = {
   id: generateUUID(),
   name: "B",
-  x: 75,
-  y: 75,
+  x: 100,
+  y: 0,
   type: EntityType.Peer,
-  range: 150,
+  range: 100,
+  enabled: true,
+  protocol: RoutingProtocol.DSR,
+  configuration: {
+    routeTimeout: 10,
+  } satisfies DsrConfiguration,
+} satisfies PeerEntity;
+
+const C = {
+  id: generateUUID(),
+  name: "C",
+  x: 200,
+  y: 0,
+  type: EntityType.Peer,
+  range: 100,
   enabled: true,
   protocol: RoutingProtocol.DSR,
   configuration: {
@@ -52,13 +66,24 @@ eventRecorder.setStep({
   action: undefined,
 } satisfies RefreshStep);
 
-graph.init([A, B], [], []);
+graph.init([A, B, C], [], []);
 
 describe("Route Discovery", () => {
   test("should discover route to destination", () => {
-    const module = graph.getNode(A.id)?.module as DsrModule;
+    const aModule = graph.getNode(A.id)?.module as DsrModule;
 
-    const result = module.getRoute(B.id);
-    console.log(result);
+    console.log("A id ", A.id);
+    console.log("B id ", B.id);
+    console.log("C id ", C.id);
+
+    const aResult = aModule.getRoute(C.id);
+    console.log("resulted route: ", aResult);
+
+    expect(aResult).not.toBeNull();
+
+    const bModule = graph.getNode(B.id)?.module as DsrModule;
+    const bResult = bModule.getRoute(C.id);
+
+    expect(bResult).not.toBeNull();
   });
 });
