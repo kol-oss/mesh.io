@@ -4,7 +4,6 @@ import {
   type NewDsrRouteRequestMessage,
 } from "@/features/processor/types/protocols/dsr";
 import { MessageType, type Message } from "@/shared/types/common/messages";
-import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { DsrConfiguration } from "@/shared/types/model/configurations";
 import type { NetworkGraph } from "../../network/NetworkGraph";
@@ -13,7 +12,6 @@ import { BaseModule } from "../BaseModule";
 import { RouteCache } from "./structures/NewRouteCache";
 
 // module for DSR protocol
-const PROTOCOL = RoutingProtocol.DSR;
 
 export class DsrModule extends BaseModule {
   // routing structures
@@ -64,10 +62,14 @@ export class DsrModule extends BaseModule {
 
   override getRoute(destinationId: UUID): UUID | null {
     const cachedRoute = this.cache.get(destinationId);
-
     if (cachedRoute) {
       return cachedRoute.pathPeerIds[1];
     } else {
+      const prefixRoute = this.cache.getByPrefix(destinationId);
+      if (prefixRoute) {
+        return prefixRoute.pathPeerIds[1];
+      }
+
       const request = {
         type: MessageType.DsrRouteRequestMessage,
         identification: this.sequence,
@@ -79,7 +81,7 @@ export class DsrModule extends BaseModule {
       super.broadcast(request);
     }
 
-    return null;
+    return this.cache.get(destinationId)?.nextHopPeerId || null;
   }
 
   private processRouteRequest(message: NewDsrRouteRequestMessage): boolean {

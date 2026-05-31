@@ -27,6 +27,17 @@ export class RouteCache {
     return routes[0];
   }
 
+  getByPrefix(destinationId: UUID): DsrRouteRecord | null {
+    const routes = this.routes.get(destinationId) || [];
+    for (const route of routes) {
+      if (route.pathPeerIds.includes(destinationId)) {
+        return route;
+      }
+    }
+
+    return null;
+  }
+
   getAll() {
     return Array.from(this.routes.values()).map((route) => clone(route));
   }

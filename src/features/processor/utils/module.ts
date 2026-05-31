@@ -4,7 +4,7 @@ import type { EventRecorder } from "../EventRecorder";
 import { AodvModule } from "../module/aodv/AodvModule";
 import { BatmanModule } from "../module/batman/BatmanModule";
 import { DsdvModule } from "../module/dsdv/DsdvModule";
-import { DsrModule } from "../module/dsr/DsrModule";
+import { DsrModule } from "../module/dsr/NewDsrModule";
 import { OlsrModule } from "../module/olsr/OlsrModule";
 import type { NetworkGraph } from "../network/NetworkGraph";
 import { RoutingStructure, type RoutingModule, type RoutingStructureType } from "../types/module";

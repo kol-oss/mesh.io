@@ -138,8 +138,7 @@ export class AodvModule extends BaseModule {
     }
   }
 
-  override tick() {
-    super.tick();
+  override processTick() {
     if (!this.peer.active) {
       return;
     }
@@ -168,6 +167,10 @@ export class AodvModule extends BaseModule {
     for (const nextHopPeerId of brokenNextHops) {
       this.handleLinkBreak(nextHopPeerId);
     }
+  }
+
+  override processRefresh() {
+    // no periodic refresh actions needed for AODV
   }
 
   override send(packet: Packet): boolean {

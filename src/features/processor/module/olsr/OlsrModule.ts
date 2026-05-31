@@ -21,6 +21,7 @@ import { RoutingTable } from "./structures/RoutingTable";
 import { SelectorSet } from "./structures/SelectorSet";
 import { TopologyTable } from "./structures/TopologyTable";
 import { TwoHopTable } from "./structures/TwoHopTable";
+import type { RefreshAction } from "@/shared/types/model/steps.ts";
 
 type RouteComputationResult = {
   routes: Map<UUID, OlsrRouteRecord>;
@@ -133,8 +134,11 @@ export class OlsrModule extends BaseModule {
     this.broadcastControlMessage(tcMessage, false);
   }
 
-  override tick() {
-    super.tick();
+  override processRefresh(action: RefreshAction) {
+    console.log(action);
+  }
+
+  override processTick() {
     if (!this.peer.active) {
       return;
     }
