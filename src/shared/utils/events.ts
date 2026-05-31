@@ -232,26 +232,26 @@ const getDsrEventDetailsType = (event: Event): EventDetailsType => {
 
   if (type === EventType.Broadcast) {
     const { message, retransmit: isRetransmission } = details as BroadcastEventDetails;
-    if (message.type !== MessageType.DsrRouteRequestMessage) {
-      return EventDetailsType.Unknown;
+    const { type: messageType } = message;
+
+    if (messageType === MessageType.DsrRouteRequestMessage) {
+      return isRetransmission
+        ? EventDetailsType.DsrRouteRequestRetransmission
+        : EventDetailsType.DsrRouteRequestBroadcast;
     }
 
-    return isRetransmission
-      ? EventDetailsType.DsrRouteRequestRetransmission
-      : EventDetailsType.DsrRouteRequestBroadcast;
+    if (messageType === MessageType.DsrRouteReplyMessage) {
+      return EventDetailsType.DsrRouteReplyForwarded;
+    }
   }
 
   if (type === EventType.Calculation) {
     const { message, reason } = details as { message?: { type?: MessageType }; reason?: string };
-    if (message?.type === MessageType.DsrRouteReplyMessage) {
-      return EventDetailsType.DsrRouteReplyForwarded;
-    }
-
     if (message?.type === MessageType.DsrRouteErrorMessage && reason?.includes("salvaging")) {
       return EventDetailsType.DsrRouteSalvage;
     }
 
-    return EventDetailsType.DsrControlProcessed;
+    return EventDetailsType.DsrPathRecalculated;
   }
 
   if (type === EventType.GetRoute) {

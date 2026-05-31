@@ -194,6 +194,7 @@ export enum EventDetailsType {
   DsrRouteRequestBroadcast,
   DsrRouteRequestRetransmission,
   DsrRouteReplyForwarded,
+  DsrPathRecalculated,
   DsrRouteSalvage,
   DsrControlProcessed,
   DsrRouteSelected,

@@ -42,10 +42,17 @@ export default function DsrDescription({
 
   if (detailsType === EventDetailsType.DsrRouteRequestBroadcast) {
     return (
-      <TextDescription>
-        Node flooded a DSR Route Request (RREQ) to discover a full source route toward the
-        destination.
-      </TextDescription>
+      <>
+        <TextDescription>
+          Because of the Message step, the <i>Route Discovery</i> mechanism was triggered. The DSR
+          node broadcasts a <i>Route Request</i> to explore the path to the destination node.
+        </TextDescription>
+        <TextDescription>
+          The request mainly loans on the IPv4 fields to determine originator and destination of the
+          message. The protocol payload is incapsulated into part called <i>Route Request Option</i>
+          . For simplicity, this is the only part that is displayed in the Packet Inspection mode.
+        </TextDescription>
+      </>
     );
   }
 
@@ -80,7 +87,7 @@ export default function DsrDescription({
     );
   }
 
-  if (detailsType === EventDetailsType.DsrControlProcessed) {
+  if (detailsType === EventDetailsType.DsrPathRecalculated) {
     return (
       <>
         <TextDescription>
@@ -143,15 +150,15 @@ export default function DsrDescription({
                 onHover={onPeerHover}
               />,
               <PeerDescription
-                peer={findById(selectedRoute.nextHopPeerId, peers)}
+                peer={findById(selectedRoute?.nextHopPeerId, peers)}
                 onHover={onPeerHover}
               />,
-              selectedRoute.metric,
-              selectedRoute.sequenceNumber,
-              selectedRoute.pathPeerIds
+              selectedRoute?.metric,
+              selectedRoute?.sequenceNumber,
+              selectedRoute?.pathPeerIds
                 .map((peerId) => findById(peerId, peers)?.name ?? peerId)
                 .join(" -> "),
-              selectedRoute.lastUpdateTick,
+              selectedRoute?.lastUpdateTick,
             ],
           ]}
         />

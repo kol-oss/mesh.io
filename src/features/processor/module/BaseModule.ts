@@ -1,4 +1,9 @@
-import { DropReason, EventType, type EventDetails } from "@/shared/types/common/events";
+import {
+  DropReason,
+  EventType,
+  type EventDetails,
+  type BroadcastEventDetails,
+} from "@/shared/types/common/events";
 import { MessageType, type Message, type Packet } from "@/shared/types/common/messages";
 import type { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
@@ -8,6 +13,7 @@ import type { NetworkGraph } from "../network/NetworkGraph";
 import type { RoutingModule, RoutingStructureType } from "../types/module";
 import { clone } from "../utils/clone";
 import { isReactive } from "../utils/protocol/protocols";
+import type { DsrPacket } from "@/features/processor/types/protocols/dsr.ts";
 
 export abstract class BaseModule implements RoutingModule {
   protected readonly peerId: UUID;
@@ -133,7 +139,7 @@ export abstract class BaseModule implements RoutingModule {
       packet.sourcePeerId = id;
     }
 
-    if (forwarded.type === MessageType.Packet) {
+    if (forwarded.type === MessageType.Packet || forwarded.type === MessageType.DsrPacket) {
       this.recordEvent(EventType.Transfer, {
         protocol: protocol,
         sourcePeerId: id,
@@ -161,7 +167,7 @@ export abstract class BaseModule implements RoutingModule {
         neighbourPeerIds: neighbours.map((peer) => peer.id),
         retransmit: retransmit,
         message: clone(message),
-      },
+      } satisfies BroadcastEventDetails,
       protocol,
     );
 
@@ -174,8 +180,8 @@ export abstract class BaseModule implements RoutingModule {
     return broadcastResult;
   }
 
-  // routes and sends traffic immitation packet
-  send(packet: Packet): boolean {
+  // routes and sends traffic imitation packet
+  send(packet: Packet | DsrPacket): boolean {
     if (!this.peer.active) {
       this.recordEvent(EventType.Drop, {
         message: clone(packet),

@@ -3,23 +3,21 @@ import type {
   AodvRouteErrorMessage,
   AodvRouteReplyMessage,
   AodvRouteRequestMessage,
-} from "../../../features/processor/types/protocols/aodv";
+} from "@/features/processor/types/protocols/aodv.ts";
 import type {
   BatmanEchoLocationMessage,
   BatmanOriginatorMessage,
-} from "../../../features/processor/types/protocols/batman";
-import type { DsdvRouteUpdateMessage } from "../../../features/processor/types/protocols/dsdv";
+} from "@/features/processor/types/protocols/batman.ts";
+import type { DsdvRouteUpdateMessage } from "@/features/processor/types/protocols/dsdv.ts";
 import type {
+  DsrPacket,
   DsrRouteErrorMessage,
   DsrRouteReplyMessage,
   DsrRouteRequestMessage,
   NewDsrRouteReplyMessage,
   NewDsrRouteRequestMessage,
-} from "../../../features/processor/types/protocols/dsr";
-import type {
-  OlsrHelloMessage,
-  OlsrTcMessage,
-} from "../../../features/processor/types/protocols/olsr";
+} from "@/features/processor/types/protocols/dsr.ts";
+import type { OlsrHelloMessage, OlsrTcMessage } from "@/features/processor/types/protocols/olsr.ts";
 import type { UUID } from "./uuid";
 
 export enum MessageType {
@@ -36,17 +34,21 @@ export enum MessageType {
   DsrRouteRequestMessage = "DSR_ROUTE_REQUEST_MESSAGE",
   DsrRouteReplyMessage = "DSR_ROUTE_REPLY_MESSAGE",
   DsrRouteErrorMessage = "DSR_ROUTE_ERROR_MESSAGE",
+  DsrPacket = "DSR_PACKET",
 }
 
 export type BaseMessage = {
   type: MessageType;
 };
 
-export type Packet = BaseMessage & {
-  type: MessageType.Packet;
+export type BasePacket = BaseMessage & {
   sourcePeerId: UUID | null;
   destinationPeerId: UUID;
   timeToLive: number;
+};
+
+export type Packet = BasePacket & {
+  type: MessageType.Packet;
 };
 
 export type Message =
@@ -64,4 +66,5 @@ export type Message =
   | DsrRouteReplyMessage
   | DsrRouteErrorMessage
   | NewDsrRouteRequestMessage
-  | NewDsrRouteReplyMessage;
+  | NewDsrRouteReplyMessage
+  | DsrPacket;

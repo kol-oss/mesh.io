@@ -1,4 +1,9 @@
-import type { BaseMessage, Message, MessageType } from "@/shared/types/common/messages.ts";
+import type {
+  BaseMessage,
+  BasePacket,
+  Message,
+  MessageType,
+} from "@/shared/types/common/messages.ts";
 import type { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 
@@ -69,6 +74,12 @@ export type DsrRouteRequestTableRecord = {
   destinationId: UUID;
   sourceId: UUID;
   identification: number;
+};
+
+// Packet with path included
+export type DsrPacket = BasePacket & {
+  type: MessageType.DsrPacket;
+  path: UUID[];
 };
 
 // Calculation details

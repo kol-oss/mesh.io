@@ -1,12 +1,13 @@
 import type { EventRecorder } from "@/features/processor/EventRecorder";
 import {
   type DsrCalculationEventDetails,
+  type DsrPacket,
   type DsrRouteChangeEventDetails,
   type DsrRouteRecord,
   type NewDsrRouteReplyMessage,
   type NewDsrRouteRequestMessage,
 } from "@/features/processor/types/protocols/dsr";
-import { type Message, MessageType } from "@/shared/types/common/messages";
+import { type BasePacket, type Message, MessageType } from "@/shared/types/common/messages";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { DsrConfiguration } from "@/shared/types/model/configurations";
 import type { NetworkGraph } from "../../network/NetworkGraph";
@@ -14,7 +15,13 @@ import { RoutingStructure, type RoutingStructureType } from "../../types/module"
 import { BaseModule } from "../BaseModule";
 import { RouteCache } from "./structures/NewRouteCache";
 import { RouteRequestTable } from "@/features/processor/module/dsr/structures/RouteRequestTable.ts";
-import { type DropEventDetails, DropReason, EventType } from "@/shared/types/common/events.ts";
+import {
+  type BroadcastEventDetails,
+  type DropEventDetails,
+  DropReason,
+  EventType,
+  type GetRouteEventDetails,
+} from "@/shared/types/common/events.ts";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 
 // module for DSR protocol
@@ -31,6 +38,7 @@ export class DsrModule extends BaseModule {
   constructor(peerId: UUID, graph: NetworkGraph, eventRecorder: EventRecorder) {
     super(peerId, graph, eventRecorder);
     this.INCOMING_MESSAGE_TYPES.push(
+      MessageType.DsrPacket,
       MessageType.DsrRouteRequestMessage,
       MessageType.DsrRouteReplyMessage,
       MessageType.DsrRouteErrorMessage,
@@ -50,6 +58,10 @@ export class DsrModule extends BaseModule {
   override process(message: Message): boolean {
     const { type: messageType } = message;
 
+    if (messageType === MessageType.DsrPacket) {
+      return this.processDsrPacket(message as DsrPacket);
+    }
+
     if (messageType === MessageType.DsrRouteRequestMessage) {
       return this.processRouteRequest(message as NewDsrRouteRequestMessage);
     }
@@ -59,6 +71,43 @@ export class DsrModule extends BaseModule {
     }
 
     return false;
+  }
+
+  private processDsrPacket(packet: DsrPacket): boolean {
+    const { destinationPeerId: destinationId, path } = packet;
+    if (this.peerId == destinationId) {
+      return true;
+    }
+
+    const pathIndex = path.indexOf(this.peerId);
+
+    const nextHop = path[pathIndex + 1] || destinationId;
+    super.recordEvent(
+      EventType.GetRoute,
+      {
+        protocol: ROUTING_PROTOCOL,
+        destinationPeerId: destinationId,
+        selectedRoute: null as unknown as DsrRouteRecord,
+      } as GetRouteEventDetails,
+      ROUTING_PROTOCOL,
+    );
+
+    return super.write(packet, nextHop);
+  }
+
+  override send(packet: BasePacket): boolean {
+    const { type } = packet;
+    if (type === MessageType.DsrPacket) {
+      return this.processDsrPacket(packet as DsrPacket);
+    } else {
+      const wrapped = {
+        ...packet,
+        type: MessageType.DsrPacket,
+        path: [],
+      } satisfies DsrPacket;
+
+      return super.send(wrapped);
+    }
   }
 
   override getTables(): RoutingStructureType {
@@ -95,13 +144,18 @@ export class DsrModule extends BaseModule {
         addresses: [],
       } satisfies NewDsrRouteRequestMessage;
 
-      console.log(this.peer.name + " broadcasted RREQ");
       super.broadcast(request);
     }
 
-    console.log(this.peer.name + " checked it's cache for route to " + destinationId);
-    console.log(this.peer.name + " cache: ", this.cache.getAll());
-
+    super.recordEvent(
+      EventType.GetRoute,
+      {
+        protocol: ROUTING_PROTOCOL,
+        destinationPeerId: destinationId,
+        selectedRoute: null as unknown as DsrRouteRecord,
+      } as GetRouteEventDetails,
+      ROUTING_PROTOCOL,
+    );
     return this.cache.get(destinationId)?.pathPeerIds[0] || null;
   }
 
@@ -153,6 +207,8 @@ export class DsrModule extends BaseModule {
       return true;
     }
 
+    console.log("THIS PEER IS THE DESTINATION");
+
     // the node is the destination
     if (this.peerId === destinationId) {
       const reversed = [...addresses].reverse();
@@ -175,6 +231,18 @@ export class DsrModule extends BaseModule {
           receivedPath: addresses,
           reversedPath: reversed,
         } satisfies DsrCalculationEventDetails,
+        ROUTING_PROTOCOL,
+      );
+
+      this.cachePath(sourceId, this.peerId, identification, reversed);
+
+      super.recordEvent(
+        EventType.Broadcast,
+        {
+          neighbourPeerIds: [reversed[0]],
+          retransmit: false,
+          message: reply,
+        } satisfies BroadcastEventDetails,
         ROUTING_PROTOCOL,
       );
 
@@ -207,6 +275,16 @@ export class DsrModule extends BaseModule {
         ROUTING_PROTOCOL,
       );
 
+      super.recordEvent(
+        EventType.Broadcast,
+        {
+          neighbourPeerIds: [reversed[0]],
+          retransmit: false,
+          message: reply,
+        } satisfies BroadcastEventDetails,
+        ROUTING_PROTOCOL,
+      );
+
       return super.write(reply, reversed[0]);
     }
 
@@ -233,7 +311,20 @@ export class DsrModule extends BaseModule {
     }
 
     if (this.peerId === destinationId) {
-      this.cache.insert(sourceId, addresses, identification);
+      const reversed = addresses.reverse();
+      const record = this.cache.insert(sourceId, reversed, identification);
+
+      super.recordEvent(
+        EventType.AddRoute,
+        {
+          protocol: ROUTING_PROTOCOL,
+          destinationPeerId: sourceId,
+          nextHopPeerId: null as unknown as UUID,
+          previousRoute: null as unknown as DsrRouteRecord,
+          nextRoute: record,
+        } satisfies DsrRouteChangeEventDetails,
+        ROUTING_PROTOCOL,
+      );
 
       return true;
     }
@@ -242,6 +333,17 @@ export class DsrModule extends BaseModule {
     const nextHop = addresses[indexInPath + 1] || destinationId;
 
     this.cachePath(destinationId, sourceId, identification, addresses);
+
+    super.recordEvent(
+      EventType.Broadcast,
+      {
+        neighbourPeerIds: [nextHop],
+        retransmit: false,
+        message: message,
+      } satisfies BroadcastEventDetails,
+      ROUTING_PROTOCOL,
+    );
+
     return super.write(message, nextHop);
   }
 
