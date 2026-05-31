@@ -73,7 +73,7 @@ export class DsrModule extends BaseModule {
 
   override getTables(): RoutingStructureType {
     const tables: RoutingStructureType = {} as RoutingStructureType;
-    tables[RoutingStructure.DsrRoutingTable] = this.cache.getAll();
+    tables[RoutingStructure.DsrRoutingCache] = this.cache.getAll();
 
     return tables;
   }

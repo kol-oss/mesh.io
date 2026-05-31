@@ -13,10 +13,16 @@ export class RouteCache {
   private readonly routes = new Map<UUID, DsrRouteRecord[]>();
   private readonly routeTimeout: number;
 
+  private onRouteDeleted?: (destinationId: UUID) => void;
+
   constructor(peerId: UUID, eventRecorder: EventRecorder, routeTimeout: number) {
     this.peerId = peerId;
     this.eventRecorder = eventRecorder;
     this.routeTimeout = routeTimeout;
+  }
+
+  setTimeoutListener(listener: (destinationId: UUID) => void) {
+    this.onRouteDeleted = listener;
   }
 
   get(destinationId: UUID): DsrRouteRecord | null {
@@ -38,8 +44,10 @@ export class RouteCache {
     return null;
   }
 
-  getAll() {
-    return Array.from(this.routes.values()).map((route) => clone(route));
+  getAll(): DsrRouteRecord[] {
+    return Array.from(this.routes.values())
+      .map((route) => clone(route))
+      .flat();
   }
 
   insert(destinationId: UUID, path: UUID[], sequence: number): DsrRouteRecord {
@@ -64,13 +72,13 @@ export class RouteCache {
   tick(): void {
     const tick = this.eventRecorder.getCurrentTick();
     for (const [destinationId, routes] of this.routes.entries()) {
-      for (const route of routes) {
+      const updatedRoutes = routes.filter((route) => {
         const ticksPassed = tick - route.lastUpdateTick;
+
         if (ticksPassed < this.routeTimeout) {
-          continue;
+          return true;
         }
 
-        this.routes.delete(destinationId);
         this.eventRecorder.record(
           this.peerId,
           EventType.DeleteRoute,
@@ -83,6 +91,17 @@ export class RouteCache {
           },
           PROTOCOL,
         );
+
+        return false;
+      });
+
+      if (updatedRoutes.length !== routes.length) {
+        this.routes.set(destinationId, updatedRoutes);
+      }
+
+      if (updatedRoutes.length === 0) {
+        this.routes.delete(destinationId);
+        this.onRouteDeleted?.(destinationId);
       }
     }
   }

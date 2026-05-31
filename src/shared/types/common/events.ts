@@ -2,25 +2,26 @@ import type {
   AodvCalculationEventDetails,
   AodvRouteChangeEventDetails,
   AodvRouteRecord,
-} from "../../../features/processor/types/protocols/aodv";
+} from "@/features/processor/types/protocols/aodv.ts";
 import type {
   BatmanCalculationEventDetails,
   BatmanRouteChangeEventDetails,
   BatmanRouteRecord,
-} from "../../../features/processor/types/protocols/batman";
+} from "@/features/processor/types/protocols/batman.ts";
 import type {
   DsdvCalculationEventDetails,
   DsdvRouteChangeEventDetails,
   DsdvRouteRecord,
-} from "../../../features/processor/types/protocols/dsdv";
+} from "@/features/processor/types/protocols/dsdv.ts";
 import type {
+  DsrCalculationEventDetails,
   DsrRouteChangeEventDetails,
   DsrRouteRecord,
-} from "../../../features/processor/types/protocols/dsr";
+} from "@/features/processor/types/protocols/dsr.ts";
 import type {
   OlsrRouteChangeEventDetails,
   OlsrRouteRecord,
-} from "../../../features/processor/types/protocols/olsr";
+} from "@/features/processor/types/protocols/olsr.ts";
 import type { EntityType } from "../model/entities";
 import type { Message, Packet } from "./messages";
 import type { RoutingProtocol } from "./protocols";
@@ -63,6 +64,7 @@ export type BroadcastEventDetails = {
 export type CalculationEventDetails =
   | BatmanCalculationEventDetails
   | DsdvCalculationEventDetails
+  | DsrCalculationEventDetails
   | AodvCalculationEventDetails;
 
 export enum DropReason {

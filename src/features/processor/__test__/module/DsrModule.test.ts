@@ -85,5 +85,10 @@ describe("Route Discovery", () => {
     const bResult = bModule.getRoute(C.id);
 
     expect(bResult).not.toBeNull();
+
+    const cModule = graph.getNode(C.id)?.module as DsrModule;
+    const cResult = cModule.getRoute(B.id);
+
+    expect(cResult).not.toBeNull();
   });
 });

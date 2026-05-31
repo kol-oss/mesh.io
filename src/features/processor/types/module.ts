@@ -3,7 +3,7 @@ import type { RefreshAction } from "@/shared/types/model/steps";
 import type { AodvRouteRecord } from "./protocols/aodv";
 import type { BatmanNeighbourRecord, BatmanRouteRecord } from "./protocols/batman";
 import type { DsdvRouteRecord } from "./protocols/dsdv";
-import type { DsrRouteRecord } from "./protocols/dsr";
+import type { DsrRouteRecord, DsrRouteRequestTableRecord } from "./protocols/dsr";
 import type {
   OlsrNeighbourRecord,
   OlsrRouteRecord,
@@ -23,7 +23,8 @@ export enum RoutingStructure {
   BatmanNeighboursList = "BATMAN_NEIGHBOURS_LIST",
   DsdvRoutingTable = "DSDV_ROUTING_TABLE",
   AodvRoutingTable = "AODV_ROUTING_TABLE",
-  DsrRoutingTable = "DSR_ROUTING_TABLE",
+  DsrRoutingCache = "DSR_ROUTING_CACHE",
+  DsrRouteRequestTable = "DSR_ROUTE_REQUEST_TABLE",
   OlsrNeighbourTable = "OLSR_NEIGHBOUR_TABLE",
   OlsrTwoHopTable = "OLSR_TWO_HOP_TABLE",
   OlsrSelectorTable = "OLSR_SELECTOR_TABLE",
@@ -36,7 +37,8 @@ export type RoutingStructureType = {
   [RoutingStructure.BatmanNeighboursList]: BatmanNeighbourRecord[];
   [RoutingStructure.DsdvRoutingTable]: DsdvRouteRecord[];
   [RoutingStructure.AodvRoutingTable]: AodvRouteRecord[];
-  [RoutingStructure.DsrRoutingTable]: DsrRouteRecord[];
+  [RoutingStructure.DsrRoutingCache]: DsrRouteRecord[];
+  [RoutingStructure.DsrRouteRequestTable]: DsrRouteRequestTableRecord[];
   [RoutingStructure.OlsrNeighbourTable]: OlsrNeighbourRecord[];
   [RoutingStructure.OlsrTwoHopTable]: OlsrTwoHopRecord[];
   [RoutingStructure.OlsrSelectorTable]: OlsrSelectorRecord[];

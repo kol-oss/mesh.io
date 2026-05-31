@@ -1,17 +1,20 @@
-import type { AodvRouteRecord } from "../../../features/processor/types/protocols/aodv";
+import type { AodvRouteRecord } from "@/features/processor/types/protocols/aodv.ts";
 import type {
   BatmanNeighbourRecord,
   BatmanRouteRecord,
-} from "../../../features/processor/types/protocols/batman";
-import type { DsdvRouteRecord } from "../../../features/processor/types/protocols/dsdv";
-import type { DsrRouteRecord } from "../../../features/processor/types/protocols/dsr";
+} from "@/features/processor/types/protocols/batman.ts";
+import type { DsdvRouteRecord } from "@/features/processor/types/protocols/dsdv.ts";
+import type {
+  DsrRouteRecord,
+  DsrRouteRequestTableRecord,
+} from "@/features/processor/types/protocols/dsr.ts";
 import type {
   OlsrNeighbourRecord,
   OlsrRouteRecord,
   OlsrSelectorRecord,
   OlsrTopologyRecord,
   OlsrTwoHopRecord,
-} from "../../../features/processor/types/protocols/olsr";
+} from "@/features/processor/types/protocols/olsr.ts";
 import type { NetworkEntity, PeerEntity } from "../model/entities";
 import type { Step } from "../model/steps";
 import type { Event } from "./events";
@@ -22,6 +25,7 @@ export type PeerSnapshot = PeerEntity & {
   dsdvRoutingTable: DsdvRouteRecord[];
   aodvRoutingTable: AodvRouteRecord[];
   dsrRoutingTable: DsrRouteRecord[];
+  dsrRouteRequestTable: DsrRouteRequestTableRecord[];
   olsrNeighbourTable: OlsrNeighbourRecord[];
   olsrTwoHopTable: OlsrTwoHopRecord[];
   olsrSelectorTable: OlsrSelectorRecord[];
@@ -50,11 +54,4 @@ export type SimulationResult = {
   events: Event[];
   steps: Step[];
   stepResults: StepResult[];
-};
-
-export type SimulationPlaybackState = {
-  result: SimulationResult | null;
-  currentStepIndex: number;
-  currentEventIndex: number;
-  isRunning: boolean;
 };

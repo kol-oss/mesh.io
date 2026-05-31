@@ -1,6 +1,6 @@
-import type { BaseMessage, Message, MessageType } from "../../../../shared/types/common/messages";
-import type { RoutingProtocol } from "../../../../shared/types/common/protocols";
-import type { UUID } from "../../../../shared/types/common/uuid";
+import type { BaseMessage, Message, MessageType } from "@/shared/types/common/messages.ts";
+import type { RoutingProtocol } from "@/shared/types/common/protocols.ts";
+import type { UUID } from "@/shared/types/common/uuid.ts";
 
 // RREQ message
 export type DsrRouteRequestMessage = BaseMessage & {
@@ -62,6 +62,22 @@ export type DsrRouteRecord = {
   sequenceNumber: number;
   lastUpdateTick: number;
   pathPeerIds: UUID[];
+};
+
+// Route Request Table Record
+export type DsrRouteRequestTableRecord = {
+  destinationId: UUID;
+  sourceId: UUID;
+  identification: number;
+};
+
+// Calculation details
+export type DsrCalculationEventDetails = {
+  isFromCache: boolean;
+  sourceId: UUID;
+  destinationId: UUID;
+  receivedPath: UUID[];
+  reversedPath: UUID[];
 };
 
 // AddRoute, UpdateRoute, and DeleteRoute details
