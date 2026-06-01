@@ -1,20 +1,13 @@
 import type { EventRecorder } from "@/features/processor/EventRecorder";
+import { RouteRequestTable } from "@/features/processor/module/dsr/structures/RouteRequestTable.ts";
 import {
   type DsrCalculationEventDetails,
   type DsrPacket,
+  type DsrPathRecord,
   type DsrRouteChangeEventDetails,
-  type DsrRouteRecord,
   type NewDsrRouteReplyMessage,
   type NewDsrRouteRequestMessage,
 } from "@/features/processor/types/protocols/dsr";
-import { type BasePacket, type Message, MessageType } from "@/shared/types/common/messages";
-import type { UUID } from "@/shared/types/common/uuid";
-import type { DsrConfiguration } from "@/shared/types/model/configurations";
-import type { NetworkGraph } from "../../network/NetworkGraph";
-import { RoutingStructure, type RoutingStructureType } from "../../types/module";
-import { BaseModule } from "../BaseModule";
-import { RouteCache } from "./structures/NewRouteCache";
-import { RouteRequestTable } from "@/features/processor/module/dsr/structures/RouteRequestTable.ts";
 import {
   type BroadcastEventDetails,
   type DropEventDetails,
@@ -22,7 +15,14 @@ import {
   EventType,
   type GetRouteEventDetails,
 } from "@/shared/types/common/events.ts";
+import { type BasePacket, type Message, MessageType } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
+import type { UUID } from "@/shared/types/common/uuid";
+import type { DsrConfiguration } from "@/shared/types/model/configurations";
+import type { NetworkGraph } from "../../network/NetworkGraph";
+import { RoutingStructure, type RoutingStructureType } from "../../types/module";
+import { BaseModule } from "../BaseModule";
+import { RouteCache } from "./structures/NewRouteCache";
 
 // module for DSR protocol
 const ROUTING_PROTOCOL = RoutingProtocol.DSR;
@@ -87,7 +87,9 @@ export class DsrModule extends BaseModule {
       {
         protocol: ROUTING_PROTOCOL,
         destinationPeerId: destinationId,
-        selectedRoute: null as unknown as DsrRouteRecord,
+        selectedRoute: {
+          path: [packet.sourcePeerId || this.peerId, ...path, packet.destinationPeerId],
+        } satisfies DsrPathRecord,
       } as GetRouteEventDetails,
       ROUTING_PROTOCOL,
     );
@@ -95,19 +97,30 @@ export class DsrModule extends BaseModule {
     return super.write(packet, nextHop);
   }
 
-  override send(packet: BasePacket): boolean {
-    const { type } = packet;
+  override write(message: Message, hopPeerId: UUID): boolean {
+    const { type } = message;
+
     if (type === MessageType.DsrPacket) {
-      return this.processDsrPacket(packet as DsrPacket);
-    } else {
+      return this.processDsrPacket(message as DsrPacket);
+    } else if (type === MessageType.Packet) {
+      const packet = message as BasePacket;
+      const route =
+        this.cache.get(packet.destinationPeerId) ||
+        this.cache.getByPrefix(packet.destinationPeerId);
+      if (!route) {
+        return false;
+      }
+
       const wrapped = {
         ...packet,
         type: MessageType.DsrPacket,
-        path: [],
+        path: route.path,
       } satisfies DsrPacket;
 
-      return super.send(wrapped);
+      return super.write(wrapped, hopPeerId);
     }
+
+    return super.write(message, hopPeerId);
   }
 
   override getTables(): RoutingStructureType {
@@ -129,11 +142,37 @@ export class DsrModule extends BaseModule {
   override getRoute(destinationId: UUID): UUID | null {
     const cachedRoute = this.cache.get(destinationId);
     if (cachedRoute) {
-      return cachedRoute.pathPeerIds[0];
+      const { path } = cachedRoute;
+      super.recordEvent(
+        EventType.GetRoute,
+        {
+          protocol: ROUTING_PROTOCOL,
+          destinationPeerId: destinationId,
+          selectedRoute: {
+            path: [this.peerId, ...path, destinationId],
+          } satisfies DsrPathRecord,
+        } as GetRouteEventDetails,
+        ROUTING_PROTOCOL,
+      );
+
+      return cachedRoute.path[0];
     } else {
       const prefixRoute = this.cache.getByPrefix(destinationId);
       if (prefixRoute) {
-        return prefixRoute.pathPeerIds[0];
+        const { path } = prefixRoute;
+        super.recordEvent(
+          EventType.GetRoute,
+          {
+            protocol: ROUTING_PROTOCOL,
+            destinationPeerId: destinationId,
+            selectedRoute: {
+              path: [this.peerId, ...path, destinationId],
+            } satisfies DsrPathRecord,
+          } as GetRouteEventDetails,
+          ROUTING_PROTOCOL,
+        );
+
+        return prefixRoute.path[0] || destinationId;
       }
 
       const request = {
@@ -141,37 +180,43 @@ export class DsrModule extends BaseModule {
         identification: this.sequence,
         sourceId: this.peerId,
         destinationId,
-        addresses: [],
+        path: [],
       } satisfies NewDsrRouteRequestMessage;
+      this.sequence++;
 
       super.broadcast(request);
     }
 
+    const route = this.cache.get(destinationId);
+    if (!route) {
+      return null;
+    }
+
+    const { path } = route;
     super.recordEvent(
       EventType.GetRoute,
       {
         protocol: ROUTING_PROTOCOL,
         destinationPeerId: destinationId,
-        selectedRoute: null as unknown as DsrRouteRecord,
+        selectedRoute: {
+          path: [this.peerId, ...path, destinationId],
+        } satisfies DsrPathRecord,
       } as GetRouteEventDetails,
       ROUTING_PROTOCOL,
     );
-    return this.cache.get(destinationId)?.pathPeerIds[0] || null;
+
+    return route.path[0] || null;
   }
 
   private processRouteRequest(message: NewDsrRouteRequestMessage): boolean {
-    const { destinationId, sourceId, addresses, identification } = message;
+    const { destinationId, sourceId, path, identification } = message;
 
     // same identification already present - this message is duplicate
     if (this.requestTable.has(destinationId, sourceId, identification)) {
-      super.recordEvent(
-        EventType.Drop,
-        {
-          reason: DropReason.Duplicate,
-          message,
-        } satisfies DropEventDetails,
-        ROUTING_PROTOCOL,
-      );
+      super.recordEvent(EventType.Drop, {
+        reason: DropReason.Duplicate,
+        message,
+      } satisfies DropEventDetails);
 
       return true;
     }
@@ -181,45 +226,34 @@ export class DsrModule extends BaseModule {
 
     // the message returned to the sender
     if (this.peerId === sourceId) {
-      super.recordEvent(
-        EventType.Drop,
-        {
-          reason: DropReason.SourceIsTarget,
-          message,
-        } satisfies DropEventDetails,
-        ROUTING_PROTOCOL,
-      );
+      super.recordEvent(EventType.Drop, {
+        reason: DropReason.SourceIsTarget,
+        message,
+      } satisfies DropEventDetails);
 
       return true;
     }
 
     // the message goes by cycle to the node th
-    if (addresses.includes(this.peerId)) {
-      super.recordEvent(
-        EventType.Drop,
-        {
-          reason: DropReason.Duplicate,
-          message,
-        } satisfies DropEventDetails,
-        ROUTING_PROTOCOL,
-      );
+    if (path.includes(this.peerId)) {
+      super.recordEvent(EventType.Drop, {
+        reason: DropReason.Duplicate,
+        message,
+      } satisfies DropEventDetails);
 
       return true;
     }
 
-    console.log("THIS PEER IS THE DESTINATION");
-
     // the node is the destination
     if (this.peerId === destinationId) {
-      const reversed = [...addresses].reverse();
+      const reversed = [...path].reverse();
 
-      const path = [this.peerId, ...reversed];
       const reply: NewDsrRouteReplyMessage = {
         type: MessageType.DsrRouteReplyMessage,
         identification: message.identification,
         sourceId: this.peerId,
         destinationId: message.sourceId,
-        addresses: path,
+        path: reversed,
       };
 
       super.recordEvent(
@@ -228,13 +262,13 @@ export class DsrModule extends BaseModule {
           isFromCache: false,
           sourceId,
           destinationId,
-          receivedPath: addresses,
-          reversedPath: reversed,
+          receivedPath: [sourceId, ...path, destinationId],
+          reversedPath: [destinationId, ...reversed, sourceId],
         } satisfies DsrCalculationEventDetails,
         ROUTING_PROTOCOL,
       );
 
-      this.cachePath(sourceId, this.peerId, identification, reversed);
+      this.cacheSourcePath(sourceId, identification, [...reversed, destinationId]);
 
       super.recordEvent(
         EventType.Broadcast,
@@ -252,15 +286,15 @@ export class DsrModule extends BaseModule {
     // node knows the way to the destination
     const cachedRoute = this.cache.get(destinationId);
     if (cachedRoute) {
-      const path = [...addresses, ...cachedRoute.pathPeerIds];
-      const reversed = [...path].reverse();
+      const fullPath = [...path, ...cachedRoute.path];
+      const reversed = [...fullPath].reverse();
 
       const reply: NewDsrRouteReplyMessage = {
         type: MessageType.DsrRouteReplyMessage,
         identification: message.identification,
         sourceId: this.peerId,
         destinationId: message.sourceId,
-        addresses: path,
+        path: reversed,
       };
 
       super.recordEvent(
@@ -269,7 +303,7 @@ export class DsrModule extends BaseModule {
           isFromCache: true,
           sourceId,
           destinationId,
-          receivedPath: addresses,
+          receivedPath: path,
           reversedPath: reversed,
         } satisfies DsrCalculationEventDetails,
         ROUTING_PROTOCOL,
@@ -289,39 +323,44 @@ export class DsrModule extends BaseModule {
     }
 
     // node discovering the route for the destination
+    const updatedPath = [...path, this.peerId];
     const request = {
       ...message,
-      addresses: [...message.addresses, this.peerId],
+      path: updatedPath,
     } satisfies NewDsrRouteRequestMessage;
 
-    this.cachePath(destinationId, this.peerId, identification, message.addresses.reverse());
+    this.cacheSourcePath(sourceId, identification, path.reverse());
     return super.broadcast(request);
   }
 
   private processRouteReply(message: NewDsrRouteReplyMessage): boolean {
-    const { destinationId, sourceId, addresses, identification } = message;
+    const { destinationId, sourceId, path, identification } = message;
 
     if (this.peerId === sourceId) {
-      // TODO: Add drop event
+      super.recordEvent(EventType.Drop, {
+        reason: DropReason.SourceIsTarget,
+        message,
+      } satisfies DropEventDetails);
       return true;
     }
 
-    if (!addresses.includes(this.peerId) && this.peerId !== destinationId) {
+    if (!path.includes(this.peerId) && this.peerId !== destinationId) {
       return true;
     }
 
     if (this.peerId === destinationId) {
-      const reversed = addresses.reverse();
-      const record = this.cache.insert(sourceId, reversed, identification);
+      const reversed = path.reverse();
+      const record = this.cache.insert(sourceId, reversed);
 
       super.recordEvent(
         EventType.AddRoute,
         {
           protocol: ROUTING_PROTOCOL,
-          destinationPeerId: sourceId,
-          nextHopPeerId: null as unknown as UUID,
-          previousRoute: null as unknown as DsrRouteRecord,
-          nextRoute: record,
+          destinationId: sourceId,
+          identification,
+          path: [this.peerId, ...record.path, sourceId],
+          isSourceCaching: false,
+          lastUpdateTick: this.eventRecorder.getCurrentTick(),
         } satisfies DsrRouteChangeEventDetails,
         ROUTING_PROTOCOL,
       );
@@ -329,10 +368,10 @@ export class DsrModule extends BaseModule {
       return true;
     }
 
-    const indexInPath = addresses.indexOf(this.peerId);
-    const nextHop = addresses[indexInPath + 1] || destinationId;
+    const indexInPath = path.indexOf(this.peerId);
+    const nextHop = path[indexInPath + 1] || destinationId;
 
-    this.cachePath(destinationId, sourceId, identification, addresses);
+    this.cacheSourcePath(sourceId, identification, path);
 
     super.recordEvent(
       EventType.Broadcast,
@@ -347,37 +386,36 @@ export class DsrModule extends BaseModule {
     return super.write(message, nextHop);
   }
 
-  private cachePath(destinationId: UUID, sourceId: UUID, identification: number, path: UUID[]) {
+  private cacheSourcePath(sourceId: UUID, identification: number, path: UUID[]) {
     const indexInPath = path.indexOf(this.peerId);
+    const index = indexInPath === -1 ? path.length : indexInPath;
 
-    const sourcePath = path.slice(0, indexInPath - 1);
-    const sourceRecord = this.cache.insert(sourceId, sourcePath, identification);
+    const route = this.cache.get(sourceId);
 
-    super.recordEvent(
-      EventType.AddRoute,
-      {
-        protocol: ROUTING_PROTOCOL,
-        destinationPeerId: sourceId,
-        nextHopPeerId: null as unknown as UUID,
-        previousRoute: null as unknown as DsrRouteRecord,
-        nextRoute: sourceRecord,
-      } satisfies DsrRouteChangeEventDetails,
-      ROUTING_PROTOCOL,
-    );
+    let isPathCached = !!route;
+    for (let i = 0; i < path.length - 1; i++) {
+      if (path[i] !== route?.path[i]) {
+        isPathCached = false;
+        break;
+      }
+    }
 
-    const destinationPath = path.slice(indexInPath + 1);
-    const destinationRecord = this.cache.insert(destinationId, destinationPath, identification);
+    if (!isPathCached) {
+      const sourcePath = path.slice(0, index);
+      this.cache.insert(sourceId, sourcePath);
 
-    super.recordEvent(
-      EventType.AddRoute,
-      {
-        protocol: ROUTING_PROTOCOL,
-        destinationPeerId: destinationId,
-        nextHopPeerId: null as unknown as UUID,
-        previousRoute: null as unknown as DsrRouteRecord,
-        nextRoute: destinationRecord,
-      } satisfies DsrRouteChangeEventDetails,
-      ROUTING_PROTOCOL,
-    );
+      super.recordEvent(
+        EventType.AddRoute,
+        {
+          protocol: ROUTING_PROTOCOL,
+          destinationId: sourceId,
+          path: [this.peerId, ...sourcePath, sourceId],
+          identification,
+          isSourceCaching: true,
+          lastUpdateTick: this.eventRecorder.getCurrentTick(),
+        } satisfies DsrRouteChangeEventDetails,
+        ROUTING_PROTOCOL,
+      );
+    }
   }
 }

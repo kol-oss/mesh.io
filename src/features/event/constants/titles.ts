@@ -61,6 +61,7 @@ const EVENT_TITLES = new Map<EventDetailsType, string>([
   [EventDetailsType.DsrRouteUpdated, "DSR Route Updated"],
   [EventDetailsType.DsrRouteRemoved, "DSR Route Removed"],
   [EventDetailsType.DsrRouteDropped, "DSR Route Dropped"],
+  [EventDetailsType.DsrPathRecalculated, "DSR Path Recalculated"],
 ]);
 
 export const getEventTitle = (eventType: EventDetailsType): string => {

@@ -52,7 +52,7 @@ export const getRouteRequestMessageStructure = (
         value: String(message.routePeerIds.length * 4 + 6),
         bits: 8,
         description:
-          "Length of option payload, calculated as (4 * n) + 6, where n is the number of addresses.",
+          "Length of option payload, calculated as (4 * n) + 6, where n is the number of path.",
         blocked: false,
       },
       {

@@ -12,6 +12,7 @@ import {
 import BatmanTableStructure from "./BatmanTableStructure";
 import DsdvTableStructure from "./DsdvTableStructure";
 import OlsrTableStructure from "./OlsrTableStructure";
+import DsrTableStructure from "@/features/event/components/TableStructure/DsrTableStructure.tsx";
 
 type TableStructureProps = {
   isOpen: boolean;
@@ -189,6 +190,12 @@ export default function TableStructure({
             peers={currentStepResult.snapshot.peers}
             onPeerNameHover={onPeerHoverChange}
           />
+        ) : selectedProtocol === RoutingProtocol.DSR ? (
+          <DsrTableStructure
+            peer={inspectedPeer}
+            peers={currentStepResult.snapshot.peers}
+            onPeerNameHover={onPeerHoverChange}
+          />
         ) : selectedProtocol === RoutingProtocol.AODV ? (
           renderCollapsibleBlock(
             "aodvRoutes",
@@ -234,57 +241,6 @@ export default function TableStructure({
                           : row.precursors
                               .map((peerId) => getPeerLabel(peerId, peerNameById))
                               .join(", ")}
-                      </td>
-                      <td>{row.lastUpdateTick}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>,
-          )
-        ) : selectedProtocol === RoutingProtocol.DSR ? (
-          renderCollapsibleBlock(
-            "dsrRoutes",
-            "DSR Route Cache",
-            <table className="simulation-panel__table-view">
-              <thead>
-                <tr>
-                  <th>{"Destination"}</th>
-                  <th>{"Next Hop"}</th>
-                  <th>{"Metric"}</th>
-                  <th>{"Sequence Number"}</th>
-                  <th>{"Path"}</th>
-                  <th>{"Last Update"}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {inspectedPeer.dsrRoutingTable.length === 0 ? (
-                  <tr>
-                    <td colSpan={6}>{"No records"}</td>
-                  </tr>
-                ) : (
-                  inspectedPeer.dsrRoutingTable.map((row, index) => (
-                    <tr key={`${row.destinationPeerId}-${row.nextHopPeerId}-${index}`}>
-                      <td>
-                        {renderPeerName(
-                          row.destinationPeerId,
-                          getPeerLabel(row.destinationPeerId, peerNameById),
-                          onPeerHoverChange,
-                        )}
-                      </td>
-                      <td>
-                        {renderPeerName(
-                          row.nextHopPeerId,
-                          getPeerLabel(row.nextHopPeerId, peerNameById),
-                          onPeerHoverChange,
-                        )}
-                      </td>
-                      <td>{row.metric}</td>
-                      <td>{row.sequenceNumber}</td>
-                      <td>
-                        {row.pathPeerIds
-                          .map((peerId) => getPeerLabel(peerId, peerNameById))
-                          .join(" -> ")}
                       </td>
                       <td>{row.lastUpdateTick}</td>
                     </tr>

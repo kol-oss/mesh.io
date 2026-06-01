@@ -65,7 +65,7 @@ const getOlsrHelloStructureRows = (
               label: "Link Code",
               value: "N/A",
               bits: 8,
-              description: "No neighbour interface addresses are advertised in this HELLO.",
+              description: "No neighbour interface path are advertised in this HELLO.",
               blocked: true,
             },
             {
@@ -88,7 +88,7 @@ const getOlsrHelloStructureRows = (
               label: "Neighbor Interface Address",
               value: "N/A",
               bits: 32,
-              description: "No neighbour interface addresses are advertised in this HELLO.",
+              description: "No neighbour interface path are advertised in this HELLO.",
               blocked: true,
             },
           ],

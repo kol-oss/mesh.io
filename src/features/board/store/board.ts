@@ -650,6 +650,46 @@ export function useBoardStore() {
     );
   }, [currentSimulationEvents.length, dispatch, simulationCurrentEventIndex]);
 
+  useEffect(() => {
+    if (!isSimulationActive) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.altKey || event.ctrlKey || event.metaKey) {
+        return;
+      }
+
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        handlePrevSimulationEvent();
+        return;
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        handleNextSimulationEvent();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleNextSimulationEvent, handlePrevSimulationEvent, isSimulationActive]);
+
   return {
     canGoNextEvent:
       currentSimulationEvents.length > 0 &&

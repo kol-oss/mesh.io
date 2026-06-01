@@ -119,7 +119,7 @@ export default function DsrHelp() {
               {
                 label: "Address [1...n]",
                 bits: 32,
-                description: "List of intermediate IP addresses accumulating the route hop-by-hop.",
+                description: "List of intermediate IP path accumulating the route hop-by-hop.",
               },
             ],
           ]}
@@ -166,7 +166,7 @@ export default function DsrHelp() {
               {
                 label: "Address [1...n]",
                 bits: 32,
-                description: "The complete sequence of IP addresses making up the source route.",
+                description: "The complete sequence of IP path making up the source route.",
               },
             ],
           ]}

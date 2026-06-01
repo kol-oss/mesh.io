@@ -24,15 +24,15 @@ export type NewDsrRouteRequestMessage = BaseMessage & {
   identification: number;
   sourceId: UUID;
   destinationId: UUID;
-  addresses: UUID[];
+  path: UUID[];
 };
 
 // RREP message
 export type DsrRouteReplyMessage = BaseMessage & {
   type: MessageType.DsrRouteReplyMessage;
-  sourcePeerId: UUID;
+  sourceId: UUID;
   senderPeerId: UUID;
-  targetPeerId: UUID;
+  destinationId: UUID;
   requestId: number;
   hopLimit: number;
   routePeerIds: UUID[];
@@ -44,7 +44,7 @@ export type NewDsrRouteReplyMessage = BaseMessage & {
   identification: number;
   sourceId: UUID;
   destinationId: UUID;
-  addresses: UUID[];
+  path: UUID[];
 };
 
 // RERR message
@@ -61,12 +61,14 @@ export type DsrRouteErrorMessage = BaseMessage & {
 
 // Route Record
 export type DsrRouteRecord = {
-  destinationPeerId: UUID;
-  nextHopPeerId: UUID;
-  metric: number;
-  sequenceNumber: number;
+  destinationId: UUID;
   lastUpdateTick: number;
-  pathPeerIds: UUID[];
+  path: UUID[];
+};
+
+// Route Record
+export type DsrPathRecord = {
+  path: UUID[];
 };
 
 // Route Request Table Record
@@ -94,9 +96,10 @@ export type DsrCalculationEventDetails = {
 // AddRoute, UpdateRoute, and DeleteRoute details
 export type DsrRouteChangeEventDetails = {
   protocol: typeof RoutingProtocol.DSR;
-  destinationPeerId: UUID;
-  nextHopPeerId: UUID;
-  previousRoute: DsrRouteRecord | null;
-  nextRoute: DsrRouteRecord | null;
+  destinationId: UUID;
+  path: UUID[];
+  identification?: number;
+  lastUpdateTick: number;
+  isSourceCaching: boolean;
   message?: Message;
 };

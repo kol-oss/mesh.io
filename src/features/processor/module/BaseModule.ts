@@ -22,7 +22,7 @@ export abstract class BaseModule implements RoutingModule {
 
   protected readonly INCOMING_MESSAGE_TYPES: MessageType[] = [MessageType.Packet];
 
-  constructor(peerId: UUID, graph: NetworkGraph, eventRecorder: EventRecorder) {
+  protected constructor(peerId: UUID, graph: NetworkGraph, eventRecorder: EventRecorder) {
     this.peerId = peerId;
     this.graph = graph;
     this.eventRecorder = eventRecorder;

@@ -1,5 +1,8 @@
 import type { EventRecorder } from "@/features/processor/EventRecorder";
-import type { DsrRouteRecord } from "@/features/processor/types/protocols/dsr";
+import type {
+  DsrRouteChangeEventDetails,
+  DsrRouteRecord,
+} from "@/features/processor/types/protocols/dsr";
 import { clone } from "@/features/processor/utils/clone";
 import { EventType } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
@@ -34,10 +37,15 @@ export class RouteCache {
   }
 
   getByPrefix(destinationId: UUID): DsrRouteRecord | null {
-    const routes = this.routes.get(destinationId) || [];
-    for (const route of routes) {
-      if (route.pathPeerIds.includes(destinationId)) {
-        return route;
+    for (const routes of this.routes.values()) {
+      for (const route of routes) {
+        const { path } = route;
+        if (path.includes(destinationId)) {
+          return {
+            ...route,
+            path: path.slice(0, path.indexOf(destinationId) - 1),
+          };
+        }
       }
     }
 
@@ -50,15 +58,12 @@ export class RouteCache {
       .flat();
   }
 
-  insert(destinationId: UUID, path: UUID[], sequence: number): DsrRouteRecord {
+  insert(destinationId: UUID, path: UUID[]): DsrRouteRecord {
     const tick = this.eventRecorder.getCurrentTick();
     const route: DsrRouteRecord = {
-      destinationPeerId: destinationId,
-      nextHopPeerId: path[1],
-      metric: path.length - 1,
-      sequenceNumber: sequence,
+      destinationId: destinationId,
       lastUpdateTick: tick,
-      pathPeerIds: [...path],
+      path: [...path],
     };
 
     const pathes = this.routes.get(destinationId) || [];
@@ -84,11 +89,11 @@ export class RouteCache {
           EventType.DeleteRoute,
           {
             protocol: PROTOCOL,
-            destinationPeerId: destinationId,
-            nextHopPeerId: route.nextHopPeerId,
-            previousRoute: clone(route),
-            nextRoute: null,
-          },
+            destinationId: destinationId,
+            path: [this.peerId, ...route.path, route.destinationId],
+            lastUpdateTick: route.lastUpdateTick,
+            isSourceCaching: false,
+          } satisfies DsrRouteChangeEventDetails,
           PROTOCOL,
         );
 

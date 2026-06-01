@@ -2,8 +2,9 @@ import PeerDescription from "@/features/event/components/Description/PeerDescrip
 import TableDescription from "@/features/event/components/Description/TableDescription";
 import TextDescription from "@/features/event/components/Description/TextDescription";
 import {
+  type DsrCalculationEventDetails,
+  type DsrPathRecord,
   type DsrRouteChangeEventDetails,
-  type DsrRouteRecord,
 } from "@/features/processor/types/protocols/dsr";
 import {
   DropReason,
@@ -15,6 +16,9 @@ import {
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
+import VariableDescription from "@/features/event/components/Description/VariableDescription.tsx";
+import type { DsrConfiguration } from "@/shared/types/model/configurations.ts";
+import SecondaryDescription from "@/features/event/components/Description/SecondaryDescription.tsx";
 
 type DsrDescriptionProps = {
   peers: PeerEntity[];
@@ -29,14 +33,20 @@ export default function DsrDescription({
   detailsType,
   onPeerHover,
 }: DsrDescriptionProps) {
-  const { details } = event;
+  const { details, peerId } = event;
+  const peer = findById(peerId, peers)!;
+
+  const { routeTimeout } = peer.configuration as DsrConfiguration;
+
+  const getPathString = (path: UUID[]) =>
+    path.map((peerId) => findById(peerId, peers)?.name ?? peerId).join(" -> ");
 
   if (detailsType === EventDetailsType.DsrRouteRequestBroadcast) {
     return (
       <>
         <TextDescription>
           Because of the Message step, the <i>Route Discovery</i> mechanism was triggered. The DSR
-          node broadcasts a <i>Route Request</i> to explore the path to the destination node.
+          node broadcasts a <i>Route Request (RREQ)</i> to explore the path to the destination node.
         </TextDescription>
         <TextDescription>
           The request mainly loans on the IPv4 fields to determine originator and destination of the
@@ -60,8 +70,14 @@ export default function DsrDescription({
     return (
       <>
         <TextDescription>
-          Node forwarded a DSR Route Reply (RREP) carrying the discovered source route back toward
-          the initiator.
+          Upon reaching the target node, or an intermediate node possessing a valid cached route,
+          the destination generates a <i>Route Reply (RREP)</i>. In contrast to the initial
+          exploration phase, this message is unicasted directly back to the initiating node.
+        </TextDescription>
+        <TextDescription>
+          The packet transports the accumulated path sequence within the <i>Route Reply Option</i>.
+          As the message traverses the network in reverse, transit nodes extract these topological
+          links to dynamically update their respective routing caches.
         </TextDescription>
       </>
     );
@@ -79,80 +95,97 @@ export default function DsrDescription({
   }
 
   if (detailsType === EventDetailsType.DsrPathRecalculated) {
+    const { isFromCache, destinationId, receivedPath, reversedPath } =
+      details as DsrCalculationEventDetails;
     return (
       <>
         <TextDescription>
-          Node processed DSR control-plane logic while maintaining source routes and route-cache
-          consistency.
+          The current node{" "}
+          {isFromCache
+            ? "already contains cached path to the destination"
+            : "is the destination node"}{" "}
+          <PeerDescription
+            peer={findById(destinationId, peers)}
+            onHover={() => onPeerHover(destinationId)}
+          />
+          , so there are no need for further <i>Route Request (RREQ)</i> retransmissions. Now node
+          will reverse the received path from packet and return the <i>Route Reply (RREP)</i>{" "}
+          through it to the originator.
         </TextDescription>
+        <SecondaryDescription title={"How the reply path is formed?"}>
+          The node received path {getPathString(receivedPath)} from the <i>Route Request</i>, and{" "}
+          {isFromCache ? "appends it with the existing path from cache" : "reverses it"} to transfer
+          the <i>Route Reply</i> back, converting it into {getPathString(reversedPath)}.
+        </SecondaryDescription>
       </>
     );
   }
 
   if (
     detailsType === EventDetailsType.DsrRouteAdded ||
-    detailsType === EventDetailsType.DsrRouteUpdated ||
-    detailsType === EventDetailsType.DsrRouteRemoved
+    detailsType === EventDetailsType.DsrRouteUpdated
   ) {
-    const { destinationPeerId, nextRoute: route } = details as DsrRouteChangeEventDetails;
-    if (!route) {
-      return <></>;
-    }
-
-    const { pathPeerIds: path } = route;
-    const fullPath = [event.peerId, ...path, destinationPeerId];
+    const { destinationId, lastUpdateTick, isSourceCaching, identification, path } =
+      details as DsrRouteChangeEventDetails;
     return (
       <>
         <TextDescription>
-          The node updated its DSR Route Cache after discovery or maintenance processing.
+          The node caches route inside structure called <i>Route Cache</i> to optimize communication
+          speed with the same node for{" "}
+          <VariableDescription value={`${routeTimeout}`}>Route Timeout</VariableDescription> ticks.
         </TextDescription>
         <TableDescription
-          headers={["Destination", "Path", "Identification", "Last Seen"]}
+          headers={["Destination", "Path", "Last Seen"]}
           rows={[
             [
-              <PeerDescription
-                peer={findById(route.destinationPeerId, peers)}
-                onHover={onPeerHover}
-              />,
-              fullPath.map((peerId) => findById(peerId, peers)?.name ?? peerId).join(" -> "),
-              route.sequenceNumber,
-              route.lastUpdateTick,
+              <PeerDescription peer={findById(destinationId, peers)} onHover={onPeerHover} />,
+              getPathString(path),
+              lastUpdateTick,
             ],
           ]}
         />
+        {isSourceCaching && (
+          <SecondaryDescription title={"What is the Snooping mechanism?"}>
+            This path was cached using the <i>Snooping</i> mechanism, meaning it was learned from a
+            packet that was neither originated nor destined for this node. Only paths that have
+            already been traversed by messages are cached.
+          </SecondaryDescription>
+        )}
+        {identification !== undefined && (
+          <SecondaryDescription title={"What is the Identification field?"}>
+            The <i>Route Request</i> message is broadcasted, so to prevent duplications and cycles,
+            each message contains{" "}
+            <VariableDescription value={"Identification for this message: " + identification}>
+              sequence number
+            </VariableDescription>
+            , that is stored in <i>Route Request Table</i> and used to determine whether this
+            message was already processed.
+          </SecondaryDescription>
+        )}
       </>
     );
   }
 
   if (detailsType === EventDetailsType.DsrRouteSelected) {
     const routeSelection = details as GetRouteEventDetails;
-    const selectedRoute = routeSelection.selectedRoute as DsrRouteRecord;
-
-    const { pathPeerIds: path } = selectedRoute;
-    const fullPath = [event.peerId, ...path, routeSelection.destinationPeerId];
+    const { path } = routeSelection.selectedRoute as DsrPathRecord;
 
     return (
       <>
         <TextDescription>
-          Node selected a DSR source route from the Route Cache and used its next hop for packet
-          forwarding.
+          The originating node retrieves path from the <i>Route Cache</i> and encapsulates it inside
+          the payload block called <i>Source Route Option</i>. Each next hop reads the corresponding
+          path and gets next address from the path to transfer packet to it.
         </TextDescription>
         <TableDescription
-          headers={["Destination", "Path", "Identification", "Last Seen"]}
+          headers={["Destination", "Path"]}
           rows={[
             [
               <PeerDescription
                 peer={findById(routeSelection.destinationPeerId, peers)}
                 onHover={onPeerHover}
               />,
-              <PeerDescription
-                peer={findById(selectedRoute?.nextHopPeerId, peers)}
-                onHover={onPeerHover}
-              />,
-              selectedRoute?.metric,
-              selectedRoute?.sequenceNumber,
-              fullPath.map((peerId) => findById(peerId, peers)?.name ?? peerId).join(" -> "),
-              selectedRoute?.lastUpdateTick,
+              getPathString(path),
             ],
           ]}
         />
@@ -161,9 +194,9 @@ export default function DsrDescription({
   }
 
   if (detailsType === EventDetailsType.DsrRouteDropped) {
-    const drop = details as DropEventDetails;
+    const { reason } = details as DropEventDetails;
 
-    if (drop.reason === DropReason.NoRoute || drop.reason === DropReason.DestinationUnavailable) {
+    if (reason === DropReason.NoRoute || reason === DropReason.DestinationUnavailable) {
       return (
         <TextDescription>
           Packet forwarding failed because the route cache had no valid DSR source route for the
@@ -172,7 +205,7 @@ export default function DsrDescription({
       );
     }
 
-    if (drop.reason === DropReason.TimeToLiveExceeded) {
+    if (reason === DropReason.TimeToLiveExceeded) {
       return (
         <TextDescription>
           Packet forwarding stopped because the packet TTL expired before reaching its destination.
@@ -182,7 +215,7 @@ export default function DsrDescription({
 
     return (
       <TextDescription>
-        Packet forwarding was dropped by DSR processing due to {drop.reason.toLowerCase()}.
+        Packet forwarding was dropped by DSR processing due to {reason.toLowerCase()}.
       </TextDescription>
     );
   }

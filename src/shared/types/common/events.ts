@@ -16,7 +16,7 @@ import type {
 import type {
   DsrCalculationEventDetails,
   DsrRouteChangeEventDetails,
-  DsrRouteRecord,
+  DsrPathRecord,
 } from "@/features/processor/types/protocols/dsr.ts";
 import type {
   OlsrRouteChangeEventDetails,
@@ -93,7 +93,7 @@ export type GetRouteEventDetails = {
     | DsdvRouteRecord
     | AodvRouteRecord
     | OlsrRouteRecord
-    | DsrRouteRecord;
+    | DsrPathRecord;
   message: Packet;
 };
 

@@ -3,7 +3,7 @@ import type { RefreshAction } from "@/shared/types/model/steps";
 import type { AodvRouteRecord } from "./protocols/aodv";
 import type { BatmanNeighbourRecord, BatmanRouteRecord } from "./protocols/batman";
 import type { DsdvRouteRecord } from "./protocols/dsdv";
-import type { DsrRouteRecord, DsrRouteRequestTableRecord } from "./protocols/dsr";
+import type { DsrPacket, DsrRouteRecord, DsrRouteRequestTableRecord } from "./protocols/dsr";
 import type {
   OlsrNeighbourRecord,
   OlsrRouteRecord,
@@ -14,7 +14,7 @@ import type {
 
 export interface RoutingModule {
   read(message: Message): boolean;
-  send(packet: Packet): boolean;
+  send(packet: Packet | DsrPacket): boolean;
   refresh(action?: RefreshAction): void;
 }
 

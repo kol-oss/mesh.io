@@ -136,7 +136,7 @@ export class DsrModule extends BaseModule {
         continue;
       }
 
-      const delivered = this.forwardPacketOnRoute(sourcePacket, route.pathPeerIds, 0);
+      const delivered = this.forwardPacketOnRoute(sourcePacket, route.path, 0);
       if (delivered) {
         return true;
       }
@@ -245,9 +245,9 @@ export class DsrModule extends BaseModule {
 
       const replyMessage: DsrRouteReplyMessage = {
         type: MessageType.DsrRouteReplyMessage,
-        sourcePeerId: pathPeerIds[0],
+        sourceId: pathPeerIds[0],
         senderPeerId,
-        targetPeerId: pathPeerIds[pathPeerIds.length - 1],
+        destinationId: pathPeerIds[pathPeerIds.length - 1],
         requestId,
         hopLimit: index,
         routePeerIds: [...pathPeerIds],
@@ -277,9 +277,9 @@ export class DsrModule extends BaseModule {
 
       const discoveryMessage: DsrRouteReplyMessage = {
         type: MessageType.DsrRouteReplyMessage,
-        sourcePeerId: pathPeerIds[0],
+        sourceId: pathPeerIds[0],
         senderPeerId: pathPeerIds[pathPeerIds.length - 1],
-        targetPeerId: pathPeerIds[pathPeerIds.length - 1],
+        destinationId: pathPeerIds[pathPeerIds.length - 1],
         requestId,
         hopLimit: pathPeerIds.length - index,
         routePeerIds: [...pathPeerIds],
@@ -338,12 +338,12 @@ export class DsrModule extends BaseModule {
       }
 
       const selectedRoute: DsrRouteRecord = {
-        destinationPeerId: packet.destinationPeerId,
+        destinationId: packet.destinationPeerId,
         nextHopPeerId: nextPeerId,
         metric: routePeerIds.length - index - 1,
-        sequenceNumber: this.sequence,
+        identification: this.sequence,
         lastUpdateTick: this.eventRecorder.getCurrentTick(),
-        pathPeerIds: routePeerIds.slice(index),
+        path: routePeerIds.slice(index),
       };
 
       this.eventRecorder.record(
@@ -379,7 +379,7 @@ export class DsrModule extends BaseModule {
           });
           if (salvageRoute) {
             const prefix = routePeerIds.slice(0, index + 1);
-            const salvagedPath = [...prefix, ...salvageRoute.pathPeerIds.slice(1)];
+            const salvagedPath = [...prefix, ...salvageRoute.path.slice(1)];
             this.eventRecorder.record(
               currentPeer.id,
               EventType.Calculation,
