@@ -95,8 +95,7 @@ export default function DsrDescription({
   }
 
   if (detailsType === EventDetailsType.DsrPathRecalculated) {
-    const { isFromCache, destinationId, receivedPath, reversedPath } =
-      details as DsrCalculationEventDetails;
+    const { isFromCache, destinationId, reversedPath } = details as DsrCalculationEventDetails;
     return (
       <>
         <TextDescription>
@@ -113,7 +112,7 @@ export default function DsrDescription({
           through it to the originator.
         </TextDescription>
         <SecondaryDescription title={"How the reply path is formed?"}>
-          The node received path {getPathString(receivedPath)} from the <i>Route Request</i>, and{" "}
+          The node received path from the <i>Route Request</i>, and{" "}
           {isFromCache ? "appends it with the existing path from cache" : "reverses it"} to transfer
           the <i>Route Reply</i> back, converting it into {getPathString(reversedPath)}.
         </SecondaryDescription>
@@ -162,6 +161,28 @@ export default function DsrDescription({
             message was already processed.
           </SecondaryDescription>
         )}
+      </>
+    );
+  }
+
+  if (detailsType === EventDetailsType.DsrRouteRemoved) {
+    const { destinationId, path } = details as DsrRouteChangeEventDetails;
+    return (
+      <>
+        <TextDescription>
+          The record in the <i>Route Cache</i> was not updated for{" "}
+          <VariableDescription value={`${routeTimeout}`}>Route Timeout</VariableDescription> ticks,
+          so it is removed from cache and <i>Request Table</i>.
+        </TextDescription>
+        <TableDescription
+          headers={["Destination", "Path"]}
+          rows={[
+            [
+              <PeerDescription peer={findById(destinationId, peers)} onHover={onPeerHover} />,
+              getPathString(path),
+            ],
+          ]}
+        />
       </>
     );
   }

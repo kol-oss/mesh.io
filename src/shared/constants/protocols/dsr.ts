@@ -1,14 +1,13 @@
 import type {
   DsrRouteErrorMessage,
-  DsrRouteReplyMessage,
-  DsrRouteRequestMessage,
+  NewDsrRouteReplyMessage,
+  NewDsrRouteRequestMessage,
 } from "@/features/processor/types/protocols/dsr";
 import type { FieldStructure } from "@/shared/types/common/field";
 import type { DsrConfiguration } from "@/shared/types/model/configurations";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { getNameById } from "@/shared/utils/peers";
 
-export const DSR_DEFAULT_PACKET_TTL = 50;
 export const DSR_DEFAULT_HOP_LIMIT = 32;
 export const DSR_MIN_ROUTE_TIMEOUT = 1;
 export const DSR_MAX_REDISCOVERY_ATTEMPTS = 2;
@@ -16,18 +15,18 @@ export const DSR_MAX_SALVAGE_COUNT = 1;
 
 // default configuration
 export const DSR_DEFAULT_CONFIGURATION = {
-  routeTimeout: 10,
+  routeTimeout: 2,
 } as DsrConfiguration;
 
 export const getRouteRequestMessageStructure = (
-  message: DsrRouteRequestMessage,
+  message: NewDsrRouteRequestMessage,
   peers?: PeerEntity[],
 ): FieldStructure[][] => {
-  const { routePeerIds: routeIds } = message;
-  let path: FieldStructure[][] = [];
+  const { path, identification, destinationId, sourceId } = message;
+  let pathRows: FieldStructure[][] = [];
 
-  if (routeIds.length > 0 && peers) {
-    path = routeIds.map((peerId) => [
+  if (path.length > 0 && peers) {
+    pathRows = path.map((peerId) => [
       {
         label: "Address",
         value: getNameById(peerId, peers),
@@ -49,7 +48,7 @@ export const getRouteRequestMessageStructure = (
       },
       {
         label: "Opt Data Len",
-        value: String(message.routePeerIds.length * 4 + 6),
+        value: String(path.length * 4 + 6),
         bits: 8,
         description:
           "Length of option payload, calculated as (4 * n) + 6, where n is the number of path.",
@@ -57,7 +56,7 @@ export const getRouteRequestMessageStructure = (
       },
       {
         label: "Identification",
-        value: String(message.requestId),
+        value: String(identification),
         bits: 16,
         description: "Route Request identifier for duplicate suppression.",
         blocked: false,
@@ -65,26 +64,33 @@ export const getRouteRequestMessageStructure = (
     ],
     [
       {
-        label: "Target Address",
-        value: getNameById(message.targetPeerId, peers),
+        label: "Source Address",
+        value: getNameById(sourceId, peers),
         bits: 32,
-        description: "Requested destination address.",
+        description: "Originator address (part of IPv4 headers).",
+        blocked: false,
+      },
+      {
+        label: "Destination Address",
+        value: getNameById(destinationId, peers),
+        bits: 32,
+        description: "Destination address (part of IPv4 headers).",
         blocked: false,
       },
     ],
-    ...path,
+    ...pathRows,
   ];
 };
 
 export const getRouteReplyMessageStructure = (
-  message: DsrRouteReplyMessage,
+  message: NewDsrRouteReplyMessage,
   peers?: PeerEntity[],
 ): FieldStructure[][] => {
-  const { routePeerIds: routeIds } = message;
-  let path: FieldStructure[][] = [];
+  const { path, destinationId, sourceId } = message;
+  let pathRows: FieldStructure[][] = [];
 
-  if (routeIds.length > 0 && peers) {
-    path = routeIds.map((peerId) => [
+  if (path.length > 0 && peers) {
+    pathRows = path.map((peerId) => [
       {
         label: "Address",
         value: getNameById(peerId, peers),
@@ -106,7 +112,7 @@ export const getRouteReplyMessageStructure = (
       },
       {
         label: "Opt Data Len",
-        value: String(message.routePeerIds.length * 4 + 1),
+        value: String(path.length * 4 + 1),
         bits: 8,
         description: "Length of Route Reply option payload.",
         blocked: false,
@@ -119,7 +125,23 @@ export const getRouteReplyMessageStructure = (
         blocked: false,
       },
     ],
-    ...path,
+    [
+      {
+        label: "Source Address",
+        value: getNameById(sourceId, peers),
+        bits: 32,
+        description: "Originator address (part of IPv4 headers).",
+        blocked: false,
+      },
+      {
+        label: "Destination Address",
+        value: getNameById(destinationId, peers),
+        bits: 32,
+        description: "Destination address (part of IPv4 headers).",
+        blocked: false,
+      },
+    ],
+    ...pathRows,
   ];
 };
 

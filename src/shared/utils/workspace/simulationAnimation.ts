@@ -19,8 +19,8 @@ import type {
   ToggleStepAnimation,
 } from "@/shared/types/workspace/scene";
 import type {
-  DsrRouteReplyMessage,
-  DsrRouteRequestMessage,
+  NewDsrRouteReplyMessage,
+  NewDsrRouteRequestMessage,
 } from "@/features/processor/types/protocols/dsr.ts";
 
 export const buildSimulationMessageAnimations = (
@@ -221,11 +221,11 @@ const getDroppedMessageAnimation = (
   }
 
   if (message.type === MessageType.DsrRouteRequestMessage) {
-    const dsrMessage = message as DsrRouteRequestMessage;
+    const dsrMessage = message as NewDsrRouteRequestMessage;
 
     const previousHopPeerId =
-      dsrMessage.routePeerIds && dsrMessage.routePeerIds.length > 1
-        ? dsrMessage.routePeerIds[dsrMessage.routePeerIds.length - 2]
+      dsrMessage.path && dsrMessage.path.length > 1
+        ? dsrMessage.path[dsrMessage.path.length - 2]
         : null;
     if (!previousHopPeerId) {
       return null;
@@ -235,15 +235,15 @@ const getDroppedMessageAnimation = (
   }
 
   if (message.type === MessageType.DsrRouteReplyMessage) {
-    const dsrMessage = message as DsrRouteReplyMessage;
+    const dsrMessage = message as NewDsrRouteReplyMessage;
 
-    const senderIndex = dsrMessage.routePeerIds.indexOf(dsrMessage.senderPeerId);
-    const previousPeerId = senderIndex > 0 ? dsrMessage.routePeerIds[senderIndex - 1] : null;
+    const senderIndex = dsrMessage.path.indexOf(dsrMessage.sourceId);
+    const previousPeerId = senderIndex > 0 ? dsrMessage.path[senderIndex - 1] : null;
     if (!previousPeerId) {
       return null;
     }
 
-    return { sourcePeerId: dsrMessage.senderPeerId, targetPeerId: previousPeerId };
+    return { sourcePeerId: dsrMessage.sourceId, targetPeerId: previousPeerId };
   }
 
   if (message.type === MessageType.DsrRouteErrorMessage) {

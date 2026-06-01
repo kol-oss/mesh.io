@@ -77,11 +77,24 @@ export class RouteCache {
   tick(): void {
     const tick = this.eventRecorder.getCurrentTick();
     for (const [destinationId, routes] of this.routes.entries()) {
-      const updatedRoutes = routes.filter((route) => {
+      const updatedRoutes = [...routes];
+      let hasDeletedRoute = false;
+
+      for (let index = updatedRoutes.length - 1; index >= 0; index -= 1) {
+        const route = updatedRoutes[index];
         const ticksPassed = tick - route.lastUpdateTick;
 
         if (ticksPassed < this.routeTimeout) {
-          return true;
+          continue;
+        }
+
+        hasDeletedRoute = true;
+        updatedRoutes.splice(index, 1);
+
+        if (updatedRoutes.length > 0) {
+          this.routes.set(destinationId, updatedRoutes);
+        } else {
+          this.routes.delete(destinationId);
         }
 
         this.eventRecorder.record(
@@ -96,16 +109,13 @@ export class RouteCache {
           } satisfies DsrRouteChangeEventDetails,
           PROTOCOL,
         );
+      }
 
-        return false;
-      });
-
-      if (updatedRoutes.length !== routes.length) {
-        this.routes.set(destinationId, updatedRoutes);
+      if (!hasDeletedRoute) {
+        continue;
       }
 
       if (updatedRoutes.length === 0) {
-        this.routes.delete(destinationId);
         this.onRouteDeleted?.(destinationId);
       }
     }

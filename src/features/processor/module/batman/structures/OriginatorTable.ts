@@ -141,8 +141,6 @@ export class OriginatorTable {
           previousRoute,
           nextRoute: null,
         });
-
-        continue;
       }
 
       if (routes.size === 0) {

@@ -19,11 +19,12 @@ import {
   type Event,
   type MoveEventDetails,
   type StatusChangeEventDetails,
-} from "../../shared/types/common/events";
-import { MessageType, type Packet } from "../../shared/types/common/messages";
+} from "@/shared/types/common/events.ts";
+import { MessageType, type Packet } from "@/shared/types/common/messages.ts";
 import { DEFAULT_TIME_TO_LIVE } from "./constants/message";
 import { NetworkGraph } from "./network/NetworkGraph";
 import { groupStepsByTick } from "./utils/steps";
+import { isReactive } from "@/features/processor/utils/protocol/protocols.ts";
 
 export class SimulationManager {
   private readonly eventRecorder: EventRecorder = new EventRecorder();
@@ -31,7 +32,6 @@ export class SimulationManager {
   private readonly stepsByTick: Step[][];
   private readonly networkGraph: NetworkGraph = new NetworkGraph(this.eventRecorder);
   private readonly stepPeerTables: PeerSnapshot[][] = [];
-  // per-event tables: eventPeerTables[stepIndex][rawEventIndex]
   private readonly eventPeerTables: PeerSnapshot[][][] = [];
 
   private constructor(entities: NetworkEntity[], steps: Step[]) {
@@ -132,6 +132,8 @@ export class SimulationManager {
       toY: y,
     };
 
+    if (isReactive(node.protocol)) node.module.refresh();
+
     this.networkGraph.moveNode(entityId, x, y);
     this.eventRecorder.record(entityId, EventType.Move, details);
   }
@@ -141,7 +143,10 @@ export class SimulationManager {
     if (!entityId) {
       throw new Error("Toggle step must have an entity id");
     }
-
+    const peer = this.networkGraph.getNode(entityId);
+    if (!peer) {
+      throw new Error("Toggle step must have a valid entity id");
+    }
     const result = this.networkGraph.setStatus(entityId, status);
     if (!result) {
       throw new Error("Toggle step must have a valid configuration");
@@ -153,6 +158,8 @@ export class SimulationManager {
       previousEnabled: result.previousEnabled,
       nextEnabled: result.nextEnabled,
     };
+
+    if (isReactive(peer.protocol)) peer.module.refresh();
 
     this.eventRecorder.record(entityId, EventType.StatusChange, details);
   }
@@ -179,6 +186,8 @@ export class SimulationManager {
       destinationPeerId: destinationId,
       timeToLive: DEFAULT_TIME_TO_LIVE,
     };
+
+    if (isReactive(peer.protocol)) module.refresh();
 
     module.send(packet);
   }

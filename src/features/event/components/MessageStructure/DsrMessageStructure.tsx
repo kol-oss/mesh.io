@@ -1,7 +1,7 @@
 import {
   type DsrRouteErrorMessage,
-  type DsrRouteReplyMessage,
-  type DsrRouteRequestMessage,
+  type NewDsrRouteReplyMessage,
+  type NewDsrRouteRequestMessage,
 } from "@/features/processor/types/protocols/dsr";
 import MessageField from "@/shared/components/Message/MessageField";
 import MessageGroup from "@/shared/components/Message/MessageGroup";
@@ -26,12 +26,12 @@ export default function DsrMessageStructure({ message, peers }: DsrMessageStruct
 
   // Route Request message
   if (messageType === MessageType.DsrRouteRequestMessage) {
-    structure = getRouteRequestMessageStructure(message as DsrRouteRequestMessage, peers);
+    structure = getRouteRequestMessageStructure(message as NewDsrRouteRequestMessage, peers);
   }
 
   // Route Reply message
   if (messageType === MessageType.DsrRouteReplyMessage) {
-    structure = getRouteReplyMessageStructure(message as DsrRouteReplyMessage, peers);
+    structure = getRouteReplyMessageStructure(message as NewDsrRouteReplyMessage, peers);
   }
 
   // Route Error message

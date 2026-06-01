@@ -26,13 +26,14 @@ export class RouteRequestTable {
     return !!sourceRecord && sourceRecord <= identification;
   }
 
-  remove(destinationId: UUID): void {
-    const destinationRecords = this.records.get(destinationId);
-    if (!destinationRecords) {
-      return;
-    }
+  removeBySource(sourceId: UUID): void {
+    for (const [destinationId, sourceRecords] of this.records.entries()) {
+      sourceRecords.delete(sourceId);
 
-    this.records.delete(destinationId);
+      if (sourceRecords.size === 0) {
+        this.records.delete(destinationId);
+      }
+    }
   }
 
   getAll(): DsrRouteRequestTableRecord[] {

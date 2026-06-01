@@ -52,7 +52,9 @@ export class DsrModule extends BaseModule {
     this.cache = new RouteCache(this.peerId, this.eventRecorder, configuration.routeTimeout);
     this.requestTable = new RouteRequestTable();
 
-    this.cache.setTimeoutListener((destinationId: UUID) => this.requestTable.remove(destinationId));
+    this.cache.setTimeoutListener((destinationId: UUID) =>
+      this.requestTable.removeBySource(destinationId),
+    );
   }
 
   override process(message: Message): boolean {
@@ -205,7 +207,7 @@ export class DsrModule extends BaseModule {
       ROUTING_PROTOCOL,
     );
 
-    return route.path[0] || null;
+    return route.path[0] || destinationId;
   }
 
   private processRouteRequest(message: NewDsrRouteRequestMessage): boolean {
@@ -286,13 +288,13 @@ export class DsrModule extends BaseModule {
     // node knows the way to the destination
     const cachedRoute = this.cache.get(destinationId);
     if (cachedRoute) {
-      const fullPath = [...path, ...cachedRoute.path];
-      const reversed = [...fullPath].reverse();
+      const fullPath = [...path, this.peerId, ...cachedRoute.path];
+      const reversed = fullPath.reverse();
 
       const reply: NewDsrRouteReplyMessage = {
         type: MessageType.DsrRouteReplyMessage,
         identification: message.identification,
-        sourceId: this.peerId,
+        sourceId: message.destinationId,
         destinationId: message.sourceId,
         path: reversed,
       };
@@ -303,23 +305,28 @@ export class DsrModule extends BaseModule {
           isFromCache: true,
           sourceId,
           destinationId,
-          receivedPath: path,
-          reversedPath: reversed,
+          receivedPath: [sourceId, ...path, destinationId],
+          reversedPath: [sourceId, ...reversed, destinationId],
         } satisfies DsrCalculationEventDetails,
         ROUTING_PROTOCOL,
       );
 
+      let nextHop = reversed[0] || sourceId;
+      if (nextHop === this.peerId) {
+        nextHop = sourceId;
+      }
+
       super.recordEvent(
         EventType.Broadcast,
         {
-          neighbourPeerIds: [reversed[0]],
+          neighbourPeerIds: [nextHop],
           retransmit: false,
           message: reply,
         } satisfies BroadcastEventDetails,
         ROUTING_PROTOCOL,
       );
 
-      return super.write(reply, reversed[0]);
+      return super.write(reply, nextHop);
     }
 
     // node discovering the route for the destination
