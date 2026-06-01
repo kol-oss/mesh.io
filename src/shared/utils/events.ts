@@ -1,11 +1,11 @@
 import { DsdvUpdateType } from "@/features/processor/types/protocols/dsdv";
 import {
-  DropReason,
-  EventDetailsType,
-  EventType,
   type BroadcastEventDetails,
   type DropEventDetails,
+  DropReason,
   type Event,
+  EventDetailsType,
+  EventType,
   type GetRouteEventDetails,
   type RouteChangeEventDetails,
 } from "@/shared/types/common/events";
@@ -243,14 +243,13 @@ const getDsrEventDetailsType = (event: Event): EventDetailsType => {
     if (messageType === MessageType.DsrRouteReplyMessage) {
       return EventDetailsType.DsrRouteReplyForwarded;
     }
+
+    if (messageType === MessageType.DsrRouteErrorMessage) {
+      return EventDetailsType.DsrRouteSalvage;
+    }
   }
 
   if (type === EventType.Calculation) {
-    const { message, reason } = details as { message?: { type?: MessageType }; reason?: string };
-    if (message?.type === MessageType.DsrRouteErrorMessage && reason?.includes("salvaging")) {
-      return EventDetailsType.DsrRouteSalvage;
-    }
-
     return EventDetailsType.DsrPathRecalculated;
   }
 

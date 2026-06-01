@@ -6,7 +6,7 @@ import { EntityType } from "@/shared/types/model/entities.ts";
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { DsrConfiguration } from "@/shared/types/model/configurations.ts";
 import { generateUUID } from "@/shared/types/common/uuid.ts";
-import type { DsrModule } from "@/features/processor/module/dsr/NewDsrModule.ts";
+import type { DsrModule } from "@/features/processor/module/dsr/DsrModule.ts";
 import { type RefreshStep, StepType } from "@/shared/types/model/steps.ts";
 
 const eventRecorder = new EventRecorder();

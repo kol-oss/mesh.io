@@ -41,7 +41,10 @@ export default function DsrDescription({
   const getPathString = (path: UUID[]) =>
     path.map((peerId) => findById(peerId, peers)?.name ?? peerId).join(" -> ");
 
-  if (detailsType === EventDetailsType.DsrRouteRequestBroadcast) {
+  if (
+    detailsType === EventDetailsType.DsrRouteRequestBroadcast ||
+    detailsType === EventDetailsType.DsrRouteRequestRetransmission
+  ) {
     return (
       <>
         <TextDescription>
@@ -57,15 +60,6 @@ export default function DsrDescription({
     );
   }
 
-  if (detailsType === EventDetailsType.DsrRouteRequestRetransmission) {
-    return (
-      <TextDescription>
-        Node retransmitted a DSR Route Request while appending itself to the discovered route
-        record.
-      </TextDescription>
-    );
-  }
-
   if (detailsType === EventDetailsType.DsrRouteReplyForwarded) {
     return (
       <>
@@ -78,17 +72,6 @@ export default function DsrDescription({
           The packet transports the accumulated path sequence within the <i>Route Reply Option</i>.
           As the message traverses the network in reverse, transit nodes extract these topological
           links to dynamically update their respective routing caches.
-        </TextDescription>
-      </>
-    );
-  }
-
-  if (detailsType === EventDetailsType.DsrRouteSalvage) {
-    return (
-      <>
-        <TextDescription>
-          Node attempted packet salvaging by switching to an alternate cached source route after a
-          link break.
         </TextDescription>
       </>
     );
@@ -210,6 +193,18 @@ export default function DsrDescription({
             ],
           ]}
         />
+      </>
+    );
+  }
+
+  if (detailsType === EventDetailsType.DsrRouteSalvage) {
+    return (
+      <>
+        <TextDescription>
+          The node detected that the cached path is not valid, so it sends <i>Route Error (RERR)</i>{" "}
+          message back to the originator to initiate retry. The hops on the way also deletes records
+          from <i>Route Cache</i> that contains invalid path.
+        </TextDescription>
       </>
     );
   }

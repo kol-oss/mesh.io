@@ -25,7 +25,7 @@ import type { DsrConfiguration } from "@/shared/types/model/configurations";
 import type { NetworkGraph } from "../../network/NetworkGraph";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module";
 import { BaseModule } from "../BaseModule";
-import { RouteCache } from "./structures/NewRouteCache";
+import { RouteCache } from "./structures/RouteCache.ts";
 
 // module for DSR protocol
 const ROUTING_PROTOCOL = RoutingProtocol.DSR;
@@ -171,7 +171,19 @@ export class DsrModule extends BaseModule {
     }
 
     const pathIndex = path.indexOf(this.peerId);
-    return this.write(errorMessage, path[pathIndex - 1] || sourceId!);
+    const hopId = path[pathIndex - 1] || sourceId!;
+
+    super.recordEvent(
+      EventType.Broadcast,
+      {
+        neighbourPeerIds: [hopId],
+        retransmit: false,
+        message: errorMessage,
+      } satisfies BroadcastEventDetails,
+      ROUTING_PROTOCOL,
+    );
+
+    return this.write(errorMessage, hopId);
   }
 
   private canWriteToHop(hopPeerId: UUID): boolean {
@@ -473,7 +485,7 @@ export class DsrModule extends BaseModule {
     } satisfies NewDsrRouteRequestMessage;
 
     this.cacheSourcePath(sourceId, identification, path.reverse());
-    return super.broadcast(request);
+    return super.broadcast(request, true);
   }
 
   private processRouteReply(message: NewDsrRouteReplyMessage): boolean {
