@@ -120,4 +120,58 @@ export class RouteCache {
       }
     }
   }
+
+  removeByLink(sourceId: UUID, destinationId: UUID) {
+    for (const [cachedDestinationId, routes] of this.routes.entries()) {
+      const updatedRoutes = [...routes];
+
+      for (let index = updatedRoutes.length - 1; index >= 0; index -= 1) {
+        const route = updatedRoutes[index];
+        const fullPath = [this.peerId, ...route.path, route.destinationId];
+
+        let matchesLink = false;
+        for (let pathIndex = 0; pathIndex < fullPath.length - 1; pathIndex += 1) {
+          const currentId = fullPath[pathIndex];
+          const nextId = fullPath[pathIndex + 1];
+
+          if (
+            (currentId === sourceId && nextId === destinationId) ||
+            (currentId === destinationId && nextId === sourceId)
+          ) {
+            matchesLink = true;
+            break;
+          }
+        }
+
+        if (!matchesLink) {
+          continue;
+        }
+
+        updatedRoutes.splice(index, 1);
+
+        if (updatedRoutes.length > 0) {
+          this.routes.set(cachedDestinationId, updatedRoutes);
+        } else {
+          this.routes.delete(cachedDestinationId);
+        }
+
+        this.eventRecorder.record(
+          this.peerId,
+          EventType.DeleteRoute,
+          {
+            protocol: PROTOCOL,
+            destinationId: cachedDestinationId,
+            path: fullPath,
+            lastUpdateTick: route.lastUpdateTick,
+            isSourceCaching: false,
+          } satisfies DsrRouteChangeEventDetails,
+          PROTOCOL,
+        );
+      }
+
+      if (updatedRoutes.length === 0) {
+        this.onRouteDeleted?.(cachedDestinationId);
+      }
+    }
+  }
 }

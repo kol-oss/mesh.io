@@ -50,13 +50,11 @@ export type NewDsrRouteReplyMessage = BaseMessage & {
 // RERR message
 export type DsrRouteErrorMessage = BaseMessage & {
   type: MessageType.DsrRouteErrorMessage;
-  sourcePeerId: UUID;
-  senderPeerId: UUID;
-  destinationPeerId: UUID;
-  brokenFromPeerId: UUID;
-  brokenToPeerId: UUID;
+  sourceId: UUID;
+  destinationId: UUID;
+  errorSourceId: UUID;
+  errorDestinationId: UUID;
   salvageCount: number;
-  routePeerIds: UUID[];
 };
 
 // Route Record
@@ -82,6 +80,7 @@ export type DsrRouteRequestTableRecord = {
 export type DsrPacket = BasePacket & {
   type: MessageType.DsrPacket;
   path: UUID[];
+  salvageCount: number;
 };
 
 // Calculation details

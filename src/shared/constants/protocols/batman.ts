@@ -1,7 +1,7 @@
 import type {
   BatmanEchoLocationMessage,
   BatmanOriginatorMessage,
-} from "../../../features/processor/types/protocols/batman";
+} from "@/features/processor/types/protocols/batman.ts";
 import type { FieldStructure } from "../../types/common/field";
 import type { BatmanConfiguration } from "../../types/model/configurations";
 import type { PeerEntity } from "../../types/model/entities";

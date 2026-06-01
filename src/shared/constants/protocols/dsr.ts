@@ -8,9 +8,7 @@ import type { DsrConfiguration } from "@/shared/types/model/configurations";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { getNameById } from "@/shared/utils/peers";
 
-export const DSR_DEFAULT_HOP_LIMIT = 32;
 export const DSR_MIN_ROUTE_TIMEOUT = 1;
-export const DSR_MAX_REDISCOVERY_ATTEMPTS = 2;
 export const DSR_MAX_SALVAGE_COUNT = 1;
 
 // default configuration
@@ -183,7 +181,7 @@ export const getRouteErrorMessageStructure = (
     [
       {
         label: "Error Source Address",
-        value: getNameById(message.brokenFromPeerId, peers),
+        value: getNameById(message.errorSourceId, peers),
         bits: 32,
         description: "Node that detected the broken link.",
         blocked: false,
@@ -192,7 +190,7 @@ export const getRouteErrorMessageStructure = (
     [
       {
         label: "Error Destination Address",
-        value: getNameById(message.destinationPeerId, peers),
+        value: getNameById(message.destinationId, peers),
         bits: 32,
         description: "Packet destination impacted by the error.",
         blocked: false,
@@ -201,7 +199,7 @@ export const getRouteErrorMessageStructure = (
     [
       {
         label: "Type-Specific Information",
-        value: getNameById(message.brokenToPeerId, peers),
+        value: getNameById(message.errorDestinationId, peers),
         bits: 32,
         description: "Unreachable next-hop address for this failure.",
         blocked: false,
