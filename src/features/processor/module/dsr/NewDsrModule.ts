@@ -357,7 +357,7 @@ export class DsrModule extends BaseModule {
       EventType.AddRoute,
       {
         protocol: ROUTING_PROTOCOL,
-        destinationPeerId: destinationId,
+        destinationPeerId: sourceId,
         nextHopPeerId: null as unknown as UUID,
         previousRoute: null as unknown as DsrRouteRecord,
         nextRoute: sourceRecord,
@@ -366,6 +366,18 @@ export class DsrModule extends BaseModule {
     );
 
     const destinationPath = path.slice(indexInPath + 1);
-    this.cache.insert(destinationId, destinationPath, identification);
+    const destinationRecord = this.cache.insert(destinationId, destinationPath, identification);
+
+    super.recordEvent(
+      EventType.AddRoute,
+      {
+        protocol: ROUTING_PROTOCOL,
+        destinationPeerId: destinationId,
+        nextHopPeerId: null as unknown as UUID,
+        previousRoute: null as unknown as DsrRouteRecord,
+        nextRoute: destinationRecord,
+      } satisfies DsrRouteChangeEventDetails,
+      ROUTING_PROTOCOL,
+    );
   }
 }

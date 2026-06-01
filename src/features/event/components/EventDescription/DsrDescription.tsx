@@ -12,7 +12,6 @@ import {
   type Event,
   type GetRouteEventDetails,
 } from "@/shared/types/common/events";
-import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
@@ -22,14 +21,6 @@ type DsrDescriptionProps = {
   event: Event;
   detailsType: EventDetailsType;
   onPeerHover: (peerId: UUID) => void;
-};
-
-const getRouteRows = (details: DsrRouteChangeEventDetails) => {
-  if (details.nextRoute) {
-    return [details.nextRoute];
-  }
-
-  return details.previousRoute ? [details.previousRoute] : [];
 };
 
 export default function DsrDescription({
@@ -49,7 +40,7 @@ export default function DsrDescription({
         </TextDescription>
         <TextDescription>
           The request mainly loans on the IPv4 fields to determine originator and destination of the
-          message. The protocol payload is incapsulated into part called <i>Route Request Option</i>
+          message. The protocol payload is encapsulated into part called <i>Route Request Option</i>
           . For simplicity, this is the only part that is displayed in the Packet Inspection mode.
         </TextDescription>
       </>
@@ -103,29 +94,31 @@ export default function DsrDescription({
     detailsType === EventDetailsType.DsrRouteUpdated ||
     detailsType === EventDetailsType.DsrRouteRemoved
   ) {
-    const routeChange = details as DsrRouteChangeEventDetails;
-    if (routeChange.protocol !== RoutingProtocol.DSR) {
+    const { destinationPeerId, nextRoute: route } = details as DsrRouteChangeEventDetails;
+    if (!route) {
       return <></>;
     }
 
+    const { pathPeerIds: path } = route;
+    const fullPath = [event.peerId, ...path, destinationPeerId];
     return (
       <>
         <TextDescription>
           The node updated its DSR Route Cache after discovery or maintenance processing.
         </TextDescription>
         <TableDescription
-          headers={["Destination", "Next Hop", "Metric", "Sequence", "Path", "Last Seen"]}
-          rows={getRouteRows(routeChange).map((route) => [
-            <PeerDescription
-              peer={findById(route.destinationPeerId, peers)}
-              onHover={onPeerHover}
-            />,
-            <PeerDescription peer={findById(route.nextHopPeerId, peers)} onHover={onPeerHover} />,
-            route.metric,
-            route.sequenceNumber,
-            route.pathPeerIds.map((peerId) => findById(peerId, peers)?.name ?? peerId).join(" -> "),
-            route.lastUpdateTick,
-          ])}
+          headers={["Destination", "Path", "Identification", "Last Seen"]}
+          rows={[
+            [
+              <PeerDescription
+                peer={findById(route.destinationPeerId, peers)}
+                onHover={onPeerHover}
+              />,
+              fullPath.map((peerId) => findById(peerId, peers)?.name ?? peerId).join(" -> "),
+              route.sequenceNumber,
+              route.lastUpdateTick,
+            ],
+          ]}
         />
       </>
     );
@@ -135,6 +128,9 @@ export default function DsrDescription({
     const routeSelection = details as GetRouteEventDetails;
     const selectedRoute = routeSelection.selectedRoute as DsrRouteRecord;
 
+    const { pathPeerIds: path } = selectedRoute;
+    const fullPath = [event.peerId, ...path, routeSelection.destinationPeerId];
+
     return (
       <>
         <TextDescription>
@@ -142,7 +138,7 @@ export default function DsrDescription({
           forwarding.
         </TextDescription>
         <TableDescription
-          headers={["Destination", "Next Hop", "Metric", "Sequence", "Path", "Last Seen"]}
+          headers={["Destination", "Path", "Identification", "Last Seen"]}
           rows={[
             [
               <PeerDescription
@@ -155,9 +151,7 @@ export default function DsrDescription({
               />,
               selectedRoute?.metric,
               selectedRoute?.sequenceNumber,
-              selectedRoute?.pathPeerIds
-                .map((peerId) => findById(peerId, peers)?.name ?? peerId)
-                .join(" -> "),
+              fullPath.map((peerId) => findById(peerId, peers)?.name ?? peerId).join(" -> "),
               selectedRoute?.lastUpdateTick,
             ],
           ]}
