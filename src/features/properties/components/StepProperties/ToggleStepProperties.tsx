@@ -17,12 +17,14 @@ type ToggleStepPropertiesProps = {
   step: ToggleStep;
   entities: NetworkEntity[];
   updateStep: (changes: Partial<ToggleStep>) => void;
+  disabled?: boolean;
 };
 
 export default function ToggleStepProperties({
   step,
   entities,
   updateStep,
+  disabled = false,
 }: ToggleStepPropertiesProps) {
   const targets = entities.filter(
     (entity): entity is PeerEntity | LinkEntity =>
@@ -44,6 +46,7 @@ export default function ToggleStepProperties({
           value={step.entityId}
           valid={!!step.entityId}
           options={entityOptions}
+          disabled={disabled}
           onChange={(value) => updateStep({ entityId: value })}
         />
         <BooleanPropertyField

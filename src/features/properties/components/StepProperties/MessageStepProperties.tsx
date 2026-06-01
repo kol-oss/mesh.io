@@ -10,12 +10,14 @@ type MessageStepPropertiesProps = {
   step: MessageStep;
   peers: PeerEntity[];
   updateStep: (changes: Partial<MessageStep>) => void;
+  disabled?: boolean;
 };
 
 export default function MessageStepProperties({
   step,
   peers,
   updateStep,
+  disabled = false,
 }: MessageStepPropertiesProps) {
   const peerOptions: SelectOption<UUID>[] = peers.map((peer) => ({
     label: peer.name,
@@ -32,6 +34,7 @@ export default function MessageStepProperties({
           value={sourcePeerId}
           valid={!!sourcePeerId}
           options={peerOptions}
+          disabled={disabled}
           onChange={(value) => {
             updateStep({
               sourceId: value,
@@ -45,6 +48,7 @@ export default function MessageStepProperties({
           value={destinationPeerId}
           valid={!!destinationPeerId}
           options={peerOptions.filter((peer) => peer.value !== sourcePeerId)}
+          disabled={disabled}
           onChange={(value) => {
             if (value === sourcePeerId) {
               return;

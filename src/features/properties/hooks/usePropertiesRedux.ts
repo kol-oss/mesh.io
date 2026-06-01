@@ -1,4 +1,5 @@
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
+import { selectIsSimulationActive } from "@/shared/store/selectors";
 import { replaceLinks } from "@/shared/store/slices/linkSlice";
 import { replaceObstacles } from "@/shared/store/slices/obstacleSlice";
 import { replacePeers } from "@/shared/store/slices/peerSlice";
@@ -27,6 +28,7 @@ export const usePropertiesRedux = () => {
   const manualSteps = useAppSelector((state) => state.step);
   const id = useAppSelector((state) => state.display.selectedId);
   const isCollapsed = useAppSelector((state) => state.display.navCollapsed ?? false);
+  const isSimulationActive = useAppSelector(selectIsSimulationActive);
 
   const entities = useMemo<NetworkEntity[]>(() => {
     return [...peers, ...links, ...obstacles];
@@ -88,5 +90,6 @@ export const usePropertiesRedux = () => {
     steps,
     setEntities,
     setSteps,
+    isSimulationActive,
   };
 };

@@ -15,12 +15,14 @@ type DsdvPropertiesProps = {
     protocol: RoutingProtocol,
     changes: Partial<PeerConfiguration>,
   ) => void;
+  disabled?: boolean;
 };
 
 export default function DsdvProperties({
   peer,
   updateConfiguration,
   updateConfigurationByProtocol,
+  disabled = false,
 }: DsdvPropertiesProps) {
   const {
     refreshInterval = DSDV_MIN_INTERVAL,
@@ -47,6 +49,7 @@ export default function DsdvProperties({
           value={dumpInterval}
           min={DSDV_MIN_INTERVAL}
           global
+          disabled={disabled}
           onChange={(event) => onChange(event, "dumpInterval", DSDV_MIN_INTERVAL, true)}
         />
       </PropertyGroup>
@@ -58,6 +61,7 @@ export default function DsdvProperties({
           valid={!errors?.refreshInterval}
           value={refreshInterval}
           min={DSDV_MIN_INTERVAL}
+          disabled={disabled}
           onChange={(event) => onChange(event, "refreshInterval", DSDV_MIN_INTERVAL)}
         />
       </PropertyGroup>
@@ -69,6 +73,7 @@ export default function DsdvProperties({
           valid={!errors?.routeTimeout}
           value={routeTimeout}
           min={DSDV_MIN_TIMEOUT}
+          disabled={disabled}
           onChange={(event) => onChange(event, "routeTimeout", DSDV_MIN_TIMEOUT)}
         />
       </PropertyGroup>

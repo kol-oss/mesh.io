@@ -8,4 +8,5 @@ export type EntityPropertiesProps<T extends NetworkEntity> = {
   selected: T;
   entities: NetworkEntity[];
   setEntities: (value: NetworkEntity[]) => void;
+  isLocked?: boolean;
 };

@@ -15,13 +15,19 @@ import { Diamond } from "lucide-react";
 
 type LinkPropertiesProps = EntityPropertiesProps<LinkEntity>;
 
-export default function LinkProperties({ selected, entities, setEntities }: LinkPropertiesProps) {
+export default function LinkProperties({
+  selected,
+  entities,
+  setEntities,
+  isLocked: isSimulationLocked = false,
+}: LinkPropertiesProps) {
   const {
     name,
-    locked: isLocked,
+    locked: isEntityLocked,
     sourcePeerId: sourceValue,
     destinationPeerId: destinationValue,
   } = selected;
+  const isLocked = isEntityLocked || isSimulationLocked;
   const peers = entities.filter((entity): entity is PeerEntity => entity.type === EntityType.Peer);
   const peerOptions = peers.map((peer) => ({
     value: peer.id,
@@ -68,6 +74,7 @@ export default function LinkProperties({ selected, entities, setEntities }: Link
             value={sourceValue}
             valid={!linkErrors?.sourcePeerId}
             options={peerOptions}
+            disabled={isLocked}
             onChange={(value: UUID | null) => {
               const nextDestination =
                 selected.destinationPeerId === value ? null : selected.destinationPeerId;
@@ -84,6 +91,7 @@ export default function LinkProperties({ selected, entities, setEntities }: Link
             value={destinationValue}
             valid={!linkErrors?.destinationPeerId}
             options={peerOptions.filter((peer) => peer.value !== sourceValue)}
+            disabled={isLocked}
             onChange={(value: UUID | null) => {
               if (value && value === sourceValue) {
                 return;

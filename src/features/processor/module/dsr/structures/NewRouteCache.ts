@@ -33,23 +33,31 @@ export class RouteCache {
     if (!routes || routes.length === 0) {
       return null;
     }
-    return routes[0];
+
+    return this.selectShortestRoute(routes);
   }
 
   getByPrefix(destinationId: UUID): DsrRouteRecord | null {
+    let shortestPrefixRoute: DsrRouteRecord | null = null;
+
     for (const routes of this.routes.values()) {
       for (const route of routes) {
         const { path } = route;
-        if (path.includes(destinationId)) {
-          return {
-            ...route,
-            path: path.slice(0, path.indexOf(destinationId) - 1),
-          };
+        const destinationIndex = path.indexOf(destinationId);
+        if (destinationIndex === -1) continue;
+
+        const prefixRoute = {
+          ...route,
+          path: path.slice(0, destinationIndex),
+        } satisfies DsrRouteRecord;
+
+        if (!shortestPrefixRoute || prefixRoute.path.length < shortestPrefixRoute.path.length) {
+          shortestPrefixRoute = prefixRoute;
         }
       }
     }
 
-    return null;
+    return shortestPrefixRoute;
   }
 
   getAll(): DsrRouteRecord[] {
@@ -173,5 +181,15 @@ export class RouteCache {
         this.onRouteDeleted?.(cachedDestinationId);
       }
     }
+  }
+
+  private selectShortestRoute(routes: DsrRouteRecord[]): DsrRouteRecord {
+    return routes.reduce((shortestRoute, currentRoute) => {
+      if (currentRoute.path.length < shortestRoute.path.length) {
+        return currentRoute;
+      }
+
+      return shortestRoute;
+    });
   }
 }

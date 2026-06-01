@@ -24,6 +24,7 @@ type StepPropertiesPanelProps = {
   entities: NetworkEntity[];
   steps: Step[];
   setSteps: (value: Step[]) => void;
+  isLocked?: boolean;
 };
 
 export default function StepProperties({
@@ -31,6 +32,7 @@ export default function StepProperties({
   entities,
   steps,
   setSteps,
+  isLocked = false,
 }: StepPropertiesPanelProps) {
   const peers = entities.filter((entity): entity is PeerEntity => entity.type === EntityType.Peer);
 
@@ -59,6 +61,7 @@ export default function StepProperties({
 
   const { type: stepType } = step;
   const isRefresh = stepType === StepType.Refresh;
+  const isStepLocked = isRefresh || isLocked;
 
   return (
     <>
@@ -74,7 +77,7 @@ export default function StepProperties({
         </PropertyHeader>
       )}
 
-      {isRefresh && <LockMessage />}
+      {isStepLocked && <LockMessage />}
 
       <section className="properties__section">
         <p className="properties__section-title">{"Configuration"}</p>
@@ -85,7 +88,7 @@ export default function StepProperties({
             value={step.title}
             valid={!!step.title}
             onChange={(event) => updateManualStep({ title: event.target.value })}
-            disabled={isRefresh}
+            disabled={isStepLocked}
           />
         </PropertyGroup>
 
@@ -95,6 +98,7 @@ export default function StepProperties({
               label="Type"
               value={step.type}
               options={typeOptions}
+              disabled={isStepLocked}
               onChange={(value: StepType) => {
                 const updatedSteps = steps.map((s) =>
                   s.id === step.id ? convertStep(s, value) : s,
@@ -107,6 +111,7 @@ export default function StepProperties({
               icon={<Clock3 size={12} />}
               value={step.tick}
               min={MIN_TICK}
+              disabled={isStepLocked}
               onChange={(event) => updateStepTick(parseNumberValue(event.target.value, step.tick))}
             />
           </PropertyGroup>
@@ -115,15 +120,30 @@ export default function StepProperties({
         {stepType === StepType.Refresh && <RefreshStepProperties step={step} peers={peers} />}
 
         {stepType === StepType.Message && (
-          <MessageStepProperties step={step} peers={peers} updateStep={updateManualStep} />
+          <MessageStepProperties
+            step={step}
+            peers={peers}
+            updateStep={updateManualStep}
+            disabled={isStepLocked}
+          />
         )}
 
         {stepType === StepType.Toggle && (
-          <ToggleStepProperties step={step} entities={entities} updateStep={updateManualStep} />
+          <ToggleStepProperties
+            step={step}
+            entities={entities}
+            updateStep={updateManualStep}
+            disabled={isStepLocked}
+          />
         )}
 
         {stepType === StepType.Move && (
-          <MoveStepProperties step={step} peers={peers} updateStep={updateManualStep} />
+          <MoveStepProperties
+            step={step}
+            peers={peers}
+            updateStep={updateManualStep}
+            disabled={isStepLocked}
+          />
         )}
       </section>
     </>

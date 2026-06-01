@@ -90,7 +90,7 @@ export default function MessageStructure({
   };
 
   const eventMessage = getEventMessage(currentEvent);
-  if (eventMessage?.type === MessageType.Packet) {
+  if (eventMessage?.type === MessageType.Packet || eventMessage?.type === MessageType.DsrPacket) {
     return null;
   }
 

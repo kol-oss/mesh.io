@@ -8,6 +8,7 @@ type SelectPropertyFieldProps<T> = {
   valid?: boolean;
   options: SelectOption<T>[];
   onChange: (value: T) => void;
+  disabled?: boolean;
 };
 
 export default function SelectPropertyField<T>({
@@ -16,6 +17,7 @@ export default function SelectPropertyField<T>({
   valid = true,
   options,
   onChange,
+  disabled = false,
 }: SelectPropertyFieldProps<T>) {
   return (
     <>
@@ -26,6 +28,7 @@ export default function SelectPropertyField<T>({
         invalid={!valid}
         options={options}
         onChange={onChange}
+        disabled={disabled}
       />
     </>
   );

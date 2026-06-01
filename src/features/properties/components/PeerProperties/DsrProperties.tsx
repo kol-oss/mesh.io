@@ -15,12 +15,14 @@ type DsrPropertiesProps = {
     protocol: RoutingProtocol,
     changes: Partial<PeerConfiguration>,
   ) => void;
+  disabled?: boolean;
 };
 
 export default function DsrProperties({
   peer,
   updateConfiguration,
   updateConfigurationByProtocol,
+  disabled = false,
 }: DsrPropertiesProps) {
   const { routeTimeout = DSR_MIN_ROUTE_TIMEOUT } = peer.configuration as DsrConfiguration;
 
@@ -41,6 +43,7 @@ export default function DsrProperties({
         valid={!errors?.routeTimeout}
         value={routeTimeout}
         min={DSR_MIN_ROUTE_TIMEOUT}
+        disabled={disabled}
         onChange={(event) => onChange(event, "routeTimeout", DSR_MIN_ROUTE_TIMEOUT)}
       />
     </PropertyGroup>

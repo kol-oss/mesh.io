@@ -15,12 +15,14 @@ type OlsrPropertiesProps = {
     protocol: RoutingProtocol,
     changes: Partial<PeerConfiguration>,
   ) => void;
+  disabled?: boolean;
 };
 
 export default function OlsrProperties({
   peer,
   updateConfiguration,
   updateConfigurationByProtocol,
+  disabled = false,
 }: OlsrPropertiesProps) {
   const { helloInterval = OLSR_MIN_INTERVAL, tcInterval = OLSR_MIN_INTERVAL } =
     peer.configuration as OlsrConfiguration;
@@ -43,6 +45,7 @@ export default function OlsrProperties({
           valid={!errors?.helloInterval}
           value={helloInterval}
           min={OLSR_MIN_INTERVAL}
+          disabled={disabled}
           onChange={(event) => onChange(event, "helloInterval", OLSR_MIN_INTERVAL)}
         />
       </PropertyGroup>
@@ -54,6 +57,7 @@ export default function OlsrProperties({
           valid={!errors?.tcInterval}
           value={tcInterval}
           min={OLSR_MIN_INTERVAL}
+          disabled={disabled}
           onChange={(event) => onChange(event, "tcInterval", OLSR_MIN_INTERVAL)}
         />
       </PropertyGroup>

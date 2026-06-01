@@ -5,9 +5,10 @@ import PropertyLabel from "./PropertyLabel";
 type ProtocolFieldProps = {
   peer: PeerEntity;
   onClick: (protocol: RoutingProtocol) => void;
+  disabled?: boolean;
 };
 
-export default function ProtocolField({ peer, onClick }: ProtocolFieldProps) {
+export default function ProtocolField({ peer, onClick, disabled = false }: ProtocolFieldProps) {
   return (
     <>
       <PropertyLabel label="Protocol" />
@@ -19,6 +20,7 @@ export default function ProtocolField({ peer, onClick }: ProtocolFieldProps) {
               className={`properties__protocol ${isActive ? "properties__protocol--active" : ""}`}
               key={protocol}
               type="button"
+              disabled={disabled}
               onClick={() => onClick(protocol)}
             >
               {protocol}

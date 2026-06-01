@@ -13,9 +13,15 @@ type MoveStepPropertiesProps = {
   step: MoveStep;
   peers: PeerEntity[];
   updateStep: (changes: Partial<MoveStep>) => void;
+  disabled?: boolean;
 };
 
-export default function MoveStepProperties({ step, peers, updateStep }: MoveStepPropertiesProps) {
+export default function MoveStepProperties({
+  step,
+  peers,
+  updateStep,
+  disabled = false,
+}: MoveStepPropertiesProps) {
   const peerOptions: SelectOption<UUID>[] = peers.map((peer) => ({
     label: peer.name,
     icon: getEntityTypeIcon(peer.type),
@@ -31,6 +37,7 @@ export default function MoveStepProperties({ step, peers, updateStep }: MoveStep
           value={movePeerId || ""}
           valid={!!movePeerId}
           options={peerOptions}
+          disabled={disabled}
           onChange={(value) => {
             const peer = peers.find((peer) => peer.id === value);
             const hasMoveCoordinates = step.x !== 0 || step.y !== 0;
@@ -53,11 +60,13 @@ export default function MoveStepProperties({ step, peers, updateStep }: MoveStep
         <NumberPropertyField
           icon={<Letter value="X" />}
           value={step.x}
+          disabled={disabled}
           onChange={(event) => updateStep({ x: parseNumberValue(event.target.value, step.x) })}
         />
         <NumberPropertyField
           icon={<Letter value="Y" />}
           value={step.y}
+          disabled={disabled}
           onChange={(event) => updateStep({ y: parseNumberValue(event.target.value, step.y) })}
         />
       </PropertyGroup>

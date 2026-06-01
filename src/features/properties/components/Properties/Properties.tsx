@@ -13,8 +13,10 @@ type PropertiesProps = {
 };
 
 export default function Properties({ isRuntime, isLocked = false }: PropertiesProps) {
-  const { id, source, entities, setEntities, steps, setSteps, isCollapsed } = usePropertiesRedux();
+  const { id, source, entities, setEntities, steps, setSteps, isCollapsed, isSimulationActive } =
+    usePropertiesRedux();
   const { widthPercent, onResizeStart } = useSidebarResize({ side: ResizeSide.Right });
+  const isEditingLocked = isLocked || isSimulationActive;
 
   if (!id || !source || isCollapsed || (isRuntime && source === SelectionSource.Steps)) {
     return null;
@@ -28,7 +30,12 @@ export default function Properties({ isRuntime, isLocked = false }: PropertiesPr
     }
 
     properties = (
-      <EntityProperties selected={entity} entities={entities} setEntities={setEntities} />
+      <EntityProperties
+        selected={entity}
+        entities={entities}
+        setEntities={setEntities}
+        isLocked={isEditingLocked}
+      />
     );
   } else if (source === SelectionSource.Steps) {
     const step = steps.find((step) => step.id === id);
@@ -37,14 +44,20 @@ export default function Properties({ isRuntime, isLocked = false }: PropertiesPr
     }
 
     properties = (
-      <StepProperties step={step} steps={steps} entities={entities} setSteps={setSteps} />
+      <StepProperties
+        step={step}
+        steps={steps}
+        entities={entities}
+        setSteps={setSteps}
+        isLocked={isEditingLocked}
+      />
     );
   }
 
   return (
     <>
       <aside
-        className={`properties ${isLocked ? "properties--locked" : ""}`}
+        className={`properties ${isEditingLocked ? "properties--locked" : ""}`}
         style={{ width: `${widthPercent}%` }}
       >
         <Resizer onResizeStart={onResizeStart} side={ResizeSide.Right} />

@@ -25,8 +25,14 @@ import OlsrProperties from "./OlsrProperties";
 
 type PeerPropertiesProps = EntityPropertiesProps<PeerEntity>;
 
-export default function PeerProperties({ selected, entities, setEntities }: PeerPropertiesProps) {
-  const { locked: isLocked, protocol } = selected;
+export default function PeerProperties({
+  selected,
+  entities,
+  setEntities,
+  isLocked: isSimulationLocked = false,
+}: PeerPropertiesProps) {
+  const isLocked = selected.locked || isSimulationLocked;
+  const { protocol } = selected;
 
   const peerValidation = PeerPropertiesSchema.safeParse({
     name: selected.name,
@@ -158,7 +164,11 @@ export default function PeerProperties({ selected, entities, setEntities }: Peer
         <p className="properties__section-title">{"Routing"}</p>
 
         <PropertyGroup>
-          <ProtocolField peer={selected} onClick={(protocol) => updatePeer({ protocol })} />
+          <ProtocolField
+            peer={selected}
+            onClick={(protocol) => updatePeer({ protocol })}
+            disabled={isLocked}
+          />
         </PropertyGroup>
 
         {protocol === RoutingProtocol.BATMAN && (
@@ -166,6 +176,7 @@ export default function PeerProperties({ selected, entities, setEntities }: Peer
             peer={selected}
             updateConfiguration={updateConfiguration}
             updateConfigurationByProtocol={updateConfigurationByProtocol}
+            disabled={isLocked}
           />
         )}
 
@@ -174,6 +185,7 @@ export default function PeerProperties({ selected, entities, setEntities }: Peer
             peer={selected}
             updateConfiguration={updateConfiguration}
             updateConfigurationByProtocol={updateConfigurationByProtocol}
+            disabled={isLocked}
           />
         )}
 
@@ -182,6 +194,7 @@ export default function PeerProperties({ selected, entities, setEntities }: Peer
             peer={selected}
             updateConfiguration={updateConfiguration}
             updateConfigurationByProtocol={updateConfigurationByProtocol}
+            disabled={isLocked}
           />
         )}
 
@@ -190,6 +203,7 @@ export default function PeerProperties({ selected, entities, setEntities }: Peer
             peer={selected}
             updateConfiguration={updateConfiguration}
             updateConfigurationByProtocol={updateConfigurationByProtocol}
+            disabled={isLocked}
           />
         )}
 
@@ -198,6 +212,7 @@ export default function PeerProperties({ selected, entities, setEntities }: Peer
             peer={selected}
             updateConfiguration={updateConfiguration}
             updateConfigurationByProtocol={updateConfigurationByProtocol}
+            disabled={isLocked}
           />
         )}
       </section>

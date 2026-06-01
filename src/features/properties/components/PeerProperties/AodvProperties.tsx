@@ -15,12 +15,14 @@ type AodvPropertiesProps = {
     protocol: RoutingProtocol,
     changes: Partial<PeerConfiguration>,
   ) => void;
+  disabled?: boolean;
 };
 
 export default function AodvProperties({
   peer,
   updateConfiguration,
   updateConfigurationByProtocol,
+  disabled = false,
 }: AodvPropertiesProps) {
   const { helloInterval = AODV_MIN_HELLO_INTERVAL, routeTimeout = AODV_MIN_ROUTE_TIMEOUT } =
     peer.configuration as AodvConfiguration;
@@ -43,6 +45,7 @@ export default function AodvProperties({
           valid={!errors?.helloInterval}
           value={helloInterval}
           min={AODV_MIN_HELLO_INTERVAL}
+          disabled={disabled}
           onChange={(event) => onChange(event, "helloInterval", AODV_MIN_HELLO_INTERVAL)}
         />
       </PropertyGroup>
@@ -54,6 +57,7 @@ export default function AodvProperties({
           valid={!errors?.routeTimeout}
           value={routeTimeout}
           min={AODV_MIN_ROUTE_TIMEOUT}
+          disabled={disabled}
           onChange={(event) => onChange(event, "routeTimeout", AODV_MIN_ROUTE_TIMEOUT)}
         />
       </PropertyGroup>

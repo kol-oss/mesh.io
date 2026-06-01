@@ -18,8 +18,10 @@ export default function ObstacleProperties({
   selected,
   entities,
   setEntities,
+  isLocked: isSimulationLocked = false,
 }: ObstaclePropertiesProps) {
-  const { name, locked: isLocked } = selected;
+  const isLocked = selected.locked || isSimulationLocked;
+  const { name } = selected;
 
   const obstacleValidation = ObstaclePropertiesSchema.safeParse({
     name,

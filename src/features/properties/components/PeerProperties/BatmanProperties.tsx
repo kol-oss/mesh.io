@@ -21,12 +21,14 @@ type BatmanPropertiesProps = {
     protocol: RoutingProtocol,
     changes: Partial<PeerConfiguration>,
   ) => void;
+  disabled?: boolean;
 };
 
 export default function BatmanProperties({
   peer,
   updateConfiguration,
   updateConfigurationByProtocol,
+  disabled = false,
 }: BatmanPropertiesProps) {
   const {
     ogmInterval = BATMAN_MIN_OGM_INTERVAL,
@@ -53,6 +55,7 @@ export default function BatmanProperties({
           valid={!errors?.penaltyDistance}
           value={penaltyDistance}
           min={BATMAN_MIN_DISTANCE_PENALTY}
+          disabled={disabled}
           onChange={(event) =>
             onChange(event, "penaltyDistance", BATMAN_MIN_DISTANCE_PENALTY, true)
           }
@@ -62,6 +65,7 @@ export default function BatmanProperties({
           valid={!errors?.penaltyPercent}
           value={penaltyPercent}
           min={BATMAN_MIN_PENALTY_PERCENT}
+          disabled={disabled}
           onChange={(event) => onChange(event, "penaltyPercent", BATMAN_MIN_PENALTY_PERCENT, true)}
         />
       </PropertyGroup>
@@ -73,6 +77,7 @@ export default function BatmanProperties({
           valid={!errors?.elpInterval}
           value={elpInterval}
           min={BATMAN_MIN_ELP_INTERVAL}
+          disabled={disabled}
           onChange={(event) => onChange(event, "elpInterval", BATMAN_MIN_ELP_INTERVAL)}
         />
       </PropertyGroup>
@@ -84,6 +89,7 @@ export default function BatmanProperties({
           valid={!errors?.ogmInterval}
           value={ogmInterval}
           min={BATMAN_MIN_OGM_INTERVAL}
+          disabled={disabled}
           onChange={(event) => onChange(event, "ogmInterval", BATMAN_MIN_OGM_INTERVAL)}
         />
       </PropertyGroup>
@@ -95,6 +101,7 @@ export default function BatmanProperties({
           valid={!errors?.purgeTimeout}
           value={purgeTimeout}
           min={BATMAN_MIN_PURGE_TIMEOUT}
+          disabled={disabled}
           onChange={(event) => onChange(event, "purgeTimeout", BATMAN_MIN_PURGE_TIMEOUT)}
         />
       </PropertyGroup>
