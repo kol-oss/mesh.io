@@ -36,7 +36,6 @@ export default function RoutingStructure({
   simulationMessageHoverState,
   currentStepId,
   currentSimulationStepResult,
-  currentSimulationEvent,
   currentStepPeerTables,
   onPacketInspectorClose,
   onTableInspectionClose,

@@ -94,7 +94,7 @@ export const useWindowStates = () => {
 
     const eventMessage =
       "message" in currentSimulationEvent.details ? currentSimulationEvent.details.message : null;
-    if (eventMessage?.type === MessageType.Packet || eventMessage?.type === MessageType.DsrPacket) {
+    if (eventMessage?.type === MessageType.Packet) {
       return;
     }
 

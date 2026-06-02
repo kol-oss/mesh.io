@@ -63,48 +63,27 @@ export class DsrModule extends BaseModule {
   override process(message: Message): boolean {
     const { type: messageType } = message;
 
+    // Packet with DSR structures
     if (messageType === MessageType.DsrPacket) {
       return this.processDsrPacket(message as DsrPacket);
     }
 
+    // Route Request (RREQ) message
     if (messageType === MessageType.DsrRouteRequestMessage) {
       return this.processRouteRequest(message as NewDsrRouteRequestMessage);
     }
 
+    // Route Reply (RREP) message
     if (messageType === MessageType.DsrRouteReplyMessage) {
       return this.processRouteReply(message as NewDsrRouteReplyMessage);
     }
 
+    // Route Error (RERR) message
     if (messageType === MessageType.DsrRouteErrorMessage) {
       return this.processRouteError(message as DsrRouteErrorMessage);
     }
 
     return false;
-  }
-
-  private processRouteError(message: DsrRouteErrorMessage) {
-    const { errorSourceId, errorDestinationId, destinationId, sourceId, salvageCount } = message;
-    this.cache.removeByLink(errorSourceId, errorDestinationId);
-
-    if (this.peerId === sourceId) {
-      if (salvageCount > DSR_MAX_SALVAGE_COUNT) {
-        return false;
-      }
-
-      return this.retryPacketFromSource(sourceId, destinationId, salvageCount);
-    }
-
-    const route = this.cache.get(destinationId) || this.cache.getByPrefix(destinationId);
-    if (!route) {
-      return false;
-    }
-
-    const { path } = route;
-
-    const indexInPath = path.indexOf(this.peerId);
-    const nextHop = path[indexInPath + 1] || destinationId;
-
-    return super.write(message, nextHop);
   }
 
   private processDsrPacket(packet: DsrPacket): boolean {
@@ -136,226 +115,6 @@ export class DsrModule extends BaseModule {
       path,
       packet.salvageCount,
     );
-  }
-
-  private writeWithErrorHandling(
-    sourceId: UUID,
-    destinationId: UUID,
-    message: Message,
-    nextHop: UUID,
-    path: UUID[] = [],
-    salvageCount: number = 0,
-  ): boolean {
-    const isLocalHopReachable = this.canWriteToHop(nextHop);
-    const result = super.write(message, nextHop);
-    if (message.type !== MessageType.DsrPacket || result) return result;
-
-    if (isLocalHopReachable) {
-      return false;
-    }
-
-    const newSalvageCount = salvageCount + 1;
-    const errorMessage = {
-      type: MessageType.DsrRouteErrorMessage,
-      sourceId: sourceId!,
-      destinationId: destinationId,
-      errorSourceId: this.peerId,
-      errorDestinationId: nextHop,
-      salvageCount: newSalvageCount,
-    } satisfies DsrRouteErrorMessage;
-
-    if (sourceId === this.peerId) {
-      return this.processRouteError(errorMessage);
-    } else {
-      this.cache.removeByLink(this.peerId, nextHop);
-    }
-
-    const pathIndex = path.indexOf(this.peerId);
-    const hopId = path[pathIndex - 1] || sourceId!;
-
-    super.recordEvent(
-      EventType.Broadcast,
-      {
-        neighbourPeerIds: [hopId],
-        retransmit: false,
-        message: errorMessage,
-      } satisfies BroadcastEventDetails,
-      ROUTING_PROTOCOL,
-    );
-
-    return this.write(errorMessage, hopId);
-  }
-
-  private canWriteToHop(hopPeerId: UUID): boolean {
-    if (!this.peer.active) {
-      return false;
-    }
-
-    const hop = this.graph.getNeighbours(this.peerId).find((peer) => peer.id === hopPeerId);
-    if (!hop || !hop.active) {
-      return false;
-    }
-
-    return hop.protocol === this.peer.protocol;
-  }
-
-  private retryPacketFromSource(
-    sourceId: UUID,
-    destinationId: UUID,
-    salvageCount: number,
-  ): boolean {
-    const nextHop = this.getRoute(destinationId);
-    const route = this.cache.get(destinationId) || this.cache.getByPrefix(destinationId);
-
-    const retryPacket = {
-      type: MessageType.DsrPacket,
-      sourcePeerId: sourceId,
-      destinationPeerId: destinationId,
-      timeToLive: DEFAULT_TIME_TO_LIVE,
-      path: route?.path ?? [],
-      salvageCount,
-    } satisfies DsrPacket;
-
-    if (!nextHop || !route) {
-      super.recordEvent(
-        EventType.Drop,
-        {
-          message: retryPacket,
-          reason: DropReason.NoRoute,
-        } satisfies DropEventDetails,
-        ROUTING_PROTOCOL,
-      );
-
-      return false;
-    }
-
-    return this.writeWithErrorHandling(
-      sourceId,
-      destinationId,
-      retryPacket,
-      nextHop,
-      route.path,
-      salvageCount,
-    );
-  }
-
-  override write(message: Message, hopPeerId: UUID): boolean {
-    const { type } = message;
-
-    if (type === MessageType.DsrPacket) {
-      return this.processDsrPacket(message as DsrPacket);
-    } else if (type === MessageType.Packet) {
-      const packet = message as BasePacket;
-      const route =
-        this.cache.get(packet.destinationPeerId) ||
-        this.cache.getByPrefix(packet.destinationPeerId);
-      if (!route) {
-        return false;
-      }
-
-      const wrapped = {
-        ...packet,
-        type: MessageType.DsrPacket,
-        path: route.path,
-        salvageCount: 0,
-      } satisfies DsrPacket;
-
-      return this.writeWithErrorHandling(
-        packet.sourcePeerId!,
-        packet.destinationPeerId,
-        wrapped,
-        hopPeerId,
-        route.path,
-        0,
-      );
-    }
-
-    return super.write(message, hopPeerId);
-  }
-
-  override getTables(): RoutingStructureType {
-    const tables: RoutingStructureType = {} as RoutingStructureType;
-    tables[RoutingStructure.DsrRoutingCache] = this.cache.getAll();
-    tables[RoutingStructure.DsrRouteRequestTable] = this.requestTable.getAll();
-
-    return tables;
-  }
-
-  override processRefresh() {
-    // this protocol is reactive, so no refresh processing is needed
-  }
-
-  override processTick() {
-    this.cache.tick();
-  }
-
-  override getRoute(destinationId: UUID): UUID | null {
-    const cachedRoute = this.cache.get(destinationId);
-    if (cachedRoute) {
-      const { path } = cachedRoute;
-      super.recordEvent(
-        EventType.GetRoute,
-        {
-          protocol: ROUTING_PROTOCOL,
-          destinationPeerId: destinationId,
-          selectedRoute: {
-            path: [this.peerId, ...path, destinationId],
-          } satisfies DsrPathRecord,
-        } as GetRouteEventDetails,
-        ROUTING_PROTOCOL,
-      );
-
-      return cachedRoute.path[0] || destinationId;
-    } else {
-      const prefixRoute = this.cache.getByPrefix(destinationId);
-      if (prefixRoute) {
-        const { path } = prefixRoute;
-        super.recordEvent(
-          EventType.GetRoute,
-          {
-            protocol: ROUTING_PROTOCOL,
-            destinationPeerId: destinationId,
-            selectedRoute: {
-              path: [this.peerId, ...path, destinationId],
-            } satisfies DsrPathRecord,
-          } as GetRouteEventDetails,
-          ROUTING_PROTOCOL,
-        );
-
-        return prefixRoute.path[0] || destinationId;
-      }
-
-      const request = {
-        type: MessageType.DsrRouteRequestMessage,
-        identification: this.sequence,
-        sourceId: this.peerId,
-        destinationId,
-        path: [],
-      } satisfies NewDsrRouteRequestMessage;
-      this.sequence++;
-
-      super.broadcast(request);
-    }
-
-    const route = this.cache.get(destinationId);
-    if (!route) {
-      return null;
-    }
-
-    const { path } = route;
-    super.recordEvent(
-      EventType.GetRoute,
-      {
-        protocol: ROUTING_PROTOCOL,
-        destinationPeerId: destinationId,
-        selectedRoute: {
-          path: [this.peerId, ...path, destinationId],
-        } satisfies DsrPathRecord,
-      } as GetRouteEventDetails,
-      ROUTING_PROTOCOL,
-    );
-
-    return route.path[0] || destinationId;
   }
 
   private processRouteRequest(message: NewDsrRouteRequestMessage): boolean {
@@ -499,10 +258,12 @@ export class DsrModule extends BaseModule {
       return true;
     }
 
+    // path is cycled so the message is dropped
     if (!path.includes(this.peerId) && this.peerId !== destinationId) {
       return true;
     }
 
+    // path is the destination, route added to cache
     if (this.peerId === destinationId) {
       const reversed = path.reverse();
       const record = this.cache.insert(sourceId, reversed);
@@ -539,6 +300,252 @@ export class DsrModule extends BaseModule {
     );
 
     return super.write(message, nextHop);
+  }
+
+  private processRouteError(message: DsrRouteErrorMessage) {
+    const { errorSourceId, errorDestinationId, destinationId, sourceId, salvageCount } = message;
+
+    // remove invalid path from cache
+    this.cache.removeByLink(errorSourceId, errorDestinationId);
+
+    // if node is the source and retry limit is not reached, then message retried
+    if (this.peerId === sourceId) {
+      if (salvageCount > DSR_MAX_SALVAGE_COUNT) {
+        return false;
+      }
+
+      return this.retryPacket(sourceId, destinationId, salvageCount);
+    }
+
+    const route = this.cache.get(destinationId) || this.cache.getByPrefix(destinationId);
+    if (!route) {
+      return false;
+    }
+
+    const { path } = route;
+
+    const indexInPath = path.indexOf(this.peerId);
+    const nextHop = path[indexInPath + 1] || destinationId;
+
+    return super.write(message, nextHop);
+  }
+
+  private writeWithErrorHandling(
+    sourceId: UUID,
+    destinationId: UUID,
+    message: Message,
+    nextHop: UUID,
+    path: UUID[] = [],
+    salvageCount: number = 0,
+  ): boolean {
+    const isLocalHopReachable = this.isHopReachable(nextHop);
+    const result = super.write(message, nextHop);
+
+    if (message.type !== MessageType.DsrPacket || result) return result;
+    if (isLocalHopReachable) {
+      return false;
+    }
+
+    const newSalvageCount = salvageCount + 1;
+    const errorMessage = {
+      type: MessageType.DsrRouteErrorMessage,
+      sourceId: sourceId!,
+      destinationId: destinationId,
+      errorSourceId: this.peerId,
+      errorDestinationId: nextHop,
+      salvageCount: newSalvageCount,
+    } satisfies DsrRouteErrorMessage;
+
+    if (sourceId === this.peerId) {
+      return this.processRouteError(errorMessage);
+    } else {
+      this.cache.removeByLink(this.peerId, nextHop);
+    }
+
+    const pathIndex = path.indexOf(this.peerId);
+    const hopId = path[pathIndex - 1] || sourceId!;
+
+    super.recordEvent(
+      EventType.Broadcast,
+      {
+        neighbourPeerIds: [hopId],
+        retransmit: false,
+        message: errorMessage,
+      } satisfies BroadcastEventDetails,
+      ROUTING_PROTOCOL,
+    );
+
+    return this.write(errorMessage, hopId);
+  }
+
+  private isHopReachable(hopId: UUID): boolean {
+    if (!this.peer.active) {
+      return false;
+    }
+
+    const hop = this.graph.getNeighbours(this.peerId).find((peer) => peer.id === hopId);
+    if (!hop || !hop.active) {
+      return false;
+    }
+
+    return hop.protocol === this.peer.protocol;
+  }
+
+  private retryPacket(sourceId: UUID, destinationId: UUID, salvageCount: number): boolean {
+    const nextHop = this.getRoute(destinationId);
+    const route = this.cache.get(destinationId) || this.cache.getByPrefix(destinationId);
+
+    const retryPacket = {
+      type: MessageType.DsrPacket,
+      sourcePeerId: sourceId,
+      destinationPeerId: destinationId,
+      timeToLive: DEFAULT_TIME_TO_LIVE,
+      path: route?.path ?? [],
+      salvageCount,
+    } satisfies DsrPacket;
+
+    if (!nextHop || !route) {
+      super.recordEvent(
+        EventType.Drop,
+        {
+          message: retryPacket,
+          reason: DropReason.NoRoute,
+        } satisfies DropEventDetails,
+        ROUTING_PROTOCOL,
+      );
+
+      return false;
+    }
+
+    return this.writeWithErrorHandling(
+      sourceId,
+      destinationId,
+      retryPacket,
+      nextHop,
+      route.path,
+      salvageCount,
+    );
+  }
+
+  override write(message: Message, hopPeerId: UUID): boolean {
+    const { type } = message;
+
+    if (type === MessageType.DsrPacket) {
+      return this.processDsrPacket(message as DsrPacket);
+    } else if (type === MessageType.Packet) {
+      const packet = message as BasePacket;
+      const route =
+        this.cache.get(packet.destinationPeerId) ||
+        this.cache.getByPrefix(packet.destinationPeerId);
+
+      if (!route) {
+        return false;
+      }
+
+      // wrapping packet with DSR headers
+      const wrapped = {
+        ...packet,
+        type: MessageType.DsrPacket,
+        path: route.path,
+        salvageCount: 0,
+      } satisfies DsrPacket;
+
+      return this.writeWithErrorHandling(
+        packet.sourcePeerId!,
+        packet.destinationPeerId,
+        wrapped,
+        hopPeerId,
+        route.path,
+        0,
+      );
+    }
+
+    return super.write(message, hopPeerId);
+  }
+
+  override getRoute(destinationId: UUID): UUID | null {
+    const cachedRoute = this.cache.get(destinationId);
+    if (cachedRoute) {
+      const { path } = cachedRoute;
+      super.recordEvent(
+        EventType.GetRoute,
+        {
+          protocol: ROUTING_PROTOCOL,
+          destinationPeerId: destinationId,
+          selectedRoute: {
+            path: [this.peerId, ...path, destinationId],
+          } satisfies DsrPathRecord,
+        } as GetRouteEventDetails,
+        ROUTING_PROTOCOL,
+      );
+
+      return cachedRoute.path[0] || destinationId;
+    } else {
+      const prefixRoute = this.cache.getByPrefix(destinationId);
+      if (prefixRoute) {
+        const { path } = prefixRoute;
+        super.recordEvent(
+          EventType.GetRoute,
+          {
+            protocol: ROUTING_PROTOCOL,
+            destinationPeerId: destinationId,
+            selectedRoute: {
+              path: [this.peerId, ...path, destinationId],
+            } satisfies DsrPathRecord,
+          } as GetRouteEventDetails,
+          ROUTING_PROTOCOL,
+        );
+
+        return prefixRoute.path[0] || destinationId;
+      }
+
+      const request = {
+        type: MessageType.DsrRouteRequestMessage,
+        identification: this.sequence,
+        sourceId: this.peerId,
+        destinationId,
+        path: [],
+      } satisfies NewDsrRouteRequestMessage;
+      this.sequence++;
+
+      super.broadcast(request);
+    }
+
+    const route = this.cache.get(destinationId);
+    if (!route) {
+      return null;
+    }
+
+    const { path } = route;
+    super.recordEvent(
+      EventType.GetRoute,
+      {
+        protocol: ROUTING_PROTOCOL,
+        destinationPeerId: destinationId,
+        selectedRoute: {
+          path: [this.peerId, ...path, destinationId],
+        } satisfies DsrPathRecord,
+      } as GetRouteEventDetails,
+      ROUTING_PROTOCOL,
+    );
+
+    return route.path[0] || destinationId;
+  }
+
+  override getTables(): RoutingStructureType {
+    const tables: RoutingStructureType = {} as RoutingStructureType;
+    tables[RoutingStructure.DsrRoutingCache] = this.cache.getAll();
+    tables[RoutingStructure.DsrRouteRequestTable] = this.requestTable.getAll();
+
+    return tables;
+  }
+
+  override processRefresh() {
+    // this protocol is reactive, so no refresh processing is needed
+  }
+
+  override processTick() {
+    this.cache.tick();
   }
 
   private cacheSourcePath(sourceId: UUID, identification: number, path: UUID[]) {

@@ -1,4 +1,5 @@
 import type {
+  DsrPacket,
   DsrRouteErrorMessage,
   NewDsrRouteReplyMessage,
   NewDsrRouteRequestMessage,
@@ -7,6 +8,7 @@ import type { FieldStructure } from "@/shared/types/common/field";
 import type { DsrConfiguration } from "@/shared/types/model/configurations";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { getNameById } from "@/shared/utils/peers";
+import type { UUID } from "@/shared/types/common/uuid.ts";
 
 export const DSR_MIN_ROUTE_TIMEOUT = 1;
 export const DSR_MAX_SALVAGE_COUNT = 1;
@@ -15,6 +17,70 @@ export const DSR_MAX_SALVAGE_COUNT = 1;
 export const DSR_DEFAULT_CONFIGURATION = {
   routeTimeout: 2,
 } as DsrConfiguration;
+
+export const getDsrPacketMessageStructure = (
+  message: DsrPacket,
+  peerId: UUID,
+  peers?: PeerEntity[],
+): FieldStructure[][] => {
+  const { path, salvageCount } = message;
+  const segmentsLeft = path.length - path.indexOf(peerId);
+  let pathRows: FieldStructure[][] = [];
+
+  if (path.length > 0 && peers) {
+    pathRows = path.map((peerId) => [
+      {
+        label: "Address",
+        value: getNameById(peerId, peers),
+        bits: 32,
+        description: "Accumulated hop IP-address carried by Route Request.",
+        blocked: false,
+      },
+    ]);
+  }
+
+  return [
+    [
+      {
+        label: "Option Type",
+        value: "0x60",
+        bits: 8,
+        description: "DSR Packet option type.",
+        blocked: false,
+      },
+      {
+        label: "Opt Data Len",
+        value: String(path.length * 4 + 6),
+        bits: 8,
+        description:
+          "Length of option payload, calculated as (4 * n) + 6, where n is the number of path.",
+        blocked: false,
+      },
+      {
+        label: "Flags",
+        value: "N/A",
+        bits: 4,
+        description: "Flags used for internetwork connectivity.",
+        blocked: true,
+      },
+      {
+        label: "Salvage",
+        value: `${salvageCount}`,
+        bits: 4,
+        description: "Count of how much salvage attempts were tried.",
+        blocked: false,
+      },
+      {
+        label: "Segments Left",
+        value: String(segmentsLeft),
+        bits: 8,
+        description: "Count of how much hops left to reach the destination.",
+        blocked: false,
+      },
+    ],
+    ...pathRows,
+  ];
+};
 
 export const getRouteRequestMessageStructure = (
   message: NewDsrRouteRequestMessage,

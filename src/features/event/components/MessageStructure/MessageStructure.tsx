@@ -1,9 +1,9 @@
 import { type Event } from "@/shared/types/common/events";
-import { MessageType, type Message } from "@/shared/types/common/messages";
+import { type Message, MessageType } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { type StepResult } from "@/shared/types/common/simulation";
 import { ExternalLink, X } from "lucide-react";
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from "react";
 import AodvMessageStructure from "./AodvMessageStructure";
 import BatmanMessageStructure from "./BatmanMessageStructure";
 import DsdvMessageStructure from "./DsdvMessageStructure";
@@ -90,7 +90,12 @@ export default function MessageStructure({
   };
 
   const eventMessage = getEventMessage(currentEvent);
-  if (eventMessage?.type === MessageType.Packet || eventMessage?.type === MessageType.DsrPacket) {
+  if (!eventMessage) {
+    return null;
+  }
+
+  const { type: messageType } = eventMessage;
+  if (messageType === MessageType.Packet) {
     return null;
   }
 
@@ -133,8 +138,12 @@ export default function MessageStructure({
           <DsdvMessageStructure message={eventMessage!} peers={currentStepResult.snapshot.peers} />
         )}
 
-        {protocol == RoutingProtocol.DSR && (
-          <DsrMessageStructure message={eventMessage!} peers={currentStepResult.snapshot.peers} />
+        {(protocol == RoutingProtocol.DSR || messageType === MessageType.DsrPacket) && (
+          <DsrMessageStructure
+            message={eventMessage!}
+            peerId={currentEvent.peerId}
+            peers={currentStepResult.snapshot.peers}
+          />
         )}
 
         {protocol == RoutingProtocol.AODV && (
