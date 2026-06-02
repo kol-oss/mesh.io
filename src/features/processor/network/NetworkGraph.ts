@@ -219,10 +219,10 @@ export class NetworkGraph {
         aodvRoutingTable: structures[RoutingStructure.AodvRoutingTable] ?? [],
         dsrRoutingTable: structures[RoutingStructure.DsrRoutingCache] ?? [],
         dsrRouteRequestTable: structures[RoutingStructure.DsrRouteRequestTable] ?? [],
-        olsrNeighbourTable: structures[RoutingStructure.OlsrNeighbourTable] ?? [],
-        olsrTwoHopTable: structures[RoutingStructure.OlsrTwoHopTable] ?? [],
-        olsrSelectorTable: structures[RoutingStructure.OlsrSelectorTable] ?? [],
-        olsrTopologyTable: structures[RoutingStructure.OlsrTopologyTable] ?? [],
+        olsrNeighbourTable: structures[RoutingStructure.OlsrNeighbourSet] ?? [],
+        olsrTwoHopTable: structures[RoutingStructure.OlsrTwoHopNeighbourSet] ?? [],
+        olsrSelectorTable: structures[RoutingStructure.OlsrSelectorSet] ?? [],
+        olsrTopologyTable: structures[RoutingStructure.OlsrTopologySet] ?? [],
         olsrRoutingTable: structures[RoutingStructure.OlsrRoutingTable] ?? [],
       };
     });

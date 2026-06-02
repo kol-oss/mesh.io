@@ -3,8 +3,10 @@ import {
   type OlsrHelloMessage,
   type OlsrNeighbourRecord,
   OlsrNeighbourStatus,
+  type OlsrRouteChangeEventDetails,
   type OlsrRouteRecord,
   type OlsrTcMessage,
+  type OlsrTopologyRecord,
   type OlsrTwoHopRecord,
 } from "@/features/processor/types/protocols/olsr";
 import { OLSR_DEFAULT_TC_TTL } from "@/shared/constants/protocols/olsr";
@@ -139,47 +141,42 @@ export class OlsrModule extends BaseModule {
   }
 
   private processTransactionControl(message: OlsrTcMessage) {
-    if (message.sourcePeerId === this.peer.id) {
+    const { sourcePeerId: sourceId, ansn, advertisedNeighbours: neighbours, timeToLive } = message;
+    if (sourceId === this.peerId) {
       return true;
     }
 
-    const sender = this.graph.getNode(message.senderPeerId);
-    if (!sender || sender.protocol !== PROTOCOL) {
-      this.recordEvent(EventType.Drop, {
-        message: clone(message),
-        reason: DropReason.UnsupportedProtocol,
-      });
-      return false;
-    }
-
-    const previousAnsn = this.lastTcSequenceByOriginator.get(message.sourcePeerId) ?? -1;
-    if (message.ansn <= previousAnsn) {
+    // ansn validation
+    const previousAnsn = this.lastTcSequenceByOriginator.get(sourceId) ?? -1;
+    if (ansn <= previousAnsn) {
       return true;
     }
 
-    this.lastTcSequenceByOriginator.set(message.sourcePeerId, message.ansn);
-
-    this.topologySet.deleteByLastHopPeerId(message.sourcePeerId);
+    this.lastTcSequenceByOriginator.set(sourceId, ansn);
+    this.topologySet.deleteByLastHopPeerId(sourceId);
 
     const tick = this.eventRecorder.getCurrentTick();
-    for (const destinationPeerId of message.advertisedNeighbours) {
+    for (const destinationId of neighbours) {
       this.topologySet.set({
-        destinationPeerId,
-        lastHopPeerId: message.sourcePeerId,
-        sequenceNumber: message.ansn,
+        destinationPeerId: destinationId,
+        lastHopPeerId: sourceId,
+        sequenceNumber: ansn,
         lastUpdateTick: tick,
-      });
+      } satisfies OlsrTopologyRecord);
     }
 
+    // routing table recomping
     this.recomputeRoutingTable(message);
 
-    if (this.mprSelectorSet.size > 0 && message.timeToLive > 1) {
-      const forwardedMessage: OlsrTcMessage = {
+    // transaction control rebroadcast
+    if (this.mprSelectorSet.size > 0 && timeToLive > 1) {
+      const forwardedMessage = {
         ...message,
-        senderPeerId: this.peer.id,
-        timeToLive: message.timeToLive - 1,
-      };
-      this.broadcastControlMessage(forwardedMessage, true, message.senderPeerId);
+        senderPeerId: this.peerId,
+        timeToLive: timeToLive - 1,
+      } satisfies OlsrTcMessage;
+
+      this.broadcastControlMessage(forwardedMessage, true);
     }
 
     return true;
@@ -212,9 +209,12 @@ export class OlsrModule extends BaseModule {
 
   // broadcasts HELLO message and update routing structures
   private refreshHello() {
+    const configuration = this.peer.configuration as OlsrConfiguration;
+
+    // recomputing MPR set
     this.recomputeMprSet();
 
-    const configuration = this.peer.configuration as OlsrConfiguration;
+    // broadcasting of HELLO message
     const helloMessage: OlsrHelloMessage = {
       type: MessageType.OlsrHelloMessage,
       sourcePeerId: this.peerId,
@@ -225,50 +225,44 @@ export class OlsrModule extends BaseModule {
     };
 
     this.broadcastControlMessage(helloMessage, false);
+
+    // recomputing of routing table
     this.recomputeRoutingTable(helloMessage);
   }
 
   // broadcasts TC message and update routing structures
   private refreshTransactionControl() {
+    // if node is not MPR for any other nodes, then just skip
     if (this.mprSelectorSet.size === 0) {
-      const tcMessage: OlsrTcMessage = {
-        type: MessageType.OlsrTcMessage,
-        sourcePeerId: this.peer.id,
-        senderPeerId: this.peer.id,
-        ansn: this.ansn,
-        timeToLive: OLSR_DEFAULT_TC_TTL,
-        advertisedNeighbours: [],
-      };
-
-      this.eventRecorder.record(
-        this.peer.id,
-        EventType.Broadcast,
+      super.recordEvent(
+        EventType.Drop,
         {
-          neighbourPeerIds: [],
-          retransmit: false,
-          message: clone(tcMessage),
+          reason: DropReason.Skip,
         },
         PROTOCOL,
       );
+
       return;
     }
 
+    // transaction control broadcase
     this.ansn += 1;
     const tcMessage: OlsrTcMessage = {
       type: MessageType.OlsrTcMessage,
-      sourcePeerId: this.peer.id,
-      senderPeerId: this.peer.id,
+      sourcePeerId: this.peerId,
+      senderPeerId: this.peerId,
       ansn: this.ansn,
       timeToLive: OLSR_DEFAULT_TC_TTL,
       advertisedNeighbours: [...this.mprSelectorSet.values()],
-    };
+    } satisfies OlsrTcMessage;
 
     this.broadcastControlMessage(tcMessage, false);
   }
 
   override processTick() {
-    const tick = this.eventRecorder.getCurrentTick();
     const configuration = this.peer.configuration as OlsrConfiguration;
+    const tick = this.eventRecorder.getCurrentTick();
+
     const helloExpiry = configuration.helloInterval * 3;
     const tcExpiry = configuration.tcInterval * 3;
 
@@ -415,22 +409,22 @@ export class OlsrModule extends BaseModule {
   }
 
   private recomputeRoutingTable(message: Message | null) {
-    const nextRoutes = this.calculateRoutes();
-    const previousRoutes = new Map(this.routingTable.entries());
+    // calculating new routes based on neighbours and topology
+    const routes = this.recomputeRoutes();
 
-    for (const [destinationPeerId, previousRoute] of previousRoutes.entries()) {
-      if (nextRoutes.has(destinationPeerId)) {
+    // cleaning old routes
+    for (const [destinationId, removedRoute] of this.routingTable.entries()) {
+      if (routes.has(destinationId)) {
         continue;
       }
 
-      this.eventRecorder.record(
-        this.peer.id,
+      super.recordEvent(
         EventType.DeleteRoute,
         {
           protocol: PROTOCOL,
-          destinationPeerId,
-          nextHopPeerId: previousRoute.nextHopPeerId,
-          previousRoute,
+          destinationPeerId: destinationId,
+          nextHopPeerId: removedRoute.nextHopPeerId,
+          previousRoute: removedRoute,
           nextRoute: null,
           message: message ? clone(message) : undefined,
         },
@@ -438,51 +432,26 @@ export class OlsrModule extends BaseModule {
       );
     }
 
-    for (const [destinationPeerId, nextRoute] of nextRoutes.entries()) {
-      const previousRoute = previousRoutes.get(destinationPeerId) ?? null;
-      if (!previousRoute) {
-        this.eventRecorder.record(
-          this.peer.id,
-          EventType.AddRoute,
-          {
-            protocol: PROTOCOL,
-            destinationPeerId,
-            nextHopPeerId: nextRoute.nextHopPeerId,
-            previousRoute: null,
-            nextRoute,
-            message: message ? clone(message) : undefined,
-          },
-          PROTOCOL,
-        );
-        continue;
-      }
-
-      if (
-        previousRoute.nextHopPeerId !== nextRoute.nextHopPeerId ||
-        previousRoute.metric !== nextRoute.metric ||
-        previousRoute.sequenceNumber !== nextRoute.sequenceNumber
-      ) {
-        this.eventRecorder.record(
-          this.peer.id,
-          EventType.UpdateRoute,
-          {
-            protocol: PROTOCOL,
-            destinationPeerId,
-            nextHopPeerId: nextRoute.nextHopPeerId,
-            previousRoute,
-            nextRoute,
-            message: message ? clone(message) : undefined,
-          },
-          PROTOCOL,
-        );
-      }
+    // adding new routes
+    for (const [destinationId, route] of routes.entries()) {
+      super.recordEvent(
+        EventType.AddRoute,
+        {
+          protocol: PROTOCOL,
+          destinationPeerId: destinationId,
+          nextHopPeerId: route.nextHopPeerId,
+          previousRoute: null,
+          nextRoute: route,
+          message: message ? clone(message) : undefined,
+        } satisfies OlsrRouteChangeEventDetails,
+        PROTOCOL,
+      );
     }
 
-    this.routingTable.replaceWith(nextRoutes);
-
+    // replacing routing table content
+    this.routingTable.replaceWith(routes);
     if (message) {
-      this.eventRecorder.record(
-        this.peer.id,
+      super.recordEvent(
         EventType.Calculation,
         {
           message: clone(message),
@@ -492,75 +461,90 @@ export class OlsrModule extends BaseModule {
     }
   }
 
-  private calculateRoutes(): Map<UUID, OlsrRouteRecord> {
+  // compute routes by Breadth-First Search algorithm
+  private recomputeRoutes(): Map<UUID, OlsrRouteRecord> {
     const routes = new Map<UUID, OlsrRouteRecord>();
     const queue: UUID[] = [];
     const tick = this.eventRecorder.getCurrentTick();
 
-    const directNeighbours = this.getNeighbourNodes();
-
-    for (const neighbour of directNeighbours) {
-      routes.set(neighbour.id, {
-        destinationPeerId: neighbour.id,
-        nextHopPeerId: neighbour.id,
+    // one-hop neighbours
+    const neighbours = this.getNeighbourNodes();
+    for (const neighbour of neighbours) {
+      const { id: neighbourId } = neighbour;
+      routes.set(neighbourId, {
+        destinationPeerId: neighbourId,
+        nextHopPeerId: neighbourId,
         metric: 1,
         sequenceNumber: 0,
         lastUpdateTick: tick,
       });
-      queue.push(neighbour.id);
+
+      queue.push(neighbourId);
     }
 
-    for (const entry of this.twoHopNeighbourSet.values()) {
-      if (routes.has(entry.destinationPeerId) || !this.neighbourSet.has(entry.viaPeerId)) {
+    // two-hop neighbours
+    for (const twoHopNeighbour of this.twoHopNeighbourSet.values()) {
+      const { destinationPeerId: destinationId, viaPeerId: viaId } = twoHopNeighbour;
+      if (routes.has(destinationId) || !this.neighbourSet.has(viaId)) {
         continue;
       }
 
-      routes.set(entry.destinationPeerId, {
-        destinationPeerId: entry.destinationPeerId,
-        nextHopPeerId: entry.viaPeerId,
+      routes.set(destinationId, {
+        destinationPeerId: destinationId,
+        nextHopPeerId: viaId,
         metric: 2,
         sequenceNumber: 0,
         lastUpdateTick: tick,
-      });
-      queue.push(entry.destinationPeerId);
+      } satisfies OlsrRouteRecord);
+
+      queue.push(destinationId);
     }
 
+    // remote routes from topology set
     while (queue.length > 0) {
-      const pivotDestinationId = queue.shift();
-      if (!pivotDestinationId) {
+      const pivotId = queue.shift();
+      if (!pivotId) {
         continue;
       }
 
-      const pivotRoute = routes.get(pivotDestinationId);
+      const pivotRoute = routes.get(pivotId);
       if (!pivotRoute) {
         continue;
       }
 
+      // find routes in topology by already added route
       for (const entry of this.topologySet.values()) {
-        if (entry.lastHopPeerId !== pivotDestinationId) {
+        const {
+          lastHopPeerId: lastHopId,
+          destinationPeerId: destinationId,
+          sequenceNumber: sequence,
+        } = entry;
+        if (lastHopId !== pivotId) {
           continue;
         }
 
-        if (entry.destinationPeerId === this.peer.id) {
+        if (destinationId === this.peerId) {
           continue;
         }
 
         const candidateMetric = pivotRoute.metric + 1;
-        const currentRoute = routes.get(entry.destinationPeerId);
-        if (!currentRoute || candidateMetric < currentRoute.metric) {
-          routes.set(entry.destinationPeerId, {
-            destinationPeerId: entry.destinationPeerId,
+        const route = routes.get(destinationId);
+
+        if (!route || candidateMetric < route.metric) {
+          routes.set(destinationId, {
+            destinationPeerId: destinationId,
             nextHopPeerId: pivotRoute.nextHopPeerId,
             metric: candidateMetric,
-            sequenceNumber: entry.sequenceNumber,
+            sequenceNumber: sequence,
             lastUpdateTick: tick,
           });
-          queue.push(entry.destinationPeerId);
+
+          queue.push(destinationId);
         }
       }
     }
 
-    routes.delete(this.peer.id);
+    routes.delete(this.peerId);
     return routes;
   }
 
@@ -602,10 +586,10 @@ export class OlsrModule extends BaseModule {
 
   override getTables() {
     const tables: RoutingStructureType = {} as RoutingStructureType;
-    tables[RoutingStructure.OlsrNeighbourTable] = this.neighbourSet.getAll();
-    tables[RoutingStructure.OlsrTwoHopTable] = this.twoHopNeighbourSet.getAll();
-    tables[RoutingStructure.OlsrSelectorTable] = this.mprSelectorSet.getAll();
-    tables[RoutingStructure.OlsrTopologyTable] = this.topologySet.getAll();
+    tables[RoutingStructure.OlsrNeighbourSet] = this.neighbourSet.getAll();
+    tables[RoutingStructure.OlsrTwoHopNeighbourSet] = this.twoHopNeighbourSet.getAll();
+    tables[RoutingStructure.OlsrSelectorSet] = this.mprSelectorSet.getAll();
+    tables[RoutingStructure.OlsrTopologySet] = this.topologySet.getAll();
     tables[RoutingStructure.OlsrRoutingTable] = this.routingTable.getAll();
 
     return tables;

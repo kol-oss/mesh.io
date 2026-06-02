@@ -25,10 +25,10 @@ export enum RoutingStructure {
   AodvRoutingTable = "AODV_ROUTING_TABLE",
   DsrRoutingCache = "DSR_ROUTING_CACHE",
   DsrRouteRequestTable = "DSR_ROUTE_REQUEST_TABLE",
-  OlsrNeighbourTable = "OLSR_NEIGHBOUR_TABLE",
-  OlsrTwoHopTable = "OLSR_TWO_HOP_TABLE",
-  OlsrSelectorTable = "OLSR_SELECTOR_TABLE",
-  OlsrTopologyTable = "OLSR_TOPOLOGY_TABLE",
+  OlsrNeighbourSet = "OLSR_NEIGHBOUR_TABLE",
+  OlsrTwoHopNeighbourSet = "OLSR_TWO_HOP_TABLE",
+  OlsrSelectorSet = "OLSR_SELECTOR_TABLE",
+  OlsrTopologySet = "OLSR_TOPOLOGY_TABLE",
   OlsrRoutingTable = "OLSR_ROUTING_TABLE",
 }
 
@@ -39,9 +39,9 @@ export type RoutingStructureType = {
   [RoutingStructure.AodvRoutingTable]: AodvRouteRecord[];
   [RoutingStructure.DsrRoutingCache]: DsrRouteRecord[];
   [RoutingStructure.DsrRouteRequestTable]: DsrRouteRequestTableRecord[];
-  [RoutingStructure.OlsrNeighbourTable]: OlsrNeighbourRecord[];
-  [RoutingStructure.OlsrTwoHopTable]: OlsrTwoHopRecord[];
-  [RoutingStructure.OlsrSelectorTable]: OlsrSelectorRecord[];
-  [RoutingStructure.OlsrTopologyTable]: OlsrTopologyRecord[];
+  [RoutingStructure.OlsrNeighbourSet]: OlsrNeighbourRecord[];
+  [RoutingStructure.OlsrTwoHopNeighbourSet]: OlsrTwoHopRecord[];
+  [RoutingStructure.OlsrSelectorSet]: OlsrSelectorRecord[];
+  [RoutingStructure.OlsrTopologySet]: OlsrTopologyRecord[];
   [RoutingStructure.OlsrRoutingTable]: OlsrRouteRecord[];
 };
