@@ -1,7 +1,7 @@
 import type { OlsrTopologyRecord } from "@/features/processor/types/protocols/olsr";
 import type { UUID } from "@/shared/types/common/uuid";
 
-export class TopologyTable {
+export class TopologySet {
   private readonly entriesByKey = new Map<string, OlsrTopologyRecord>();
 
   private toKey(lastHopPeerId: UUID, destinationPeerId: UUID) {

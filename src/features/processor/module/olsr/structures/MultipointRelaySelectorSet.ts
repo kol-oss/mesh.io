@@ -1,7 +1,7 @@
 import type { OlsrSelectorRecord } from "@/features/processor/types/protocols/olsr";
 import type { UUID } from "@/shared/types/common/uuid";
 
-export class SelectorSet {
+export class MultipointRelaySelectorSet {
   private readonly selectors = new Map<UUID, number>();
 
   get size() {

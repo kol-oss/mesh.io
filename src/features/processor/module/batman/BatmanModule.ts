@@ -260,20 +260,19 @@ export class BatmanModule extends BaseModule {
 
   override getRoute(destinationId: UUID): UUID | null {
     const route = this.originatorTable.getBestRoute(destinationId);
+    if (!route) return null;
 
-    if (route) {
-      this.recordEvent(
-        EventType.GetRoute,
-        {
-          protocol: PROTOCOL,
-          destinationPeerId: destinationId,
-          selectedRoute: route,
-        } as GetRouteEventDetails,
-        PROTOCOL,
-      );
-    }
+    this.recordEvent(
+      EventType.GetRoute,
+      {
+        protocol: PROTOCOL,
+        destinationPeerId: destinationId,
+        selectedRoute: route,
+      } as GetRouteEventDetails,
+      PROTOCOL,
+    );
 
-    return route?.hopId ?? null;
+    return route.hopId;
   }
 
   override processRefresh(action: RefreshAction) {

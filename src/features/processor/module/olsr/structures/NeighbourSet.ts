@@ -1,7 +1,7 @@
 import type { OlsrNeighbourRecord } from "@/features/processor/types/protocols/olsr";
 import type { UUID } from "@/shared/types/common/uuid";
 
-export class NeighbourTable {
+export class NeighbourSet {
   private readonly neighbours = new Map<UUID, OlsrNeighbourRecord>();
 
   get(peerId: UUID): OlsrNeighbourRecord | null {

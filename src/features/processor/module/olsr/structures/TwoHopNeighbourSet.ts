@@ -1,7 +1,7 @@
 import type { OlsrTwoHopRecord } from "@/features/processor/types/protocols/olsr";
 import type { UUID } from "@/shared/types/common/uuid";
 
-export class TwoHopTable {
+export class TwoHopNeighbourSet {
   private readonly entriesByKey = new Map<string, OlsrTwoHopRecord>();
 
   private toKey(destinationPeerId: UUID, viaPeerId: UUID) {

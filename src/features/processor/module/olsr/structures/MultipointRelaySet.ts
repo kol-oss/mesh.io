@@ -1,6 +1,6 @@
 import type { UUID } from "@/shared/types/common/uuid";
 
-export class MprSet {
+export class MultipointRelaySet {
   private readonly peerIds = new Set<UUID>();
 
   clear() {

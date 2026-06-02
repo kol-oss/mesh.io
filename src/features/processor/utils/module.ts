@@ -7,7 +7,7 @@ import { DsdvModule } from "../module/dsdv/DsdvModule";
 import { DsrModule } from "../module/dsr/DsrModule.ts";
 import { OlsrModule } from "../module/olsr/OlsrModule";
 import type { NetworkGraph } from "../network/NetworkGraph";
-import { RoutingStructure, type RoutingModule, type RoutingStructureType } from "../types/module";
+import { type RoutingModule } from "../types/module";
 
 export const createModule = (
   peer: PeerEntity,
@@ -28,26 +28,4 @@ export const createModule = (
   }
 
   throw new Error(`Protocol must be specified to create a module for peer ${id}`);
-};
-
-export const getStructuresByProtocol = (
-  protocol: RoutingProtocol,
-  module: RoutingModule,
-): RoutingStructureType => {
-  const result: RoutingStructureType = {} as RoutingStructureType;
-  if (protocol == RoutingProtocol.AODV) {
-    const aodvModule = module as AodvModule;
-
-    result[RoutingStructure.AodvRoutingTable] = aodvModule.getRoutes();
-  } else if (protocol == RoutingProtocol.OLSR) {
-    const olsrModule = module as OlsrModule;
-
-    result[RoutingStructure.OlsrNeighbourTable] = olsrModule.getNeighbourTable();
-    result[RoutingStructure.OlsrTopologyTable] = olsrModule.getTopologyTable();
-    result[RoutingStructure.OlsrTwoHopTable] = olsrModule.getTwoHopTable();
-    result[RoutingStructure.OlsrSelectorTable] = olsrModule.getSelectorTable();
-    result[RoutingStructure.OlsrRoutingTable] = olsrModule.getRoutes();
-  }
-
-  return result;
 };
