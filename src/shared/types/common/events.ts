@@ -19,6 +19,7 @@ import type {
   DsrPathRecord,
 } from "@/features/processor/types/protocols/dsr.ts";
 import type {
+  OlsrNeighbourChangeEventDetails,
   OlsrRouteChangeEventDetails,
   OlsrRouteRecord,
 } from "@/features/processor/types/protocols/olsr.ts";
@@ -111,6 +112,7 @@ export type RouteChangeEventDetails =
   | DsdvRouteChangeEventDetails
   | AodvRouteChangeEventDetails
   | OlsrRouteChangeEventDetails
+  | OlsrNeighbourChangeEventDetails
   | DsrRouteChangeEventDetails;
 
 // for Move event
@@ -187,6 +189,7 @@ export enum EventDetailsType {
   OlsrRouteCalculation,
   OlsrRouteSelected,
   OlsrRouteAdded,
+  OlsrNeighbourAdded,
   OlsrRouteUpdated,
   OlsrRouteRemoved,
   OlsrRouteDropped,

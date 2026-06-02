@@ -64,12 +64,24 @@ export type OlsrRouteRecord = {
   lastUpdateTick: number;
 };
 
-// AddRoute, UpdateRoute, and DeleteRoute details
-export type OlsrRouteChangeEventDetails = {
+export enum OlsrChangeEventDetailsType {
+  NEIGHBOUR,
+  ROUTE,
+}
+
+export type OlsrBaseChangeEventDetails = {
   protocol: typeof RoutingProtocol.OLSR;
-  destinationPeerId: UUID;
-  nextHopPeerId: UUID;
-  previousRoute: OlsrRouteRecord | null;
-  nextRoute: OlsrRouteRecord | null;
+  type: OlsrChangeEventDetailsType;
   message?: Message;
+};
+
+// AddRoute, UpdateRoute, and DeleteRoute for Neighbour Set details
+export type OlsrNeighbourChangeEventDetails = OlsrBaseChangeEventDetails & {
+  neighbour: OlsrNeighbourRecord;
+  twoHopNeighbours: OlsrTwoHopRecord[];
+};
+
+// AddRoute, UpdateRoute, and DeleteRoute details
+export type OlsrRouteChangeEventDetails = OlsrBaseChangeEventDetails & {
+  routes: OlsrRouteRecord[];
 };

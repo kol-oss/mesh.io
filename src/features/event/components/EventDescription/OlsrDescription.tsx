@@ -4,18 +4,22 @@ import TableDescription from "@/features/event/components/Description/TableDescr
 import TextDescription from "@/features/event/components/Description/TextDescription";
 import VariableDescription from "@/features/event/components/Description/VariableDescription";
 import {
+  type OlsrBaseChangeEventDetails,
+  OlsrChangeEventDetailsType,
+  type OlsrNeighbourChangeEventDetails,
+  OlsrNeighbourStatus,
   type OlsrRouteChangeEventDetails,
   type OlsrRouteRecord,
 } from "@/features/processor/types/protocols/olsr";
 import {
-  DropReason,
-  EventDetailsType,
   type DropEventDetails,
+  DropReason,
   type Event,
+  EventDetailsType,
   type GetRouteEventDetails,
 } from "@/shared/types/common/events";
-import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
+import type { OlsrConfiguration } from "@/shared/types/model/configurations.ts";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
 
@@ -24,14 +28,6 @@ type OlsrDescriptionProps = {
   event: Event;
   detailsType: EventDetailsType;
   onPeerHover: (peerId: UUID) => void;
-};
-
-const getRouteRows = (details: OlsrRouteChangeEventDetails) => {
-  if (details.nextRoute) {
-    return [details.nextRoute];
-  }
-
-  return details.previousRoute ? [details.previousRoute] : [];
 };
 
 const getCalculationExplanation = (details: Event["details"]) => {
@@ -75,14 +71,29 @@ export default function OlsrDescription({
   detailsType,
   onPeerHover,
 }: OlsrDescriptionProps) {
-  const { details } = event;
+  const { details, peerId } = event;
+  const peer = peers.find((peer) => peer.id === peerId);
 
+  if (!peer) {
+    return <></>;
+  }
+
+  const { helloInterval } = peer.configuration as OlsrConfiguration;
+
+  // HELLO message broadcast
   if (detailsType === EventDetailsType.OlsrHelloMessageBroadcast) {
     return (
-      <TextDescription>
-        The node broadcast an OLSR HELLO message to discover symmetric neighbors and advertise the
-        local MPR set.
-      </TextDescription>
+      <>
+        <TextDescription>
+          Every <VariableDescription value={helloInterval}>HELLO Interval</VariableDescription>, an
+          OLSR node locally broadcasts a <i>HELLO</i> message to immediate neighboring nodes for
+          link sensing and to verify bidirectional communication.
+        </TextDescription>
+        <TextDescription>
+          The node also includes lists of its known neighbors' addresses in the message, and updates
+          the <i>Link Message Size</i> field to share topology information.
+        </TextDescription>
+      </>
     );
   }
 
@@ -157,37 +168,86 @@ export default function OlsrDescription({
     );
   }
 
-  if (
-    detailsType === EventDetailsType.OlsrRouteAdded ||
-    detailsType === EventDetailsType.OlsrRouteUpdated ||
-    detailsType === EventDetailsType.OlsrRouteRemoved
-  ) {
-    const routeChange = details as OlsrRouteChangeEventDetails;
-    if (routeChange.protocol !== RoutingProtocol.OLSR) {
-      return <></>;
+  if (detailsType === EventDetailsType.OlsrRouteAdded) {
+    const { type: changeType } = details as OlsrBaseChangeEventDetails;
+    if (changeType === OlsrChangeEventDetailsType.NEIGHBOUR) {
+      const { neighbour, twoHopNeighbours } = details as OlsrNeighbourChangeEventDetails;
+      return (
+        <>
+          <TextDescription>
+            The node received <i>HELLO</i> message from the neighbour and updated it's{" "}
+            <i>Neighbour Set</i> and <i>Two-Hop Neighbour Set</i> by information received from the
+            message.
+          </TextDescription>
+          <TableDescription
+            headers={["Address", "Status", "Last Seen"]}
+            rows={[
+              [
+                <PeerDescription
+                  peer={findById(neighbour.neighbourPeerId, peers)}
+                  onHover={onPeerHover}
+                />,
+                neighbour.status === OlsrNeighbourStatus.Symmetric ? "SYM" : "MPR",
+                neighbour.lastUpdateTick,
+              ],
+            ]}
+          />
+          <SecondaryDescription title={"How Two-Hop Neighbours Set changed?"}>
+            The node reads the set of neighbours from the <i>HELLO</i> message and records them into
+            two-hop neighbours by the node where the message came from.
+            {twoHopNeighbours.length > 0 ? (
+              <>
+                <TableDescription
+                  headers={["Address", "Two-Hop Address", "Last Update"]}
+                  rows={twoHopNeighbours.map((neighbour) => [
+                    <PeerDescription
+                      peer={findById(neighbour.viaPeerId, peers)}
+                      onHover={onPeerHover}
+                    />,
+                    <PeerDescription
+                      peer={findById(neighbour.destinationPeerId, peers)}
+                      onHover={onPeerHover}
+                    />,
+                    neighbour.lastUpdateTick,
+                  ])}
+                />
+              </>
+            ) : (
+              " The node received no new neighbours from the message, so no records were added."
+            )}
+          </SecondaryDescription>
+        </>
+      );
+    } else {
+      const { routes } = details as OlsrRouteChangeEventDetails;
+      return (
+        <>
+          <TextDescription>
+            After detecting a change in the topology (e.g., via <i>HELLO</i> or <i>TC</i> messages),
+            the node evaluates the shortest paths to all known destinations based on hop count and
+            updates <i>Routing Table</i>.
+          </TextDescription>
+          <TextDescription>
+            Instead of partially updating, it completely rebuilds its routing table with the new
+            shortest routes and distance metrics, which will be used for forwarding data packets to
+            those destinations.
+          </TextDescription>
+          <TableDescription
+            headers={["Destination", "Next Hop", "Metric", "ANSN", "Last Update"]}
+            rows={routes.map((route) => [
+              <PeerDescription
+                peer={findById(route.destinationPeerId, peers)}
+                onHover={onPeerHover}
+              />,
+              <PeerDescription peer={findById(route.nextHopPeerId, peers)} onHover={onPeerHover} />,
+              route.metric,
+              route.sequenceNumber,
+              route.lastUpdateTick,
+            ])}
+          />
+        </>
+      );
     }
-
-    return (
-      <>
-        <TextDescription>
-          The node recomputed OLSR routes using neighbor and topology information and updated the
-          routing table.
-        </TextDescription>
-        <TableDescription
-          headers={["Destination", "Next Hop", "Metric", "Sequence", "Last Seen"]}
-          rows={getRouteRows(routeChange).map((route) => [
-            <PeerDescription
-              peer={findById(route.destinationPeerId, peers)}
-              onHover={onPeerHover}
-            />,
-            <PeerDescription peer={findById(route.nextHopPeerId, peers)} onHover={onPeerHover} />,
-            route.metric,
-            route.sequenceNumber,
-            route.lastUpdateTick,
-          ])}
-        />
-      </>
-    );
   }
 
   if (detailsType === EventDetailsType.OlsrRouteSelected) {

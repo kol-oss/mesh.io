@@ -6,6 +6,7 @@ import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
 import { useState } from "react";
 import TableGroup from "./TableGroup";
+import { OlsrNeighbourStatus } from "@/features/processor/types/protocols/olsr.ts";
 
 type OlsrTableStructureProps = {
   peer: PeerSnapshot;
@@ -36,18 +37,18 @@ export default function OlsrTableStructure({
       peer={findById(row.neighbourPeerId, peers)}
       onHover={() => onPeerNameHover(row.neighbourPeerId)}
     />,
-    row.status,
+    row.status === OlsrNeighbourStatus.Symmetric ? "SYM" : "MPR",
     row.lastUpdateTick,
   ]);
 
   const twoHopRows = peer.olsrTwoHopTable.map((row) => [
     <PeerDescription
-      peer={findById(row.destinationPeerId, peers)}
-      onHover={() => onPeerNameHover(row.destinationPeerId)}
-    />,
-    <PeerDescription
       peer={findById(row.viaPeerId, peers)}
       onHover={() => onPeerNameHover(row.viaPeerId)}
+    />,
+    <PeerDescription
+      peer={findById(row.destinationPeerId, peers)}
+      onHover={() => onPeerNameHover(row.destinationPeerId)}
     />,
     row.lastUpdateTick,
   ]);
@@ -100,13 +101,13 @@ export default function OlsrTableStructure({
         }}
       >
         <TableDescription
-          headers={["Neighbour", "Status", "Last Seen"]}
+          headers={["Address", "Status", "Last Seen"]}
           rows={neighbourRows.length > 0 ? neighbourRows : EMPTY_THREE}
         />
       </TableGroup>
 
       <TableGroup
-        name="2-Hop Neighbor Set"
+        name="Two-Hop Neighbor Set"
         isOpen={collapsedSections.twoHop}
         onToggle={() => {
           setCollapsedSections((current) => ({
@@ -116,7 +117,7 @@ export default function OlsrTableStructure({
         }}
       >
         <TableDescription
-          headers={["Destination", "Via", "Last Update"]}
+          headers={["Address", "Two-Hop Address", "Last Update"]}
           rows={twoHopRows.length > 0 ? twoHopRows : EMPTY_THREE}
         />
       </TableGroup>

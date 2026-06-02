@@ -1,16 +1,11 @@
 import {
   type OlsrHelloMessage,
+  OlsrNeighbourStatus,
   type OlsrTcMessage,
 } from "@/features/processor/types/protocols/olsr";
-import { MessageType, type Message } from "@/shared/types/common/messages";
-
-type PacketStructureField = {
-  label: string;
-  value: string;
-  bits: number;
-  description: string;
-  blocked: boolean;
-};
+import { type Message, MessageType } from "@/shared/types/common/messages";
+import type { FieldStructure } from "@/shared/types/common/field.ts";
+import type { UUID } from "@/shared/types/common/uuid.ts";
 
 type OlsrMessageStructureProps = {
   message: Message;
@@ -18,81 +13,57 @@ type OlsrMessageStructureProps = {
   packetStructureAria: string;
 };
 
-const getOlsrHelloStructureRows = (
+const getAddressesBlock = (
+  addresses: UUID[],
+  type: OlsrNeighbourStatus,
+  peerNameById: Map<string, string>,
+): FieldStructure[][] => {
+  if (addresses.length === 0) {
+    return [];
+  }
+
+  const neighbourRows: FieldStructure[] = addresses.map((neighbourId) => ({
+    label: "Neighbor Interface Address",
+    value: peerNameById.get(neighbourId),
+    bits: 32,
+    description: "Neighbour interface address carried in the HELLO link block.",
+    blocked: false,
+  }));
+
+  return [
+    [
+      {
+        label: "Link Code",
+        value: type === OlsrNeighbourStatus.Symmetric ? "SYM" : "MPR",
+        bits: 8,
+        description: "Defines the modeled symmetric-link state.",
+        blocked: false,
+      },
+      {
+        label: "Reserved",
+        value: "N/A",
+        bits: 8,
+        description: "Reserved field, transmitted as 0.",
+        blocked: true,
+      },
+      {
+        label: "Link Message Size",
+        value: String(4 + 4 * addresses.length),
+        bits: 16,
+        description:
+          "Size of the link-description block, consist of 4 bytes for header and 4 bites for each address.",
+        blocked: false,
+      },
+    ],
+    ...neighbourRows.map((row) => [row]),
+  ];
+};
+
+const getOlsrHelloStructure = (
   message: OlsrHelloMessage,
   peerNameById: Map<string, string>,
-): PacketStructureField[][] => {
-  const neighbourRows =
-    message.neighbours.length > 0
-      ? message.neighbours.flatMap((peerId) => [
-          [
-            {
-              label: "Link Code",
-              value: message.mprPeerIds.includes(peerId) ? "SYM/MPR" : "SYM",
-              bits: 8,
-              description:
-                "Defines the modeled symmetric-link state and whether the neighbour was selected as an MPR.",
-              blocked: false,
-            },
-            {
-              label: "Reserved",
-              value: "N/A",
-              bits: 8,
-              description: "Reserved field, transmitted as 0 in the RFC layout.",
-              blocked: true,
-            },
-            {
-              label: "Link Message Size",
-              value: "N/A",
-              bits: 16,
-              description: "Size of the HELLO link-description block in the RFC layout.",
-              blocked: true,
-            },
-          ],
-          [
-            {
-              label: "Neighbor Interface Address",
-              value: peerNameById.get(peerId) ?? peerId,
-              bits: 32,
-              description: "Neighbour interface address carried in the HELLO link block.",
-              blocked: false,
-            },
-          ],
-        ])
-      : [
-          [
-            {
-              label: "Link Code",
-              value: "N/A",
-              bits: 8,
-              description: "No neighbour interface path are advertised in this HELLO.",
-              blocked: true,
-            },
-            {
-              label: "Reserved",
-              value: "N/A",
-              bits: 8,
-              description: "Reserved field, transmitted as 0 in the RFC layout.",
-              blocked: true,
-            },
-            {
-              label: "Link Message Size",
-              value: "N/A",
-              bits: 16,
-              description: "Size of the HELLO link-description block in the RFC layout.",
-              blocked: true,
-            },
-          ],
-          [
-            {
-              label: "Neighbor Interface Address",
-              value: "N/A",
-              bits: 32,
-              description: "No neighbour interface path are advertised in this HELLO.",
-              blocked: true,
-            },
-          ],
-        ];
+): FieldStructure[][] => {
+  const { neighbours, mprPeerIds: mprSet } = message;
 
   return [
     [
@@ -119,14 +90,15 @@ const getOlsrHelloStructureRows = (
         blocked: true,
       },
     ],
-    ...neighbourRows,
+    ...getAddressesBlock(neighbours, OlsrNeighbourStatus.Symmetric, peerNameById),
+    ...getAddressesBlock(mprSet, OlsrNeighbourStatus.MultipointRelay, peerNameById),
   ];
 };
 
 const getOlsrTcStructureRows = (
   message: OlsrTcMessage,
   peerNameById: Map<string, string>,
-): PacketStructureField[][] => {
+): FieldStructure[][] => {
   const advertisedRows =
     message.advertisedNeighbours.length > 0
       ? message.advertisedNeighbours.map((peerId) => [
@@ -178,7 +150,7 @@ export default function OlsrMessageStructure({
 }: OlsrMessageStructureProps) {
   const rows =
     message.type === MessageType.OlsrHelloMessage
-      ? getOlsrHelloStructureRows(message, peerNameById)
+      ? getOlsrHelloStructure(message, peerNameById)
       : getOlsrTcStructureRows(message as OlsrTcMessage, peerNameById);
 
   return (
