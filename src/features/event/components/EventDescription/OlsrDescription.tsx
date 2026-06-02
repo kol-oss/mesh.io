@@ -283,22 +283,17 @@ export default function OlsrDescription({
   }
 
   if (detailsType === EventDetailsType.OlsrRouteDropped) {
-    const drop = details as DropEventDetails;
+    const { reason } = details as DropEventDetails;
 
-    if (drop.reason === DropReason.NoRoute || drop.reason === DropReason.DestinationUnavailable) {
+    if (reason === DropReason.Skip) {
       return (
         <TextDescription>
-          Packet forwarding failed because no valid OLSR next-hop route was available for the
-          destination at this tick.
+          The node analyzed it's <i>Selector Set</i> and determined that no node selected it as{" "}
+          <i>Multipoint Relay (MPR)</i>, so node does not transmit any <i>Transaction Control</i>{" "}
+          messages.
         </TextDescription>
       );
     }
-
-    return (
-      <TextDescription>
-        Packet forwarding was dropped by OLSR processing due to {drop.reason.toLowerCase()}.
-      </TextDescription>
-    );
   }
 
   return <></>;
