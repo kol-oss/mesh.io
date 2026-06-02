@@ -29,8 +29,6 @@ export class NeighbourSet {
   }
 
   getAll() {
-    return [...this.neighbours.values()].sort((left, right) =>
-      left.neighbourPeerId.localeCompare(right.neighbourPeerId),
-    );
+    return [...this.neighbours.values()];
   }
 }

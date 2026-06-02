@@ -1,8 +1,11 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
 import {
   type OlsrHelloMessage,
+  type OlsrNeighbourRecord,
+  OlsrNeighbourStatus,
   type OlsrRouteRecord,
   type OlsrTcMessage,
+  type OlsrTwoHopRecord,
 } from "@/features/processor/types/protocols/olsr";
 import { OLSR_DEFAULT_TC_TTL } from "@/shared/constants/protocols/olsr";
 import { DropReason, EventType, type GetRouteEventDetails } from "@/shared/types/common/events";
@@ -77,52 +80,60 @@ export class OlsrModule extends BaseModule {
   }
 
   private processHello(message: OlsrHelloMessage) {
-    if (message.sourcePeerId === this.peer.id) {
+    const {
+      sourcePeerId: sourceId,
+      senderPeerId: senderId,
+      neighbours,
+      mprPeerIds: mprSet,
+    } = message;
+    if (sourceId === this.peerId) {
       return true;
     }
 
-    const sender = this.graph.getNode(message.senderPeerId);
-    if (!sender || sender.protocol !== PROTOCOL) {
-      this.recordEvent(EventType.Drop, {
-        message: clone(message),
-        reason: DropReason.UnsupportedProtocol,
-      });
-      return false;
-    }
-
     const tick = this.eventRecorder.getCurrentTick();
+
+    // refresh of one-hop neighbours
     this.neighbourSet.set({
-      neighbourPeerId: message.senderPeerId,
-      status: message.mprPeerIds.includes(this.peer.id) ? "MPR" : "SYMMETRIC",
+      neighbourPeerId: senderId,
+      status: mprSet.includes(this.peerId)
+        ? OlsrNeighbourStatus.MultipointRelay
+        : OlsrNeighbourStatus.Symmetric,
       lastUpdateTick: tick,
-    });
+    } satisfies OlsrNeighbourRecord);
 
-    this.twoHopNeighbourSet.deleteByViaPeerId(message.senderPeerId);
+    // refresh of two-hop neighbours
+    let twoHopCoverageChanged = false;
 
-    for (const destinationPeerId of message.neighbours) {
+    this.twoHopNeighbourSet.deleteByViaPeerId(senderId);
+    for (const neighbourId of neighbours) {
       if (
-        destinationPeerId === this.peer.id ||
-        destinationPeerId === message.senderPeerId ||
-        this.neighbourSet.has(destinationPeerId)
+        neighbourId === this.peerId ||
+        neighbourId === senderId ||
+        this.neighbourSet.has(neighbourId)
       ) {
         continue;
       }
 
       this.twoHopNeighbourSet.set({
-        destinationPeerId,
-        viaPeerId: message.senderPeerId,
+        destinationPeerId: neighbourId,
+        viaPeerId: senderId,
         lastUpdateTick: tick,
-      });
+      } satisfies OlsrTwoHopRecord);
+      twoHopCoverageChanged = true;
     }
 
-    if (message.mprPeerIds.includes(this.peer.id)) {
-      this.mprSelectorSet.add(message.senderPeerId, tick);
+    // refresh of multipoint relay selector set
+    if (mprSet.includes(this.peerId)) {
+      this.mprSelectorSet.add(senderId, tick);
     } else {
-      this.mprSelectorSet.delete(message.senderPeerId);
+      this.mprSelectorSet.delete(senderId);
     }
 
-    this.recomputeMprSet();
-    this.recomputeRoutingTable(message);
+    // routes recomputing
+    if (twoHopCoverageChanged) {
+      this.recomputeMprSet();
+      this.recomputeRoutingTable(message);
+    }
 
     return true;
   }
@@ -206,8 +217,8 @@ export class OlsrModule extends BaseModule {
     const configuration = this.peer.configuration as OlsrConfiguration;
     const helloMessage: OlsrHelloMessage = {
       type: MessageType.OlsrHelloMessage,
-      sourcePeerId: this.peer.id,
-      senderPeerId: this.peer.id,
+      sourcePeerId: this.peerId,
+      senderPeerId: this.peerId,
       interval: configuration.helloInterval,
       neighbours: this.graph.getNeighbours(this.peerId).map((neighbour) => neighbour.id),
       mprPeerIds: this.mprSet.toArray(),
@@ -294,65 +305,92 @@ export class OlsrModule extends BaseModule {
     }
   }
 
+  private recomputeNeighbourSet(neighbours: Peer[]) {
+    const tick = this.eventRecorder.getCurrentTick();
+
+    for (const neighbour of neighbours) {
+      const { id: neighbourId } = neighbour;
+      this.neighbourSet.set({
+        neighbourPeerId: neighbourId,
+        status: this.mprSet.has(neighbourId)
+          ? OlsrNeighbourStatus.MultipointRelay
+          : OlsrNeighbourStatus.Symmetric,
+        lastUpdateTick: tick,
+      } satisfies OlsrNeighbourRecord);
+    }
+  }
+
   private recomputeMprSet() {
-    const symmetricNeighbours = this.getKnownSymmetricNeighbours();
+    const neighbours = this.getNeighbourNodes();
+    const neighbourIds = new Set(neighbours.map((peer) => peer.id));
+
+    const twoHopNeighbours = new Set<UUID>();
+    const twoHopByNeighbour = new Map<UUID, Set<UUID>>();
+
+    // cleaning of old MPR Set
     this.mprSet.clear();
 
-    const directNeighbourIds = new Set(symmetricNeighbours.map((peer) => peer.id));
-    const twoHopByNeighbour = new Map<UUID, Set<UUID>>();
-    const uncoveredTwoHop = new Set<UUID>();
+    // forming two-hop by one-hop neighbours map
+    for (const neighbour of neighbours) {
+      const { id: neighbourId } = neighbour;
+      const twoHopNeighboursInNeighbour = new Set<UUID>();
 
-    for (const neighbour of symmetricNeighbours) {
-      const twoHop = new Set<UUID>();
-      for (const neighbourOfNeighbour of this.twoHopNeighbourSet.values()) {
-        if (
-          neighbourOfNeighbour.viaPeerId === neighbour.id &&
-          neighbourOfNeighbour.destinationPeerId !== this.peer.id &&
-          !directNeighbourIds.has(neighbourOfNeighbour.destinationPeerId)
-        ) {
-          twoHop.add(neighbourOfNeighbour.destinationPeerId);
-          uncoveredTwoHop.add(neighbourOfNeighbour.destinationPeerId);
+      for (const twoHopNeighbour of this.twoHopNeighbourSet.values()) {
+        const { destinationPeerId: id, viaPeerId: viaId } = twoHopNeighbour;
+        if (viaId === neighbourId && id !== this.peerId && !neighbourIds.has(id)) {
+          twoHopNeighbours.add(id);
+          twoHopNeighboursInNeighbour.add(id);
         }
       }
-      twoHopByNeighbour.set(neighbour.id, twoHop);
+
+      twoHopByNeighbour.set(neighbourId, twoHopNeighboursInNeighbour);
     }
 
-    for (const twoHopId of [...uncoveredTwoHop]) {
-      const candidates = symmetricNeighbours.filter((neighbour) =>
-        twoHopByNeighbour.get(neighbour.id)?.has(twoHopId),
-      );
+    // adding obvious candidates
+    for (const twoHopId of twoHopNeighbours) {
+      const candidates = neighbours.filter((neighbour) => {
+        const { id: neighbourId } = neighbour;
+        return twoHopByNeighbour.get(neighbourId)?.has(twoHopId);
+      });
 
+      // if two-hop has only one one-hop candidate, it is added to MPR Set
       if (candidates.length === 1) {
         this.mprSet.add(candidates[0].id);
       }
     }
 
-    for (const selectedId of this.mprSet.values()) {
-      const coverage = twoHopByNeighbour.get(selectedId);
-      if (!coverage) {
+    // remove one-hop neighbours that are already MPR
+    for (const mprId of this.mprSet.values()) {
+      const twoHops = twoHopByNeighbour.get(mprId);
+      if (!twoHops) {
         continue;
       }
-      for (const twoHopId of coverage) {
-        uncoveredTwoHop.delete(twoHopId);
+
+      for (const twoHopId of twoHops) {
+        twoHopNeighbours.delete(twoHopId);
       }
     }
 
-    while (uncoveredTwoHop.size > 0) {
+    while (twoHopNeighbours.size > 0) {
       let bestNeighbourId: UUID | null = null;
       let bestCoverage = 0;
 
-      for (const neighbour of symmetricNeighbours) {
-        if (this.mprSet.has(neighbour.id)) {
+      for (const neighbour of neighbours) {
+        const { id: neighbourId } = neighbour;
+
+        // neighbour is already MPR, so skip
+        if (this.mprSet.has(neighbourId)) {
           continue;
         }
 
-        const coverage = [...(twoHopByNeighbour.get(neighbour.id) ?? [])].filter((twoHopId) =>
-          uncoveredTwoHop.has(twoHopId),
+        // calculate how much nodes are reachable from this neighbour
+        const coverage = [...(twoHopByNeighbour.get(neighbourId) ?? [])].filter((twoHopId) =>
+          twoHopNeighbours.has(twoHopId),
         ).length;
 
         if (coverage > bestCoverage) {
           bestCoverage = coverage;
-          bestNeighbourId = neighbour.id;
+          bestNeighbourId = neighbourId;
         }
       }
 
@@ -360,22 +398,19 @@ export class OlsrModule extends BaseModule {
         break;
       }
 
+      // adding node to the MPR Set
       this.mprSet.add(bestNeighbourId);
+
+      // remove covered nodes
       const coveredSet = twoHopByNeighbour.get(bestNeighbourId);
       if (coveredSet) {
         for (const twoHopId of coveredSet) {
-          uncoveredTwoHop.delete(twoHopId);
+          twoHopNeighbours.delete(twoHopId);
         }
       }
-    }
 
-    const tick = this.eventRecorder.getCurrentTick();
-    for (const neighbour of symmetricNeighbours) {
-      this.neighbourSet.set({
-        neighbourPeerId: neighbour.id,
-        status: this.mprSet.has(neighbour.id) ? "MPR" : "SYMMETRIC",
-        lastUpdateTick: tick,
-      });
+      // recompute neighbour statuses
+      this.recomputeNeighbourSet(neighbours);
     }
   }
 
@@ -462,7 +497,7 @@ export class OlsrModule extends BaseModule {
     const queue: UUID[] = [];
     const tick = this.eventRecorder.getCurrentTick();
 
-    const directNeighbours = this.getKnownSymmetricNeighbours();
+    const directNeighbours = this.getNeighbourNodes();
 
     for (const neighbour of directNeighbours) {
       routes.set(neighbour.id, {
@@ -553,14 +588,13 @@ export class OlsrModule extends BaseModule {
     }
   }
 
-  private getKnownSymmetricNeighbours() {
+  // returns nodes of nodes in neighbour set
+  private getNeighbourNodes() {
     const neighbours: Peer[] = [];
 
     for (const record of this.neighbourSet.values()) {
       const peer = this.graph.getNode(record.neighbourPeerId);
-      if (peer?.protocol === PROTOCOL) {
-        neighbours.push(peer);
-      }
+      neighbours.push(peer);
     }
 
     return neighbours;

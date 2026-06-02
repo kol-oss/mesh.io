@@ -53,7 +53,12 @@ export class NetworkGraph {
       const neighbour = this.graph.getNodeAttributes(neighbourId);
       const link = this.graph.getEdgeAttributes(peerId, neighbourId);
 
-      if (neighbour.active && link.active && (!type || link.type === type)) {
+      if (
+        neighbour.active &&
+        link.active &&
+        (!type || link.type === type) &&
+        source.protocol === neighbour.protocol
+      ) {
         neighbours.push(neighbour);
       }
     }
