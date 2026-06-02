@@ -1,6 +1,6 @@
 import NumberPropertyField from "@/features/properties/components/Property/NumberPropertyField";
 import PropertyGroup from "@/features/properties/components/Property/PropertyGroup";
-import { OLSR_MIN_INTERVAL } from "@/shared/constants/protocols/olsr";
+import { OLSR_MIN_INTERVAL, OLSR_MIN_ROUTE_TIMEOUT } from "@/shared/constants/protocols/olsr";
 import { OlsrConfigurationSchema } from "@/shared/schemas/configuration/OlsrConfigurationSchema";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { OlsrConfiguration, PeerConfiguration } from "@/shared/types/model/configurations";
@@ -24,8 +24,11 @@ export default function OlsrProperties({
   updateConfigurationByProtocol,
   disabled = false,
 }: OlsrPropertiesProps) {
-  const { helloInterval = OLSR_MIN_INTERVAL, tcInterval = OLSR_MIN_INTERVAL } =
-    peer.configuration as OlsrConfiguration;
+  const {
+    helloInterval = OLSR_MIN_INTERVAL,
+    tcInterval = OLSR_MIN_INTERVAL,
+    routeTimeout = OLSR_MIN_ROUTE_TIMEOUT,
+  } = peer.configuration as OlsrConfiguration;
 
   const onChange = getOnConfigurationChange(
     peer,
@@ -59,6 +62,18 @@ export default function OlsrProperties({
           min={OLSR_MIN_INTERVAL}
           disabled={disabled}
           onChange={(event) => onChange(event, "tcInterval", OLSR_MIN_INTERVAL)}
+        />
+      </PropertyGroup>
+
+      <PropertyGroup>
+        <NumberPropertyField
+          label="Route Timeout"
+          icon={<Clock3 size={12} />}
+          valid={!errors?.routeTimeout}
+          value={routeTimeout}
+          min={OLSR_MIN_ROUTE_TIMEOUT}
+          disabled={disabled}
+          onChange={(event) => onChange(event, "routeTimeout", OLSR_MIN_ROUTE_TIMEOUT)}
         />
       </PropertyGroup>
     </>

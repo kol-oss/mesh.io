@@ -2,12 +2,12 @@ import { getDefaultPeerConfiguration } from "@/shared/constants/protocols/protoc
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { generateUUID } from "@/shared/types/common/uuid";
 import type {
-  AodvConfiguration,
-  BatmanConfiguration,
-  DsdvConfiguration,
-  DsrConfiguration,
-  OlsrConfiguration,
-  PeerConfiguration,
+    AodvConfiguration,
+    BatmanConfiguration,
+    DsdvConfiguration,
+    DsrConfiguration,
+    OlsrConfiguration,
+    PeerConfiguration,
 } from "@/shared/types/model/configurations";
 import type { NetworkEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
@@ -134,6 +134,10 @@ const normalizeOlsrConfiguration = (value: unknown) => {
       typeof value.tcInterval === "number" && value.tcInterval > 0
         ? value.tcInterval
         : defaults.tcInterval,
+    routeTimeout:
+      typeof value.routeTimeout === "number" && value.routeTimeout > 0
+        ? value.routeTimeout
+        : defaults.routeTimeout,
   };
 };
 

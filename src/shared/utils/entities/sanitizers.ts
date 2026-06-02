@@ -101,6 +101,10 @@ const sanitizeOlsrConfiguration = (value: unknown): OlsrConfiguration => {
         : defaults.helloInterval,
     tcInterval:
       isNumber(value.tcInterval) && value.tcInterval > 0 ? value.tcInterval : defaults.tcInterval,
+    routeTimeout:
+      isNumber(value.routeTimeout) && value.routeTimeout > 0
+        ? value.routeTimeout
+        : defaults.routeTimeout,
   };
 };
 

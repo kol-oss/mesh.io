@@ -1,8 +1,8 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
 import {
+  OlsrNeighbourStatus,
   type OlsrHelloMessage,
   type OlsrNeighbourRecord,
-  OlsrNeighbourStatus,
   type OlsrRouteChangeEventDetails,
   type OlsrRouteRecord,
   type OlsrTcMessage,
@@ -15,18 +15,18 @@ import { MessageType, type Message } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { OlsrConfiguration } from "@/shared/types/model/configurations";
+import { RefreshAction } from "@/shared/types/model/steps.ts";
 import type { NetworkGraph } from "../../network/NetworkGraph";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module";
 import type { Peer } from "../../types/network/peer";
 import { clone } from "../../utils/clone";
 import { BaseModule } from "../BaseModule";
+import { MultipointRelaySelectorSet } from "./structures/MultipointRelaySelectorSet.ts";
 import { MultipointRelaySet } from "./structures/MultipointRelaySet.ts";
 import { NeighbourSet } from "./structures/NeighbourSet.ts";
 import { RoutingTable } from "./structures/RoutingTable";
-import { MultipointRelaySelectorSet } from "./structures/MultipointRelaySelectorSet.ts";
 import { TopologySet } from "./structures/TopologySet.ts";
 import { TwoHopNeighbourSet } from "./structures/TwoHopNeighbourSet.ts";
-import { RefreshAction } from "@/shared/types/model/steps.ts";
 
 // module for OLSR protocol
 const PROTOCOL = RoutingProtocol.OLSR;
@@ -263,13 +263,12 @@ export class OlsrModule extends BaseModule {
     const configuration = this.peer.configuration as OlsrConfiguration;
     const tick = this.eventRecorder.getCurrentTick();
 
-    const helloExpiry = configuration.helloInterval * 3;
-    const tcExpiry = configuration.tcInterval * 3;
+    const routeExpiry = configuration.routeTimeout;
 
     let changed = false;
 
     for (const [peerId, neighbour] of this.neighbourSet.entries()) {
-      if (tick - neighbour.lastUpdateTick > helloExpiry) {
+      if (tick - neighbour.lastUpdateTick > routeExpiry) {
         this.neighbourSet.delete(peerId);
         this.mprSelectorSet.delete(peerId);
         this.mprSet.delete(peerId);
@@ -280,14 +279,14 @@ export class OlsrModule extends BaseModule {
     }
 
     for (const [key, entry] of this.twoHopNeighbourSet.entries()) {
-      if (tick - entry.lastUpdateTick > helloExpiry) {
+      if (tick - entry.lastUpdateTick > routeExpiry) {
         this.twoHopNeighbourSet.delete(key);
         changed = true;
       }
     }
 
     for (const [key, topology] of this.topologySet.entries()) {
-      if (tick - topology.lastUpdateTick > tcExpiry) {
+      if (tick - topology.lastUpdateTick > routeExpiry) {
         this.topologySet.delete(key);
         changed = true;
       }
