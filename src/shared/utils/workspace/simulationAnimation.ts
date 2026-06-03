@@ -1,5 +1,9 @@
 import type { BatmanCalculationEventDetails } from "@/features/processor/types/protocols/batman";
 import type {
+  DsrRouteReplyMessage,
+  DsrRouteRequestMessage,
+} from "@/features/processor/types/protocols/dsr.ts";
+import type {
   BroadcastEventDetails,
   DropEventDetails,
   Event,
@@ -18,10 +22,6 @@ import type {
   MoveStepAnimation,
   ToggleStepAnimation,
 } from "@/shared/types/workspace/scene";
-import type {
-  NewDsrRouteReplyMessage,
-  NewDsrRouteRequestMessage,
-} from "@/features/processor/types/protocols/dsr.ts";
 
 export const buildSimulationMessageAnimations = (
   currentEvent: Event | null,
@@ -221,7 +221,7 @@ const getDroppedMessageAnimation = (
   }
 
   if (message.type === MessageType.DsrRouteRequestMessage) {
-    const dsrMessage = message as NewDsrRouteRequestMessage;
+    const dsrMessage = message as DsrRouteRequestMessage;
 
     const previousHopPeerId =
       dsrMessage.path && dsrMessage.path.length > 1
@@ -235,22 +235,12 @@ const getDroppedMessageAnimation = (
   }
 
   if (message.type === MessageType.DsrRouteReplyMessage) {
-    const dsrMessage = message as NewDsrRouteReplyMessage;
+    const { path, destinationId } = message as DsrRouteReplyMessage;
 
-    const senderIndex = dsrMessage.path.indexOf(dsrMessage.sourceId);
-    const previousPeerId = senderIndex > 0 ? dsrMessage.path[senderIndex - 1] : null;
-    if (!previousPeerId) {
-      return null;
-    }
+    const senderIndex = path.indexOf(eventPeerId);
+    const previousPeerId = senderIndex > 0 ? path[senderIndex - 1] : destinationId;
 
-    return { sourcePeerId: dsrMessage.sourceId, targetPeerId: previousPeerId };
-  }
-
-  if (message.type === MessageType.DsrRouteErrorMessage) {
-    return {
-      sourcePeerId: message.brokenFromPeerId,
-      targetPeerId: message.brokenToPeerId,
-    };
+    return { sourcePeerId: eventPeerId, targetPeerId: previousPeerId };
   }
 
   if (message.type !== MessageType.Packet) {

@@ -7,8 +7,8 @@ import {
   type DsrPathRecord,
   type DsrRouteChangeEventDetails,
   type DsrRouteErrorMessage,
-  type NewDsrRouteReplyMessage,
-  type NewDsrRouteRequestMessage,
+  type DsrRouteReplyMessage,
+  type DsrRouteRequestMessage,
 } from "@/features/processor/types/protocols/dsr";
 import { DSR_MAX_SALVAGE_COUNT } from "@/shared/constants/protocols/dsr.ts";
 import {
@@ -70,12 +70,12 @@ export class DsrModule extends BaseModule {
 
     // Route Request (RREQ) message
     if (messageType === MessageType.DsrRouteRequestMessage) {
-      return this.processRouteRequest(message as NewDsrRouteRequestMessage);
+      return this.processRouteRequest(message as DsrRouteRequestMessage);
     }
 
     // Route Reply (RREP) message
     if (messageType === MessageType.DsrRouteReplyMessage) {
-      return this.processRouteReply(message as NewDsrRouteReplyMessage);
+      return this.processRouteReply(message as DsrRouteReplyMessage);
     }
 
     // Route Error (RERR) message
@@ -117,7 +117,7 @@ export class DsrModule extends BaseModule {
     );
   }
 
-  private processRouteRequest(message: NewDsrRouteRequestMessage): boolean {
+  private processRouteRequest(message: DsrRouteRequestMessage): boolean {
     const { destinationId, sourceId, path, identification } = message;
 
     // same identification already present - this message is duplicate
@@ -157,7 +157,7 @@ export class DsrModule extends BaseModule {
     if (this.peerId === destinationId) {
       const reversed = [...path].reverse();
 
-      const reply: NewDsrRouteReplyMessage = {
+      const reply: DsrRouteReplyMessage = {
         type: MessageType.DsrRouteReplyMessage,
         identification: message.identification,
         sourceId: this.peerId,
@@ -198,7 +198,7 @@ export class DsrModule extends BaseModule {
       const fullPath = [...path, this.peerId, ...cachedRoute.path];
       const reversed = fullPath.reverse();
 
-      const reply: NewDsrRouteReplyMessage = {
+      const reply: DsrRouteReplyMessage = {
         type: MessageType.DsrRouteReplyMessage,
         identification: message.identification,
         sourceId: message.destinationId,
@@ -241,13 +241,13 @@ export class DsrModule extends BaseModule {
     const request = {
       ...message,
       path: updatedPath,
-    } satisfies NewDsrRouteRequestMessage;
+    } satisfies DsrRouteRequestMessage;
 
     this.cacheSourcePath(sourceId, identification, path.reverse());
     return super.broadcast(request, true);
   }
 
-  private processRouteReply(message: NewDsrRouteReplyMessage): boolean {
+  private processRouteReply(message: DsrRouteReplyMessage): boolean {
     const { destinationId, sourceId, path, identification } = message;
 
     if (this.peerId === sourceId) {
@@ -505,7 +505,7 @@ export class DsrModule extends BaseModule {
         sourceId: this.peerId,
         destinationId,
         path: [],
-      } satisfies NewDsrRouteRequestMessage;
+      } satisfies DsrRouteRequestMessage;
       this.sequence++;
 
       super.broadcast(request);

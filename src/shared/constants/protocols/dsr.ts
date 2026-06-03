@@ -1,8 +1,8 @@
 import type {
   DsrPacket,
   DsrRouteErrorMessage,
-  NewDsrRouteReplyMessage,
-  NewDsrRouteRequestMessage,
+  DsrRouteReplyMessage,
+  DsrRouteRequestMessage,
 } from "@/features/processor/types/protocols/dsr";
 import type { FieldStructure } from "@/shared/types/common/field";
 import type { DsrConfiguration } from "@/shared/types/model/configurations";
@@ -83,7 +83,7 @@ export const getDsrPacketMessageStructure = (
 };
 
 export const getRouteRequestMessageStructure = (
-  message: NewDsrRouteRequestMessage,
+  message: DsrRouteRequestMessage,
   peers?: PeerEntity[],
 ): FieldStructure[][] => {
   const { path, identification, destinationId, sourceId } = message;
@@ -147,7 +147,7 @@ export const getRouteRequestMessageStructure = (
 };
 
 export const getRouteReplyMessageStructure = (
-  message: NewDsrRouteReplyMessage,
+  message: DsrRouteReplyMessage,
   peers?: PeerEntity[],
 ): FieldStructure[][] => {
   const { path, destinationId, sourceId } = message;

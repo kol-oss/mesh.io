@@ -10,17 +10,6 @@ import type { UUID } from "@/shared/types/common/uuid.ts";
 // RREQ message
 export type DsrRouteRequestMessage = BaseMessage & {
   type: MessageType.DsrRouteRequestMessage;
-  sourcePeerId: UUID;
-  senderPeerId: UUID;
-  targetPeerId: UUID;
-  requestId: number;
-  hopLimit: number;
-  routePeerIds: UUID[];
-};
-
-// RREQ message
-export type NewDsrRouteRequestMessage = BaseMessage & {
-  type: MessageType.DsrRouteRequestMessage;
   identification: number;
   sourceId: UUID;
   destinationId: UUID;
@@ -29,17 +18,6 @@ export type NewDsrRouteRequestMessage = BaseMessage & {
 
 // RREP message
 export type DsrRouteReplyMessage = BaseMessage & {
-  type: MessageType.DsrRouteReplyMessage;
-  sourceId: UUID;
-  senderPeerId: UUID;
-  destinationId: UUID;
-  requestId: number;
-  hopLimit: number;
-  routePeerIds: UUID[];
-};
-
-// RREP message
-export type NewDsrRouteReplyMessage = BaseMessage & {
   type: MessageType.DsrRouteReplyMessage;
   identification: number;
   sourceId: UUID;

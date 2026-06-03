@@ -14,8 +14,6 @@ import type {
   DsrRouteErrorMessage,
   DsrRouteReplyMessage,
   DsrRouteRequestMessage,
-  NewDsrRouteReplyMessage,
-  NewDsrRouteRequestMessage,
 } from "@/features/processor/types/protocols/dsr.ts";
 import type { OlsrHelloMessage, OlsrTcMessage } from "@/features/processor/types/protocols/olsr.ts";
 import type { UUID } from "./uuid";
@@ -65,6 +63,4 @@ export type Message =
   | DsrRouteRequestMessage
   | DsrRouteReplyMessage
   | DsrRouteErrorMessage
-  | NewDsrRouteRequestMessage
-  | NewDsrRouteReplyMessage
   | DsrPacket;

@@ -4,7 +4,7 @@ import { type StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import { EntityType } from "@/shared/types/model/entities";
 import { getEventDetailsType, getEventProtocol } from "@/shared/utils/events";
-import { getPeerLabel, renderPeerName } from "@/shared/utils/simulation/eventPresentation";
+import { getPeerLabel, renderPeerName } from "@/shared/utils/simulation/eventHelpers";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Link } from "react-router-dom";

@@ -63,6 +63,38 @@ const getDsdvEventLink = (event: Event, detailsType: EventDetailsType) => {
   return `${prefix}#what-you-need-to-know`;
 };
 
+const getDsrEventLink = (event: Event, detailsType: EventDetailsType) => {
+  const { type: eventType } = event;
+  const prefix = `${LINK_PREFIX}/dsr`;
+
+  if (
+    detailsType === EventDetailsType.DsrRouteRequestBroadcast ||
+    detailsType === EventDetailsType.DsrRouteRequestRetransmission ||
+    detailsType === EventDetailsType.DsrRouteReplyForwarded ||
+    detailsType === EventDetailsType.DsrPathRecalculated
+  ) {
+    return `${prefix}#route-discovery`;
+  }
+
+  if (detailsType === EventDetailsType.DsrRouteSalvage) {
+    return `${prefix}#route-maintenance`;
+  }
+
+  if (
+    eventType === EventType.AddRoute ||
+    eventType === EventType.UpdateRoute ||
+    eventType === EventType.DeleteRoute
+  ) {
+    return `${prefix}#route-cache`;
+  }
+
+  if (eventType === EventType.GetRoute || eventType === EventType.Transfer) {
+    return `${prefix}#route-selection`;
+  }
+
+  return `${prefix}#what-you-need-to-know`;
+};
+
 export const getEventLink = (event: Event, detailsType: EventDetailsType): string => {
   const { protocol } = event;
   if (protocol === RoutingProtocol.DSDV) {
@@ -71,6 +103,10 @@ export const getEventLink = (event: Event, detailsType: EventDetailsType): strin
 
   if (protocol === RoutingProtocol.BATMAN) {
     return getBatmanEventLink(event, detailsType);
+  }
+
+  if (protocol === RoutingProtocol.DSR) {
+    return getDsrEventLink(event, detailsType);
   }
 
   return UNKNOWN_EVENT_LINK;
