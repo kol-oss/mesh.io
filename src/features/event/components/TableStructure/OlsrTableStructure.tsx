@@ -14,8 +14,9 @@ type OlsrTableStructureProps = {
   onPeerNameHover: (peerId: UUID) => void;
 };
 
-const EMPTY_THREE = [["-", "-", "-"]];
+const EMPTY_ONE = [["-"]];
 const EMPTY_TWO = [["-", "-"]];
+const EMPTY_THREE = [["-", "-", "-"]];
 const EMPTY_FOUR = [["-", "-", "-", "-"]];
 const EMPTY_FIVE = [["-", "-", "-", "-", "-"]];
 
@@ -27,12 +28,13 @@ export default function OlsrTableStructure({
   const [collapsedSections, setCollapsedSections] = useState({
     neighbours: true,
     twoHop: false,
+    mpr: false,
     selectors: false,
     topology: false,
     routes: false,
   });
 
-  const neighbourRows = peer.olsrNeighbourTable.map((row) => [
+  const neighbourRows = peer.olsrNeighbourSet.map((row) => [
     <PeerDescription
       peer={findById(row.neighbourPeerId, peers)}
       onHover={() => onPeerNameHover(row.neighbourPeerId)}
@@ -41,7 +43,7 @@ export default function OlsrTableStructure({
     row.lastUpdateTick,
   ]);
 
-  const twoHopRows = peer.olsrTwoHopTable.map((row) => [
+  const twoHopRows = peer.olsrTwoHopNeighbourSet.map((row) => [
     <PeerDescription
       peer={findById(row.viaPeerId, peers)}
       onHover={() => onPeerNameHover(row.viaPeerId)}
@@ -53,7 +55,11 @@ export default function OlsrTableStructure({
     row.lastUpdateTick,
   ]);
 
-  const selectorRows = peer.olsrSelectorTable.map((row) => [
+  const mprRows = peer.olsrMprSet.map((row) => [
+    <PeerDescription peer={findById(row, peers)} onHover={() => onPeerNameHover(row)} />,
+  ]);
+
+  const selectorRows = peer.olsrSelectorSet.map((row) => [
     <PeerDescription
       peer={findById(row.selectorPeerId, peers)}
       onHover={() => onPeerNameHover(row.selectorPeerId)}
@@ -61,7 +67,7 @@ export default function OlsrTableStructure({
     row.lastUpdateTick,
   ]);
 
-  const topologyRows = peer.olsrTopologyTable.map((row) => [
+  const topologyRows = peer.olsrTopologySet.map((row) => [
     <PeerDescription
       peer={findById(row.destinationPeerId, peers)}
       onHover={() => onPeerNameHover(row.destinationPeerId)}
@@ -123,6 +129,19 @@ export default function OlsrTableStructure({
       </TableGroup>
 
       <TableGroup
+        name="Multipount Relay Set"
+        isOpen={collapsedSections.mpr}
+        onToggle={() => {
+          setCollapsedSections((current) => ({
+            ...current,
+            mpr: !current.mpr,
+          }));
+        }}
+      >
+        <TableDescription headers={["Neighbour"]} rows={mprRows.length > 0 ? mprRows : EMPTY_ONE} />
+      </TableGroup>
+
+      <TableGroup
         name="MPR Selector Set"
         isOpen={collapsedSections.selectors}
         onToggle={() => {
@@ -139,7 +158,7 @@ export default function OlsrTableStructure({
       </TableGroup>
 
       <TableGroup
-        name="Topology Table"
+        name="Topology Set"
         isOpen={collapsedSections.topology}
         onToggle={() => {
           setCollapsedSections((current) => ({

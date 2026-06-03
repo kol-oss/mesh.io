@@ -1,5 +1,6 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
 import {
+  type OlsrCalculationEventDetails,
   OlsrChangeEventDetailsType,
   type OlsrHelloMessage,
   type OlsrNeighbourChangeEventDetails,
@@ -172,17 +173,23 @@ export class OlsrModule extends BaseModule {
     this.topologySet.deleteByLastHopPeerId(sourceId);
 
     const tick = this.eventRecorder.getCurrentTick();
+    const topologyRecords: OlsrTopologyRecord[] = [];
     for (const destinationId of neighbours) {
-      this.topologySet.set({
+      if (destinationId === this.peerId) continue;
+
+      const topologyRecord = {
         destinationPeerId: destinationId,
         lastHopPeerId: sourceId,
         sequenceNumber: ansn,
         lastUpdateTick: tick,
-      } satisfies OlsrTopologyRecord);
+      } satisfies OlsrTopologyRecord;
+
+      this.topologySet.set(topologyRecord);
+      topologyRecords.push(topologyRecord);
     }
 
     // routing table recomping
-    this.recomputeRoutingTable(message);
+    this.recomputeRoutingTable(message, topologyRecords);
 
     // transaction control rebroadcast
     if (this.mprSelectorSet.size > 0 && timeToLive > 1) {
@@ -355,6 +362,8 @@ export class OlsrModule extends BaseModule {
       twoHopByNeighbour.set(neighbourId, twoHopNeighboursInNeighbour);
     }
 
+    const nodesByNeighbours = new Map<UUID, Set<UUID>>();
+
     // adding obvious candidates
     for (const twoHopId of twoHopNeighbours) {
       const candidates = neighbours.filter((neighbour) => {
@@ -364,7 +373,12 @@ export class OlsrModule extends BaseModule {
 
       // if two-hop has only one one-hop candidate, it is added to MPR Set
       if (candidates.length === 1) {
-        this.mprSet.add(candidates[0].id);
+        const candidateId = candidates[0].id;
+
+        this.mprSet.add(candidateId);
+        const coveredNodes = nodesByNeighbours.get(candidateId) ?? new Set<UUID>();
+        coveredNodes.add(twoHopId);
+        nodesByNeighbours.set(candidateId, coveredNodes);
       }
     }
 
@@ -383,6 +397,7 @@ export class OlsrModule extends BaseModule {
     while (twoHopNeighbours.size > 0) {
       let bestNeighbourId: UUID | null = null;
       let bestCoverage = 0;
+      let bestCoveredNeighbours: UUID[] = [];
 
       for (const neighbour of neighbours) {
         const { id: neighbourId } = neighbour;
@@ -393,13 +408,15 @@ export class OlsrModule extends BaseModule {
         }
 
         // calculate how much nodes are reachable from this neighbour
-        const coverage = [...(twoHopByNeighbour.get(neighbourId) ?? [])].filter((twoHopId) =>
-          twoHopNeighbours.has(twoHopId),
-        ).length;
+        const twoHopCoveredNeighbours = [...(twoHopByNeighbour.get(neighbourId) ?? [])].filter(
+          (twoHopId) => twoHopNeighbours.has(twoHopId),
+        );
+        const coverage = twoHopCoveredNeighbours.length;
 
         if (coverage > bestCoverage) {
           bestCoverage = coverage;
           bestNeighbourId = neighbourId;
+          bestCoveredNeighbours = twoHopCoveredNeighbours;
         }
       }
 
@@ -409,6 +426,15 @@ export class OlsrModule extends BaseModule {
 
       // adding node to the MPR Set
       this.mprSet.add(bestNeighbourId);
+
+      if (!nodesByNeighbours.has(bestNeighbourId)) {
+        nodesByNeighbours.set(bestNeighbourId, new Set(bestCoveredNeighbours));
+      } else {
+        const nodesByNeighbour = nodesByNeighbours.get(bestNeighbourId)!;
+        for (const twoHopNeighbour of bestCoveredNeighbours) {
+          nodesByNeighbour.add(twoHopNeighbour);
+        }
+      }
 
       // remove covered nodes
       const coveredSet = twoHopByNeighbour.get(bestNeighbourId);
@@ -421,9 +447,19 @@ export class OlsrModule extends BaseModule {
       // recompute neighbour statuses
       this.recomputeNeighbourSet(neighbours);
     }
+
+    if (nodesByNeighbours.size > 0) {
+      super.recordEvent(
+        EventType.Calculation,
+        {
+          nodesByNeighbours,
+        } satisfies OlsrCalculationEventDetails,
+        PROTOCOL,
+      );
+    }
   }
 
-  private recomputeRoutingTable(message: Message | null) {
+  private recomputeRoutingTable(message: Message | null, records: OlsrTopologyRecord[] = []) {
     // calculating new routes based on neighbours and topology
     const routes = this.recomputeRoutes();
 
@@ -443,6 +479,7 @@ export class OlsrModule extends BaseModule {
         {
           type: OlsrChangeEventDetailsType.ROUTE,
           protocol: PROTOCOL,
+          topologyRecords: [],
           routes: [...removedRoutes.values()],
           message: message ? clone(message) : undefined,
         } satisfies OlsrRouteChangeEventDetails,
@@ -457,6 +494,7 @@ export class OlsrModule extends BaseModule {
         {
           type: OlsrChangeEventDetailsType.ROUTE,
           protocol: PROTOCOL,
+          topologyRecords: records,
           message: message ? clone(message) : undefined,
           routes: [...routes.values()],
         } satisfies OlsrRouteChangeEventDetails,
@@ -595,6 +633,7 @@ export class OlsrModule extends BaseModule {
     const tables: RoutingStructureType = {} as RoutingStructureType;
     tables[RoutingStructure.OlsrNeighbourSet] = this.neighbourSet.getAll();
     tables[RoutingStructure.OlsrTwoHopNeighbourSet] = this.twoHopNeighbourSet.getAll();
+    tables[RoutingStructure.OlsrMultipointRelaySet] = this.mprSet.toArray();
     tables[RoutingStructure.OlsrSelectorSet] = this.mprSelectorSet.getAll();
     tables[RoutingStructure.OlsrTopologySet] = this.topologySet.getAll();
     tables[RoutingStructure.OlsrRoutingTable] = this.routingTable.getAll();

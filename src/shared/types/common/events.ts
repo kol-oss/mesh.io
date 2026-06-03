@@ -19,6 +19,7 @@ import type {
   DsrPathRecord,
 } from "@/features/processor/types/protocols/dsr.ts";
 import type {
+  OlsrCalculationEventDetails,
   OlsrNeighbourChangeEventDetails,
   OlsrRouteChangeEventDetails,
   OlsrRouteRecord,
@@ -66,6 +67,7 @@ export type CalculationEventDetails =
   | BatmanCalculationEventDetails
   | DsdvCalculationEventDetails
   | DsrCalculationEventDetails
+  | OlsrCalculationEventDetails
   | AodvCalculationEventDetails;
 
 export enum DropReason {
@@ -189,7 +191,6 @@ export enum EventDetailsType {
   OlsrRouteCalculation,
   OlsrRouteSelected,
   OlsrRouteAdded,
-  OlsrNeighbourAdded,
   OlsrRouteUpdated,
   OlsrRouteRemoved,
   OlsrRouteDropped,

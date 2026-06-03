@@ -5,6 +5,7 @@ import TextDescription from "@/features/event/components/Description/TextDescrip
 import VariableDescription from "@/features/event/components/Description/VariableDescription";
 import {
   type OlsrBaseChangeEventDetails,
+  type OlsrCalculationEventDetails,
   OlsrChangeEventDetailsType,
   type OlsrNeighbourChangeEventDetails,
   OlsrNeighbourStatus,
@@ -22,47 +23,13 @@ import type { UUID } from "@/shared/types/common/uuid";
 import type { OlsrConfiguration } from "@/shared/types/model/configurations.ts";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
+import type { ReactNode } from "react";
 
 type OlsrDescriptionProps = {
   peers: PeerEntity[];
   event: Event;
   detailsType: EventDetailsType;
   onPeerHover: (peerId: UUID) => void;
-};
-
-const getCalculationExplanation = (details: Event["details"]) => {
-  const reason = (details as { reason?: string }).reason ?? "";
-  const prefix = "Trigger:";
-  const stepsPrefix = "Recalculation steps:";
-
-  if (!reason.startsWith(prefix)) {
-    return { trigger: null as string | null, steps: [] as string[] };
-  }
-
-  const stepsStart = reason.indexOf(stepsPrefix);
-  if (stepsStart < 0) {
-    return { trigger: reason.replace(prefix, "").trim(), steps: [] as string[] };
-  }
-
-  const trigger = reason.slice(prefix.length, stepsStart).trim();
-  const steps = reason
-    .slice(stepsStart + stepsPrefix.length)
-    .trim()
-    .split(". ")
-    .map((step) => step.trim())
-    .filter((step) => step.length > 0)
-    .map((step) => (step.endsWith(".") ? step : `${step}.`));
-
-  return { trigger, steps };
-};
-
-const getCalculationStep = (steps: string[], prefix: string, fallback: string) => {
-  const step = steps.find((entry) => entry.startsWith(prefix));
-  if (!step) {
-    return fallback;
-  }
-
-  return step.endsWith(".") ? step.slice(0, -1) : step;
 };
 
 export default function OlsrDescription({
@@ -78,7 +45,7 @@ export default function OlsrDescription({
     return <></>;
   }
 
-  const { helloInterval } = peer.configuration as OlsrConfiguration;
+  const { helloInterval, tcInterval } = peer.configuration as OlsrConfiguration;
 
   // HELLO message broadcast
   if (detailsType === EventDetailsType.OlsrHelloMessageBroadcast) {
@@ -97,72 +64,75 @@ export default function OlsrDescription({
     );
   }
 
-  if (
-    detailsType === EventDetailsType.OlsrTcMessageBroadcast ||
-    detailsType === EventDetailsType.OlsrTcMessageRetransmission
-  ) {
+  if (detailsType === EventDetailsType.OlsrTcMessageBroadcast) {
     return (
-      <TextDescription>
-        The node propagated an OLSR TC message to distribute topology information through the mesh
-        for route computation.
-      </TextDescription>
+      <>
+        <TextDescription>
+          Every <VariableDescription value={tcInterval}>TC Interval</VariableDescription>, an OLSR
+          node selected as a Multipoint Relay (MPR) broadcasts a <i>Topology Control (TC)</i>{" "}
+          message to the entire network to declare its MPR Selector Set.
+        </TextDescription>
+        <TextDescription>
+          The node includes the addresses of the neighbors that selected it as an MPR, and updates
+          the <i>ANSN (Advertised Neighbor Sequence Number)</i> to ensure other nodes maintain fresh
+          global topology information.
+        </TextDescription>
+      </>
+    );
+  }
+
+  if (detailsType === EventDetailsType.OlsrTcMessageRetransmission) {
+    return (
+      <>
+        <>
+          <TextDescription>
+            Upon receiving a <i>Transaction Control (TC)</i> message, an OLSR node retransmits it
+            only if the sender's address is listed in its <i>MPR Selector Set</i> and the message
+            has not been previously processed.
+          </TextDescription>
+        </>
+      </>
     );
   }
 
   if (detailsType === EventDetailsType.OlsrRouteCalculation) {
-    const { trigger, steps } = getCalculationExplanation(details);
-    const neighbourSeed = getCalculationStep(
-      steps,
-      "Neighbor Set",
-      "Neighbor Set contributed no symmetric 1-hop neighbours",
-    );
-    const twoHopSeed = getCalculationStep(
-      steps,
-      "2-Hop Neighbor Set",
-      "2-Hop Neighbor Set contributed no new routes",
-    );
-    const topologyExpansion = getCalculationStep(
-      steps,
-      "Topology Table",
-      "Topology Table added no routes beyond the 1-hop and 2-hop sets",
-    );
-    const finalRoutes = getCalculationStep(
-      steps,
-      "Final OLSR Routing Table",
-      "Final OLSR Routing Table is empty",
-    );
+    const { nodesByNeighbours } = details as OlsrCalculationEventDetails;
+    const rows: ReactNode[][] = [];
+
+    for (const [neighbourId, nodes] of nodesByNeighbours.entries()) {
+      const reachable = [...nodes].map((nodeId) => findById(nodeId, peers)!.name).join(", ");
+
+      rows.push([
+        <PeerDescription peer={findById(neighbourId, peers)} onHover={onPeerHover} />,
+        reachable,
+      ]);
+    }
 
     return (
       <>
         <TextDescription>
-          OLSR route computation rebuilds the forwarding table from the current Neighbor Set, 2-Hop
-          Neighbor Set, and Topology Table so packets follow the shortest known next hop.
+          The <i>Multipoint Relay (MPR)</i> calculation is a process where an OLSR node selects a
+          minimal subset of its symmetric 1-hop neighbors to relay its messages, optimizing classic
+          flooding by drastically reducing packet redundancy and wireless collisions.
         </TextDescription>
-        <SecondaryDescription title="How are the OLSR routes calculated?">
+        <TextDescription>
+          This process is triggered whenever the node detects a change in its symmetric neighborhood
+          or 2-hop topology, typically after processing an incoming <i>HELLO</i> message, ensuring
+          that all 2-hop neighbors can still be reached with the minimum number of relays.
+        </TextDescription>
+        <SecondaryDescription title={"How was MPR Set calculated?"}>
           <p>
-            OLSR calculates routes in layers: it starts with symmetric 1-hop neighbors, extends them
-            with the advertised 2-hop neighbors, and then expands farther destinations from TC-based
-            topology information.
+            The calculation begins by analyzing the local two-hop graph, where the node immediately
+            adds essential 1-hop neighbors to its MPR set if they provide the only available path to
+            any specific 2-hop node.
           </p>
           <br />
           <p>
-            This recalculation was triggered by <u>{trigger || "an OLSR control update"}</u>. The{" "}
-            <VariableDescription value={neighbourSeed}>Neighbor Set result</VariableDescription> and{" "}
-            <VariableDescription value={twoHopSeed}>2-Hop Neighbor Set result</VariableDescription>{" "}
-            established the initial candidate routes.
+            For the remaining uncovered destinations, the node runs a greedy, BFS-like selection
+            process, iteratively choosing the 1-hop neighbor that yields the maximum coverage over
+            the remaining 2-hop nodes until all are reachable.
           </p>
-          <br />
-          <p>
-            The{" "}
-            <VariableDescription value={topologyExpansion}>
-              Topology Table expansion
-            </VariableDescription>{" "}
-            then refined the path set, producing{" "}
-            <VariableDescription value={finalRoutes}>
-              the final OLSR Routing Table
-            </VariableDescription>
-            .
-          </p>
+          <TableDescription headers={["Neighbour", "Reachable Addresses"]} rows={[...rows]} />
         </SecondaryDescription>
       </>
     );
@@ -219,7 +189,7 @@ export default function OlsrDescription({
         </>
       );
     } else {
-      const { routes } = details as OlsrRouteChangeEventDetails;
+      const { routes, topologyRecords } = details as OlsrRouteChangeEventDetails;
       return (
         <>
           <TextDescription>
@@ -245,6 +215,33 @@ export default function OlsrDescription({
               route.lastUpdateTick,
             ])}
           />
+          {topologyRecords.length > 0 && (
+            <>
+              <SecondaryDescription title={"How does Topology Set changed?"}>
+                <p>
+                  The Topology Set is a database within an OLSR node that maintains information
+                  about remote network links beyond a two-hop radius. It is dynamically updated
+                  whenever the node receives fresh Topology Control (TC) messages or when a topology
+                  tuple's expiration timer runs out.
+                </p>
+                <TableDescription
+                  headers={["Destination", "Last Hop", "ANSN", "Last Update"]}
+                  rows={topologyRecords.map((route) => [
+                    <PeerDescription
+                      peer={findById(route.destinationPeerId, peers)}
+                      onHover={onPeerHover}
+                    />,
+                    <PeerDescription
+                      peer={findById(route.lastHopPeerId, peers)}
+                      onHover={onPeerHover}
+                    />,
+                    route.sequenceNumber,
+                    route.lastUpdateTick,
+                  ])}
+                />
+              </SecondaryDescription>
+            </>
+          )}
         </>
       );
     }

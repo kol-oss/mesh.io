@@ -26,10 +26,11 @@ export type PeerSnapshot = PeerEntity & {
   aodvRoutingTable: AodvRouteRecord[];
   dsrRoutingTable: DsrRouteRecord[];
   dsrRouteRequestTable: DsrRouteRequestTableRecord[];
-  olsrNeighbourTable: OlsrNeighbourRecord[];
-  olsrTwoHopTable: OlsrTwoHopRecord[];
-  olsrSelectorTable: OlsrSelectorRecord[];
-  olsrTopologyTable: OlsrTopologyRecord[];
+  olsrNeighbourSet: OlsrNeighbourRecord[];
+  olsrTwoHopNeighbourSet: OlsrTwoHopRecord[];
+  olsrMprSet: UUID[];
+  olsrSelectorSet: OlsrSelectorRecord[];
+  olsrTopologySet: OlsrTopologyRecord[];
   olsrRoutingTable: OlsrRouteRecord[];
 };
 

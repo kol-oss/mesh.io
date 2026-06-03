@@ -11,6 +11,7 @@ import type {
   OlsrTopologyRecord,
   OlsrTwoHopRecord,
 } from "./protocols/olsr";
+import type { UUID } from "@/shared/types/common/uuid.ts";
 
 export interface RoutingModule {
   read(message: Message): boolean;
@@ -25,10 +26,11 @@ export enum RoutingStructure {
   AodvRoutingTable = "AODV_ROUTING_TABLE",
   DsrRoutingCache = "DSR_ROUTING_CACHE",
   DsrRouteRequestTable = "DSR_ROUTE_REQUEST_TABLE",
-  OlsrNeighbourSet = "OLSR_NEIGHBOUR_TABLE",
-  OlsrTwoHopNeighbourSet = "OLSR_TWO_HOP_TABLE",
-  OlsrSelectorSet = "OLSR_SELECTOR_TABLE",
-  OlsrTopologySet = "OLSR_TOPOLOGY_TABLE",
+  OlsrNeighbourSet = "OLSR_NEIGHBOUR_SET",
+  OlsrTwoHopNeighbourSet = "OLSR_TWO_HOP_SET",
+  OlsrMultipointRelaySet = "OLSR_MPR_SET",
+  OlsrSelectorSet = "OLSR_SELECTOR_SET",
+  OlsrTopologySet = "OLSR_TOPOLOGY_SET",
   OlsrRoutingTable = "OLSR_ROUTING_TABLE",
 }
 
@@ -41,6 +43,7 @@ export type RoutingStructureType = {
   [RoutingStructure.DsrRouteRequestTable]: DsrRouteRequestTableRecord[];
   [RoutingStructure.OlsrNeighbourSet]: OlsrNeighbourRecord[];
   [RoutingStructure.OlsrTwoHopNeighbourSet]: OlsrTwoHopRecord[];
+  [RoutingStructure.OlsrMultipointRelaySet]: UUID[];
   [RoutingStructure.OlsrSelectorSet]: OlsrSelectorRecord[];
   [RoutingStructure.OlsrTopologySet]: OlsrTopologyRecord[];
   [RoutingStructure.OlsrRoutingTable]: OlsrRouteRecord[];

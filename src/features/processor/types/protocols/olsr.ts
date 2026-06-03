@@ -75,6 +75,11 @@ export type OlsrBaseChangeEventDetails = {
   message?: Message;
 };
 
+// Calculation event details
+export type OlsrCalculationEventDetails = {
+  nodesByNeighbours: Map<UUID, Set<UUID>>;
+};
+
 // AddRoute, UpdateRoute, and DeleteRoute for Neighbour Set details
 export type OlsrNeighbourChangeEventDetails = OlsrBaseChangeEventDetails & {
   neighbour: OlsrNeighbourRecord;
@@ -83,5 +88,6 @@ export type OlsrNeighbourChangeEventDetails = OlsrBaseChangeEventDetails & {
 
 // AddRoute, UpdateRoute, and DeleteRoute details
 export type OlsrRouteChangeEventDetails = OlsrBaseChangeEventDetails & {
+  topologyRecords: OlsrTopologyRecord[];
   routes: OlsrRouteRecord[];
 };
