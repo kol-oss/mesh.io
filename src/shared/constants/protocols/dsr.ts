@@ -23,7 +23,7 @@ export const getDsrPacketMessageStructure = (
   peerId: UUID,
   peers?: PeerEntity[],
 ): FieldStructure[][] => {
-  const { path, salvageCount } = message;
+  const { path, salvageCount, sourcePeerId, destinationPeerId } = message;
   const segmentsLeft = path.length - path.indexOf(peerId);
   let pathRows: FieldStructure[][] = [];
 
@@ -75,6 +75,22 @@ export const getDsrPacketMessageStructure = (
         value: String(segmentsLeft),
         bits: 8,
         description: "Count of how much hops left to reach the destination.",
+        blocked: false,
+      },
+    ],
+    [
+      {
+        label: "Source",
+        value: getNameById(sourcePeerId!, peers),
+        bits: 32,
+        description: "Originator IPv4 address.",
+        blocked: false,
+      },
+      {
+        label: "Destination",
+        value: getNameById(destinationPeerId, peers),
+        bits: 32,
+        description: "Destination IPv4 address.",
         blocked: false,
       },
     ],

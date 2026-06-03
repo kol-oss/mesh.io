@@ -210,6 +210,10 @@ const getPacketInspectorTitle = (message: Message | null) => {
     return "OLSR TC Message";
   }
 
+  if (message?.type === MessageType.DsrPacket) {
+    return "DSR Packet";
+  }
+
   if (message?.type === MessageType.DsrRouteRequestMessage) {
     return "DSR Route Request (RREQ)";
   }
@@ -222,7 +226,7 @@ const getPacketInspectorTitle = (message: Message | null) => {
     return "DSR Route Error (RERR)";
   }
 
-  return "Originator Message version 2 (OGMv2)";
+  return "Packet";
 };
 
 const getPacketInspectorStructureAria = (message: Message | null) => {
