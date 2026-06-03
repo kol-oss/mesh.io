@@ -28,7 +28,7 @@ import { BaseModule } from "../BaseModule";
 import { RouteCache } from "./structures/RouteCache.ts";
 
 // module for DSR protocol
-const ROUTING_PROTOCOL = RoutingProtocol.DSR;
+const PROTOCOL = RoutingProtocol.DSR;
 
 export class DsrModule extends BaseModule {
   // routing structures
@@ -98,13 +98,13 @@ export class DsrModule extends BaseModule {
     super.recordEvent(
       EventType.GetRoute,
       {
-        protocol: ROUTING_PROTOCOL,
+        protocol: PROTOCOL,
         destinationPeerId: destinationId,
         selectedRoute: {
           path: [packet.sourcePeerId || this.peerId, ...path, packet.destinationPeerId],
         } satisfies DsrPathRecord,
       } as GetRouteEventDetails,
-      ROUTING_PROTOCOL,
+      PROTOCOL,
     );
 
     return this.writeWithErrorHandling(
@@ -174,7 +174,7 @@ export class DsrModule extends BaseModule {
           receivedPath: [sourceId, ...path, destinationId],
           reversedPath: [destinationId, ...reversed, sourceId],
         } satisfies DsrCalculationEventDetails,
-        ROUTING_PROTOCOL,
+        PROTOCOL,
       );
 
       this.cacheSourcePath(sourceId, identification, [...reversed, destinationId]);
@@ -186,7 +186,7 @@ export class DsrModule extends BaseModule {
           retransmit: false,
           message: reply,
         } satisfies BroadcastEventDetails,
-        ROUTING_PROTOCOL,
+        PROTOCOL,
       );
 
       return super.write(reply, reversed[0] || sourceId);
@@ -215,7 +215,7 @@ export class DsrModule extends BaseModule {
           receivedPath: [sourceId, ...path, destinationId],
           reversedPath: [sourceId, ...reversed, destinationId],
         } satisfies DsrCalculationEventDetails,
-        ROUTING_PROTOCOL,
+        PROTOCOL,
       );
 
       let nextHop = reversed[0] || sourceId;
@@ -230,7 +230,7 @@ export class DsrModule extends BaseModule {
           retransmit: false,
           message: reply,
         } satisfies BroadcastEventDetails,
-        ROUTING_PROTOCOL,
+        PROTOCOL,
       );
 
       return super.write(reply, nextHop);
@@ -271,14 +271,14 @@ export class DsrModule extends BaseModule {
       super.recordEvent(
         EventType.AddRoute,
         {
-          protocol: ROUTING_PROTOCOL,
+          protocol: PROTOCOL,
           destinationId: sourceId,
           identification,
           path: [this.peerId, ...record.path, sourceId],
           isSourceCaching: false,
           lastUpdateTick: this.eventRecorder.getCurrentTick(),
         } satisfies DsrRouteChangeEventDetails,
-        ROUTING_PROTOCOL,
+        PROTOCOL,
       );
 
       return true;
@@ -296,7 +296,7 @@ export class DsrModule extends BaseModule {
         retransmit: false,
         message: message,
       } satisfies BroadcastEventDetails,
-      ROUTING_PROTOCOL,
+      PROTOCOL,
     );
 
     return super.write(message, nextHop);
@@ -372,7 +372,7 @@ export class DsrModule extends BaseModule {
         retransmit: false,
         message: errorMessage,
       } satisfies BroadcastEventDetails,
-      ROUTING_PROTOCOL,
+      PROTOCOL,
     );
 
     return this.write(errorMessage, hopId);
@@ -411,7 +411,7 @@ export class DsrModule extends BaseModule {
           message: retryPacket,
           reason: DropReason.NoRoute,
         } satisfies DropEventDetails,
-        ROUTING_PROTOCOL,
+        PROTOCOL,
       );
 
       return false;
@@ -470,13 +470,13 @@ export class DsrModule extends BaseModule {
       super.recordEvent(
         EventType.GetRoute,
         {
-          protocol: ROUTING_PROTOCOL,
+          protocol: PROTOCOL,
           destinationPeerId: destinationId,
           selectedRoute: {
             path: [this.peerId, ...path, destinationId],
           } satisfies DsrPathRecord,
         } as GetRouteEventDetails,
-        ROUTING_PROTOCOL,
+        PROTOCOL,
       );
 
       return cachedRoute.path[0] || destinationId;
@@ -487,13 +487,13 @@ export class DsrModule extends BaseModule {
         super.recordEvent(
           EventType.GetRoute,
           {
-            protocol: ROUTING_PROTOCOL,
+            protocol: PROTOCOL,
             destinationPeerId: destinationId,
             selectedRoute: {
               path: [this.peerId, ...path, destinationId],
             } satisfies DsrPathRecord,
           } as GetRouteEventDetails,
-          ROUTING_PROTOCOL,
+          PROTOCOL,
         );
 
         return prefixRoute.path[0] || destinationId;
@@ -520,13 +520,13 @@ export class DsrModule extends BaseModule {
     super.recordEvent(
       EventType.GetRoute,
       {
-        protocol: ROUTING_PROTOCOL,
+        protocol: PROTOCOL,
         destinationPeerId: destinationId,
         selectedRoute: {
           path: [this.peerId, ...path, destinationId],
         } satisfies DsrPathRecord,
       } as GetRouteEventDetails,
-      ROUTING_PROTOCOL,
+      PROTOCOL,
     );
 
     return route.path[0] || destinationId;
@@ -569,14 +569,14 @@ export class DsrModule extends BaseModule {
       super.recordEvent(
         EventType.AddRoute,
         {
-          protocol: ROUTING_PROTOCOL,
+          protocol: PROTOCOL,
           destinationId: sourceId,
           path: [this.peerId, ...sourcePath, sourceId],
           identification,
           isSourceCaching: true,
           lastUpdateTick: this.eventRecorder.getCurrentTick(),
         } satisfies DsrRouteChangeEventDetails,
-        ROUTING_PROTOCOL,
+        PROTOCOL,
       );
     }
   }
