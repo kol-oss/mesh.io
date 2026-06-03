@@ -234,6 +234,9 @@ export class OlsrModule extends BaseModule {
   private refreshHello() {
     const configuration = this.peer.configuration as OlsrConfiguration;
 
+    // drop stale neighbour-derived state when topology changed and peers are no longer reachable
+    this.pruneDisconnectedNeighbours();
+
     // recomputing MPR set
     this.recomputeMprSet();
 
@@ -318,6 +321,23 @@ export class OlsrModule extends BaseModule {
     if (changed) {
       this.recomputeMprSet();
       this.recomputeRoutingTable(null);
+    }
+  }
+
+  private pruneDisconnectedNeighbours() {
+    const connectedNeighbourIds = new Set(
+      this.graph.getNeighbours(this.peerId).map((peer) => peer.id),
+    );
+
+    for (const [peerId] of this.neighbourSet.entries()) {
+      if (connectedNeighbourIds.has(peerId)) {
+        continue;
+      }
+
+      this.neighbourSet.delete(peerId);
+      this.mprSelectorSet.delete(peerId);
+      this.mprSet.delete(peerId);
+      this.twoHopNeighbourSet.deleteByViaPeerId(peerId);
     }
   }
 
