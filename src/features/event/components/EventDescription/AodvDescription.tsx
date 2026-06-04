@@ -17,6 +17,9 @@ import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
 import type { ReactNode } from "react";
+import VariableDescription from "@/features/event/components/Description/VariableDescription.tsx";
+import type { AodvConfiguration } from "@/shared/types/model/configurations.ts";
+import SecondaryDescription from "@/features/event/components/Description/SecondaryDescription.tsx";
 
 type AodvDescriptionProps = {
   peers: PeerEntity[];
@@ -75,32 +78,61 @@ export default function AodvDescription({
   detailsType,
   onPeerHover,
 }: AodvDescriptionProps) {
-  const { details } = event;
+  const { details, peerId } = event;
+  const peer = findById(peerId, peers)!;
+
+  const { helloInterval } = peer.configuration as AodvConfiguration;
 
   if (detailsType === EventDetailsType.AodvHelloMessageBroadcast) {
     return (
-      <TextDescription>
-        The node broadcast an AODV HELLO message to confirm one-hop connectivity and refresh local
-        neighbour routes before they expire.
-      </TextDescription>
+      <>
+        <TextDescription>
+          Every <VariableDescription value={helloInterval}>HELLO Interval</VariableDescription>, an
+          AODV node broadcasts a <i>HELLO</i> message to neighboring nodes to maintain local
+          connectivity.
+        </TextDescription>
+        <TextDescription>
+          When a neighbor receives this message, it creates or updates a direct routing table entry
+          for the sender, updating its <i>Lifetime</i> to prevent premature route expiration.
+        </TextDescription>
+      </>
     );
   }
 
   if (detailsType === EventDetailsType.AodvRouteRequestBroadcast) {
     return (
-      <TextDescription>
-        The node started AODV route discovery by flooding a Route Request so downstream peers can
-        install reverse routes back to the originator.
-      </TextDescription>
+      <>
+        <TextDescription>
+          The node initiated an <i>Route Discovery</i> process by broadcasting a{" "}
+          <i>Route Request (RREQ)</i> message. It increments its own sequence number and caches the
+          RREQ ID alongside its IP address to ensure that duplicate requests are dropped and
+          broadcast storms are prevented.
+        </TextDescription>
+        <TextDescription>
+          As this RREQ propagates, downstream nodes will utilize the <i>Originator IP Address</i>{" "}
+          and the <i>Originator Sequence Number</i> to establish or update temporary reverse routes.
+          These reverse paths are strictly maintained for a limited duration to enable the eventual
+          return of a Route Reply.
+        </TextDescription>
+      </>
     );
   }
 
   if (detailsType === EventDetailsType.AodvRouteRequestRetransmission) {
     return (
-      <TextDescription>
-        The node retransmitted an AODV Route Request after updating its reverse route state for the
-        discovery originator.
-      </TextDescription>
+      <>
+        <TextDescription>
+          The intermediate node successfully processed the incoming <i>Route Request</i>, confirming
+          it was not a duplicate. It subsequently created or refreshed a reverse routing table entry
+          pointing back to the originator of the discovery process.
+        </TextDescription>
+        <SecondaryDescription title={"Why this node is not considered final?"}>
+          Because this node is neither the destination nor does it possess a fresh enough active
+          route (a valid route with a sequence number greater than or equal to the requested one),
+          it increments the hop count, decrements the <i>Time To Live</i>, and rebroadcasts the RREQ
+          further into the network.
+        </SecondaryDescription>
+      </>
     );
   }
 
@@ -108,8 +140,16 @@ export default function AodvDescription({
     return (
       <>
         <TextDescription>
-          The node unicasted an AODV Route Reply along the reverse path so upstream peers could
-          install or refresh forward routes to the destination.
+          The node received a <i>Route Request (RREQ)</i> and utilized the enclosed Destination
+          Sequence Number and Hop Count to establish or update a forward route to the destination.
+          It also explicitly added the next hop toward the originator into its precursor list for
+          this route.
+        </TextDescription>
+        <TextDescription>
+          Since this node is an intermediate hop and not the original source of the RREQ, it
+          unicasts the <i>Route Reply (RREP)</i> backward along the previously established reverse
+          path. This allows upstream peers to sequentially build the forward path until the
+          originator is reached.
         </TextDescription>
       </>
     );
@@ -119,8 +159,14 @@ export default function AodvDescription({
     return (
       <>
         <TextDescription>
-          The node sent an AODV Route Error (unicast) to notify its precursor that the next hop is
-          no longer reachable, so the precursor can invalidate affected routes.
+          The node detected a link break or received a Route Error from a downstream neighbor. It
+          immediately invalidated the affected routing table entries, incremented their Destination
+          Sequence Numbers, and set the hop count to infinity.
+        </TextDescription>
+        <TextDescription>
+          Because only a single neighboring node (precursor) was actively utilizing this broken path
+          to forward data, the node generated and unicasted the resulting Route Error (RERR) message
+          exclusively to that specific neighbor to minimize unnecessary control traffic overhead.
         </TextDescription>
       </>
     );
@@ -130,8 +176,14 @@ export default function AodvDescription({
     return (
       <>
         <TextDescription>
-          The node broadcast an AODV Route Error to multiple precursors to notify them that the next
-          hop is no longer reachable and the listed destinations are unreachable.
+          The node detected an unreachable next hop, forcing it to invalidate all dependent routing
+          table entries. It incremented the Destination Sequence Numbers for these unreachable
+          destinations to prevent upstream nodes from forming routing loops.
+        </TextDescription>
+        <TextDescription>
+          Because multiple precursor nodes were actively relying on this router to reach the
+          affected destinations, the node transmitted the Route Error (RERR) message via a local
+          broadcast. This ensures all dependent neighbors simultaneously purge the stale routes.
         </TextDescription>
       </>
     );
@@ -150,8 +202,10 @@ export default function AodvDescription({
     return (
       <>
         <TextDescription>
-          The node evaluated AODV freshness, hop metric, and precursor state before mutating its
-          routing table.
+          The node modified its <i>Routing Table</i> entry based on sequence number freshness, hop
+          count metrics, or link availability. A route is only adopted if it offers a greater{" "}
+          <i>Destination Sequence Number</i> or a shorter path, while broken links result in
+          immediate route invalidation.
         </TextDescription>
         {renderRouteTable(getRouteRows(routeChange), peers, onPeerHover)}
       </>
@@ -165,8 +219,9 @@ export default function AodvDescription({
     return (
       <>
         <TextDescription>
-          The node selected the current AODV next hop for packet forwarding from its active route
-          table.
+          The node successfully matched the data packet's destination address against a valid,
+          active entry in its <i>Routing Table</i>. It then retrieved the corresponding next hop to
+          forward the traffic along the established path.
         </TextDescription>
         {renderRouteTable([selectedRoute], peers, onPeerHover)}
       </>
