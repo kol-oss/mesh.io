@@ -1,18 +1,13 @@
+import DsrTableStructure from "@/features/event/components/TableStructure/DsrTableStructure.tsx";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { PeerSnapshot, StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
-import { ChevronRight, ExternalLink, X } from "lucide-react";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-  type PointerEvent as ReactPointerEvent,
-} from "react";
+import { ExternalLink, X } from "lucide-react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import AodvTableStructure from "./AodvTableStructure";
 import BatmanTableStructure from "./BatmanTableStructure";
 import DsdvTableStructure from "./DsdvTableStructure";
 import OlsrTableStructure from "./OlsrTableStructure";
-import DsrTableStructure from "@/features/event/components/TableStructure/DsrTableStructure.tsx";
 
 type TableStructureProps = {
   isOpen: boolean;
@@ -34,18 +29,7 @@ export default function TableStructure({
   // Drag state
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [collapsedSections, setCollapsedSections] = useState({
-    batmanNeighbours: false,
-    batmanOriginators: true,
-    dsdvRoutes: false,
-    aodvRoutes: false,
-    dsrRoutes: false,
-    neighbours: false,
-    twoHop: true,
-    selectors: true,
-    topology: true,
-    routes: true,
-  });
+
   const dragStateRef = useRef<{
     startPointerX: number;
     startPointerY: number;
@@ -98,9 +82,6 @@ export default function TableStructure({
     return null;
   }
 
-  const peerNameById = new Map(
-    currentStepResult.snapshot.peers.map((peer) => [peer.id, peer.name]),
-  );
   const inspectedPeer = peerTables?.find((peer) => peer.id === inspectedPeerId) ?? null;
 
   if (!inspectedPeer) {
@@ -108,41 +89,6 @@ export default function TableStructure({
   }
 
   const selectedProtocol = inspectedPeer.protocol;
-
-  const toggleSection = (section: keyof typeof collapsedSections) => {
-    setCollapsedSections((current) => ({
-      ...current,
-      [section]: !current[section],
-    }));
-  };
-
-  const renderCollapsibleBlock = (
-    section: keyof typeof collapsedSections,
-    title: string,
-    table: ReactNode,
-  ) => {
-    const isOpen = !collapsedSections[section];
-
-    return (
-      <div className="simulation-panel__table-block">
-        <div className="simulation-panel__tq-disclosure">
-          <button
-            className="simulation-panel__tq-toggle"
-            type="button"
-            onClick={() => toggleSection(section)}
-            aria-expanded={isOpen}
-          >
-            <ChevronRight
-              size={12}
-              className={`simulation-panel__tq-toggle-icon${isOpen ? " simulation-panel__tq-toggle-icon--open" : ""}`}
-            />
-            <span className="simulation-panel__tq-toggle-label">{title}</span>
-          </button>
-        </div>
-        {isOpen ? table : null}
-      </div>
-    );
-  };
 
   return (
     <aside
@@ -197,58 +143,11 @@ export default function TableStructure({
             onPeerNameHover={onPeerHoverChange}
           />
         ) : selectedProtocol === RoutingProtocol.AODV ? (
-          renderCollapsibleBlock(
-            "aodvRoutes",
-            "AODV Routing Table",
-            <table className="simulation-panel__table-view">
-              <thead>
-                <tr>
-                  <th>{"Destination"}</th>
-                  <th>{"Next Hop"}</th>
-                  <th>{"Metric"}</th>
-                  <th>{"Sequence Number"}</th>
-                  <th>{"Precursors"}</th>
-                  <th>{"Last Update"}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {inspectedPeer.aodvRoutingTable.length === 0 ? (
-                  <tr>
-                    <td colSpan={6}>{"No records"}</td>
-                  </tr>
-                ) : (
-                  inspectedPeer.aodvRoutingTable.map((row, index) => (
-                    <tr key={`${row.destinationId}-${row.nextHopId}-${index}`}>
-                      <td>
-                        {renderPeerName(
-                          row.destinationId,
-                          getPeerLabel(row.destinationId, peerNameById),
-                          onPeerHoverChange,
-                        )}
-                      </td>
-                      <td>
-                        {renderPeerName(
-                          row.nextHopId,
-                          getPeerLabel(row.nextHopId, peerNameById),
-                          onPeerHoverChange,
-                        )}
-                      </td>
-                      <td>{row.hopCount}</td>
-                      <td>{row.sequence}</td>
-                      <td>
-                        {row.precursors.length === 0
-                          ? "No records"
-                          : row.precursors
-                              .map((peerId) => getPeerLabel(peerId, peerNameById))
-                              .join(", ")}
-                      </td>
-                      <td>{row.lastUpdateTick}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>,
-          )
+          <AodvTableStructure
+            peer={inspectedPeer}
+            peers={currentStepResult.snapshot.peers}
+            onPeerNameHover={onPeerHoverChange}
+          />
         ) : selectedProtocol === RoutingProtocol.OLSR ? (
           <OlsrTableStructure
             peer={inspectedPeer}
@@ -282,23 +181,3 @@ export default function TableStructure({
     </aside>
   );
 }
-
-const renderPeerName = (
-  peerId: UUID,
-  peerName: string,
-  onPeerHoverChange: (peerId: UUID | null) => void,
-): ReactNode => {
-  return (
-    <span
-      className="simulation-panel__peer-name"
-      onMouseEnter={() => onPeerHoverChange(peerId)}
-      onMouseLeave={() => onPeerHoverChange(null)}
-    >
-      {peerName}
-    </span>
-  );
-};
-
-const getPeerLabel = (peerId: UUID, peerNameById: Map<UUID, string>) => {
-  return peerNameById.get(peerId) ?? peerId;
-};
