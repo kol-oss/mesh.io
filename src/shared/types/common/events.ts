@@ -15,8 +15,8 @@ import type {
 } from "@/features/processor/types/protocols/dsdv.ts";
 import type {
   DsrCalculationEventDetails,
-  DsrRouteChangeEventDetails,
   DsrPathRecord,
+  DsrRouteChangeEventDetails,
 } from "@/features/processor/types/protocols/dsr.ts";
 import type {
   OlsrCalculationEventDetails,
@@ -179,6 +179,7 @@ export enum EventDetailsType {
   AodvRouteRequestRetransmission,
   AodvRouteReplyForwarded,
   AodvRouteErrorProcessed,
+  AodvRouteErrorBroadcast,
   AodvRouteSelected,
   AodvRouteAdded,
   AodvRouteUpdated,

@@ -59,10 +59,10 @@ const renderRouteTable = (
     <TableDescription
       headers={["Destination", "Next Hop", "Metric", "Sequence", "Precursors"]}
       rows={routes.map((route) => [
-        <PeerDescription peer={findById(route.destinationPeerId, peers)} onHover={onPeerHover} />,
-        <PeerDescription peer={findById(route.nextHopPeerId, peers)} onHover={onPeerHover} />,
-        route.metric,
-        route.sequenceNumber,
+        <PeerDescription peer={findById(route.destinationId, peers)} onHover={onPeerHover} />,
+        <PeerDescription peer={findById(route.nextHopId, peers)} onHover={onPeerHover} />,
+        route.hopCount,
+        route.sequence,
         renderPrecursors(route.precursors, peers, onPeerHover),
       ])}
     />
@@ -119,8 +119,19 @@ export default function AodvDescription({
     return (
       <>
         <TextDescription>
-          The node processed an AODV Route Error, invalidated routes that depended on the broken
-          next hop, and propagated unreachable destinations to affected precursors.
+          The node sent an AODV Route Error (unicast) to notify its precursor that the next hop is
+          no longer reachable, so the precursor can invalidate affected routes.
+        </TextDescription>
+      </>
+    );
+  }
+
+  if (detailsType === EventDetailsType.AodvRouteErrorBroadcast) {
+    return (
+      <>
+        <TextDescription>
+          The node broadcast an AODV Route Error to multiple precursors to notify them that the next
+          hop is no longer reachable and the listed destinations are unreachable.
         </TextDescription>
       </>
     );

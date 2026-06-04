@@ -1,8 +1,9 @@
 import { EventRecorder } from "@/features/processor/EventRecorder";
 import {
-  cloneAodvMessage,
+  type AodvCalculationEventDetails,
   type AodvControlMessage,
   type AodvHelloMessage,
+  type AodvRouteChangeEventDetails,
   type AodvRouteErrorMessage,
   type AodvRouteRecord,
   type AodvRouteReplyMessage,
@@ -11,16 +12,16 @@ import {
 } from "@/features/processor/types/protocols/aodv";
 import {
   AODV_ACTIVE_ROUTE_TIMEOUT,
+  AODV_DELETE_PERIOD,
   AODV_HELLO_LIFETIME_FACTOR,
-  AODV_MIN_HELLO_INTERVAL,
-  AODV_MIN_ROUTE_TIMEOUT,
   AODV_PATH_DISCOVERY_TTL,
   AODV_SEQUENCE_INITIAL,
 } from "@/shared/constants/protocols/aodv";
 import {
   DropReason,
   EventType,
-  type EventDetails,
+  type BroadcastEventDetails,
+  type DropEventDetails,
   type GetRouteEventDetails,
 } from "@/shared/types/common/events";
 import { MessageType, type Message, type Packet } from "@/shared/types/common/messages";
@@ -29,59 +30,45 @@ import type { UUID } from "@/shared/types/common/uuid";
 import type { AodvConfiguration } from "@/shared/types/model/configurations";
 import type { NetworkGraph } from "../../network/NetworkGraph";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module";
-import type { Peer } from "../../types/network/peer";
+import { clone } from "../../utils/clone";
 import { BaseModule } from "../BaseModule";
+import { RouteRequestCache } from "./structures/RouteRequestCache";
 import { RoutingTable, type AodvRouteEntry } from "./structures/RoutingTable";
-
-type RouteReplyCandidate = {
-  replierPeerId: UUID;
-  pathPeerIds: UUID[];
-  destinationSequenceNumber: number;
-  replierDistanceToDestination: number;
-  totalMetric: number;
-  repliedFromIntermediate: boolean;
-};
 
 const PROTOCOL = RoutingProtocol.AODV;
 
-const clampHelloInterval = (value: number) => {
-  const normalized = Math.floor(value);
-  return Math.max(AODV_MIN_HELLO_INTERVAL, normalized);
-};
-
-const clampRouteTimeout = (value: number) => {
-  const normalized = Math.floor(value);
-  return Math.max(AODV_MIN_ROUTE_TIMEOUT, normalized);
-};
-
 export class AodvModule extends BaseModule {
   // routing structures
-  private readonly routingTable = new RoutingTable();
+  private routingTable!: RoutingTable;
+  private requestCache!: RouteRequestCache;
 
   // sequence numbers
-  private ownSequenceNumber = AODV_SEQUENCE_INITIAL;
-  private requestSequence = 0;
+  private sequence: number = AODV_SEQUENCE_INITIAL;
+  private rreqId: number = 0;
 
   constructor(peerId: UUID, graph: NetworkGraph, eventRecorder: EventRecorder) {
     super(peerId, graph, eventRecorder);
     this.INCOMING_MESSAGE_TYPES.push(
+      MessageType.AodvRouteRequestMessage,
+      MessageType.AodvRouteReplyMessage,
       MessageType.AodvHelloMessage,
       MessageType.AodvRouteErrorMessage,
     );
+  }
 
+  // initialization of routing table and request cache
+  override init() {
+    this.routingTable = new RoutingTable();
+    this.requestCache = new RouteRequestCache();
     this.initializeSelfRoute();
   }
 
-  override getTables(): RoutingStructureType {
-    const tables: RoutingStructureType = {} as RoutingStructureType;
-    tables[RoutingStructure.AodvRoutingTable] = this.routingTable.getRoutes(this.peer.id);
-
-    return tables;
-  }
-
   override process(message: Message): boolean {
-    if (message.type === MessageType.Packet) {
-      if (message.destinationPeerId === this.peer.id) {
+    const { type: messageType } = message;
+
+    // packet payload
+    if (messageType === MessageType.Packet) {
+      if (message.destinationPeerId === this.peerId) {
         return true;
       }
 
@@ -92,116 +79,27 @@ export class AodvModule extends BaseModule {
       return this.processPacketWithDiscovery(forwardedPacket);
     }
 
-    if (message.type === MessageType.AodvHelloMessage) {
-      return this.processHello(message);
+    // RREQ message
+    if (messageType === MessageType.AodvRouteRequestMessage) {
+      return this.processRouteRequest(message as AodvRouteRequestMessage);
     }
 
-    if (message.type === MessageType.AodvRouteErrorMessage) {
-      return this.processRouteError(message);
+    // RREP message
+    if (messageType === MessageType.AodvRouteReplyMessage) {
+      return this.processRouteReply(message as AodvRouteReplyMessage);
+    }
+
+    // HELLO message
+    if (messageType === MessageType.AodvHelloMessage) {
+      return this.processHello(message as AodvHelloMessage);
+    }
+
+    // RERR message
+    if (messageType === MessageType.AodvRouteErrorMessage) {
+      return this.processRouteError(message as AodvRouteErrorMessage);
     }
 
     return false;
-  }
-
-  override refresh() {
-    super.refresh();
-    this.refreshHello();
-  }
-
-  refreshHello() {
-    super.refresh();
-    if (!this.peer.active) {
-      return;
-    }
-
-    const neighbours = this.graph
-      .getNeighbours(this.peer.id)
-      .filter((neighbour) => neighbour.protocol === PROTOCOL);
-
-    const helloMessage: AodvHelloMessage = {
-      type: MessageType.AodvHelloMessage,
-      sourcePeerId: this.peer.id,
-      senderPeerId: this.peer.id,
-      destinationSequenceNumber: this.ownSequenceNumber,
-      lifetime: this.getHelloLifetime(),
-      interval: this.getHelloInterval(),
-    };
-
-    this.recordAodvEvent(this.peer.id, EventType.Broadcast, {
-      neighbourPeerIds: neighbours.map((neighbour) => neighbour.id),
-      retransmit: false,
-      message: cloneAodvMessage(helloMessage),
-    });
-
-    for (const neighbour of neighbours) {
-      this.writeControlMessage(helloMessage, neighbour.id);
-    }
-  }
-
-  override processTick() {
-    if (!this.peer.active) {
-      return;
-    }
-
-    const currentTick = this.eventRecorder.getCurrentTick();
-    const brokenNextHops = new Set<UUID>();
-
-    for (const [destinationPeerId, route] of this.routingTable.entries()) {
-      if (destinationPeerId === this.peer.id) {
-        continue;
-      }
-
-      if (route.expiresAtTick <= currentTick) {
-        this.removeRoute(destinationPeerId, null);
-        continue;
-      }
-
-      const nextHop = this.graph
-        .getNeighbours(this.peer.id)
-        .find((neighbour) => neighbour.id === route.nextHopPeerId);
-      if (!nextHop || nextHop.protocol !== PROTOCOL) {
-        brokenNextHops.add(route.nextHopPeerId);
-      }
-    }
-
-    for (const nextHopPeerId of brokenNextHops) {
-      this.handleLinkBreak(nextHopPeerId);
-    }
-  }
-
-  override processRefresh() {
-    // no periodic refresh actions needed for AODV
-  }
-
-  override send(packet: Packet): boolean {
-    if (!this.peer.active) {
-      this.recordEvent(
-        EventType.Drop,
-        {
-          message: cloneAodvMessage(packet),
-          reason: DropReason.DestinationUnavailable,
-        },
-        PROTOCOL,
-      );
-      return false;
-    }
-
-    const sourcePacket: Packet =
-      packet.sourcePeerId === null ? { ...packet, sourcePeerId: this.peer.id } : packet;
-
-    if (sourcePacket.destinationPeerId === this.peer.id) {
-      return true;
-    }
-
-    return this.processPacketWithDiscovery(sourcePacket);
-  }
-
-  override getRoute(destinationId: UUID): UUID | null {
-    return this.getUsableRoute(destinationId)?.nextHopPeerId ?? null;
-  }
-
-  getRoutes() {
-    return this.routingTable.getRoutes(this.peer.id);
   }
 
   private processPacketWithDiscovery(packet: Packet): boolean {
@@ -209,7 +107,7 @@ export class AodvModule extends BaseModule {
       this.recordEvent(
         EventType.Drop,
         {
-          message: cloneAodvMessage(packet),
+          message: clone(packet),
           reason: DropReason.TimeToLiveExceeded,
         },
         PROTOCOL,
@@ -219,14 +117,19 @@ export class AodvModule extends BaseModule {
 
     let route = this.getUsableRoute(packet.destinationPeerId);
     if (!route) {
-      route = this.discoverRoute(packet.destinationPeerId);
+      // only the originator may start discovery; an intermediate node with an invalid/missing
+      // route should not flood RREQ - link-break RERR was already (or will be) sent (RFC 3561 §6.11)
+      const isOriginator = packet.sourcePeerId === this.peerId;
+      if (isOriginator || !this.routingTable.get(packet.destinationPeerId)) {
+        route = this.discoverRoute(packet.destinationPeerId);
+      }
     }
 
     if (!route) {
       this.recordEvent(
         EventType.Drop,
         {
-          message: cloneAodvMessage(packet),
+          message: clone(packet),
           reason: DropReason.NoRoute,
         },
         PROTOCOL,
@@ -241,270 +144,155 @@ export class AodvModule extends BaseModule {
         protocol: PROTOCOL,
         destinationPeerId: packet.destinationPeerId,
         selectedRoute: this.toPublicRoute(route),
-        message: cloneAodvMessage(packet),
+        message: clone(packet),
       } as GetRouteEventDetails,
       PROTOCOL,
     );
 
-    return this.writePacket(packet, route.nextHopPeerId);
+    return this.writePacket(packet, route.nextHopId);
   }
 
-  private discoverRoute(destinationPeerId: UUID): AodvRouteEntry | null {
-    this.ownSequenceNumber += 1;
-    this.requestSequence += 1;
-    this.initializeSelfRoute();
+  // processing and forwarding Route Requests
+  private processRouteRequest(message: AodvRouteRequestMessage): boolean {
+    const {
+      sourcePeerId: sourceId,
+      senderPeerId: senderId,
+      destinationPeerId: destinationId,
+      hopCount,
+      originatorSequenceNumber: originatorSequence,
+      requestId,
+    } = message;
+    const tick = this.eventRecorder.getCurrentTick();
 
-    const requestId = this.requestSequence;
-    const requestedSequenceNumber = this.getRequestedDestinationSequence(destinationPeerId);
-    const queue: Array<{
-      peer: Peer;
-      previousHopPeerId: UUID | null;
-      hopCount: number;
-      pathPeerIds: UUID[];
-    }> = [
-      {
-        peer: this.peer,
-        previousHopPeerId: null,
-        hopCount: 0,
-        pathPeerIds: [this.peer.id],
-      },
-    ];
-    const bestHopByPeer = new Map<UUID, number>([[this.peer.id, 0]]);
-    let bestReply: RouteReplyCandidate | null = null;
-
-    while (queue.length > 0) {
-      const current = queue.shift();
-      if (!current) {
-        continue;
-      }
-
-      const currentModule = this.getAodvModule(current.peer);
-      if (!currentModule) {
-        continue;
-      }
-
-      const requestMessage: AodvRouteRequestMessage = {
-        type: MessageType.AodvRouteRequestMessage,
-        sourcePeerId: this.peer.id,
-        senderPeerId: current.peer.id,
-        destinationPeerId,
-        requestId,
-        hopCount: current.hopCount,
-        destinationSequenceNumber: requestedSequenceNumber,
-        originatorSequenceNumber: this.ownSequenceNumber,
-      };
-
-      if (current.previousHopPeerId !== null) {
-        currentModule.upsertRoute(
-          this.peer.id,
-          current.previousHopPeerId,
-          current.hopCount,
-          this.ownSequenceNumber,
-          true,
-          requestMessage,
-          AODV_ACTIVE_ROUTE_TIMEOUT,
-        );
-      }
-
-      const neighbours = this.graph
-        .getNeighbours(current.peer.id)
-        .filter((neighbour) => neighbour.protocol === PROTOCOL && neighbour.active);
-
-      this.recordAodvEvent(current.peer.id, EventType.Broadcast, {
-        neighbourPeerIds: neighbours.map((neighbour) => neighbour.id),
-        retransmit: current.peer.id !== this.peer.id,
-        message: cloneAodvMessage(requestMessage),
-      });
-
-      const candidate = currentModule.buildReplyCandidate(
-        destinationPeerId,
-        requestedSequenceNumber,
-        current.pathPeerIds,
-        current.hopCount,
-      );
-      if (candidate && this.isBetterReplyCandidate(candidate, bestReply)) {
-        bestReply = candidate;
-      }
-
-      if (current.hopCount >= AODV_PATH_DISCOVERY_TTL) {
-        continue;
-      }
-
-      for (const neighbour of neighbours) {
-        const nextHopCount = current.hopCount + 1;
-        const knownHopCount = bestHopByPeer.get(neighbour.id);
-        if (knownHopCount !== undefined && knownHopCount <= nextHopCount) {
-          continue;
-        }
-
-        bestHopByPeer.set(neighbour.id, nextHopCount);
-        queue.push({
-          peer: neighbour,
-          previousHopPeerId: current.peer.id,
-          hopCount: nextHopCount,
-          pathPeerIds: [...current.pathPeerIds, neighbour.id],
-        });
-      }
-    }
-
-    if (!bestReply) {
-      return null;
-    }
-
-    this.applyRouteReply(bestReply, destinationPeerId);
-    return this.getUsableRoute(destinationPeerId);
-  }
-
-  private buildReplyCandidate(
-    destinationPeerId: UUID,
-    requestedSequenceNumber: number | null,
-    pathPeerIds: UUID[],
-    hopCountFromOrigin: number,
-  ): RouteReplyCandidate | null {
-    if (this.peer.id === destinationPeerId) {
-      if (requestedSequenceNumber === this.ownSequenceNumber) {
-        this.ownSequenceNumber += 1;
-        this.initializeSelfRoute();
-      }
-
-      return {
-        replierPeerId: this.peer.id,
-        pathPeerIds: [...pathPeerIds],
-        destinationSequenceNumber: this.ownSequenceNumber,
-        replierDistanceToDestination: 0,
-        totalMetric: hopCountFromOrigin,
-        repliedFromIntermediate: false,
-      };
-    }
-
-    const route = this.getUsableRoute(destinationPeerId);
-    if (!route || route.destinationPeerId === this.peer.id) {
-      return null;
-    }
-
-    if (requestedSequenceNumber !== null && route.sequenceNumber < requestedSequenceNumber) {
-      return null;
-    }
-
-    return {
-      replierPeerId: this.peer.id,
-      pathPeerIds: [...pathPeerIds],
-      destinationSequenceNumber: route.sequenceNumber,
-      replierDistanceToDestination: route.metric,
-      totalMetric: hopCountFromOrigin + route.metric,
-      repliedFromIntermediate: true,
-    };
-  }
-
-  private applyRouteReply(candidate: RouteReplyCandidate, destinationPeerId: UUID) {
-    const peersAlongPath = this.getPeersAlongPath(candidate.pathPeerIds);
-    if (peersAlongPath.length !== candidate.pathPeerIds.length) {
-      return;
-    }
-
-    for (let index = peersAlongPath.length - 1; index > 0; index -= 1) {
-      const senderPeer = peersAlongPath[index];
-      const recipientPeer = peersAlongPath[index - 1];
-      const senderModule = this.getAodvModule(senderPeer);
-      const recipientModule = this.getAodvModule(recipientPeer);
-      if (!senderModule || !recipientModule) {
-        continue;
-      }
-
-      const senderDistanceToDestination =
-        candidate.replierDistanceToDestination + (peersAlongPath.length - 1 - index);
-      const replyMessage: AodvRouteReplyMessage = {
-        type: MessageType.AodvRouteReplyMessage,
-        sourcePeerId: this.peer.id,
-        senderPeerId: senderPeer.id,
-        targetPeerId: recipientPeer.id,
-        destinationPeerId,
-        destinationSequenceNumber: candidate.destinationSequenceNumber,
-        originatorPeerId: this.peer.id,
-        hopCount: senderDistanceToDestination,
-        lifetime: this.getRouteTimeout(),
-        gratuitous: candidate.repliedFromIntermediate,
-      };
-
-      this.recordAodvEvent(senderPeer.id, EventType.Calculation, {
-        message: cloneAodvMessage(replyMessage),
-      });
-
-      senderModule.addPrecursor(destinationPeerId, recipientPeer.id);
-      recipientModule.upsertRoute(
-        destinationPeerId,
-        senderPeer.id,
-        senderDistanceToDestination + 1,
-        candidate.destinationSequenceNumber,
-        true,
-        replyMessage,
-        replyMessage.lifetime,
-      );
-    }
-  }
-
-  private processHello(message: AodvHelloMessage): boolean {
-    const sender = this.graph.getNode(message.senderPeerId);
-    if (!sender || !(sender.protocol === PROTOCOL)) {
+    // duplicate RREQ - already processed this request
+    if (this.requestCache.has(sourceId, destinationId, requestId)) {
       this.recordEvent(
         EventType.Drop,
         {
-          message: cloneAodvMessage(message),
-          reason: DropReason.UnsupportedProtocol,
-        },
+          message: clone(message),
+          reason: DropReason.Duplicate,
+        } satisfies DropEventDetails,
+        PROTOCOL,
+      );
+      return true;
+    }
+
+    this.requestCache.put(sourceId, destinationId, requestId, tick, AODV_ACTIVE_ROUTE_TIMEOUT);
+
+    // establish or update reverse route to the originator
+    this.upsertRoute(
+      sourceId,
+      senderId,
+      hopCount + 1,
+      originatorSequence,
+      true,
+      message,
+      AODV_ACTIVE_ROUTE_TIMEOUT,
+    );
+
+    const replyMessage = this.buildRouteReplyForRequest(message);
+    if (replyMessage) {
+      return this.emitRouteReply(replyMessage);
+    }
+
+    return this.forwardRouteRequest(message);
+  }
+
+  // receiving and forwarding Route Replies
+  private processRouteReply(message: AodvRouteReplyMessage): boolean {
+    const {
+      destinationPeerId: destinationId,
+      senderPeerId: senderId,
+      originatorPeerId: originatorId,
+      hopCount,
+      destinationSequenceNumber: destinationSequence,
+      lifetime,
+    } = message;
+
+    // update forward route to destination
+    this.upsertRoute(
+      destinationId,
+      senderId,
+      hopCount + 1,
+      destinationSequence,
+      true,
+      message,
+      lifetime,
+    );
+
+    // this node is the originator - route is installed
+    if (originatorId === this.peerId) {
+      return true;
+    }
+
+    // forward RREP toward originator via reverse route
+    const reverseRoute = this.getUsableRoute(originatorId);
+    if (!reverseRoute) {
+      this.recordEvent(
+        EventType.Drop,
+        {
+          message: clone(message),
+          reason: DropReason.NoRoute,
+        } satisfies DropEventDetails,
         PROTOCOL,
       );
       return false;
     }
 
-    this.upsertRoute(
-      message.sourcePeerId,
-      message.senderPeerId,
-      1,
-      message.destinationSequenceNumber,
-      true,
-      message,
-      message.lifetime,
-    );
+    const forwarded: AodvRouteReplyMessage = {
+      ...message,
+      senderPeerId: this.peerId,
+      targetPeerId: reverseRoute.nextHopId,
+      hopCount: hopCount + 1,
+    };
+
+    return this.emitRouteReply(forwarded);
+  }
+
+  // hello messages
+  private processHello(message: AodvHelloMessage): boolean {
+    const {
+      sourcePeerId: sourceId,
+      senderPeerId: senderId,
+      destinationSequenceNumber: destinationSequence,
+      lifetime,
+    } = message;
+
+    // install or refresh direct-neighbour route from HELLO
+    this.upsertRoute(sourceId, senderId, 1, destinationSequence, true, message, lifetime);
 
     return true;
   }
 
+  // route error (RERR) messages
   private processRouteError(message: AodvRouteErrorMessage): boolean {
-    const sender = this.graph.getNode(message.senderPeerId);
-    if (!sender || !(sender.protocol === PROTOCOL)) {
-      this.recordEvent(
-        EventType.Drop,
-        {
-          message: cloneAodvMessage(message),
-          reason: DropReason.UnsupportedProtocol,
-        },
-        PROTOCOL,
-      );
-      return false;
-    }
+    const { senderPeerId: senderId } = message;
 
     const recipients = new Set<UUID>();
     const propagatedDestinations: AodvUnreachableDestination[] = [];
 
-    for (const unreachable of message.unreachableDestinations) {
-      const route = this.routingTable.get(unreachable.destinationPeerId);
-      if (!route || route.nextHopPeerId !== message.senderPeerId) {
+    for (const {
+      destinationPeerId: destinationId,
+      sequenceNumber,
+    } of message.unreachableDestinations) {
+      const route = this.routingTable.get(destinationId);
+      if (!route || route.nextHopId !== senderId) {
         continue;
       }
 
-      for (const precursorPeerId of route.precursors) {
-        if (precursorPeerId !== message.senderPeerId) {
-          recipients.add(precursorPeerId);
+      for (const precursorId of route.precursors) {
+        if (precursorId !== senderId) {
+          recipients.add(precursorId);
         }
       }
 
       propagatedDestinations.push({
-        destinationPeerId: unreachable.destinationPeerId,
-        sequenceNumber: Math.max(unreachable.sequenceNumber, route.sequenceNumber + 1),
+        destinationPeerId: destinationId,
+        sequenceNumber: Math.max(sequenceNumber, route.sequence + 1),
       });
 
-      this.removeRoute(unreachable.destinationPeerId, message);
+      // RFC 3561 §6.11 - invalidate route on received RERR, keep for DELETE_PERIOD
+      this.invalidateRoute(destinationId, Math.max(sequenceNumber, route.sequence + 1));
     }
 
     if (propagatedDestinations.length === 0) {
@@ -516,74 +304,195 @@ export class AodvModule extends BaseModule {
     return true;
   }
 
-  private writePacket(packet: Packet, hopPeerId: UUID): boolean {
-    const hop = this.graph.getNode(hopPeerId);
-    if (!hop) {
-      this.recordEvent(
-        EventType.Drop,
-        {
-          message: cloneAodvMessage(packet),
-          reason: DropReason.DestinationUnavailable,
-        },
-        PROTOCOL,
+  // decide whether this node (or an intermediate) can answer the RREQ
+  private buildRouteReplyForRequest(
+    message: AodvRouteRequestMessage,
+  ): AodvRouteReplyMessage | null {
+    const { routeTimeout } = this.peer.configuration as AodvConfiguration;
+    const {
+      sourcePeerId: sourceId,
+      senderPeerId: senderId,
+      destinationPeerId: destinationId,
+      destinationSequenceNumber: destinationSequence,
+    } = message;
+
+    // destination node responds with its own fresh sequence
+    if (this.peerId === destinationId) {
+      if (destinationSequence === this.sequence) {
+        this.sequence += 1;
+        this.initializeSelfRoute();
+      }
+
+      return this.buildRouteReplyMessage(
+        sourceId,
+        senderId,
+        destinationId,
+        this.sequence,
+        0,
+        routeTimeout,
+        false,
       );
-      this.handleLinkBreak(hopPeerId);
-      return false;
     }
 
-    if (!(hop.protocol === PROTOCOL)) {
-      this.recordEvent(
-        EventType.Drop,
-        {
-          message: cloneAodvMessage(packet),
-          reason: DropReason.UnsupportedProtocol,
-        },
-        PROTOCOL,
-      );
-      this.handleLinkBreak(hopPeerId);
-      return false;
+    // intermediate node with a valid, fresh-enough route
+    const route = this.getUsableRoute(destinationId);
+    if (!route) {
+      return null;
     }
 
-    const forwardedPacket =
-      packet.sourcePeerId === null
-        ? { ...packet, sourcePeerId: this.peer.id }
-        : cloneAodvMessage(packet);
+    if (destinationSequence !== null && route.sequence < destinationSequence) {
+      return null;
+    }
 
+    return this.buildRouteReplyMessage(
+      sourceId,
+      senderId,
+      route.destinationId,
+      route.sequence,
+      route.hopCount,
+      routeTimeout,
+      true,
+    );
+  }
+
+  private buildRouteReplyMessage(
+    originatorId: UUID,
+    targetId: UUID,
+    destinationId: UUID,
+    destinationSequence: number,
+    hopCount: number,
+    lifetime: number,
+    gratuitous: boolean,
+  ): AodvRouteReplyMessage {
+    return {
+      type: MessageType.AodvRouteReplyMessage,
+      sourcePeerId: this.peerId,
+      senderPeerId: this.peerId,
+      targetPeerId: targetId,
+      destinationPeerId: destinationId,
+      destinationSequenceNumber: destinationSequence,
+      originatorPeerId: originatorId,
+      hopCount,
+      lifetime,
+      gratuitous,
+    };
+  }
+
+  // record Calculation event and unicast RREP to the next hop
+  private emitRouteReply(message: AodvRouteReplyMessage): boolean {
     this.recordEvent(
-      EventType.Transfer,
+      EventType.Calculation,
       {
-        protocol: PROTOCOL,
-        sourcePeerId: this.peer.id,
-        targetPeerId: hopPeerId,
-        message: cloneAodvMessage(forwardedPacket),
-      },
+        message: clone(message),
+      } satisfies AodvCalculationEventDetails,
       PROTOCOL,
     );
 
-    this.addPrecursor(packet.destinationPeerId, this.peer.id);
-
-    const targetModule = hop.module;
-    const delivered = targetModule?.read(forwardedPacket) ?? false;
-    if (!delivered) {
-      this.handleLinkBreak(hopPeerId);
-    }
-
-    return delivered;
+    return super.write(message, message.targetPeerId);
   }
 
-  private writeControlMessage(message: AodvControlMessage, hopPeerId: UUID): boolean {
-    const hop = this.graph.getNode(hopPeerId);
-    if (!hop || !(hop.protocol === PROTOCOL)) {
+  // rebroadcast RREQ to neighbours excluding the sender
+  private forwardRouteRequest(message: AodvRouteRequestMessage): boolean {
+    if (message.hopCount >= AODV_PATH_DISCOVERY_TTL) {
+      this.recordEvent(
+        EventType.Drop,
+        {
+          message: clone(message),
+          reason: DropReason.TimeToLiveExceeded,
+        } satisfies DropEventDetails,
+        PROTOCOL,
+      );
       return false;
     }
 
-    const targetModule = hop.module;
-    return targetModule?.read(cloneAodvMessage(message)) ?? false;
+    const { senderPeerId: senderId } = message;
+    const neighbours = this.graph
+      .getNeighbours(this.peer.id)
+      .filter((neighbour) => neighbour.id !== senderId && neighbour.protocol === PROTOCOL);
+
+    const forwarded: AodvRouteRequestMessage = {
+      ...message,
+      senderPeerId: this.peerId,
+      hopCount: message.hopCount + 1,
+    };
+
+    this.recordEvent(
+      EventType.Broadcast,
+      {
+        neighbourPeerIds: neighbours.map((neighbour) => neighbour.id),
+        retransmit: true,
+        message: clone(forwarded),
+      } satisfies BroadcastEventDetails,
+      PROTOCOL,
+    );
+
+    let result = true;
+    for (const neighbour of neighbours) {
+      result = super.write(forwarded, neighbour.id) && result;
+    }
+
+    return result;
   }
 
-  private handleLinkBreak(nextHopPeerId: UUID) {
+  // originator-side RREQ flood; RREP propagates back via processRouteReply
+  private discoverRoute(destinationId: UUID): AodvRouteEntry | null {
+    this.sequence += 1;
+    this.rreqId += 1;
+    this.initializeSelfRoute();
+
+    const tick = this.eventRecorder.getCurrentTick();
+    const requestedSequence = this.getRequestedDestinationSequence(destinationId);
+
+    const rreq: AodvRouteRequestMessage = {
+      type: MessageType.AodvRouteRequestMessage,
+      sourcePeerId: this.peerId,
+      senderPeerId: this.peerId,
+      destinationPeerId: destinationId,
+      requestId: this.rreqId,
+      hopCount: 0,
+      destinationSequenceNumber: requestedSequence,
+      originatorSequenceNumber: this.sequence,
+    };
+
+    // pre-cache own RREQ to suppress bounced-back duplicates
+    this.requestCache.put(this.peerId, destinationId, this.rreqId, tick, AODV_ACTIVE_ROUTE_TIMEOUT);
+
+    const neighbours = this.graph
+      .getNeighbours(this.peerId)
+      .filter((neighbour) => neighbour.protocol === PROTOCOL && neighbour.active);
+
+    this.recordEvent(
+      EventType.Broadcast,
+      {
+        neighbourPeerIds: neighbours.map((neighbour) => neighbour.id),
+        retransmit: false,
+        message: clone(rreq),
+      } satisfies BroadcastEventDetails,
+      PROTOCOL,
+    );
+
+    for (const neighbour of neighbours) {
+      super.write(rreq, neighbour.id);
+    }
+
+    return this.getUsableRoute(destinationId);
+  }
+
+  // forward data packet and track precursors for RERR
+  private writePacket(packet: Packet, hopId: UUID): boolean {
+    this.routingTable.addPrecursor(packet.destinationPeerId, this.peerId);
+    const delivered = super.write(packet, hopId);
+    if (!delivered) {
+      this.handleLinkBreak(hopId);
+    }
+    return delivered;
+  }
+
+  // detect and react to a broken next-hop link (RFC 3561 §6.11)
+  private handleLinkBreak(nextHopId: UUID) {
+    // only valid routes need processing - already-invalid ones were reported on a previous break
     const affectedRoutes = [...this.routingTable.values()].filter(
-      (route) => route.destinationPeerId !== this.peer.id && route.nextHopPeerId === nextHopPeerId,
+      (route) => route.destinationId !== this.peerId && route.nextHopId === nextHopId && route.valid,
     );
     if (affectedRoutes.length === 0) {
       return;
@@ -593,19 +502,22 @@ export class AodvModule extends BaseModule {
     const unreachableDestinations: AodvUnreachableDestination[] = [];
 
     for (const route of affectedRoutes) {
-      for (const precursorPeerId of route.precursors) {
-        recipients.add(precursorPeerId);
+      const newSequence = route.sequence + 1;
+
+      for (const precursorId of route.precursors) {
+        recipients.add(precursorId);
       }
 
       unreachableDestinations.push({
-        destinationPeerId: route.destinationPeerId,
-        sequenceNumber: route.sequenceNumber + 1,
+        destinationPeerId: route.destinationId,
+        sequenceNumber: newSequence,
       });
 
-      this.removeRoute(route.destinationPeerId, null);
+      // RFC 3561 §6.11 - invalidate, retain for DELETE_PERIOD; do NOT delete immediately
+      this.invalidateRoute(route.destinationId, newSequence);
     }
 
-    this.propagateRouteError(unreachableDestinations, [...recipients], this.peer.id);
+    this.propagateRouteError(unreachableDestinations, [...recipients], this.peerId);
   }
 
   private propagateRouteError(
@@ -613,91 +525,98 @@ export class AodvModule extends BaseModule {
     recipientPeerIds: UUID[],
     sourcePeerId: UUID,
   ) {
-    if (unreachableDestinations.length === 0 || recipientPeerIds.length === 0) {
+    if (unreachableDestinations.length === 0) {
       return;
     }
 
     const errorMessage: AodvRouteErrorMessage = {
       type: MessageType.AodvRouteErrorMessage,
       sourcePeerId,
-      senderPeerId: this.peer.id,
+      senderPeerId: this.peerId,
       targetPeerId: recipientPeerIds.length === 1 ? recipientPeerIds[0] : null,
       unreachableDestinations: unreachableDestinations.map((entry) => ({ ...entry })),
       noDelete: false,
     };
 
+    // always record the RERR event so link breaks are visible even with no precursors (RFC 3561 §6.11)
     if (recipientPeerIds.length > 1) {
-      this.recordAodvEvent(this.peer.id, EventType.Broadcast, {
-        neighbourPeerIds: recipientPeerIds,
-        retransmit: true,
-        message: cloneAodvMessage(errorMessage),
-      });
+      this.recordEvent(
+        EventType.Broadcast,
+        {
+          neighbourPeerIds: recipientPeerIds,
+          retransmit: sourcePeerId !== this.peerId,
+          message: clone(errorMessage),
+        } satisfies BroadcastEventDetails,
+        PROTOCOL,
+      );
     } else {
       this.recordEvent(
         EventType.Calculation,
         {
-          message: cloneAodvMessage(errorMessage),
-        },
+          message: clone(errorMessage),
+        } satisfies AodvCalculationEventDetails,
         PROTOCOL,
       );
     }
 
     for (const recipientPeerId of recipientPeerIds) {
-      this.writeControlMessage(errorMessage, recipientPeerId);
+      super.write(errorMessage, recipientPeerId);
     }
   }
 
+  // upsert route table entry
   private upsertRoute(
-    destinationPeerId: UUID,
-    nextHopPeerId: UUID,
-    metric: number,
+    destinationId: UUID,
+    nextHopId: UUID,
+    hopCount: number,
     sequenceNumber: number,
-    validSequenceNumber: boolean,
+    validSequence: boolean,
     message: AodvControlMessage,
     lifetime: number,
   ) {
-    if (destinationPeerId === this.peer.id) {
+    if (destinationId === this.peerId) {
       return;
     }
 
     const currentTick = this.eventRecorder.getCurrentTick();
-    const previousRoute = this.routingTable.get(destinationPeerId) ?? null;
+    const previousRoute = this.routingTable.get(destinationId) ?? null;
     const nextRoute: AodvRouteEntry = {
-      destinationPeerId,
-      nextHopPeerId,
-      metric,
-      sequenceNumber,
+      destinationId,
+      nextHopId,
+      hopCount,
+      sequence: sequenceNumber,
       lastUpdateTick: currentTick,
-      validSequenceNumber,
+      timeout: Math.max(1, lifetime),
+      validSequence,
       valid: true,
       precursors: [...(previousRoute?.precursors ?? [])],
-      expiresAtTick: currentTick + Math.max(1, lifetime),
     };
 
     if (!this.shouldAdoptRoute(previousRoute, nextRoute)) {
+      // route not adopted, but still refresh lifetime if route already exists
       if (previousRoute) {
-        this.routingTable.set(destinationPeerId, {
+        this.routingTable.set(destinationId, {
           ...previousRoute,
           lastUpdateTick: currentTick,
-          expiresAtTick: currentTick + Math.max(1, lifetime),
+          timeout: Math.max(1, lifetime),
         });
       }
       return;
     }
 
-    this.routingTable.set(destinationPeerId, nextRoute);
+    this.routingTable.set(destinationId, nextRoute);
 
     if (!previousRoute) {
       this.recordEvent(
         EventType.AddRoute,
         {
           protocol: PROTOCOL,
-          destinationPeerId,
-          nextHopPeerId,
+          destinationPeerId: destinationId,
+          nextHopPeerId: nextHopId,
           previousRoute: null,
           nextRoute: this.toPublicRoute(nextRoute),
-          message: cloneAodvMessage(message),
-        },
+          message: clone(message),
+        } satisfies AodvRouteChangeEventDetails,
         PROTOCOL,
       );
       return;
@@ -707,197 +626,255 @@ export class AodvModule extends BaseModule {
       EventType.UpdateRoute,
       {
         protocol: PROTOCOL,
-        destinationPeerId,
-        nextHopPeerId,
+        destinationPeerId: destinationId,
+        nextHopPeerId: nextHopId,
         previousRoute: this.toPublicRoute(previousRoute),
         nextRoute: this.toPublicRoute(nextRoute),
-        message: cloneAodvMessage(message),
-      },
+        message: clone(message),
+      } satisfies AodvRouteChangeEventDetails,
       PROTOCOL,
     );
   }
 
-  private removeRoute(destinationPeerId: UUID, message: AodvRouteErrorMessage | null) {
-    const previousRoute = this.routingTable.get(destinationPeerId);
-    if (!previousRoute || destinationPeerId === this.peer.id) {
+  // RFC 3561 §6.11 - mark route as invalid, retain for DELETE_PERIOD (no immediate deletion)
+  private invalidateRoute(destinationId: UUID, newSequence: number) {
+    const previousRoute = this.routingTable.get(destinationId);
+    if (!previousRoute || destinationId === this.peerId || !previousRoute.valid) {
       return;
     }
 
-    this.routingTable.delete(destinationPeerId);
+    const currentTick = this.eventRecorder.getCurrentTick();
+    const invalidated: AodvRouteEntry = {
+      ...previousRoute,
+      valid: false,
+      sequence: newSequence,
+      lastUpdateTick: currentTick,
+      timeout: AODV_DELETE_PERIOD,
+    };
+
+    this.routingTable.set(destinationId, invalidated);
+    this.recordEvent(
+      EventType.UpdateRoute,
+      {
+        protocol: PROTOCOL,
+        destinationPeerId: destinationId,
+        nextHopPeerId: previousRoute.nextHopId,
+        previousRoute: this.toPublicRoute(previousRoute),
+        nextRoute: this.toPublicRoute(invalidated),
+      } satisfies AodvRouteChangeEventDetails,
+      PROTOCOL,
+    );
+  }
+
+  private removeRoute(destinationId: UUID, message: AodvRouteErrorMessage | null) {
+    const previousRoute = this.routingTable.get(destinationId);
+    if (!previousRoute || destinationId === this.peerId) {
+      return;
+    }
+
+    this.routingTable.delete(destinationId);
     this.recordEvent(
       EventType.DeleteRoute,
       {
         protocol: PROTOCOL,
-        destinationPeerId,
-        nextHopPeerId: previousRoute.nextHopPeerId,
+        destinationPeerId: destinationId,
+        nextHopPeerId: previousRoute.nextHopId,
         previousRoute: this.toPublicRoute(previousRoute),
         nextRoute: null,
-        message: message ? cloneAodvMessage(message) : undefined,
-      },
+        message: message ? clone(message) : undefined,
+      } satisfies AodvRouteChangeEventDetails,
       PROTOCOL,
     );
   }
 
-  private addPrecursor(destinationPeerId: UUID, precursorPeerId: UUID) {
-    this.routingTable.addPrecursor(destinationPeerId, precursorPeerId);
-  }
-
-  private initializeSelfRoute() {
-    const currentTick = this.eventRecorder.getCurrentTick();
-    this.routingTable.set(this.peer.id, {
-      destinationPeerId: this.peer.id,
-      nextHopPeerId: this.peer.id,
-      metric: 0,
-      sequenceNumber: this.ownSequenceNumber,
-      lastUpdateTick: currentTick,
-      validSequenceNumber: true,
-      valid: true,
-      precursors: [],
-      expiresAtTick: currentTick + this.getRouteTimeout(),
-    });
-  }
-
-  private shouldAdoptRoute(previousRoute: AodvRouteEntry | null, nextRoute: AodvRouteEntry) {
-    if (!previousRoute) {
+  // route adoption decision (sequence, validity, hop-count)
+  private shouldAdoptRoute(previous: AodvRouteEntry | null, next: AodvRouteEntry): boolean {
+    if (!previous) {
       return true;
     }
 
-    if (!previousRoute.validSequenceNumber && nextRoute.validSequenceNumber) {
+    if (!previous.validSequence && next.validSequence) {
       return true;
     }
 
-    if (nextRoute.sequenceNumber > previousRoute.sequenceNumber) {
+    if (next.sequence > previous.sequence) {
       return true;
     }
 
-    if (nextRoute.sequenceNumber === previousRoute.sequenceNumber) {
-      if (!previousRoute.valid) {
+    if (next.sequence === previous.sequence) {
+      if (!previous.valid) {
         return true;
       }
 
-      if (nextRoute.metric < previousRoute.metric) {
+      if (next.hopCount < previous.hopCount) {
         return true;
       }
 
-      return nextRoute.nextHopPeerId !== previousRoute.nextHopPeerId;
+      return next.nextHopId !== previous.nextHopId;
     }
 
     return false;
   }
 
-  private isBetterReplyCandidate(
-    candidate: RouteReplyCandidate,
-    currentBest: RouteReplyCandidate | null,
-  ) {
-    if (!currentBest) {
-      return true;
-    }
+  // initialize or refresh the self-route entry
+  private initializeSelfRoute() {
+    const { routeTimeout } = this.peer.configuration as AodvConfiguration;
+    const currentTick = this.eventRecorder.getCurrentTick();
 
-    if (candidate.destinationSequenceNumber !== currentBest.destinationSequenceNumber) {
-      return candidate.destinationSequenceNumber > currentBest.destinationSequenceNumber;
-    }
-
-    return candidate.totalMetric < currentBest.totalMetric;
+    this.routingTable.set(this.peerId, {
+      destinationId: this.peerId,
+      nextHopId: this.peerId,
+      hopCount: 0,
+      sequence: this.sequence,
+      lastUpdateTick: currentTick,
+      timeout: routeTimeout,
+      validSequence: true,
+      valid: true,
+      precursors: [],
+    });
   }
 
-  private getRequestedDestinationSequence(destinationPeerId: UUID) {
-    const route = this.routingTable.get(destinationPeerId);
-    if (!route || !route.validSequenceNumber) {
+  private getRequestedDestinationSequence(destinationId: UUID): number | null {
+    const route = this.routingTable.get(destinationId);
+    if (!route || !route.validSequence) {
       return null;
     }
 
-    return route.sequenceNumber;
+    return route.sequence;
   }
 
-  private getUsableRoute(destinationPeerId: UUID) {
-    const route = this.routingTable.get(destinationPeerId) ?? null;
-    if (!route || !route.valid || destinationPeerId === this.peer.id) {
-      return route?.destinationPeerId === this.peer.id ? route : null;
-    }
-
-    const nextHop = this.graph.getNode(route.nextHopPeerId);
-    if (!nextHop || !(nextHop.protocol === PROTOCOL)) {
-      return null;
+  // look up a valid, protocol-compatible route entry; validity is maintained by processTick/handleLinkBreak
+  private getUsableRoute(destinationId: UUID): AodvRouteEntry | null {
+    const route = this.routingTable.get(destinationId) ?? null;
+    if (!route || !route.valid || destinationId === this.peerId) {
+      return route?.destinationId === this.peerId ? route : null;
     }
 
     return route;
   }
 
-  private touchRoute(destinationPeerId: UUID) {
-    this.routingTable.touch(
-      destinationPeerId,
-      this.eventRecorder.getCurrentTick(),
-      this.getRouteTimeout(),
-    );
-  }
-
-  private recordAodvEvent(peerId: UUID, type: EventType, details: EventDetails) {
-    this.eventRecorder.record(peerId, type, details, PROTOCOL);
-  }
-
-  private getPeersAlongPath(pathPeerIds: UUID[]) {
-    const peers: Peer[] = [];
-    let currentPeer: Peer | null = this.peer;
-
-    for (let index = 0; index < pathPeerIds.length; index += 1) {
-      const expectedPeerId = pathPeerIds[index];
-      if (!currentPeer || currentPeer.id !== expectedPeerId) {
-        break;
-      }
-
-      peers.push(currentPeer);
-
-      if (index >= pathPeerIds.length - 1) {
-        continue;
-      }
-
-      currentPeer = this.graph.getNode(pathPeerIds[index + 1]);
-    }
-
-    return peers;
-  }
-
-  private getAodvModule(peer: Peer | null) {
-    if (!peer) {
-      return null;
-    }
-
-    const module = peer.module;
-    return module instanceof AodvModule ? module : null;
+  // extend route lifetime when actively forwarding
+  private touchRoute(destinationId: UUID) {
+    const { routeTimeout } = this.peer.configuration as AodvConfiguration;
+    this.routingTable.touch(destinationId, this.eventRecorder.getCurrentTick(), routeTimeout);
   }
 
   private toPublicRoute(route: AodvRouteEntry): AodvRouteRecord {
     return {
-      destinationPeerId: route.destinationPeerId,
-      nextHopPeerId: route.nextHopPeerId,
-      metric: route.metric,
-      sequenceNumber: route.sequenceNumber,
+      destinationId: route.destinationId,
+      nextHopId: route.nextHopId,
+      hopCount: route.hopCount,
+      sequence: route.sequence,
       lastUpdateTick: route.lastUpdateTick,
-      validSequenceNumber: route.validSequenceNumber,
+      validSequence: route.validSequence,
       valid: route.valid,
       precursors: [...route.precursors],
     };
   }
 
-  private getHelloInterval() {
-    const configuration = this.peer.configuration as AodvConfiguration;
-    if (!configuration) {
-      return AODV_MIN_HELLO_INTERVAL;
+  override send(packet: Packet): boolean {
+    if (!this.peer.active) {
+      this.recordEvent(
+        EventType.Drop,
+        {
+          message: clone(packet),
+          reason: DropReason.DestinationUnavailable,
+        } satisfies DropEventDetails,
+        PROTOCOL,
+      );
+      return false;
     }
 
-    return clampHelloInterval(configuration.helloInterval);
-  }
+    const sourcePacket: Packet =
+      packet.sourcePeerId === null ? { ...packet, sourcePeerId: this.peerId } : packet;
 
-  private getRouteTimeout() {
-    const configuration = this.peer.configuration as AodvConfiguration;
-    if (!configuration) {
-      return AODV_MIN_ROUTE_TIMEOUT;
+    if (sourcePacket.destinationPeerId === this.peerId) {
+      return true;
     }
 
-    return clampRouteTimeout(configuration.routeTimeout);
+    return this.processPacketWithDiscovery(sourcePacket);
   }
 
-  private getHelloLifetime() {
-    return Math.max(this.getRouteTimeout(), this.getHelloInterval() * AODV_HELLO_LIFETIME_FACTOR);
+  override getRoute(destinationId: UUID): UUID | null {
+    return this.getUsableRoute(destinationId)?.nextHopId ?? null;
+  }
+
+  // broadcasts HELLO messages to maintain neighbour routes
+  override processRefresh() {
+    this.refreshHello();
+  }
+
+  // broadcasts HELLO message to all AODV neighbours
+  private refreshHello() {
+    if (!this.peer.active) {
+      return;
+    }
+
+    const neighbours = this.graph
+      .getNeighbours(this.peerId)
+      .filter((neighbour) => neighbour.protocol === PROTOCOL);
+
+    const { helloInterval, routeTimeout } = this.peer.configuration as AodvConfiguration;
+    const helloLifetime = Math.max(routeTimeout, helloInterval * AODV_HELLO_LIFETIME_FACTOR);
+
+    const helloMessage: AodvHelloMessage = {
+      type: MessageType.AodvHelloMessage,
+      sourcePeerId: this.peerId,
+      senderPeerId: this.peerId,
+      destinationSequenceNumber: this.sequence,
+      lifetime: helloLifetime,
+      interval: helloInterval,
+    };
+
+    this.recordEvent(
+      EventType.Broadcast,
+      {
+        neighbourPeerIds: neighbours.map((neighbour) => neighbour.id),
+        retransmit: false,
+        message: clone(helloMessage),
+      } satisfies BroadcastEventDetails,
+      PROTOCOL,
+    );
+
+    for (const neighbour of neighbours) {
+      super.write(helloMessage, neighbour.id);
+    }
+  }
+
+  override processTick() {
+    const currentTick = this.eventRecorder.getCurrentTick();
+
+    this.requestCache.tick(currentTick);
+    const brokenNextHops = new Set<UUID>();
+
+    for (const [destinationId, route] of this.routingTable.entries()) {
+      if (destinationId === this.peerId) {
+        continue;
+      }
+
+      // expire stale routes
+      if (route.lastUpdateTick + route.timeout <= currentTick) {
+        this.removeRoute(destinationId, null);
+        continue;
+      }
+
+      const nextHop = this.graph
+        .getNeighbours(this.peerId)
+        .find((neighbour) => neighbour.id === route.nextHopId);
+      // only trigger break for valid routes - invalid ones are already handled (RFC 3561 §6.11)
+      if (route.valid && (!nextHop || nextHop.protocol !== PROTOCOL)) {
+        brokenNextHops.add(route.nextHopId);
+      }
+    }
+
+    for (const nextHopId of brokenNextHops) {
+      this.handleLinkBreak(nextHopId);
+    }
+  }
+
+  override getTables(): RoutingStructureType {
+    const tables: RoutingStructureType = {} as RoutingStructureType;
+    tables[RoutingStructure.AodvRoutingTable] = this.routingTable.getRoutes(this.peerId);
+    return tables;
   }
 }

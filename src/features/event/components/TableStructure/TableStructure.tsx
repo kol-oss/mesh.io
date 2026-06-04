@@ -218,23 +218,23 @@ export default function TableStructure({
                   </tr>
                 ) : (
                   inspectedPeer.aodvRoutingTable.map((row, index) => (
-                    <tr key={`${row.destinationPeerId}-${row.nextHopPeerId}-${index}`}>
+                    <tr key={`${row.destinationId}-${row.nextHopId}-${index}`}>
                       <td>
                         {renderPeerName(
-                          row.destinationPeerId,
-                          getPeerLabel(row.destinationPeerId, peerNameById),
+                          row.destinationId,
+                          getPeerLabel(row.destinationId, peerNameById),
                           onPeerHoverChange,
                         )}
                       </td>
                       <td>
                         {renderPeerName(
-                          row.nextHopPeerId,
-                          getPeerLabel(row.nextHopPeerId, peerNameById),
+                          row.nextHopId,
+                          getPeerLabel(row.nextHopId, peerNameById),
                           onPeerHoverChange,
                         )}
                       </td>
-                      <td>{row.metric}</td>
-                      <td>{row.sequenceNumber}</td>
+                      <td>{row.hopCount}</td>
+                      <td>{row.sequence}</td>
                       <td>
                         {row.precursors.length === 0
                           ? "No records"

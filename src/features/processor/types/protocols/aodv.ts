@@ -64,29 +64,18 @@ export type AodvControlMessage =
   | AodvRouteReplyMessage
   | AodvRouteErrorMessage;
 
-export const cloneAodvMessage = <T extends Message>(message: T): T => {
-  return {
-    ...message,
-    ...(message.type === MessageType.AodvRouteErrorMessage
-      ? {
-          unreachableDestinations: message.unreachableDestinations.map((entry) => ({ ...entry })),
-        }
-      : {}),
-  };
-};
-
 export type AodvCalculationEventDetails = {
   message: AodvHelloMessage | AodvRouteReplyMessage | AodvRouteErrorMessage;
 };
 
 // Routing Table record
 export type AodvRouteRecord = {
-  destinationPeerId: UUID;
-  nextHopPeerId: UUID;
-  metric: number;
-  sequenceNumber: number;
+  destinationId: UUID;
+  sequence: number;
+  validSequence: boolean;
+  hopCount: number;
+  nextHopId: UUID;
   lastUpdateTick: number;
-  validSequenceNumber: boolean;
   valid: boolean;
   precursors: UUID[];
 };

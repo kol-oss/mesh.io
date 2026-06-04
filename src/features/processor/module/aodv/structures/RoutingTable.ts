@@ -2,7 +2,7 @@ import type { AodvRouteRecord } from "@/features/processor/types/protocols/aodv"
 import type { UUID } from "@/shared/types/common/uuid";
 
 export type AodvRouteEntry = AodvRouteRecord & {
-  expiresAtTick: number;
+  timeout: number;
 };
 
 export class RoutingTable {
@@ -28,7 +28,7 @@ export class RoutingTable {
     return this.routes.values();
   }
 
-  touch(destinationPeerId: UUID, currentTick: number, lifetime: number) {
+  touch(destinationPeerId: UUID, currentTick: number, timeout: number) {
     const route = this.routes.get(destinationPeerId);
     if (!route) {
       return;
@@ -37,7 +37,7 @@ export class RoutingTable {
     this.routes.set(destinationPeerId, {
       ...route,
       lastUpdateTick: currentTick,
-      expiresAtTick: currentTick + Math.max(1, lifetime),
+      timeout: Math.max(1, timeout),
     });
   }
 
@@ -55,15 +55,15 @@ export class RoutingTable {
 
   getRoutes(selfPeerId: UUID): AodvRouteRecord[] {
     return [...this.routes.values()]
-      .filter((route) => route.destinationPeerId !== selfPeerId)
-      .sort((left, right) => left.destinationPeerId.localeCompare(right.destinationPeerId))
+      .filter((route) => route.destinationId !== selfPeerId)
+      .sort((left, right) => left.destinationId.localeCompare(right.destinationId))
       .map((route) => ({
-        destinationPeerId: route.destinationPeerId,
-        nextHopPeerId: route.nextHopPeerId,
-        metric: route.metric,
-        sequenceNumber: route.sequenceNumber,
+        destinationId: route.destinationId,
+        nextHopId: route.nextHopId,
+        hopCount: route.hopCount,
+        sequence: route.sequence,
         lastUpdateTick: route.lastUpdateTick,
-        validSequenceNumber: route.validSequenceNumber,
+        validSequence: route.validSequence,
         valid: route.valid,
         precursors: [...route.precursors],
       }));

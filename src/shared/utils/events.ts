@@ -146,6 +146,10 @@ const getAodvEventDetailsType = (event: Event): EventDetailsType => {
         ? EventDetailsType.AodvRouteRequestRetransmission
         : EventDetailsType.AodvRouteRequestBroadcast;
     }
+
+    if (message.type === MessageType.AodvRouteErrorMessage) {
+      return EventDetailsType.AodvRouteErrorBroadcast;
+    }
   }
 
   if (type === EventType.Calculation) {
