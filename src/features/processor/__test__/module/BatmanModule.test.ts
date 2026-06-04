@@ -1,6 +1,5 @@
 import { BatmanModule } from "@/features/processor/module/batman/BatmanModule";
 import { NeighbourList } from "@/features/processor/module/batman/structures/NeighbourList";
-import type { NetworkGraph } from "@/features/processor/types/network/graph";
 import { LinkType } from "@/features/processor/types/network/link";
 import type { Peer } from "@/features/processor/types/network/peer";
 import type {
@@ -8,7 +7,6 @@ import type {
   BatmanEchoLocationMessage,
   BatmanOriginatorMessage,
 } from "@/features/processor/types/protocols/batman";
-import type { EventRecorder } from "@/features/processor/types/recorder";
 import {
   BATMAN_MAX_THROUGHPUT,
   BATMAN_TIME_TO_LIVE,
@@ -19,10 +17,11 @@ import {
 import { DropReason, EventType } from "@/shared/types/common/events";
 import { MessageType, type Message } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
+import { generateUUID, type UUID } from "@/shared/types/common/uuid.ts";
 import type { BatmanConfiguration } from "@/shared/types/model/configurations";
 import { RefreshAction } from "@/shared/types/model/steps";
 import { describe, expect, it, jest } from "@jest/globals";
-import { generateUUID, type UUID } from "@/shared/types/common/uuid.ts";
+import { makeEventRecorder, makeGraph, makePeer as makePeerBase } from "../helpers";
 
 const SELF_ID: UUID = generateUUID();
 const FIRST_NEIGHBOUR_ID: UUID = generateUUID();
@@ -37,21 +36,8 @@ const DEFAULT_CONFIG: BatmanConfiguration = {
   purgeTimeout: 10,
 };
 
-function makePeer(id: string, active = true, config: BatmanConfiguration = DEFAULT_CONFIG): Peer {
-  return {
-    id,
-    name: id,
-    active,
-    protocol: RoutingProtocol.BATMAN,
-    coordinates: { x: 0, y: 0 },
-    range: 200,
-    configuration: config,
-    module: {
-      read: jest.fn<() => boolean>().mockReturnValue(true),
-      send: jest.fn<() => boolean>().mockReturnValue(true),
-      refresh: jest.fn<() => void>(),
-    },
-  };
+function makePeer(id: UUID, active = true, config: BatmanConfiguration = DEFAULT_CONFIG): Peer {
+  return makePeerBase(id, RoutingProtocol.BATMAN, config, active);
 }
 
 function makeElpMessage(
@@ -87,34 +73,6 @@ function makeOgmMessage(
     timeToLive: BATMAN_TIME_TO_LIVE,
     throughput: BATMAN_MAX_THROUGHPUT,
     ...overrides,
-  };
-}
-
-function makeEventRecorder(tick = 10): jest.Mocked<EventRecorder> {
-  return {
-    record: jest.fn<EventRecorder["record"]>(),
-    setStep: jest.fn<EventRecorder["setStep"]>(),
-    setListener: jest.fn<EventRecorder["setListener"]>(),
-    getEvents: jest.fn<EventRecorder["getEvents"]>().mockReturnValue([]),
-    getCurrentTick: jest.fn<EventRecorder["getCurrentTick"]>().mockReturnValue(tick),
-  };
-}
-
-function makeGraph(selfPeer: Peer, neighbours: Peer[] = []): jest.Mocked<NetworkGraph> {
-  return {
-    getNode: jest.fn((id: string) => {
-      if (id === selfPeer.id) return selfPeer;
-      const found = neighbours.find((p) => p.id === id);
-      if (!found) throw new Error(`Peer ${id} not found`);
-      return found;
-    }) as jest.Mocked<NetworkGraph>["getNode"],
-    getNeighbours: jest.fn(() => neighbours) as jest.Mocked<NetworkGraph>["getNeighbours"],
-    hasLink: jest.fn<NetworkGraph["hasLink"]>().mockReturnValue(false),
-    init: jest.fn<NetworkGraph["init"]>(),
-    moveNode: jest.fn<NetworkGraph["moveNode"]>(),
-    setStatus: jest.fn<NetworkGraph["setStatus"]>().mockReturnValue(null),
-    snapshot: jest.fn<NetworkGraph["snapshot"]>(),
-    peerTables: jest.fn<NetworkGraph["peerTables"]>().mockReturnValue([]),
   };
 }
 
