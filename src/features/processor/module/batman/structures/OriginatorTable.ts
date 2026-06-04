@@ -1,10 +1,10 @@
-import { EventRecorder } from "@/features/processor/EventRecorder";
 import {
   type BatmanOriginatorMessage,
   type BatmanOriginatorRecord,
   type BatmanRouteChangeEventDetails,
   type BatmanRouteRecord,
 } from "@/features/processor/types/protocols/batman";
+import type { EventRecorder } from "@/features/processor/types/recorder";
 import { EventType } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";

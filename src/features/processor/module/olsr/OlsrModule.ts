@@ -1,4 +1,3 @@
-import { EventRecorder } from "@/features/processor/EventRecorder";
 import {
   type OlsrCalculationEventDetails,
   OlsrChangeEventDetailsType,
@@ -12,6 +11,7 @@ import {
   type OlsrTopologyRecord,
   type OlsrTwoHopRecord,
 } from "@/features/processor/types/protocols/olsr";
+import type { EventRecorder } from "@/features/processor/types/recorder";
 import { OLSR_DEFAULT_TC_TTL } from "@/shared/constants/protocols/olsr";
 import { DropReason, EventType, type GetRouteEventDetails } from "@/shared/types/common/events";
 import { type Message, MessageType } from "@/shared/types/common/messages";
@@ -19,8 +19,8 @@ import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { OlsrConfiguration } from "@/shared/types/model/configurations";
 import { RefreshAction } from "@/shared/types/model/steps.ts";
-import type { NetworkGraph } from "../../network/NetworkGraph";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module";
+import type { NetworkGraph } from "../../types/network/graph";
 import type { Peer } from "../../types/network/peer";
 import { clone } from "../../utils/clone";
 import { BaseModule } from "../BaseModule";

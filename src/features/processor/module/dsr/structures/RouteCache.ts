@@ -1,8 +1,8 @@
-import type { EventRecorder } from "@/features/processor/EventRecorder";
 import type {
   DsrRouteChangeEventDetails,
   DsrRouteRecord,
 } from "@/features/processor/types/protocols/dsr";
+import type { EventRecorder } from "@/features/processor/types/recorder";
 import { clone } from "@/features/processor/utils/clone";
 import { EventType } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";

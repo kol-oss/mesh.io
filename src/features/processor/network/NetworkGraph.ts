@@ -7,19 +7,20 @@ import {
   type PeerEntity,
 } from "@/shared/types/model/entities";
 import Graph, { UndirectedGraph } from "graphology";
-import type { EventRecorder } from "../EventRecorder";
 import type { BaseModule } from "../module/BaseModule";
 import type { BoundingBox } from "../types/bound";
 import { RoutingStructure } from "../types/module";
+import type { NetworkGraph } from "../types/network/graph";
 import { LinkType, type Link } from "../types/network/link";
 import type { Peer } from "../types/network/peer";
 import type { ToggleStatusResult } from "../types/network/step";
+import type { EventRecorder } from "../types/recorder";
 import { isRangedConnected } from "../utils/connection";
 import { mapEntityToNode, mapNodeToEntity } from "../utils/mapper";
 import { getBoundingBox } from "../utils/math/bound";
 import { createModule } from "../utils/module";
 
-export class NetworkGraph {
+export class NetworkGraphImpl implements NetworkGraph {
   private readonly eventRecorder: EventRecorder;
   private graph: Graph<Peer, Link> = new UndirectedGraph<Peer, Link>();
 

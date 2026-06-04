@@ -1,13 +1,13 @@
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { PeerEntity } from "@/shared/types/model/entities";
-import type { EventRecorder } from "../EventRecorder";
 import { AodvModule } from "../module/aodv/AodvModule";
 import { BatmanModule } from "../module/batman/BatmanModule";
 import { DsdvModule } from "../module/dsdv/DsdvModule";
 import { DsrModule } from "../module/dsr/DsrModule.ts";
 import { OlsrModule } from "../module/olsr/OlsrModule";
-import type { NetworkGraph } from "../network/NetworkGraph";
 import { type RoutingModule } from "../types/module";
+import type { NetworkGraph } from "../types/network/graph";
+import type { EventRecorder } from "../types/recorder";
 
 export const createModule = (
   peer: PeerEntity,

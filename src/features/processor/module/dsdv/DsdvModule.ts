@@ -1,17 +1,17 @@
-import { EventRecorder } from "@/features/processor/EventRecorder";
 import {
   DsdvUpdateType,
   type DsdvRouteRecord,
   type DsdvRouteUpdateMessage,
 } from "@/features/processor/types/protocols/dsdv";
+import type { EventRecorder } from "@/features/processor/types/recorder";
 import { DropReason, EventType, type GetRouteEventDetails } from "@/shared/types/common/events";
 import { MessageType, type Message } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { DsdvConfiguration } from "@/shared/types/model/configurations";
 import { RefreshAction } from "@/shared/types/model/steps";
-import type { NetworkGraph } from "../../network/NetworkGraph";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module";
+import type { NetworkGraph } from "../../types/network/graph";
 import { clone } from "../../utils/clone";
 import { toMessageRecord } from "../../utils/protocol/dsdv";
 import { BaseModule } from "../BaseModule";

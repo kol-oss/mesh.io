@@ -1,10 +1,10 @@
-import { EventRecorder } from "@/features/processor/EventRecorder.ts";
 import {
   type BatmanCalculationEventDetails,
   type BatmanEchoLocationMessage,
   type BatmanNeighbourRecord,
   type BatmanOriginatorMessage,
 } from "@/features/processor/types/protocols/batman.ts";
+import type { EventRecorder } from "@/features/processor/types/recorder";
 import {
   BATMAN_MAX_THROUGHPUT,
   BATMAN_OGM_HOP_PENALTY_PERCENT,
@@ -19,8 +19,8 @@ import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid.ts";
 import type { BatmanConfiguration } from "@/shared/types/model/configurations.ts";
 import { RefreshAction } from "@/shared/types/model/steps.ts";
-import type { NetworkGraph } from "../../network/NetworkGraph.ts";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module.ts";
+import type { NetworkGraph } from "../../types/network/graph";
 import { LinkType } from "../../types/network/link.ts";
 import { clone } from "../../utils/clone.ts";
 import { getDistance } from "../../utils/math/connectivity.ts";

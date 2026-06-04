@@ -2,8 +2,9 @@ import type { Event, EventDetails, EventListener, EventType } from "@/shared/typ
 import type { RoutingProtocol } from "@/shared/types/common/protocols";
 import { generateUUID, type UUID } from "@/shared/types/common/uuid";
 import type { Step } from "@/shared/types/model/steps";
+import type { EventRecorder } from "./types/recorder";
 
-export class EventRecorder {
+export class EventRecorderImpl implements EventRecorder {
   private readonly events: Event[] = [];
   private listener: EventListener | null = null;
 

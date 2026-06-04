@@ -1,4 +1,3 @@
-import type { EventRecorder } from "@/features/processor/EventRecorder";
 import type {
   DsdvCalculationEventDetails,
   DsdvDropRouteEventDetails,
@@ -6,6 +5,7 @@ import type {
   DsdvRouteRecord,
   DsdvRouteUpdateMessage,
 } from "@/features/processor/types/protocols/dsdv";
+import type { EventRecorder } from "@/features/processor/types/recorder";
 import { clone } from "@/features/processor/utils/clone";
 import { DSDV_METRIC_INFINITY } from "@/shared/constants/protocols/dsdv";
 import { DropReason, EventType } from "@/shared/types/common/events";

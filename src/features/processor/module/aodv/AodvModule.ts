@@ -1,4 +1,3 @@
-import { EventRecorder } from "@/features/processor/EventRecorder";
 import {
   type AodvCalculationEventDetails,
   type AodvControlMessage,
@@ -10,6 +9,7 @@ import {
   type AodvRouteRequestMessage,
   type AodvUnreachableDestination,
 } from "@/features/processor/types/protocols/aodv";
+import type { EventRecorder } from "@/features/processor/types/recorder";
 import {
   AODV_ACTIVE_ROUTE_TIMEOUT,
   AODV_DELETE_PERIOD,
@@ -28,8 +28,8 @@ import { MessageType, type Message, type Packet } from "@/shared/types/common/me
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { AodvConfiguration } from "@/shared/types/model/configurations";
-import type { NetworkGraph } from "../../network/NetworkGraph";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module";
+import type { NetworkGraph } from "../../types/network/graph";
 import { clone } from "../../utils/clone";
 import { BaseModule } from "../BaseModule";
 import { RouteRequestCache } from "./structures/RouteRequestCache";
@@ -492,7 +492,8 @@ export class AodvModule extends BaseModule {
   private handleLinkBreak(nextHopId: UUID) {
     // only valid routes need processing - already-invalid ones were reported on a previous break
     const affectedRoutes = [...this.routingTable.values()].filter(
-      (route) => route.destinationId !== this.peerId && route.nextHopId === nextHopId && route.valid,
+      (route) =>
+        route.destinationId !== this.peerId && route.nextHopId === nextHopId && route.valid,
     );
     if (affectedRoutes.length === 0) {
       return;

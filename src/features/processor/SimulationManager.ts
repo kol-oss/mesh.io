@@ -1,4 +1,13 @@
-import { EventRecorder } from "@/features/processor/EventRecorder";
+import { EventRecorderImpl } from "@/features/processor/EventRecorder";
+import type { EventRecorder } from "@/features/processor/types/recorder";
+import { isReactive } from "@/features/processor/utils/protocol/protocols.ts";
+import {
+  EventType,
+  type Event,
+  type MoveEventDetails,
+  type StatusChangeEventDetails,
+} from "@/shared/types/common/events.ts";
+import { MessageType, type Packet } from "@/shared/types/common/messages.ts";
 import {
   type PeerSnapshot,
   type SimulationInput,
@@ -14,23 +23,16 @@ import {
   type Step,
   type ToggleStep,
 } from "@/shared/types/model/steps";
-import {
-  EventType,
-  type Event,
-  type MoveEventDetails,
-  type StatusChangeEventDetails,
-} from "@/shared/types/common/events.ts";
-import { MessageType, type Packet } from "@/shared/types/common/messages.ts";
 import { DEFAULT_TIME_TO_LIVE } from "./constants/message";
-import { NetworkGraph } from "./network/NetworkGraph";
+import { NetworkGraphImpl } from "./network/NetworkGraph";
+import type { NetworkGraph } from "./types/network/graph";
 import { groupStepsByTick } from "./utils/steps";
-import { isReactive } from "@/features/processor/utils/protocol/protocols.ts";
 
 export class SimulationManager {
-  private readonly eventRecorder: EventRecorder = new EventRecorder();
+  private readonly eventRecorder: EventRecorder = new EventRecorderImpl();
 
   private readonly stepsByTick: Step[][];
-  private readonly networkGraph: NetworkGraph = new NetworkGraph(this.eventRecorder);
+  private readonly networkGraph: NetworkGraph = new NetworkGraphImpl(this.eventRecorder);
   private readonly stepPeerTables: PeerSnapshot[][] = [];
   private readonly eventPeerTables: PeerSnapshot[][][] = [];
 

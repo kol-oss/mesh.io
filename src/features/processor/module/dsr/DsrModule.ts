@@ -1,5 +1,4 @@
 import { DEFAULT_TIME_TO_LIVE } from "@/features/processor/constants/message.ts";
-import type { EventRecorder } from "@/features/processor/EventRecorder";
 import { RouteRequestTable } from "@/features/processor/module/dsr/structures/RouteRequestTable.ts";
 import {
   type DsrCalculationEventDetails,
@@ -10,6 +9,7 @@ import {
   type DsrRouteReplyMessage,
   type DsrRouteRequestMessage,
 } from "@/features/processor/types/protocols/dsr";
+import type { EventRecorder } from "@/features/processor/types/recorder";
 import { DSR_MAX_SALVAGE_COUNT } from "@/shared/constants/protocols/dsr.ts";
 import {
   type BroadcastEventDetails,
@@ -22,8 +22,8 @@ import { type BasePacket, type Message, MessageType } from "@/shared/types/commo
 import { RoutingProtocol } from "@/shared/types/common/protocols.ts";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { DsrConfiguration } from "@/shared/types/model/configurations";
-import type { NetworkGraph } from "../../network/NetworkGraph";
 import { RoutingStructure, type RoutingStructureType } from "../../types/module";
+import type { NetworkGraph } from "../../types/network/graph";
 import { BaseModule } from "../BaseModule";
 import { RouteCache } from "./structures/RouteCache.ts";
 

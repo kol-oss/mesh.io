@@ -1,19 +1,19 @@
+import type { DsrPacket } from "@/features/processor/types/protocols/dsr.ts";
 import {
   DropReason,
   EventType,
-  type EventDetails,
   type BroadcastEventDetails,
+  type EventDetails,
 } from "@/shared/types/common/events";
 import { MessageType, type Message, type Packet } from "@/shared/types/common/messages";
 import type { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { RefreshAction } from "@/shared/types/model/steps";
-import type { EventRecorder } from "../EventRecorder";
-import type { NetworkGraph } from "../network/NetworkGraph";
 import type { RoutingModule, RoutingStructureType } from "../types/module";
+import type { NetworkGraph } from "../types/network/graph";
+import type { EventRecorder } from "../types/recorder";
 import { clone } from "../utils/clone";
 import { isReactive } from "../utils/protocol/protocols";
-import type { DsrPacket } from "@/features/processor/types/protocols/dsr.ts";
 
 export abstract class BaseModule implements RoutingModule {
   protected readonly peerId: UUID;
