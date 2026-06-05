@@ -1,6 +1,6 @@
 import PeerDescription from "@/features/event/components/Description/PeerDescription";
 import TableDescription from "@/features/event/components/Description/TableDescription";
-import type { PeerSnapshot } from "@/shared/types/common/simulation";
+import type { AodvPeerTables } from "@/features/processor/types/peerTables";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
@@ -8,7 +8,7 @@ import { useState } from "react";
 import TableGroup from "./TableGroup";
 
 type AodvTableStructureProps = {
-  peer: PeerSnapshot;
+  tables: AodvPeerTables;
   peers: PeerEntity[];
   onPeerNameHover: (peerId: UUID) => void;
 };
@@ -33,7 +33,7 @@ const renderPrecursors = (
 };
 
 export default function AodvTableStructure({
-  peer,
+  tables,
   peers,
   onPeerNameHover,
 }: AodvTableStructureProps) {
@@ -41,7 +41,7 @@ export default function AodvTableStructure({
     routes: true,
   });
 
-  const routeRows = peer.aodvRoutingTable.map((route) => [
+  const routeRows = tables.routingTable.map((route) => [
     <PeerDescription
       peer={findById(route.destinationId, peers)}
       onHover={() => onPeerNameHover(route.destinationId)}

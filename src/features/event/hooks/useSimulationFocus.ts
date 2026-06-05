@@ -46,7 +46,8 @@ export function useSimulationFocus({
       tableInspectionWindows.find((w) => w.isOpen && (w.pinned || w.stepId === currentStepId))
         ?.peerId ?? null;
     const simulationEntities = currentSimulationStepResult?.snapshot.entities ?? entities;
-    const simulationPeers = currentSimulationStepResult?.snapshot.peers ?? peers;
+    const simulationPeers =
+      simulationEntities.filter((e): e is PeerEntity => e.type === EntityType.Peer) ?? peers;
     const peerById = new Map(simulationPeers.map((peer) => [peer.id, peer]));
 
     const getLinkAnchorPosition = (linkId: UUID): { x: number; y: number } | null => {

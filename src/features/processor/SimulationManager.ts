@@ -28,13 +28,21 @@ import { NetworkGraphImpl } from "./network/NetworkGraph";
 import type { NetworkGraph } from "./types/network/graph";
 import { groupStepsByTick } from "./utils/steps";
 
+// only change events are taken for snapshot
+const SNAPSHOT_EVENT_TYPES = [
+  EventType.AddRoute,
+  EventType.UpdateRoute,
+  EventType.DeleteRoute,
+  EventType.Calculation,
+];
+
 export class SimulationManager {
   private readonly eventRecorder: EventRecorder = new EventRecorderImpl();
 
   private readonly stepsByTick: Step[][];
   private readonly networkGraph: NetworkGraph = new NetworkGraphImpl(this.eventRecorder);
-  private readonly stepPeerTables: PeerSnapshot[][] = [];
-  private readonly eventPeerTables: PeerSnapshot[][][] = [];
+  private readonly stepStartTables: PeerSnapshot[][] = [];
+  private readonly stepEventDeltas: (PeerSnapshot | null)[][] = [];
 
   private constructor(entities: NetworkEntity[], steps: Step[]) {
     this.networkGraph.init(
@@ -61,20 +69,27 @@ export class SimulationManager {
       for (const step of steps) {
         this.eventRecorder.setStep(step);
 
+        // capture state at step start (before processing)
+        this.stepStartTables.push(this.networkGraph.peerTables());
+
         // capturing events emitted during this step
         const events: Event[] = [];
-        const eventTables: PeerSnapshot[][] = [];
+        const eventDeltas: (PeerSnapshot | null)[] = [];
 
         this.eventRecorder.setListener((event) => {
+          const { type, peerId } = event;
+
           events.push(event);
-          // capture tables immediately after each event so per-event state is preserved
-          eventTables.push(this.networkGraph.peerTables());
+          if (SNAPSHOT_EVENT_TYPES.includes(type)) {
+            eventDeltas.push(this.networkGraph.peerTableById(peerId));
+          } else {
+            eventDeltas.push(null);
+          }
         });
 
         // processing of the step
         this.processStep(step);
-        this.stepPeerTables.push(this.networkGraph.peerTables());
-        this.eventPeerTables.push(eventTables);
+        this.stepEventDeltas.push(eventDeltas);
 
         result.push({
           step,
@@ -91,14 +106,28 @@ export class SimulationManager {
     } satisfies SimulationResult;
   }
 
-  // returns full peer routing table data for a specific step index
-  getStepPeerTables(stepIndex: number): PeerSnapshot[] | null {
-    return this.stepPeerTables[stepIndex] ?? null;
+  // returns routing table data captured at the start of the given step
+  getStepTables(stepIndex: number): PeerSnapshot[] | null {
+    return this.stepStartTables[stepIndex] ?? null;
   }
 
-  // returns full peer routing table data after a specific raw event within a step
-  getEventPeerTables(stepIndex: number, rawEventIndex: number): PeerSnapshot[] | null {
-    return this.eventPeerTables[stepIndex]?.[rawEventIndex] ?? null;
+  // reconstructs routing table state at a specific event within a step by
+  // starting from the step-start snapshot and applying only per-peer deltas
+  getTablesAtEvent(stepIndex: number, eventIndex: number): PeerSnapshot[] | null {
+    const base = this.stepStartTables[stepIndex];
+    if (!base) return null;
+
+    const deltas = this.stepEventDeltas[stepIndex];
+    if (!deltas || deltas.length === 0) return base;
+
+    const result = new Map(base.map((s) => [s.peerId, s]));
+    for (let i = 0; i <= eventIndex && i < deltas.length; i++) {
+      const delta = deltas[i];
+      if (delta) {
+        result.set(delta.peerId, delta);
+      }
+    }
+    return Array.from(result.values());
   }
 
   // processes a single step and updates the state of the network

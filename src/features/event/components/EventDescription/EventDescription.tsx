@@ -2,6 +2,7 @@ import { EventType, type Event, type StatusChangeEventDetails } from "@/shared/t
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { type StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
+import type { PeerEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
 import { getEventDetailsType, getEventProtocol } from "@/shared/utils/events";
 import { getPeerLabel, renderPeerName } from "@/shared/utils/simulation/eventHelpers";
@@ -94,9 +95,11 @@ export default function EventDescription({
     return null;
   }
 
-  const peerNameById = new Map(
-    currentStepResult.snapshot.peers.map((peer) => [peer.id, peer.name]),
+  const peerEntities = currentStepResult.snapshot.entities.filter(
+    (e): e is PeerEntity => e.type === EntityType.Peer,
   );
+
+  const peerNameById = new Map(peerEntities.map((peer) => [peer.id, peer.name]));
 
   const detailsType = getEventDetailsType(currentEvent);
   const title = getEventTitle(detailsType);
@@ -169,7 +172,7 @@ export default function EventDescription({
           <BatmanDescription
             event={currentEvent}
             detailsType={detailsType}
-            peers={currentStepResult.snapshot.peers}
+            peers={peerEntities}
             onPeerHover={onPeerHoverChange}
           />
         )}
@@ -178,7 +181,7 @@ export default function EventDescription({
           <DsdvDescription
             event={currentEvent}
             detailsType={detailsType}
-            peers={currentStepResult.snapshot.peers}
+            peers={peerEntities}
             onPeerHover={onPeerHoverChange}
           />
         )}
@@ -187,7 +190,7 @@ export default function EventDescription({
           <AodvDescription
             event={currentEvent}
             detailsType={detailsType}
-            peers={currentStepResult.snapshot.peers}
+            peers={peerEntities}
             onPeerHover={onPeerHoverChange}
           />
         )}
@@ -196,7 +199,7 @@ export default function EventDescription({
           <OlsrDescription
             event={currentEvent}
             detailsType={detailsType}
-            peers={currentStepResult.snapshot.peers}
+            peers={peerEntities}
             onPeerHover={onPeerHoverChange}
           />
         )}
@@ -205,7 +208,7 @@ export default function EventDescription({
           <DsrDescription
             event={currentEvent}
             detailsType={detailsType}
-            peers={currentStepResult.snapshot.peers}
+            peers={peerEntities}
             onPeerHover={onPeerHoverChange}
           />
         )}
@@ -213,7 +216,7 @@ export default function EventDescription({
         {protocol === undefined && (
           <SystemDescription
             event={currentEvent}
-            peers={currentStepResult.snapshot.peers}
+            peers={peerEntities}
             onPeerHover={onPeerHoverChange}
           />
         )}

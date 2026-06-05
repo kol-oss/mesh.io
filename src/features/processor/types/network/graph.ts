@@ -14,4 +14,5 @@ export interface NetworkGraph {
   setStatus(entityId: UUID, active: boolean): ToggleStatusResult;
   snapshot(tick: number): Snapshot;
   peerTables(): PeerSnapshot[];
+  peerTableById(peerId: UUID): PeerSnapshot | null;
 }

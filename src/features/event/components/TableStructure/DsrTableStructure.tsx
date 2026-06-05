@@ -1,14 +1,15 @@
-import type { PeerSnapshot } from "@/shared/types/common/simulation.ts";
-import type { PeerEntity } from "@/shared/types/model/peers.ts";
-import type { UUID } from "@/shared/types/common/uuid.ts";
-import { useState } from "react";
-import TableGroup from "@/features/event/components/TableStructure/TableGroup.tsx";
-import TableDescription from "@/features/event/components/Description/TableDescription.tsx";
 import PeerDescription from "@/features/event/components/Description/PeerDescription.tsx";
+import TableDescription from "@/features/event/components/Description/TableDescription.tsx";
+import TableGroup from "@/features/event/components/TableStructure/TableGroup.tsx";
+import type { DsrPeerTables } from "@/features/processor/types/peerTables.ts";
+import type { UUID } from "@/shared/types/common/uuid.ts";
+import type { PeerEntity } from "@/shared/types/model/peers.ts";
 import { findById } from "@/shared/utils/peers.ts";
+import { useState } from "react";
 
 type DsrTableStructureProps = {
-  peer: PeerSnapshot;
+  tables: DsrPeerTables;
+  peerId: UUID;
   peers: PeerEntity[];
   onPeerNameHover: (peerId: UUID) => void;
 };
@@ -16,7 +17,8 @@ type DsrTableStructureProps = {
 const EMPTY_ROW = [["—", "—", "—"]];
 
 export default function DsrTableStructure({
-  peer,
+  tables,
+  peerId,
   peers,
   onPeerNameHover,
 }: DsrTableStructureProps) {
@@ -26,15 +28,15 @@ export default function DsrTableStructure({
   });
 
   const getPathString = (path: UUID[]) =>
-    path.map((peerId) => findById(peerId, peers)?.name ?? peerId).join(" -> ");
+    path.map((id) => findById(id, peers)?.name ?? id).join(" -> ");
 
-  const { dsrRoutingTable: cache, dsrRouteRequestTable: requestTable } = peer;
+  const { routingCache: cache, routeRequestTable: requestTable } = tables;
   const cacheRows = cache.map((record) => [
     <PeerDescription
       peer={findById(record.destinationId, peers)}
       onHover={() => onPeerNameHover(record.destinationId)}
     />,
-    getPathString([peer.id, ...record.path, record.destinationId]),
+    getPathString([peerId, ...record.path, record.destinationId]),
     record.lastUpdateTick,
   ]);
 

@@ -1,7 +1,10 @@
 import DsrTableStructure from "@/features/event/components/TableStructure/DsrTableStructure.tsx";
+import type { ProtocolTables } from "@/features/processor/types/peerTables";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { PeerSnapshot, StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
+import type { PeerEntity } from "@/shared/types/model/entities";
+import { EntityType } from "@/shared/types/model/entities";
 import { ExternalLink, X } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import AodvTableStructure from "./AodvTableStructure";
@@ -82,13 +85,70 @@ export default function TableStructure({
     return null;
   }
 
-  const inspectedPeer = peerTables?.find((peer) => peer.id === inspectedPeerId) ?? null;
+  const inspectedSnapshot = peerTables?.find((p) => p.peerId === inspectedPeerId) ?? null;
 
-  if (!inspectedPeer) {
+  if (!inspectedSnapshot) {
     return null;
   }
 
-  const selectedProtocol = inspectedPeer.protocol;
+  const peerEntities = currentStepResult.snapshot.entities.filter(
+    (e): e is PeerEntity => e.type === EntityType.Peer,
+  );
+  const inspectedPeerEntity = peerEntities.find((e) => e.id === inspectedPeerId) ?? null;
+  const peerName = inspectedPeerEntity?.name ?? inspectedPeerId;
+
+  const { tables } = inspectedSnapshot;
+  const selectedProtocol: RoutingProtocol = tables.protocol;
+
+  const renderTables = (tables: ProtocolTables) => {
+    if (tables.protocol === RoutingProtocol.BATMAN) {
+      return (
+        <BatmanTableStructure
+          tables={tables}
+          peers={peerEntities}
+          onPeerNameHover={onPeerHoverChange}
+        />
+      );
+    }
+    if (tables.protocol === RoutingProtocol.DSDV) {
+      return (
+        <DsdvTableStructure
+          tables={tables}
+          peers={peerEntities}
+          onPeerNameHover={onPeerHoverChange}
+        />
+      );
+    }
+    if (tables.protocol === RoutingProtocol.DSR) {
+      return (
+        <DsrTableStructure
+          tables={tables}
+          peerId={inspectedPeerId}
+          peers={peerEntities}
+          onPeerNameHover={onPeerHoverChange}
+        />
+      );
+    }
+    if (tables.protocol === RoutingProtocol.AODV) {
+      return (
+        <AodvTableStructure
+          tables={tables}
+          peers={peerEntities}
+          onPeerNameHover={onPeerHoverChange}
+        />
+      );
+    }
+    if (tables.protocol === RoutingProtocol.OLSR) {
+      return (
+        <OlsrTableStructure
+          tables={tables}
+          peers={peerEntities}
+          onPeerNameHover={onPeerHoverChange}
+        />
+      );
+    }
+    return null;
+  };
 
   return (
     <aside
@@ -103,14 +163,14 @@ export default function TableStructure({
       >
         <h2 className="simulation-panel__title">
           {selectedProtocol === RoutingProtocol.DSDV
-            ? `DSDV Structures on ${inspectedPeer.name}`
+            ? `DSDV Structures on ${peerName}`
             : selectedProtocol === RoutingProtocol.AODV
-              ? `AODV Structures on ${inspectedPeer.name}`
+              ? `AODV Structures on ${peerName}`
               : selectedProtocol === RoutingProtocol.DSR
-                ? `DSR Structures on ${inspectedPeer.name}`
+                ? `DSR Structures on ${peerName}`
                 : selectedProtocol === RoutingProtocol.OLSR
-                  ? `OLSR Structures on ${inspectedPeer.name}`
-                  : `B.A.T.M.A.N. V Structures on ${inspectedPeer.name}`}
+                  ? `OLSR Structures on ${peerName}`
+                  : `B.A.T.M.A.N. V Structures on ${peerName}`}
         </h2>
         <button
           className="simulation-panel__close-button"
@@ -124,37 +184,7 @@ export default function TableStructure({
       </header>
 
       <section className="simulation-panel__section" onMouseLeave={() => onPeerHoverChange(null)}>
-        {selectedProtocol === RoutingProtocol.BATMAN ? (
-          <BatmanTableStructure
-            peer={inspectedPeer}
-            peers={currentStepResult.snapshot.peers}
-            onPeerNameHover={onPeerHoverChange}
-          />
-        ) : selectedProtocol === RoutingProtocol.DSDV ? (
-          <DsdvTableStructure
-            peer={inspectedPeer}
-            peers={currentStepResult.snapshot.peers}
-            onPeerNameHover={onPeerHoverChange}
-          />
-        ) : selectedProtocol === RoutingProtocol.DSR ? (
-          <DsrTableStructure
-            peer={inspectedPeer}
-            peers={currentStepResult.snapshot.peers}
-            onPeerNameHover={onPeerHoverChange}
-          />
-        ) : selectedProtocol === RoutingProtocol.AODV ? (
-          <AodvTableStructure
-            peer={inspectedPeer}
-            peers={currentStepResult.snapshot.peers}
-            onPeerNameHover={onPeerHoverChange}
-          />
-        ) : selectedProtocol === RoutingProtocol.OLSR ? (
-          <OlsrTableStructure
-            peer={inspectedPeer}
-            peers={currentStepResult.snapshot.peers}
-            onPeerNameHover={onPeerHoverChange}
-          />
-        ) : null}
+        {renderTables(tables)}
       </section>
 
       <footer className="simulation-panel__footer">

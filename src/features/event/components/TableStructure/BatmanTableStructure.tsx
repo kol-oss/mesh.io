@@ -1,6 +1,6 @@
 import PeerDescription from "@/features/event/components/Description/PeerDescription";
 import TableDescription from "@/features/event/components/Description/TableDescription";
-import type { PeerSnapshot } from "@/shared/types/common/simulation";
+import type { BatmanPeerTables } from "@/features/processor/types/peerTables";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
@@ -8,7 +8,7 @@ import { useState } from "react";
 import TableGroup from "./TableGroup";
 
 type BatmanTableStructureProps = {
-  peer: PeerSnapshot;
+  tables: BatmanPeerTables;
   peers: PeerEntity[];
   onPeerNameHover: (peerId: UUID) => void;
 };
@@ -16,7 +16,7 @@ type BatmanTableStructureProps = {
 const EMPTY_ROW = [["—", "—", "—", "—"]];
 
 export default function BatmanTableStructure({
-  peer,
+  tables,
   peers,
   onPeerNameHover,
 }: BatmanTableStructureProps) {
@@ -25,7 +25,7 @@ export default function BatmanTableStructure({
     originators: true,
   });
 
-  const { batmanNeighboursTable: neighbours, batmanRoutingTable: originators } = peer;
+  const { neighboursList: neighbours, originatorTable: originators } = tables;
   const neighbourRows = neighbours.map((neighbour) => [
     <PeerDescription
       peer={findById(neighbour.neighbourId, peers)}

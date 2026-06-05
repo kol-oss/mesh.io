@@ -9,7 +9,6 @@ import {
 import Graph, { UndirectedGraph } from "graphology";
 import type { BaseModule } from "../module/BaseModule";
 import type { BoundingBox } from "../types/bound";
-import { RoutingStructure } from "../types/module";
 import type { NetworkGraph } from "../types/network/graph";
 import { LinkType, type Link } from "../types/network/link";
 import type { Peer } from "../types/network/peer";
@@ -19,6 +18,7 @@ import { isRangedConnected } from "../utils/connection";
 import { mapEntityToNode, mapNodeToEntity } from "../utils/mapper";
 import { getBoundingBox } from "../utils/math/bound";
 import { createModule } from "../utils/module";
+import { buildProtocolTables } from "../utils/tables";
 
 export class NetworkGraphImpl implements NetworkGraph {
   private readonly eventRecorder: EventRecorder;
@@ -194,39 +194,39 @@ export class NetworkGraphImpl implements NetworkGraph {
   }
 
   snapshot(tick: number): Snapshot {
-    const entities = this.graph.nodes().map((id) => {
+    const peerEntities = this.graph.nodes().map((id) => {
       const node = this.graph.getNodeAttributes(id);
       return mapNodeToEntity(node);
     });
 
     return {
       tick,
-      entities: [...entities, ...this.obstacles, ...this.links],
-      peers: entities,
+      entities: [...peerEntities, ...this.obstacles, ...this.links],
     };
   }
 
-  // extracts full routing table data for all peers at the current state
+  // extracts routing table data for all peers at the current state
   peerTables(): PeerSnapshot[] {
     return this.graph.nodes().map((nodeId) => {
       const peer = this.graph.getNodeAttributes(nodeId);
       const structures = (peer.module as BaseModule).getTables();
-
       return {
-        ...mapNodeToEntity(peer),
-        batmanRoutingTable: structures[RoutingStructure.BatmanOriginatorTable] ?? [],
-        batmanNeighboursTable: structures[RoutingStructure.BatmanNeighboursList] ?? [],
-        dsdvRoutingTable: structures[RoutingStructure.DsdvRoutingTable] ?? [],
-        aodvRoutingTable: structures[RoutingStructure.AodvRoutingTable] ?? [],
-        dsrRoutingTable: structures[RoutingStructure.DsrRoutingCache] ?? [],
-        dsrRouteRequestTable: structures[RoutingStructure.DsrRouteRequestTable] ?? [],
-        olsrNeighbourSet: structures[RoutingStructure.OlsrNeighbourSet] ?? [],
-        olsrTwoHopNeighbourSet: structures[RoutingStructure.OlsrTwoHopNeighbourSet] ?? [],
-        olsrMprSet: structures[RoutingStructure.OlsrMultipointRelaySet] ?? [],
-        olsrSelectorSet: structures[RoutingStructure.OlsrSelectorSet] ?? [],
-        olsrTopologySet: structures[RoutingStructure.OlsrTopologySet] ?? [],
-        olsrRoutingTable: structures[RoutingStructure.OlsrRoutingTable] ?? [],
+        peerId: peer.id,
+        tables: buildProtocolTables(peer.protocol, structures),
       };
     });
+  }
+
+  // extracts routing table data for a single peer by id
+  peerTableById(peerId: UUID): PeerSnapshot | null {
+    if (!this.graph.hasNode(peerId)) {
+      return null;
+    }
+    const peer = this.graph.getNodeAttributes(peerId);
+    const structures = (peer.module as BaseModule).getTables();
+    return {
+      peerId: peer.id,
+      tables: buildProtocolTables(peer.protocol, structures),
+    };
   }
 }

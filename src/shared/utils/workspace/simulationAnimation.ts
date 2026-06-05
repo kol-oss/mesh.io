@@ -16,7 +16,8 @@ import type { Message } from "@/shared/types/common/messages";
 import { MessageType } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import type { UUID } from "@/shared/types/common/uuid";
-import type { PeerEntity } from "@/shared/types/model/entities";
+import type { NetworkEntity, PeerEntity } from "@/shared/types/model/entities";
+import { EntityType } from "@/shared/types/model/entities";
 import type {
   MessageAnimation,
   MoveStepAnimation,
@@ -26,7 +27,7 @@ import type {
 export const buildSimulationMessageAnimations = (
   currentEvent: Event | null,
   currentStepResult: {
-    snapshot: { peers: PeerEntity[] };
+    snapshot: { entities: NetworkEntity[] };
     events: Event[];
   } | null,
   fallbackPeers: PeerEntity[],
@@ -37,8 +38,10 @@ export const buildSimulationMessageAnimations = (
 
   const peerById = new Map<UUID, PeerEntity>();
 
-  for (const peer of currentStepResult.snapshot.peers) {
-    peerById.set(peer.id, peer);
+  for (const entity of currentStepResult.snapshot.entities) {
+    if (entity.type === EntityType.Peer) {
+      peerById.set(entity.id, entity as PeerEntity);
+    }
   }
 
   for (const peer of fallbackPeers) {

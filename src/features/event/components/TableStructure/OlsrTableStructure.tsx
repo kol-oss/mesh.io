@@ -1,15 +1,15 @@
 import PeerDescription from "@/features/event/components/Description/PeerDescription";
 import TableDescription from "@/features/event/components/Description/TableDescription";
-import type { PeerSnapshot } from "@/shared/types/common/simulation";
+import type { OlsrPeerTables } from "@/features/processor/types/peerTables";
+import { OlsrNeighbourStatus } from "@/features/processor/types/protocols/olsr.ts";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
 import { useState } from "react";
 import TableGroup from "./TableGroup";
-import { OlsrNeighbourStatus } from "@/features/processor/types/protocols/olsr.ts";
 
 type OlsrTableStructureProps = {
-  peer: PeerSnapshot;
+  tables: OlsrPeerTables;
   peers: PeerEntity[];
   onPeerNameHover: (peerId: UUID) => void;
 };
@@ -21,7 +21,7 @@ const EMPTY_FOUR = [["-", "-", "-", "-"]];
 const EMPTY_FIVE = [["-", "-", "-", "-", "-"]];
 
 export default function OlsrTableStructure({
-  peer,
+  tables,
   peers,
   onPeerNameHover,
 }: OlsrTableStructureProps) {
@@ -34,7 +34,7 @@ export default function OlsrTableStructure({
     routes: false,
   });
 
-  const neighbourRows = peer.olsrNeighbourSet.map((row) => [
+  const neighbourRows = tables.neighbourSet.map((row) => [
     <PeerDescription
       peer={findById(row.neighbourPeerId, peers)}
       onHover={() => onPeerNameHover(row.neighbourPeerId)}
@@ -43,7 +43,7 @@ export default function OlsrTableStructure({
     row.lastUpdateTick,
   ]);
 
-  const twoHopRows = peer.olsrTwoHopNeighbourSet.map((row) => [
+  const twoHopRows = tables.twoHopNeighbourSet.map((row) => [
     <PeerDescription
       peer={findById(row.viaPeerId, peers)}
       onHover={() => onPeerNameHover(row.viaPeerId)}
@@ -55,11 +55,11 @@ export default function OlsrTableStructure({
     row.lastUpdateTick,
   ]);
 
-  const mprRows = peer.olsrMprSet.map((row) => [
+  const mprRows = tables.mprSet.map((row) => [
     <PeerDescription peer={findById(row, peers)} onHover={() => onPeerNameHover(row)} />,
   ]);
 
-  const selectorRows = peer.olsrSelectorSet.map((row) => [
+  const selectorRows = tables.selectorSet.map((row) => [
     <PeerDescription
       peer={findById(row.selectorPeerId, peers)}
       onHover={() => onPeerNameHover(row.selectorPeerId)}
@@ -67,7 +67,7 @@ export default function OlsrTableStructure({
     row.lastUpdateTick,
   ]);
 
-  const topologyRows = peer.olsrTopologySet.map((row) => [
+  const topologyRows = tables.topologySet.map((row) => [
     <PeerDescription
       peer={findById(row.destinationPeerId, peers)}
       onHover={() => onPeerNameHover(row.destinationPeerId)}
@@ -80,7 +80,7 @@ export default function OlsrTableStructure({
     row.lastUpdateTick,
   ]);
 
-  const routeRows = peer.olsrRoutingTable.map((row) => [
+  const routeRows = tables.routingTable.map((row) => [
     <PeerDescription
       peer={findById(row.destinationPeerId, peers)}
       onHover={() => onPeerNameHover(row.destinationPeerId)}

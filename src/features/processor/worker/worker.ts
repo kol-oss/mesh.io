@@ -48,8 +48,8 @@ self.onmessage = (event: MessageEvent<CompilationRequest>) => {
     const { stepIndex, eventIndex } = message;
     const peers =
       eventIndex !== null
-        ? (activeManager?.getEventPeerTables(stepIndex, eventIndex) ?? [])
-        : (activeManager?.getStepPeerTables(stepIndex) ?? []);
+        ? (activeManager?.getTablesAtEvent(stepIndex, eventIndex) ?? [])
+        : (activeManager?.getStepTables(stepIndex) ?? []);
 
     const response: CompilationResponse = {
       type: CompilationResponseType.GetTablesSuccess,

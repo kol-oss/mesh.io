@@ -1,6 +1,6 @@
 import PeerDescription from "@/features/event/components/Description/PeerDescription";
 import TableDescription from "@/features/event/components/Description/TableDescription";
-import type { PeerSnapshot } from "@/shared/types/common/simulation";
+import type { DsdvPeerTables } from "@/features/processor/types/peerTables";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
@@ -8,7 +8,7 @@ import { useState } from "react";
 import TableGroup from "./TableGroup";
 
 type DsdvTableStructureProps = {
-  peer: PeerSnapshot;
+  tables: DsdvPeerTables;
   peers: PeerEntity[];
   onPeerNameHover: (peerId: UUID) => void;
 };
@@ -16,7 +16,7 @@ type DsdvTableStructureProps = {
 const EMPTY_ROW = [["-", "-", "-", "-", "-"]];
 
 export default function DsdvTableStructure({
-  peer,
+  tables,
   peers,
   onPeerNameHover,
 }: DsdvTableStructureProps) {
@@ -24,7 +24,7 @@ export default function DsdvTableStructure({
     routes: true,
   });
 
-  const routeRows = peer.dsdvRoutingTable.map((route) => [
+  const routeRows = tables.routingTable.map((route) => [
     <PeerDescription
       peer={findById(route.destinationPeerId, peers)}
       onHover={() => onPeerNameHover(route.destinationPeerId)}

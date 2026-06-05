@@ -53,5 +53,6 @@ export function makeGraph(selfPeer: Peer, neighbours: Peer[] = []): jest.Mocked<
     setStatus: jest.fn<NetworkGraph["setStatus"]>().mockReturnValue(null),
     snapshot: jest.fn<NetworkGraph["snapshot"]>(),
     peerTables: jest.fn<NetworkGraph["peerTables"]>().mockReturnValue([]),
+    peerTableById: jest.fn<NetworkGraph["peerTableById"]>().mockReturnValue(null),
   };
 }

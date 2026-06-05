@@ -2,6 +2,8 @@ import { type Event } from "@/shared/types/common/events";
 import { type Message, MessageType } from "@/shared/types/common/messages";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { type StepResult } from "@/shared/types/common/simulation";
+import type { PeerEntity } from "@/shared/types/model/entities";
+import { EntityType } from "@/shared/types/model/entities";
 import { ExternalLink, X } from "lucide-react";
 import { type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from "react";
 import AodvMessageStructure from "./AodvMessageStructure";
@@ -99,9 +101,10 @@ export default function MessageStructure({
     return null;
   }
 
-  const peerNameById = new Map(
-    currentStepResult.snapshot.peers.map((peer) => [peer.id, peer.name]),
+  const peerEntities = currentStepResult.snapshot.entities.filter(
+    (e): e is PeerEntity => e.type === EntityType.Peer,
   );
+  const peerNameById = new Map(peerEntities.map((peer) => [peer.id, peer.name]));
   const inspectorTitle = getPacketInspectorTitle(eventMessage);
   const packetStructureAria = getPacketInspectorStructureAria(eventMessage);
   const readMorePath = getPacketReadMorePath(eventMessage);
@@ -128,21 +131,18 @@ export default function MessageStructure({
       </header>
       <section className="simulation-panel__section">
         {protocol == RoutingProtocol.BATMAN && (
-          <BatmanMessageStructure
-            message={eventMessage!}
-            peers={currentStepResult.snapshot.peers}
-          />
+          <BatmanMessageStructure message={eventMessage!} peers={peerEntities} />
         )}
 
         {protocol == RoutingProtocol.DSDV && (
-          <DsdvMessageStructure message={eventMessage!} peers={currentStepResult.snapshot.peers} />
+          <DsdvMessageStructure message={eventMessage!} peers={peerEntities} />
         )}
 
         {(protocol == RoutingProtocol.DSR || messageType === MessageType.DsrPacket) && (
           <DsrMessageStructure
             message={eventMessage!}
             peerId={currentEvent.peerId}
-            peers={currentStepResult.snapshot.peers}
+            peers={peerEntities}
           />
         )}
 
