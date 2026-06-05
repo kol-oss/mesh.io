@@ -678,6 +678,18 @@ export function useBoardStore() {
       if (event.key === "ArrowRight") {
         event.preventDefault();
         handleNextSimulationEvent();
+        return;
+      }
+
+      if (event.key === "a" || event.key === "A") {
+        event.preventDefault();
+        handlePrevSimulationStep();
+        return;
+      }
+
+      if (event.key === "d" || event.key === "D") {
+        event.preventDefault();
+        handleNextSimulationStep();
       }
     };
 
@@ -686,7 +698,13 @@ export function useBoardStore() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [handleNextSimulationEvent, handlePrevSimulationEvent, isSimulationActive]);
+  }, [
+    handleNextSimulationEvent,
+    handleNextSimulationStep,
+    handlePrevSimulationEvent,
+    handlePrevSimulationStep,
+    isSimulationActive,
+  ]);
 
   return {
     canGoNextEvent:

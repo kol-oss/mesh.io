@@ -34,6 +34,15 @@ export default function ActionButton({
     return key === ToolbarActionKey.Prev ? onPrevStep() : onNextStep();
   };
 
+  const getShortcut = (): string | undefined => {
+    if (key === ToolbarActionKey.Prev) {
+      return "A";
+    }
+    if (key === ToolbarActionKey.Next) {
+      return "D";
+    }
+  };
+
   const getIsDisabled = (key: ToolbarActionKey): boolean => {
     if (key === ToolbarActionKey.Run) {
       return false;
@@ -51,6 +60,7 @@ export default function ActionButton({
       key={key}
       icon={buttonIcon}
       name={label}
+      shortcut={getShortcut()}
       isDisabled={getIsDisabled(key)}
       iconClassName={
         isRunAction ? (isRuntime ? "toolbar__stop-icon" : "toolbar__run-icon") : undefined

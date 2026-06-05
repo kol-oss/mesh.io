@@ -5,6 +5,7 @@ import type { LucideIcon } from "lucide-react";
 
 type ButtonProps = {
   name: string;
+  shortcut?: string;
   icon: LucideIcon;
   className?: string;
   iconClassName?: string;
@@ -16,6 +17,7 @@ type ButtonProps = {
 
 export default function Button({
   name,
+  shortcut,
   icon: Icon,
   isActive = false,
   isDisabled = false,
@@ -27,7 +29,7 @@ export default function Button({
   const buttonClass = `toolbar__button${isActive ? " toolbar__button--active" : ""}${className ? ` ${className}` : ""}`;
 
   return (
-    <Tooltip content={name} placement={TooltipPlacement.Top}>
+    <Tooltip content={name} shortcut={shortcut} placement={TooltipPlacement.Top}>
       <button
         className={buttonClass}
         type="button"

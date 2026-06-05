@@ -7,6 +7,7 @@ type TooltipProps = {
   children: ReactNode;
   placement?: TooltipPlacement;
   anchorClassName?: string;
+  shortcut?: string;
 };
 
 type TooltipPosition = {
@@ -22,6 +23,7 @@ export default function Tooltip({
   children,
   placement = TooltipPlacement.Top,
   anchorClassName,
+  shortcut,
 }: TooltipProps) {
   const anchorRef = useRef<HTMLSpanElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
@@ -141,7 +143,10 @@ export default function Tooltip({
             }}
             role="tooltip"
           >
-            <span className="tooltip__content">{content}</span>
+            <span className="tooltip__content">
+              {content}
+              {shortcut && <span className="tooltip__shortcut">{shortcut}</span>}
+            </span>
             <span className="tooltip__arrow" />
           </div>,
           document.body,

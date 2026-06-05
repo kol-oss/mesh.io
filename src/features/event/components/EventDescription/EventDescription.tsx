@@ -1,9 +1,11 @@
+import Tooltip from "@/shared/components/Tooltip/Tooltip";
 import { EventType, type Event, type StatusChangeEventDetails } from "@/shared/types/common/events";
 import { RoutingProtocol } from "@/shared/types/common/protocols";
 import { type StepResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
+import { TooltipPlacement } from "@/shared/types/view/view";
 import { getEventDetailsType, getEventProtocol } from "@/shared/utils/events";
 import { getPeerLabel, renderPeerName } from "@/shared/utils/simulation/eventHelpers";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
@@ -235,29 +237,33 @@ export default function EventDescription({
         </Link>
 
         <div className="simulation-panel__pager simulation-panel__pager--footer">
-          <button
-            className="simulation-panel__pager-button"
-            type="button"
-            onClick={onPrevEvent}
-            disabled={!canGoPrevEvent}
-            aria-label={"Previous event"}
-          >
-            <ChevronLeft size={18} />
-          </button>
+          <Tooltip content={"Previous event"} shortcut={"←"} placement={TooltipPlacement.Top}>
+            <button
+              className="simulation-panel__pager-button"
+              type="button"
+              onClick={onPrevEvent}
+              disabled={!canGoPrevEvent}
+              aria-label={"Previous event"}
+            >
+              <ChevronLeft size={18} />
+            </button>
+          </Tooltip>
 
           <span className="simulation-panel__pager-label">
             {`${currentEventIndex + (currentEventsTotal !== 0 ? 1 : 0)}/${currentEventsTotal}`}
           </span>
 
-          <button
-            className="simulation-panel__pager-button"
-            type="button"
-            onClick={onNextEvent}
-            disabled={!canGoNextEvent}
-            aria-label={"Next event"}
-          >
-            <ChevronRight size={18} />
-          </button>
+          <Tooltip content={"Next event"} shortcut={"→"} placement={TooltipPlacement.Top}>
+            <button
+              className="simulation-panel__pager-button"
+              type="button"
+              onClick={onNextEvent}
+              disabled={!canGoNextEvent}
+              aria-label={"Next event"}
+            >
+              <ChevronRight size={18} />
+            </button>
+          </Tooltip>
         </div>
       </footer>
     </aside>
