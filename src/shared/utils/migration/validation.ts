@@ -145,5 +145,5 @@ export const getExportFileName = (date = new Date()) => {
   const stamp = `${date.getFullYear()}${toPart(date.getMonth() + 1)}${toPart(date.getDate())}-${toPart(
     date.getHours(),
   )}${toPart(date.getMinutes())}${toPart(date.getSeconds())}`;
-  return `mesh-io-export-${stamp}.json`;
+  return `mesh-io-${stamp}.json`;
 };
