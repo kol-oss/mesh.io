@@ -1,17 +1,20 @@
 import { SimulationManager } from "@/features/processor/SimulationManager";
-import type {
-  SimulationWorkerRequest,
-  SimulationWorkerResponse,
-} from "@/features/processor/types/simulationWorker";
+import {
+  type CompilationRequest,
+  CompilationRequestType,
+  type CompilationResponse,
+  CompilationResponseType,
+} from "@/features/processor/types/worker.ts";
 import { composeStepsWithRefresh } from "@/shared/utils/navigation/refreshSteps";
 
-// kept alive after RUN_SIMULATION so GET_STEP_TABLES can be served without re-running
 let activeManager: SimulationManager | null = null;
 
-self.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
+self.onmessage = (event: MessageEvent<CompilationRequest>) => {
   const message = event.data;
+  const { type: messageType } = message;
 
-  if (message.type === "RUN_SIMULATION") {
+  // processing of Run compilation request
+  if (messageType === CompilationRequestType.Run) {
     activeManager = null;
 
     try {
@@ -22,15 +25,15 @@ self.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
       const result = manager.run();
       activeManager = manager;
 
-      const response: SimulationWorkerResponse = {
-        type: "SIMULATION_SUCCESS",
+      const response: CompilationResponse = {
+        type: CompilationResponseType.Success,
         payload: result,
       };
 
       self.postMessage(response);
     } catch (error) {
-      const response: SimulationWorkerResponse = {
-        type: "SIMULATION_ERROR",
+      const response: CompilationResponse = {
+        type: CompilationResponseType.Error,
         error: error instanceof Error ? error.message : "Simulation failed",
       };
 
@@ -40,15 +43,16 @@ self.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
     return;
   }
 
-  if (message.type === "GET_STEP_TABLES") {
+  // processing of GetTables compilation request
+  if (messageType === CompilationRequestType.GetTables) {
     const { stepIndex, eventIndex } = message;
     const peers =
       eventIndex !== null
         ? (activeManager?.getEventPeerTables(stepIndex, eventIndex) ?? [])
         : (activeManager?.getStepPeerTables(stepIndex) ?? []);
 
-    const response: SimulationWorkerResponse = {
-      type: "STEP_TABLES_SUCCESS",
+    const response: CompilationResponse = {
+      type: CompilationResponseType.GetTablesSuccess,
       stepIndex: message.stepIndex,
       peers,
     };

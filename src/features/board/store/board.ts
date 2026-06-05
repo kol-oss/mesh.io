@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef } from "react";
 
-import type {
-  SimulationWorkerInput,
-  SimulationWorkerRequest,
-  SimulationWorkerResponse,
-} from "@/features/processor/types/simulationWorker";
+import {
+  type CompilationPayload,
+  type CompilationRequest,
+  CompilationRequestType,
+  type CompilationResponse,
+  CompilationResponseType,
+} from "@/features/processor/types/worker.ts";
 import { createLinkPropertiesSchema } from "@/shared/schemas/entity/LinkEntitySchema";
 import { ObstaclePropertiesSchema } from "@/shared/schemas/entity/ObstacleSchema";
 import { PeerEntitySchema, PeerPropertiesSchema } from "@/shared/schemas/entity/PeerEntitySchema";
@@ -25,12 +27,12 @@ import {
 } from "@/shared/store/selectors";
 import { setPlacementMode } from "@/shared/store/slices/boardSlice";
 import {
-  TABS,
   clearState,
   replaceDisplay,
   setOpenedTab,
   setRefreshHidden,
   setSelectedId,
+  TABS,
   toggleNavCollapsed,
 } from "@/shared/store/slices/displaySlice";
 import { clearLinks, replaceLinks } from "@/shared/store/slices/linkSlice";
@@ -60,7 +62,7 @@ import type {
   PeerEntity,
 } from "@/shared/types/model/entities";
 import { EntityType } from "@/shared/types/model/entities";
-import { StepType, type Step } from "@/shared/types/model/steps";
+import { type Step, StepType } from "@/shared/types/model/steps";
 import { SelectionType as SelectionSource } from "@/shared/types/view/selection";
 import type { TextItem } from "@/shared/types/workspace/text";
 import {
@@ -128,8 +130,8 @@ export function useBoardStore() {
       }
     }
 
-    const request: SimulationWorkerRequest = {
-      type: "GET_STEP_TABLES",
+    const request: CompilationRequest = {
+      type: CompilationRequestType.GetTables,
       stepIndex: simulationCurrentStepIndex,
       eventIndex: rawEventIndex,
     };
@@ -151,27 +153,24 @@ export function useBoardStore() {
   }, []);
 
   const runSimulationInWorker = useCallback(
-    (input: SimulationWorkerInput) => {
+    (input: CompilationPayload) => {
       // terminate any worker left alive from a previous simulation
       terminateSimulationWorker();
 
       const requestId = simulationRequestIdRef.current;
 
       return new Promise<SimulationResult>((resolve, reject) => {
-        const worker = new Worker(
-          new URL("../../processor/worker/simulation.worker.ts", import.meta.url),
-          {
-            type: "module",
-          },
-        );
+        const worker = new Worker(new URL("../../processor/worker/worker.ts", import.meta.url), {
+          type: "module",
+        });
 
         simulationWorkerRef.current = worker;
 
-        worker.onmessage = (event: MessageEvent<SimulationWorkerResponse>) => {
+        worker.onmessage = (event: MessageEvent<CompilationResponse>) => {
           const { data } = event;
 
           // routing table data arriving after the initial result
-          if (data.type === "STEP_TABLES_SUCCESS") {
+          if (data.type === CompilationResponseType.GetTablesSuccess) {
             if (simulationWorkerRef.current === worker) {
               dispatch(setCurrentStepPeerTables(data.peers));
             }
@@ -183,13 +182,12 @@ export function useBoardStore() {
             return;
           }
 
-          if (data.type === "SIMULATION_SUCCESS") {
-            // keep the worker alive — it holds per-step peer tables for on-demand queries
+          if (data.type === CompilationResponseType.Success) {
+            // keep the worker alive - it holds per-step peer tables for on-demand queries
             resolve(data.payload);
             return;
           }
 
-          // SIMULATION_ERROR
           if (simulationWorkerRef.current === worker) {
             simulationWorkerRef.current = null;
           }
@@ -211,8 +209,8 @@ export function useBoardStore() {
           reject(new Error("Simulation worker failed"));
         };
 
-        const request: SimulationWorkerRequest = {
-          type: "RUN_SIMULATION",
+        const request: CompilationRequest = {
+          type: CompilationRequestType.Run,
           payload: input,
         };
         worker.postMessage(request);

@@ -18,6 +18,7 @@ import type {
 import type { NetworkEntity, PeerEntity } from "../model/entities";
 import type { Step } from "../model/steps";
 import type { Event } from "./events";
+import type { UUID } from "@/shared/types/common/uuid.ts";
 
 export type PeerSnapshot = PeerEntity & {
   batmanRoutingTable: BatmanRouteRecord[];
