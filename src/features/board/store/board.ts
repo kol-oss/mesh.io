@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 
 import {
   type CompilationPayload,
@@ -7,6 +7,7 @@ import {
   type CompilationResponse,
   CompilationResponseType,
 } from "@/features/processor/types/worker.ts";
+import { clone } from "@/features/processor/utils/clone";
 import { createLinkPropertiesSchema } from "@/shared/schemas/entity/LinkEntitySchema";
 import { ObstaclePropertiesSchema } from "@/shared/schemas/entity/ObstacleSchema";
 import { PeerEntitySchema, PeerPropertiesSchema } from "@/shared/schemas/entity/PeerEntitySchema";
@@ -36,8 +37,8 @@ import {
   toggleNavCollapsed,
 } from "@/shared/store/slices/displaySlice";
 import { clearLinks, replaceLinks } from "@/shared/store/slices/linkSlice";
-import { clearObstacles, replaceObstacles } from "@/shared/store/slices/obstacleSlice";
-import { clearPeers, replacePeers } from "@/shared/store/slices/peerSlice";
+import { clearObstacles, replaceObstacles, setObstacle } from "@/shared/store/slices/obstacleSlice";
+import { clearPeers, replacePeers, setPeer } from "@/shared/store/slices/peerSlice";
 import {
   clearSimulation,
   setCurrentEventIndex,
@@ -55,6 +56,7 @@ import type { ToolbarPlacementMode } from "@/shared/types/action";
 import { ActionMode as PlacementMode, ActionMode as ToolbarMode } from "@/shared/types/action";
 import type { SimulationResult } from "@/shared/types/common/simulation";
 import type { UUID } from "@/shared/types/common/uuid";
+import { generateUUID } from "@/shared/types/common/uuid";
 import type {
   LinkEntity,
   NetworkEntity,
@@ -78,6 +80,7 @@ export function useBoardStore() {
   const simulationRunLockRef = useRef(false);
   const simulationWorkerRef = useRef<Worker | null>(null);
   const simulationRequestIdRef = useRef(0);
+  const clipboardRef = useRef<PeerEntity | ObstacleEntity | null>(null);
 
   const placementMode = useAppSelector((state) => state.board.placementMode);
   const display = useAppSelector((state) => state.display);
@@ -98,6 +101,14 @@ export function useBoardStore() {
   const normalizedManualSteps = useAppSelector(selectNormalizedSteps);
   const steps = useAppSelector(selectSteps);
   const selectedSource = useAppSelector(selectSelectedSource);
+
+  // Refs that mirror mutable state so the copy/paste handler never goes stale
+  const selectedIdRef = useRef<UUID | null>(null);
+  const entitiesRef = useRef<NetworkEntity[]>([]);
+  useLayoutEffect(() => {
+    selectedIdRef.current = selectedId;
+    entitiesRef.current = entities;
+  });
   const isSimulationActive = useAppSelector(selectIsSimulationActive);
   const currentSimulationStepResult = useAppSelector(selectCurrentSimulationStepResult);
   const currentSimulationEvents = useAppSelector(selectCurrentSimulationEvents);
@@ -620,6 +631,49 @@ export function useBoardStore() {
       terminateSimulationWorker();
     };
   }, [terminateSimulationWorker]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!event.ctrlKey && !event.metaKey) return;
+
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (event.key === "c" || event.key === "C") {
+        const id = selectedIdRef.current;
+        if (!id) return;
+        const entity = entitiesRef.current.find((e) => e.id === id);
+        if (!entity || entity.type === EntityType.Link) return;
+        clipboardRef.current = clone(entity) as PeerEntity | ObstacleEntity;
+        return;
+      }
+
+      if (event.key === "v" || event.key === "V") {
+        const copied = clipboardRef.current;
+        if (!copied) return;
+        event.preventDefault();
+        const newEntity = { ...clone(copied), id: generateUUID(), x: copied.x + 100 };
+        invalidateSimulation();
+        if (newEntity.type === EntityType.Peer) {
+          dispatch(setPeer(newEntity));
+        } else {
+          dispatch(setObstacle(newEntity));
+        }
+        dispatch(setSelectedId(newEntity.id));
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [dispatch, invalidateSimulation]);
 
   useEffect(() => {
     if (!selectedId || selectedSource !== null) {
