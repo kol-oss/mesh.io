@@ -8,6 +8,7 @@ import type {
   BatmanOriginatorMessage,
 } from "@/features/processor/types/protocols/batman";
 import {
+  BATMAN_DEFAULT_CONFIGURATION,
   BATMAN_MAX_THROUGHPUT,
   BATMAN_TIME_TO_LIVE,
   BATMAN_VERSION,
@@ -28,13 +29,7 @@ const FIRST_NEIGHBOUR_ID: UUID = generateUUID();
 const SECOND_NEIGHBOUR_ID: UUID = generateUUID();
 const REMOTE_ID: UUID = generateUUID();
 
-const DEFAULT_CONFIG: BatmanConfiguration = {
-  penaltyDistance: 100,
-  penaltyPercent: 10,
-  elpInterval: 5,
-  ogmInterval: 5,
-  purgeTimeout: 10,
-};
+const DEFAULT_CONFIG: BatmanConfiguration = { ...BATMAN_DEFAULT_CONFIGURATION };
 
 function makePeer(id: UUID, active = true, config: BatmanConfiguration = DEFAULT_CONFIG): Peer {
   return makePeerBase(id, RoutingProtocol.BATMAN, config, active);

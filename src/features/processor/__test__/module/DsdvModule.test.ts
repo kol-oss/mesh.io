@@ -23,10 +23,7 @@ const SELF_ID: UUID = generateUUID();
 const NEIGHBOUR_ID: UUID = generateUUID();
 const REMOTE_ID: UUID = generateUUID();
 
-const DEFAULT_CONFIG: DsdvConfiguration = {
-  ...DSDV_DEFAULT_CONFIGURATION,
-  routeTimeout: 5,
-};
+const DEFAULT_CONFIG: DsdvConfiguration = { ...DSDV_DEFAULT_CONFIGURATION };
 
 function makePeer(id: UUID, active = true, config: DsdvConfiguration = DEFAULT_CONFIG): Peer {
   return makePeerBase(id, RoutingProtocol.DSDV, config, active);
