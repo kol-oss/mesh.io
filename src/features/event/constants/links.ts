@@ -95,6 +95,99 @@ const getDsrEventLink = (event: Event, detailsType: EventDetailsType) => {
   return `${prefix}#what-you-need-to-know`;
 };
 
+const getAodvEventLink = (event: Event, detailsType: EventDetailsType) => {
+  const { type: eventType } = event;
+  const prefix = `${LINK_PREFIX}/aodv`;
+
+  if (detailsType === EventDetailsType.AodvHelloMessageBroadcast) {
+    return `${prefix}#distance-vector-routing`;
+  }
+
+  if (
+    detailsType === EventDetailsType.AodvRouteRequestBroadcast ||
+    detailsType === EventDetailsType.AodvRouteRequestRetransmission ||
+    detailsType === EventDetailsType.AodvRouteReplyForwarded
+  ) {
+    return `${prefix}#route-discovery`;
+  }
+
+  if (
+    detailsType === EventDetailsType.AodvRouteErrorProcessed ||
+    detailsType === EventDetailsType.AodvRouteErrorBroadcast
+  ) {
+    return `${prefix}#route-maintenance`;
+  }
+
+  if (
+    detailsType === EventDetailsType.AodvRouteAdded ||
+    detailsType === EventDetailsType.AodvRouteUpdated ||
+    detailsType === EventDetailsType.AodvRouteRemoved ||
+    detailsType === EventDetailsType.AodvRouteDropped
+  ) {
+    return `${prefix}#routing-table`;
+  }
+
+  if (
+    detailsType === EventDetailsType.AodvRouteSelected ||
+    eventType === EventType.GetRoute ||
+    eventType === EventType.Transfer
+  ) {
+    return `${prefix}#route-selection`;
+  }
+
+  if (
+    eventType === EventType.AddRoute ||
+    eventType === EventType.UpdateRoute ||
+    eventType === EventType.DeleteRoute
+  ) {
+    return `${prefix}#routing-table`;
+  }
+
+  return `${prefix}#what-you-need-to-know`;
+};
+
+const getOlsrEventLink = (event: Event, detailsType: EventDetailsType) => {
+  const { type: eventType } = event;
+  const prefix = `${LINK_PREFIX}/olsr`;
+
+  if (detailsType === EventDetailsType.OlsrHelloMessageBroadcast) {
+    return `${prefix}#neighbor-sensing`;
+  }
+
+  if (
+    detailsType === EventDetailsType.OlsrTcMessageBroadcast ||
+    detailsType === EventDetailsType.OlsrTcMessageRetransmission
+  ) {
+    return `${prefix}#topology-discovery`;
+  }
+
+  if (detailsType === EventDetailsType.OlsrRouteCalculation) {
+    return `${prefix}#multipoint-relays`;
+  }
+
+  if (
+    detailsType === EventDetailsType.OlsrRouteSelected ||
+    detailsType === EventDetailsType.OlsrRouteAdded ||
+    detailsType === EventDetailsType.OlsrRouteUpdated ||
+    detailsType === EventDetailsType.OlsrRouteRemoved ||
+    detailsType === EventDetailsType.OlsrRouteDropped
+  ) {
+    return `${prefix}#route-selection`;
+  }
+
+  if (
+    eventType === EventType.AddRoute ||
+    eventType === EventType.UpdateRoute ||
+    eventType === EventType.DeleteRoute ||
+    eventType === EventType.GetRoute ||
+    eventType === EventType.Transfer
+  ) {
+    return `${prefix}#route-selection`;
+  }
+
+  return `${prefix}#what-you-need-to-know`;
+};
+
 export const getEventLink = (event: Event, detailsType: EventDetailsType): string => {
   const { protocol } = event;
   if (protocol === RoutingProtocol.DSDV) {
@@ -107,6 +200,14 @@ export const getEventLink = (event: Event, detailsType: EventDetailsType): strin
 
   if (protocol === RoutingProtocol.DSR) {
     return getDsrEventLink(event, detailsType);
+  }
+
+  if (protocol === RoutingProtocol.AODV) {
+    return getAodvEventLink(event, detailsType);
+  }
+
+  if (protocol === RoutingProtocol.OLSR) {
+    return getOlsrEventLink(event, detailsType);
   }
 
   return UNKNOWN_EVENT_LINK;
