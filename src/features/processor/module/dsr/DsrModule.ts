@@ -133,13 +133,8 @@ export class DsrModule extends BaseModule {
     // storing identification
     this.requestTable.put(destinationId, sourceId, identification);
 
-    // the message returned to the sender
+    // the message returned to the sender - silently discard, this is normal broadcast echo
     if (this.peerId === sourceId) {
-      super.recordEvent(EventType.Drop, {
-        reason: DropReason.SourceIsTarget,
-        message,
-      } satisfies DropEventDetails);
-
       return true;
     }
 
@@ -177,7 +172,7 @@ export class DsrModule extends BaseModule {
         PROTOCOL,
       );
 
-      this.cacheSourcePath(sourceId, identification, [...reversed, destinationId]);
+      this.cacheSourcePath(sourceId, destinationId, identification, [...reversed, destinationId]);
 
       super.recordEvent(
         EventType.Broadcast,
@@ -243,7 +238,7 @@ export class DsrModule extends BaseModule {
       path: updatedPath,
     } satisfies DsrRouteRequestMessage;
 
-    this.cacheSourcePath(sourceId, identification, path.reverse());
+    this.cacheSourcePath(sourceId, destinationId, identification, path.reverse());
     return super.broadcast(request, true);
   }
 
@@ -287,7 +282,7 @@ export class DsrModule extends BaseModule {
     const indexInPath = path.indexOf(this.peerId);
     const nextHop = path[indexInPath + 1] || destinationId;
 
-    this.cacheSourcePath(sourceId, identification, path);
+    this.cacheSourcePath(sourceId, destinationId, identification, path);
 
     super.recordEvent(
       EventType.Broadcast,
@@ -548,7 +543,12 @@ export class DsrModule extends BaseModule {
     this.cache.tick();
   }
 
-  private cacheSourcePath(sourceId: UUID, identification: number, path: UUID[]) {
+  private cacheSourcePath(
+    sourceId: UUID,
+    destinationId: UUID,
+    identification: number,
+    path: UUID[],
+  ) {
     const indexInPath = path.indexOf(this.peerId);
     const index = indexInPath === -1 ? path.length : indexInPath;
 
@@ -573,7 +573,7 @@ export class DsrModule extends BaseModule {
           destinationId: sourceId,
           path: [this.peerId, ...sourcePath, sourceId],
           identification,
-          isSourceCaching: true,
+          isSourceCaching: this.peerId !== destinationId,
           lastUpdateTick: this.eventRecorder.getCurrentTick(),
         } satisfies DsrRouteChangeEventDetails,
         PROTOCOL,

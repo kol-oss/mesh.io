@@ -160,18 +160,13 @@ describe("DSR module", () => {
       );
     });
 
-    it("drops and returns true when SELF is the source (SourceIsTarget)", () => {
+    it("silently returns true when SELF is the source (own RREQ echo)", () => {
       const { module, recorder } = makeModule();
       const result = asInternal(module).processRouteRequest(
         makeRouteRequest(SELF_ID, REMOTE_ID, [], 99),
       );
       expect(result).toBe(true);
-      expect(recorder.record).toHaveBeenCalledWith(
-        SELF_ID,
-        EventType.Drop,
-        expect.objectContaining({ reason: DropReason.SourceIsTarget }),
-        undefined,
-      );
+      expect(recorder.record).not.toHaveBeenCalled();
     });
 
     it("drops Duplicate when SELF already appears in path (cycle detection)", () => {
