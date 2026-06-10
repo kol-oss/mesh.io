@@ -11,7 +11,7 @@ import {
   buildMoveStepAnimation,
   buildSimulationMessageAnimations,
   buildToggleStepAnimation,
-} from "@/shared/utils/workspace/simulationAnimation";
+} from "@/features/board/utils/animation.ts";
 import { useEffect, useMemo, useState } from "react";
 
 type UseAnimationsParams = {
