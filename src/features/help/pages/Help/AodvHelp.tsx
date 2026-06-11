@@ -81,11 +81,6 @@ export default function AodvHelp() {
                 description: "RREQ control-message identifier.",
               },
               {
-                label: "Flags (J/R/G/D/U)",
-                bits: 16,
-                description: "Join/Repair/Gratuitous/Destination-only/Unknown-sequence flags.",
-              },
-              {
                 label: "Hop Count",
                 bits: 8,
                 description: "Hops from originator to current forwarding node.",
@@ -147,11 +142,6 @@ export default function AodvHelp() {
                 description: "RREP control-message identifier.",
               },
               {
-                label: "Prefix Size",
-                bits: 16,
-                description: "Modeled as 0 in the simulator.",
-              },
-              {
                 label: "Hop Count",
                 bits: 8,
                 description: "Distance to destination at current forwarding node.",
@@ -193,9 +183,10 @@ export default function AodvHelp() {
         <h2 className="help-page__chapter-title">Route Maintenance & Error Handling</h2>
         <TextBlock>
           **Route Maintenance** tracks active links. Unlike DSR's pure reliance on packet forwarding
-          ACKs, AODV can utilize periodic broadcast **HELLO Messages** (RREPs with TTL=1) to
-          maintain local neighbor connectivity. If a node suddenly stops hearing HELLO messages from
-          a neighbor, it considers the link completely broken.
+          AODV can utilize periodic broadcast **HELLO Messages** to maintain local neighbor
+          connectivity. In the simulator, HELLO is modeled as a dedicated message type rather than
+          as an RREP with TTL=1 as specified in the RFC. If a node suddenly stops hearing HELLO
+          messages from a neighbor, it considers the link completely broken.
         </TextBlock>
         <TextBlock>
           When a link break is detected on an active route, the node generates a **Route Error
@@ -249,11 +240,6 @@ export default function AodvHelp() {
                 description: "HELLO control-message identifier in the simulator model.",
               },
               {
-                label: "TTL",
-                bits: 8,
-                description: "Always 1 for local-neighbour sensing.",
-              },
-              {
                 label: "Interval",
                 bits: 16,
                 description: "Configured HELLO interval used by neighbours.",
@@ -302,14 +288,7 @@ export default function AodvHelp() {
         <TableBlock
           introText="AODV Routing Table Entry"
           ariaLabel="Routing Table Entry"
-          headers={[
-            "Destination",
-            "Next Hop",
-            "Metric",
-            "Sequence Number",
-            "Precursors",
-            "Last Update",
-          ]}
+          headers={["Destination", "Next Hop", "Metric", "Sequence", "Precursors", "Last Update"]}
           rows={[
             [
               "Destination node id/name",

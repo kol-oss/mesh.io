@@ -1,3 +1,4 @@
+import ModellingTrap from "@/features/help/components/Block/ModellingTrap";
 import PacketBlock from "@/features/help/components/Block/PacketBlock";
 import SourceBlock from "@/features/help/components/Block/SourceBlock";
 import TableBlock from "@/features/help/components/Block/TableBlock";
@@ -64,70 +65,59 @@ export default function OlsrHelp() {
           selected to act as their Multipoint Relays.
         </TextBlock>
         <PacketBlock
-          introText="HELLO Message Payload Structure"
+          introText="HELLO Message Structure"
           rows={[
             [
               {
-                label: "Reserved",
+                label: "Interval",
                 bits: 16,
-                description: "Reserved field for future extensions, transmitted as 0.",
-              },
-              {
-                label: "Htime",
-                bits: 8,
-                description: "Emission interval of the HELLO message (default: 2 seconds).",
-              },
-              {
-                label: "Willingness",
-                bits: 8,
-                description:
-                  "Specifies the node's willingness to carry and forward traffic for others.",
+                description: "Emission interval of the HELLO message.",
               },
             ],
             [
               {
-                label: "Link Code",
-                bits: 8,
-                description:
-                  "Defines the type of link (Unspecified, Asymmetric, Symmetric, or Lost) and neighbor type (Symmetric, MPR).",
-              },
-              {
-                label: "Reserved",
-                bits: 8,
-                description: "Reserved field, transmitted as 0.",
-              },
-              {
-                label: "Link Message Size",
-                bits: 16,
-                description: "The total size of the link description block.",
-              },
-            ],
-            [
-              {
-                label: "Neighbor Interface Address",
+                label: "Neighbour Address [1...n]",
                 bits: 32,
-                description: "The IP address of the neighbor node corresponding to the Link Code.",
+                description: "IP addresses of all direct neighbours known to the sender.",
+              },
+            ],
+            [
+              {
+                label: "MPR Address [1...n]",
+                bits: 32,
+                description: "IP addresses of neighbours selected as MPRs by this node.",
               },
             ],
           ]}
         />
         <TextBlock>
-          When a node receives a HELLO message, it updates its internal **Neighbor Set** and **2-Hop
-          Neighbor Set**. If node A receives a HELLO from node B, and node B's message lists node A
-          as an asymmetric neighbor, node A can safely upgrade the link status to symmetric. The
-          node also records the Willingness of its neighbors, which is a critical factor in the
-          subsequent Multipoint Relay calculation.
+          When a node receives a HELLO message, it updates its internal **Neighbour Set** and
+          **Two-Hop Neighbour Set**. If node A receives a HELLO from node B, and node B's message
+          lists node A in its MPR list, node A updates its neighbour status accordingly. The node
+          also records which of its neighbours have been selected as MPRs, populating the **MPR
+          Selector Set**.
         </TextBlock>
         <TableBlock
-          introText="Neighbor Table Entry"
-          ariaLabel="Neighbor Table Entry"
-          headers={["Neighbor IP", "Status", "Willingness", "Expiration Time"]}
+          introText="Neighbour Set Entry"
+          ariaLabel="Neighbour Set Entry"
+          headers={["Address", "Status", "Last Seen"]}
           rows={[
             [
-              "Main IP address of the neighbor",
-              "Asymmetric, Symmetric, or MPR",
-              "Integer 0-7 (WILL_NEVER to WILL_ALWAYS)",
-              "Timestamp when this entry becomes invalid",
+              "Main IP address of the neighbour",
+              "Symmetric or MPR",
+              "Tick when this entry was last refreshed",
+            ],
+          ]}
+        />
+        <TableBlock
+          introText="Two-Hop Neighbour Set Entry"
+          ariaLabel="Two-Hop Neighbour Set Entry"
+          headers={["Address", "Two-Hop Address", "Last Update"]}
+          rows={[
+            [
+              "IP address of the 1-hop neighbour acting as relay",
+              "IP address of the reachable 2-hop neighbour",
+              "Tick when this entry was last refreshed",
             ],
           ]}
         />
@@ -147,18 +137,42 @@ export default function OlsrHelp() {
           set such that it can reach all of its strict 2-hop neighbors through at least one MPR**.
         </TextBlock>
         <TextBlock>
-          The selection process relies on the Willingness field from HELLO messages. Nodes with a
-          Willingness of `WILL_NEVER` are excluded from selection, while nodes with `WILL_ALWAYS`
-          are automatically selected. For the remaining nodes, OLSR employs a greedy algorithm: it
-          first selects 1-hop neighbors that provide the *only* path to certain 2-hop neighbors.
-          Then, it iteratively selects the 1-hop neighbor that covers the highest number of
-          remaining, uncovered 2-hop neighbors until full coverage is achieved.
+          The selection process relies on the **2-Hop Neighbour Set** populated via HELLO messages.
+          OLSR employs a greedy algorithm: it first selects 1-hop neighbours that provide the *only*
+          path to certain 2-hop neighbours. Then, it iteratively selects the 1-hop neighbour that
+          covers the highest number of remaining, uncovered 2-hop neighbours until full coverage is
+          achieved.
         </TextBlock>
+        <ModellingTrap>
+          <TextBlock>
+            RFC 3626 defines a **Willingness** field in HELLO messages that lets nodes declare their
+            desire to forward traffic (`WILL_NEVER` to `WILL_ALWAYS`). Willingness-based MPR
+            filtering is *not modeled* in the simulator; the greedy coverage algorithm runs on all
+            reachable symmetric neighbours without willingness weighting.
+          </TextBlock>
+        </ModellingTrap>
         <TextBlock>
           Once selected, an MPR has two unique responsibilities: it is the only node allowed to
           forward broadcast control messages received from its selectors, and it is the only node
           that generates Topology Control (TC) messages to advertise the network's link states.
         </TextBlock>
+        <TableBlock
+          introText="MPR Set Entry"
+          ariaLabel="MPR Set Entry"
+          headers={["Neighbour"]}
+          rows={[["IP address of the selected Multipoint Relay neighbour"]]}
+        />
+        <TableBlock
+          introText="MPR Selector Set Entry"
+          ariaLabel="MPR Selector Set Entry"
+          headers={["Selector", "Last Update"]}
+          rows={[
+            [
+              "IP address of a neighbour that selected this node as its MPR",
+              "Tick when this entry was last refreshed",
+            ],
+          ]}
+        />
         <SourceBlock>
           <TextBlock>
             IETF RFC 7181 "[The Optimized Link State Routing Protocol Version 2
@@ -182,24 +196,24 @@ export default function OlsrHelp() {
           all destinations.
         </TextBlock>
         <PacketBlock
-          introText="TC Message Payload Structure"
+          introText="TC Message Structure"
           rows={[
             [
               {
                 label: "ANSN",
                 bits: 16,
                 description:
-                  "Advertised Neighbor Sequence Number. Incremented upon topology changes.",
+                  "Advertised Neighbour Sequence Number. Incremented upon topology changes.",
               },
               {
-                label: "Reserved",
-                bits: 16,
-                description: "Reserved field, transmitted as 0.",
+                label: "TTL",
+                bits: 8,
+                description: "Maximum forwarding depth still allowed.",
               },
             ],
             [
               {
-                label: "Advertised Neighbor Main Address",
+                label: "Advertised Neighbour Address",
                 bits: 32,
                 description: "IP address of a node that has selected the sender as an MPR.",
               },
@@ -207,22 +221,22 @@ export default function OlsrHelp() {
           ]}
         />
         <TextBlock>
-          When a node receives a TC message, it verifies the **Advertised Neighbor Sequence Number
+          When a node receives a TC message, it verifies the **Advertised Neighbour Sequence Number
           (ANSN)**. If the sequence number is newer than the currently stored information for that
-          originator, the node accepts the message, updates its **Topology Table**, and (if the
-          receiving node is an MPR) forwards the message to its neighbors. Stale messages are
+          originator, the node accepts the message, updates its **Topology Set**, and (if the
+          receiving node is an MPR) forwards the message to its neighbours. Stale messages are
           quietly dropped to prevent routing loops and processing overhead.
         </TextBlock>
         <TableBlock
-          introText="Topology Table Entry"
-          ariaLabel="Topology Table Entry"
-          headers={["Destination IP", "Last Hop IP (MPR)", "ANSN", "Expiration Time"]}
+          introText="Topology Set Entry"
+          ariaLabel="Topology Set Entry"
+          headers={["Destination", "Last Hop", "ANSN", "Last Update"]}
           rows={[
             [
               "IP of the MPR Selector",
               "IP of the MPR that generated the TC",
               "Sequence number of the TC message",
-              "Timestamp when this topology data expires",
+              "Tick when this topology entry was last refreshed",
             ],
           ]}
         />
@@ -239,10 +253,10 @@ export default function OlsrHelp() {
         </TextBlock>
         <TextBlock>
           The calculation occurs in a strict order to ensure optimal paths: All entries in the
-          routing table are cleared. Symmetric 1-hop neighbors (from the Neighbor Table) are added
-          with a hop count of 1. Strict 2-hop neighbors are added with a hop count of 2, using the
-          appropriate 1-hop neighbor as the next hop. The algorithm iteratively consults the
-          Topology Table. For each node added in the previous step, it looks for nodes that have
+          routing table are cleared. Symmetric 1-hop neighbours (from the Neighbour Set) are added
+          with a hop count of 1. Strict 2-hop neighbours are added with a hop count of 2, using the
+          appropriate 1-hop neighbour as the next hop. The algorithm iteratively consults the
+          Topology Set. For each node added in the previous step, it looks for nodes that have
           selected it as an MPR (its MPR selectors). These destinations are added to the routing
           table with an incremented hop count.
         </TextBlock>
@@ -253,6 +267,20 @@ export default function OlsrHelp() {
           immediately recalculates the routing table, ensuring data packets are always forwarded
           along the most up-to-date shortest path.
         </TextBlock>
+        <TableBlock
+          introText="Routing Table Entry"
+          ariaLabel="Routing Table Entry"
+          headers={["Destination", "Next Hop", "Metric", "ANSN", "Last Update"]}
+          rows={[
+            [
+              "Destination IP address",
+              "Immediate next-hop IP address",
+              "Hop count to destination",
+              "ANSN of the TC message that produced this route",
+              "Tick when this entry was last recalculated",
+            ],
+          ]}
+        />
       </div>
     </section>
   );

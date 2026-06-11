@@ -135,11 +135,6 @@ export default function DsdvHelp() {
                   "Identifies the type of DSDV message: 0x01 for Full Dump; 0x02 for Incremental Update.",
               },
               {
-                label: "Reserved",
-                bits: 8,
-                description: "Padding to maintain 32-bit alignment.",
-              },
-              {
                 label: "Entry Count",
                 bits: 16,
                 description: "The number of route entries contained in this packet.",
@@ -150,6 +145,11 @@ export default function DsdvHelp() {
                 label: "Destination Address",
                 bits: 32,
                 description: "The IP address of the destination node for this route entry.",
+              },
+              {
+                label: "Next Hop Address",
+                bits: 32,
+                description: "The IP address of the next hop toward the destination.",
               },
               {
                 label: "Sequence Number",
@@ -217,7 +217,7 @@ export default function DsdvHelp() {
         <TableBlock
           introText="Routing Table entry"
           ariaLabel="Routing Table entry"
-          headers={["Destination", "Next Hop", "Metric", "Sequence Number", "Last Update"]}
+          headers={["Destination", "Next Hop", "Metric", "Sequence", "Last Update"]}
           rows={[
             [
               "Destination IP address",
