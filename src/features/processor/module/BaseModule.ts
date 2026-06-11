@@ -229,6 +229,6 @@ export abstract class BaseModule implements RoutingModule {
 
   // record events related to the module's operations
   protected recordEvent(type: EventType, details: EventDetails, protocol?: RoutingProtocol) {
-    this.eventRecorder.record(this.peerId, type, details, protocol);
+    this.eventRecorder.record(this.peerId, type, details, protocol ?? this.peer.protocol);
   }
 }

@@ -2,8 +2,6 @@ import type { OlsrNeighbourChangeEventDetails } from "@/features/processor/types
 import { OlsrChangeEventDetailsType } from "@/features/processor/types/protocols/olsr.ts";
 import type {
   BroadcastEventDetails,
-  CalculationEventDetails,
-  DropEventDetails,
   Event,
   MoveEventDetails,
   RouteChangeEventDetails,
@@ -113,6 +111,19 @@ const resolveRouteChangeSender = (
   }
 };
 
+const getEventInspectableMessage = (event: Event): Message | null => {
+  if (!("message" in event.details)) {
+    return null;
+  }
+
+  const message = event.details.message as Message | undefined;
+  if (!message || message.type === MessageType.Packet) {
+    return null;
+  }
+
+  return message;
+};
+
 export const buildSimulationMessageAnimations = (
   currentEvent: Event | null,
   currentStepResult: {
@@ -167,6 +178,11 @@ export const buildSimulationMessageAnimations = (
 
   if (currentEvent.type === EventType.Broadcast) {
     const details = currentEvent.details as BroadcastEventDetails;
+    const message = getEventInspectableMessage(currentEvent);
+    if (!message) {
+      return [];
+    }
+
     return details.neighbourPeerIds
       .map((peerId, index) =>
         createAnimation(currentEvent.peerId, peerId, `broadcast-${index}`, "default"),
@@ -176,24 +192,29 @@ export const buildSimulationMessageAnimations = (
 
   if (currentEvent.type === EventType.Transfer) {
     const details = currentEvent.details as TransferEventDetails;
+    const message = getEventInspectableMessage(currentEvent);
+    if (!message) {
+      return [];
+    }
+
     return toMessageAnimations([
       createAnimation(details.sourcePeerId, details.targetPeerId, "transfer", "default"),
     ]);
   }
 
   if (currentEvent.type === EventType.Drop) {
-    const details = currentEvent.details as DropEventDetails;
-    if (!details.message) return [];
-    const senderPeerId = resolveSender(details.message, currentEvent.peerId);
+    const message = getEventInspectableMessage(currentEvent);
+    if (!message) return [];
+    const senderPeerId = resolveSender(message, currentEvent.peerId);
     return toMessageAnimations([
       createAnimation(senderPeerId, currentEvent.peerId, "dropped", "dropped"),
     ]);
   }
 
   if (currentEvent.type === EventType.Calculation) {
-    const details = currentEvent.details as CalculationEventDetails;
-    if (!("message" in details) || !details.message) return [];
-    const senderPeerId = resolveSender(details.message as Message, currentEvent.peerId);
+    const message = getEventInspectableMessage(currentEvent);
+    if (!message) return [];
+    const senderPeerId = resolveSender(message, currentEvent.peerId);
     return toMessageAnimations([
       createAnimation(senderPeerId, currentEvent.peerId, "calculation", "route-change"),
     ]);
@@ -201,6 +222,11 @@ export const buildSimulationMessageAnimations = (
 
   if (currentEvent.type === EventType.AddRoute || currentEvent.type === EventType.UpdateRoute) {
     const details = currentEvent.details as RouteChangeEventDetails;
+    const message = getEventInspectableMessage(currentEvent);
+    if (!message) {
+      return [];
+    }
+
     const senderPeerId = resolveRouteChangeSender(details, currentEvent.peerId);
     return toMessageAnimations([
       createAnimation(senderPeerId, currentEvent.peerId, "route-change", "route-change"),

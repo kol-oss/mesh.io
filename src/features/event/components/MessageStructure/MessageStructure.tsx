@@ -178,6 +178,10 @@ export default function MessageStructure({
 }
 
 const getPacketInspectorTitle = (message: Message | null) => {
+  if (message?.type === MessageType.BatmanOriginatorMessage) {
+    return "Originator Message version 2 (OGMv2)";
+  }
+
   if (message?.type === MessageType.BatmanEchoLocationMessage) {
     return "Echo Location Message (ELP)";
   }
