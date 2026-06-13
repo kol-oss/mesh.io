@@ -199,9 +199,15 @@ export class NetworkGraphImpl implements NetworkGraph {
       return mapNodeToEntity(node);
     });
 
+    const linkEntities = this.links.map((link) => {
+      const edgeId = this.graph.findEdge((_, attrs) => attrs.id === link.id);
+      const enabled = edgeId ? this.graph.getEdgeAttributes(edgeId).active : link.enabled;
+      return { ...link, enabled };
+    });
+
     return {
       tick,
-      entities: [...peerEntities, ...this.obstacles, ...this.links],
+      entities: [...peerEntities, ...this.obstacles, ...linkEntities],
     };
   }
 
