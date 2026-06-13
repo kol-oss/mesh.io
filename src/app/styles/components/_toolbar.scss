@@ -67,7 +67,7 @@
   }
 
   &--active {
-    background: #0f7fd0;
+    background: $blue-500;
     color: $neutral-0;
   }
 }
@@ -92,7 +92,7 @@
 }
 
 .toolbar__run-icon {
-  color: #0f7fd0;
+  color: $blue-500;
   fill: currentColor;
   stroke: currentColor;
 }
@@ -114,7 +114,7 @@
   padding: 4px;
   border: none;
   border-radius: 8px;
-  background: rgba(26, 26, 26, 0.96);
+  background: rgba($black-800, 0.96);
   color: $neutral-0;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
   z-index: 50;
@@ -138,7 +138,7 @@
   cursor: pointer;
 
   &:hover:not(:disabled):not(.toolbar__menu-option--active) {
-    background: rgba(255, 255, 255, 0.14);
+    background: rgba($neutral-0, 0.14);
   }
 
   &:disabled {

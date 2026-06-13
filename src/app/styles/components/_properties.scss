@@ -64,7 +64,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    color: #0e99ff;
+    color: $blue-400;
     margin-top: 8px;
     text-decoration: none;
 
@@ -133,7 +133,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #c7ccd2;
+    color: $neutral-500;
     opacity: 1;
   }
 
@@ -165,7 +165,7 @@
     transition: border-color 0.15s ease;
 
     &:focus {
-      border-color: #0e99ff;
+      border-color: $blue-400;
     }
 
     &--placeholder {
@@ -205,7 +205,7 @@
     }
 
     &:focus-within {
-      border-color: #0e99ff;
+      border-color: $blue-400;
     }
   }
 
@@ -249,11 +249,11 @@
 
     &--active {
       color: $neutral-0;
-      background: #0f7fd0;
-      border-left-color: #0f7fd0;
+      background: $blue-500;
+      border-left-color: $blue-500;
 
       & + .properties__protocol {
-        border-left-color: #0f7fd0;
+        border-left-color: $blue-500;
       }
     }
   }
@@ -286,7 +286,7 @@
   transition: border-color 0.15s ease;
 
   &:focus-visible {
-    border-color: #0e99ff;
+    border-color: $blue-400;
   }
 
   &--placeholder {

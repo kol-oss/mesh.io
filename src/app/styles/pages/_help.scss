@@ -75,8 +75,8 @@
     &:hover,
     &:focus-visible,
     &--active {
-      color: #0f7fd0;
-      border-bottom-color: #0f7fd0;
+      color: $blue-500;
+      border-bottom-color: $blue-500;
       outline: none;
     }
   }
@@ -92,7 +92,7 @@
     border: none;
     border-radius: 6px;
     color: $neutral-0;
-    background: #0f7fd0;
+    background: $blue-500;
     font-weight: 600;
     box-shadow: none;
     transition:
@@ -102,8 +102,8 @@
 
     &:hover,
     &:focus-visible {
-      background: #0d5fa8;
-      box-shadow: 0 4px 12px rgba(15, 127, 208, 0.4);
+      background: $blue-600;
+      box-shadow: 0 4px 12px rgba($blue-500, 0.4);
       outline: none;
     }
   }
@@ -154,7 +154,7 @@
 
   &__sidebar-heading {
     margin: 0;
-    color: #0f7fd0;
+    color: $blue-500;
     font-size: 12px;
     font-weight: 500;
     line-height: 1;
@@ -183,7 +183,7 @@
     &:hover,
     &:focus-visible,
     &--active {
-      color: #0f7fd0;
+      color: $blue-500;
       outline: none;
     }
   }
@@ -210,11 +210,11 @@
     &:hover,
     &:focus-visible,
     &--active {
-      color: #0f7fd0;
+      color: $blue-500;
       outline: none;
 
       .help-page__doc-dot {
-        background-color: #0f7fd0;
+        background-color: $blue-500;
       }
 
       .help-page__doc-title {
@@ -227,12 +227,12 @@
     width: 8px;
     height: 8px;
     border-radius: 999px;
-    background-color: #0f7fd0;
+    background-color: $blue-500;
     flex-shrink: 0;
   }
 
   &__doc-number {
-    color: #0f7fd0;
+    color: $blue-500;
     font-size: 12px;
     line-height: 1;
     letter-spacing: 0.08em;
@@ -301,7 +301,7 @@
   &__section-title {
     @extend .typo-h1;
     margin: 0 0 8px;
-    color: #0f7fd0;
+    color: $blue-500;
   }
 
   &__section-text {
@@ -321,7 +321,7 @@
     margin: 0 0 12px;
     font-size: 48px;
     font-weight: 700;
-    color: #0f7fd0;
+    color: $blue-500;
     line-height: 1.2;
   }
 
@@ -342,7 +342,7 @@
     margin: 0 0 24px;
     font-size: 28px;
     font-weight: 600;
-    color: #0f7fd0;
+    color: $blue-500;
     line-height: 1.3;
   }
 }
@@ -382,8 +382,8 @@
 
 // FormulaBlock component styles
 .formula-block {
-  border-left: 4px solid #2563eb;
-  background-color: rgba(37, 99, 235, 0.08);
+  border-left: 4px solid $blue-700;
+  background-color: rgba($blue-700, 0.08);
   padding: 16px;
   margin: 24px 0;
   border-radius: 4px;
@@ -396,7 +396,7 @@
   }
 
   &__icon {
-    color: #2563eb;
+    color: $blue-700;
     flex-shrink: 0;
   }
 
@@ -405,7 +405,7 @@
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 1px;
-    color: #2563eb;
+    color: $blue-700;
     text-transform: uppercase;
   }
 
@@ -418,9 +418,9 @@
     margin: 0;
     padding: 10px 12px;
     border-radius: 4px;
-    border: 1px solid rgba(37, 99, 235, 0.25);
-    background: rgba(255, 255, 255, 0.75);
-    color: #1e3a8a;
+    border: 1px solid rgba($blue-700, 0.25);
+    background: rgba($neutral-0, 0.75);
+    color: $blue-900;
     font-family: "Consolas", "Courier New", monospace;
     font-size: 14px;
     line-height: 1.5;
@@ -430,8 +430,8 @@
 
 // ModellingTrap component styles
 .modelling-trap {
-  border-left: 4px solid #dc2626;
-  background-color: rgba(220, 38, 38, 0.08);
+  border-left: 4px solid $red-500;
+  background-color: rgba($red-500, 0.08);
   padding: 16px;
   margin: 24px 0;
   border-radius: 4px;
@@ -444,7 +444,7 @@
   }
 
   &__icon {
-    color: #dc2626;
+    color: $red-500;
     flex-shrink: 0;
   }
 
@@ -453,12 +453,12 @@
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 1px;
-    color: #dc2626;
+    color: $red-500;
     text-transform: uppercase;
   }
 
   &__content {
-    color: #374151;
+    color: $gray-700;
     font-size: 14px;
     line-height: 1.6;
 
@@ -475,7 +475,7 @@
 // PacketStructure component styles
 .packet-structure {
   border-left: 4px solid $black-400;
-  background-color: rgba(106, 106, 106, 0.08);
+  background-color: rgba($black-400, 0.08);
   padding: 16px;
   margin: 24px 0;
   border-radius: 4px;
@@ -584,7 +584,7 @@
     @extend .typo-caption;
     display: inline-block;
     font-weight: 600;
-    color: #0f7fd0;
+    color: $blue-500;
   }
 
   &__cell--empty {
@@ -617,8 +617,8 @@
 
 // SourceBlock component styles
 .source-block {
-  border-left: 4px solid #d97706;
-  background-color: rgba(217, 119, 6, 0.08);
+  border-left: 4px solid $amber-500;
+  background-color: rgba($amber-500, 0.08);
   padding: 16px;
   margin: 24px 0;
   border-radius: 4px;
@@ -631,7 +631,7 @@
   }
 
   &__icon {
-    color: #d97706;
+    color: $amber-500;
     flex-shrink: 0;
   }
 
@@ -640,12 +640,12 @@
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 1px;
-    color: #d97706;
+    color: $amber-500;
     text-transform: uppercase;
   }
 
   &__content {
-    color: #374151;
+    color: $gray-700;
     font-size: 14px;
     line-height: 1.6;
 
@@ -661,8 +661,8 @@
 
 // TableBlock component styles
 .table-block {
-  border-left: 4px solid #6a6a6a;
-  background-color: rgba(106, 106, 106, 0.08);
+  border-left: 4px solid $black-400;
+  background-color: rgba($black-400, 0.08);
   padding: 16px;
   margin: 24px 0;
   border-radius: 4px;
@@ -675,7 +675,7 @@
   }
 
   &__icon {
-    color: #6a6a6a;
+    color: $black-400;
     flex-shrink: 0;
   }
 
@@ -684,7 +684,7 @@
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 1px;
-    color: #6a6a6a;
+    color: $black-400;
     text-transform: uppercase;
   }
 
@@ -695,7 +695,7 @@
   &__intro {
     margin: 0 0 10px;
     font-size: 16px;
-    color: #1f2937;
+    color: $gray-800;
   }
 
   &__table {
@@ -703,25 +703,25 @@
     border-collapse: collapse;
     min-width: 460px;
     font-size: 14px;
-    color: #1f2937;
+    color: $gray-800;
 
     thead th {
       text-align: left;
       font-weight: 700;
-      color: #1f2937;
-      background: rgba(106, 106, 106, 0.12);
+      color: $gray-800;
+      background: rgba($black-400, 0.12);
     }
 
     th,
     td {
       padding: 10px 12px;
-      border: 1px solid rgba(106, 106, 106, 0.25);
+      border: 1px solid rgba($black-400, 0.25);
       vertical-align: top;
       line-height: 1.5;
     }
 
     tbody tr:nth-child(even) {
-      background: rgba(106, 106, 106, 0.05);
+      background: rgba($black-400, 0.05);
     }
   }
 }
@@ -729,14 +729,14 @@
 // TextBlock component styles
 .text-block {
   margin: 0;
-  color: #374151;
+  color: $gray-700;
   font-size: 16px;
   line-height: 1.6;
   margin-bottom: 16px;
 
   strong {
     font-weight: 600;
-    color: #1f2937;
+    color: $gray-800;
   }
 
   em {
@@ -748,8 +748,8 @@
     font-size: 0.92em;
     padding: 1px 4px;
     border-radius: 4px;
-    background: #eef2f7;
-    color: #111827;
+    background: $gray-100;
+    color: $gray-900;
   }
 
   &__link {
@@ -760,7 +760,7 @@
 
     &:hover,
     &:focus-visible {
-      color: #0f7fd0;
+      color: $blue-500;
     }
   }
 
