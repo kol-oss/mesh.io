@@ -164,8 +164,8 @@ export class NetworkGraphImpl implements NetworkGraph {
 
   // set status of the node or edge
   setStatus(entityId: UUID, active: boolean): ToggleStatusResult {
-    const node = this.graph.getNodeAttributes(entityId);
-    if (node) {
+    if (this.graph.hasNode(entityId)) {
+      const node = this.graph.getNodeAttributes(entityId);
       const previousEnabled = node.active;
 
       node.active = active;

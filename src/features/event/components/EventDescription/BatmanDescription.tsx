@@ -123,7 +123,7 @@ export default function BatmanDescription({
             <br />
             <p>
               The base unaffected throughput value for this link is <u>{baseReferenceThroughput}</u>{" "}
-              due to the connection type ({isWireless ? "wireless" : "wired"}).
+              due to the connection type ({isWireless ? "wireless" : "wired"}).{" "}
               {isWireless && (
                 <>
                   {" "}

@@ -174,13 +174,9 @@ export class SimulationManager {
     if (!entityId) {
       throw new Error("Toggle step must have an entity id");
     }
-    const peer = this.networkGraph.getNode(entityId);
-    if (!peer) {
-      throw new Error("Toggle step must have a valid entity id");
-    }
     const result = this.networkGraph.setStatus(entityId, status);
     if (!result) {
-      throw new Error("Toggle step must have a valid configuration");
+      throw new Error("Toggle step must have a valid entity id");
     }
 
     const details: StatusChangeEventDetails = {
@@ -190,7 +186,10 @@ export class SimulationManager {
       nextEnabled: result.nextEnabled,
     };
 
-    if (isReactive(peer.protocol)) peer.module.refresh();
+    if (result.entityType === EntityType.Peer) {
+      const peer = this.networkGraph.getNode(entityId);
+      if (isReactive(peer.protocol)) peer.module.refresh();
+    }
 
     this.eventRecorder.record(entityId, EventType.StatusChange, details);
   }
