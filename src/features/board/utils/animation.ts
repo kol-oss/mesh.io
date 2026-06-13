@@ -192,13 +192,11 @@ export const buildSimulationMessageAnimations = (
 
   if (currentEvent.type === EventType.Transfer) {
     const details = currentEvent.details as TransferEventDetails;
-    const message = getEventInspectableMessage(currentEvent);
-    if (!message) {
-      return [];
-    }
+    const isDsrPacket = details.message?.type === MessageType.DsrPacket;
+    const variant = isDsrPacket ? "default" : "transfer";
 
     return toMessageAnimations([
-      createAnimation(details.sourcePeerId, details.targetPeerId, "transfer", "default"),
+      createAnimation(details.sourcePeerId, details.targetPeerId, "transfer", variant),
     ]);
   }
 

@@ -23,7 +23,7 @@ export type MessageAnimation = {
   sourceY: number;
   targetX: number;
   targetY: number;
-  variant: "default" | "route-change" | "dropped";
+  variant: "default" | "route-change" | "dropped" | "transfer";
 };
 
 export type MoveStepAnimation = {

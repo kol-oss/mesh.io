@@ -191,12 +191,24 @@ export default function Scene({
                 <path
                   className="workspace__message-animation-hit"
                   d={path}
-                  onPointerEnter={() => onMessageAnimationHoverChange(true)}
-                  onPointerLeave={() => onMessageAnimationHoverChange(false)}
-                  onPointerDown={(event) => {
-                    event.stopPropagation();
-                    onMessageAnimationInspectRequest();
-                  }}
+                  onPointerEnter={
+                    animation.variant !== "transfer"
+                      ? () => onMessageAnimationHoverChange(true)
+                      : undefined
+                  }
+                  onPointerLeave={
+                    animation.variant !== "transfer"
+                      ? () => onMessageAnimationHoverChange(false)
+                      : undefined
+                  }
+                  onPointerDown={
+                    animation.variant !== "transfer"
+                      ? (event) => {
+                          event.stopPropagation();
+                          onMessageAnimationInspectRequest();
+                        }
+                      : undefined
+                  }
                 />
                 <g className="workspace__message-envelope">
                   <animateMotion dur="1.35s" repeatCount="indefinite" path={path} />

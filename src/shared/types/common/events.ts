@@ -15,6 +15,7 @@ import type {
 } from "@/features/processor/types/protocols/dsdv.ts";
 import type {
   DsrCalculationEventDetails,
+  DsrPacket,
   DsrPathRecord,
   DsrRouteChangeEventDetails,
 } from "@/features/processor/types/protocols/dsr.ts";
@@ -105,7 +106,7 @@ export type TransferEventDetails = {
   protocol: RoutingProtocol;
   sourcePeerId: UUID;
   targetPeerId: UUID;
-  message: Packet;
+  message: Packet | DsrPacket;
 };
 
 // for AddRoute, UpdateRoute, DeleteRoute events

@@ -175,6 +175,25 @@
   }
 }
 
+.workspace__message-animation--transfer {
+  .workspace__message-animation-track {
+    stroke: rgba($neutral-500, 0.3);
+  }
+
+  .workspace__message-envelope {
+    filter: drop-shadow(0 0 6px rgba($neutral-500, 0.22));
+
+    rect {
+      fill: rgba($neutral-200, 0.96);
+      stroke: rgba($black-200, 0.7);
+    }
+
+    path {
+      stroke: rgba($black-200, 0.7);
+    }
+  }
+}
+
 .workspace__message-target-pulse {
   fill: rgba($blue-500, 0.18);
   stroke: rgba($blue-500, 0.42);
