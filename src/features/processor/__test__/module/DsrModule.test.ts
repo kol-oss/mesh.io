@@ -156,7 +156,7 @@ describe("DSR module", () => {
         SELF_ID,
         EventType.Drop,
         expect.objectContaining({ reason: DropReason.Duplicate }),
-        undefined,
+        RoutingProtocol.DSR,
       );
     });
 
@@ -179,7 +179,7 @@ describe("DSR module", () => {
         SELF_ID,
         EventType.Drop,
         expect.objectContaining({ reason: DropReason.Duplicate }),
-        undefined,
+        RoutingProtocol.DSR,
       );
     });
 
@@ -245,7 +245,7 @@ describe("DSR module", () => {
         SELF_ID,
         EventType.Drop,
         expect.objectContaining({ reason: DropReason.SourceIsTarget }),
-        undefined,
+        RoutingProtocol.DSR,
       );
     });
 

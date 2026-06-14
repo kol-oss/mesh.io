@@ -25,7 +25,7 @@ export const isInsideBoundingBox = (coordinates: Coordinate, bound: BoundingBox)
   return x >= bound.left && x <= bound.right && y >= bound.top && y <= bound.bottom;
 };
 
-// Liang-Barsky line clipping algorithm adapted for line-box intersection
+// Liang-Barsky line clipping algorithm
 export const isIntersectBoundingBox = (start: Coordinate, end: Coordinate, bound: BoundingBox) => {
   // if start or end of line is inside the bounding box, the line intersects the box
   if (isInsideBoundingBox(start, bound) || isInsideBoundingBox(end, bound)) {
@@ -35,7 +35,7 @@ export const isIntersectBoundingBox = (start: Coordinate, end: Coordinate, bound
   const { x: startX, y: startY } = start;
   const { x: endX, y: endY } = end;
 
-  // calculate the direction vector of the line
+  // calculate the deltas
   const deltaX = endX - startX;
   const deltaY = endY - startY;
 

@@ -107,7 +107,7 @@ describe("DSDV module", () => {
         SELF_ID,
         EventType.Drop,
         expect.objectContaining({ reason: DropReason.SourceIsTarget }),
-        undefined,
+        RoutingProtocol.DSDV,
       );
     });
 

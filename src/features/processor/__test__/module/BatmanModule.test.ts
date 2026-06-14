@@ -135,7 +135,7 @@ describe("B.A.T.M.A.N. V module", () => {
         SELF_ID,
         EventType.Drop,
         expect.objectContaining({ reason: DropReason.TimeToLiveExceeded }),
-        undefined,
+        RoutingProtocol.BATMAN,
       );
     });
 
@@ -229,7 +229,7 @@ describe("B.A.T.M.A.N. V module", () => {
         SELF_ID,
         EventType.Drop,
         expect.objectContaining({ reason: DropReason.SourceIsTarget }),
-        undefined,
+        RoutingProtocol.BATMAN,
       );
     });
 
@@ -244,7 +244,7 @@ describe("B.A.T.M.A.N. V module", () => {
         SELF_ID,
         EventType.Drop,
         expect.objectContaining({ reason: DropReason.TimeToLiveExceeded }),
-        undefined,
+        RoutingProtocol.BATMAN,
       );
     });
 
@@ -275,7 +275,7 @@ describe("B.A.T.M.A.N. V module", () => {
         SELF_ID,
         EventType.Drop,
         expect.objectContaining({ reason: DropReason.Duplicate }),
-        undefined,
+        RoutingProtocol.BATMAN,
       );
     });
 
