@@ -84,3 +84,57 @@ export const isIntersectBoundingBoxes = (
 ): boolean => {
   return bounds.some((bound) => isIntersectBoundingBox(start, end, bound));
 };
+
+// compute the parametric distance along a ray to the nearest intersection with a bounding box
+export const getRayBoundingBoxIntersection = (
+  origin: Coordinate,
+  direction: Coordinate,
+  bound: BoundingBox,
+): number | null => {
+  const { x: originX, y: originY } = origin;
+  const { x: dirX, y: dirY } = direction;
+
+  let tMin = Number.NEGATIVE_INFINITY;
+  let tMax = Number.POSITIVE_INFINITY;
+
+  // intersection by vertical coordinates (x-axis)
+  if (Math.abs(dirX) < Number.EPSILON) {
+    // case when ray is vertical, check if origin is within horizontal bounds
+    if (originX < bound.left || originX > bound.right) {
+      return null;
+    }
+  } else {
+    // narrowing of the coordinate range based on the intersection
+    const tx1 = (bound.left - originX) / dirX;
+    const tx2 = (bound.right - originX) / dirX;
+
+    tMin = Math.max(tMin, Math.min(tx1, tx2));
+    tMax = Math.min(tMax, Math.max(tx1, tx2));
+  }
+
+  // intersection by horizontal coordinates (y-axis)
+  if (Math.abs(dirY) < Number.EPSILON) {
+    // case when ray is horizontal, check if origin is within vertical bounds
+    if (originY < bound.top || originY > bound.bottom) {
+      return null;
+    }
+  } else {
+    // narrowing of the coordinate range based on the intersection
+    const ty1 = (bound.top - originY) / dirY;
+    const ty2 = (bound.bottom - originY) / dirY;
+
+    tMin = Math.max(tMin, Math.min(ty1, ty2));
+    tMax = Math.min(tMax, Math.max(ty1, ty2));
+  }
+
+  // checking if the ray has a valid forward intersection with the bounding box
+  if (tMax < tMin || tMax < 0) {
+    return null;
+  }
+
+  if (tMin > 0) {
+    return tMin;
+  }
+
+  return tMax > 0 ? 0 : null;
+};

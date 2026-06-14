@@ -1,5 +1,5 @@
-import { ConnectionType, DragEntityType, DragMode, ResizeEdge } from "@/shared/types/interaction";
 import type { UUID } from "@/shared/types/common/uuid";
+import { ConnectionType, DragEntityType, DragMode, ResizeEdge } from "@/shared/types/interaction";
 
 export type DragState = {
   entityId: UUID;
@@ -34,13 +34,6 @@ export type Connection =
       targetX: number;
       targetY: number;
     };
-
-export type ObstacleBounds = {
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
-};
 
 export type RangePolygon = {
   peerId: UUID;
