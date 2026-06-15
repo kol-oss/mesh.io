@@ -210,6 +210,16 @@ export default function DsrHelp() {
                 description: "Identifies the option as a Route Error.",
               },
               {
+                label: "Option Data Length",
+                bits: 8,
+                description: "Specifies the length of the option data in bytes.",
+              },
+              {
+                label: "Error Type",
+                bits: 8,
+                description: "Specifies the type of the route error.",
+              },
+              {
                 label: "Salvage Count",
                 bits: 8,
                 description: "Number of salvage attempts made for the original data packet.",
@@ -231,16 +241,9 @@ export default function DsrHelp() {
             ],
             [
               {
-                label: "Original Source Address",
+                label: "Type Specific Information",
                 bits: 32,
-                description: "IP address of the original data packet's sender.",
-              },
-            ],
-            [
-              {
-                label: "Original Destination Address",
-                bits: 32,
-                description: "IP address of the original data packet's intended receiver.",
+                description: "IP address of unreachable node or other type-specific information.",
               },
             ],
           ]}
