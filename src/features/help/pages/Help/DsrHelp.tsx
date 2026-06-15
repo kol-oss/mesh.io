@@ -1,4 +1,3 @@
-import ModellingTrap from "@/features/help/components/Block/ModellingTrap";
 import PacketBlock from "@/features/help/components/Block/PacketBlock";
 import SourceBlock from "@/features/help/components/Block/SourceBlock";
 import TableBlock from "@/features/help/components/Block/TableBlock";
@@ -97,6 +96,11 @@ export default function DsrHelp() {
                 label: "Option Type",
                 bits: 8,
                 description: "Identifies the option as a Route Request.",
+              },
+              {
+                label: "Option Data Length",
+                bits: 8,
+                description: "Specifies the length of the option data.",
               },
               {
                 label: "Identification",
@@ -268,14 +272,6 @@ export default function DsrHelp() {
           when forwarding an RREQ, a node caches the partial reverse path back to the originator;
           when the destination sends an RREP, the initiator caches the complete forward path.
         </TextBlock>
-        <ModellingTrap>
-          <TextBlock>
-            RFC 4728 describes **promiscuous listening** where nodes passively cache routes from
-            overheard data packets, RREQs, and RREPs not directly addressed to them. This mechanism
-            is *not implemented* in the simulator; routes are only cached through messages that the
-            node actively processes as part of the DSR control flow.
-          </TextBlock>
-        </ModellingTrap>
 
         <TableBlock
           introText="Route Cache Entry"
