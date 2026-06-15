@@ -1,6 +1,8 @@
 import PeerDescription from "@/features/event/components/Description/PeerDescription";
+import SecondaryDescription from "@/features/event/components/Description/SecondaryDescription.tsx";
 import TableDescription from "@/features/event/components/Description/TableDescription";
 import TextDescription from "@/features/event/components/Description/TextDescription";
+import VariableDescription from "@/features/event/components/Description/VariableDescription.tsx";
 import {
   type DsrCalculationEventDetails,
   type DsrPathRecord,
@@ -14,11 +16,9 @@ import {
   type GetRouteEventDetails,
 } from "@/shared/types/common/events";
 import type { UUID } from "@/shared/types/common/uuid";
+import type { DsrConfiguration } from "@/shared/types/model/configurations.ts";
 import type { PeerEntity } from "@/shared/types/model/entities";
 import { findById } from "@/shared/utils/peers";
-import VariableDescription from "@/features/event/components/Description/VariableDescription.tsx";
-import type { DsrConfiguration } from "@/shared/types/model/configurations.ts";
-import SecondaryDescription from "@/features/event/components/Description/SecondaryDescription.tsx";
 
 type DsrDescriptionProps = {
   peers: PeerEntity[];
@@ -153,9 +153,10 @@ export default function DsrDescription({
     return (
       <>
         <TextDescription>
-          The record in the <i>Route Cache</i> was not updated for{" "}
-          <VariableDescription value={`${routeTimeout}`}>Route Timeout</VariableDescription> ticks,
-          so it is removed from cache and <i>Request Table</i>.
+          The record in the <i>Route Cache</i> was compromised because of receiving of{" "}
+          <i>Route Error (RERR)</i> message or{" "}
+          <VariableDescription value={`${routeTimeout}`}>Route Timeout</VariableDescription>, so it
+          was removed from the cache.
         </TextDescription>
         <TableDescription
           headers={["Destination", "Path"]}

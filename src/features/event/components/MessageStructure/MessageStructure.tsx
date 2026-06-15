@@ -330,6 +330,10 @@ const getPacketReadMorePath = (message: Message | null) => {
     return "/docs/dsr#route-maintenance";
   }
 
+  if (message?.type === MessageType.DsrPacket) {
+    return "/docs/dsr#route-selection";
+  }
+
   return "/docs/batman#what-you-need-to-know";
 };
 
