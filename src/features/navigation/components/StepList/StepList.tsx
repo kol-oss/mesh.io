@@ -212,7 +212,7 @@ export default function StepList({ step: currentSimulationStepResult }: StepList
   ) => {
     const manualSteps = steps.filter((step) => !isRefreshStep(step));
     const nextTick =
-      manualSteps.length > 0 ? Math.max(1, manualSteps[manualSteps.length - 1].tick) : 1;
+      manualSteps.length > 0 ? Math.max(2, manualSteps[manualSteps.length - 1].tick) : 2;
     const newStep: Step =
       type === StepType.Message
         ? ({
