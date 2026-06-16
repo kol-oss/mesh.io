@@ -1,0 +1,138 @@
+@use "../../abstracts/variables" as *;
+
+.navigation {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  height: 100vh;
+  border-right: 1px solid $neutral-400;
+  background-color: $neutral-0;
+
+  &__lists {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-y: overlay;
+    overflow-x: visible;
+    scrollbar-width: thin;
+    scrollbar-color: $neutral-400 $neutral-0;
+
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: $neutral-0;
+    }
+
+    &::-webkit-scrollbar-track-piece {
+      background: $neutral-0;
+    }
+
+    &::-webkit-scrollbar-button {
+      width: 0;
+      height: 0;
+      display: none;
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-corner {
+      background: $neutral-0;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $neutral-400;
+      border-radius: 999px;
+      border: 2px solid $neutral-0;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: $black-400;
+    }
+  }
+
+  &__resizer {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    width: 4px;
+    height: 100%;
+    cursor: col-resize;
+    touch-action: none;
+  }
+
+  &--collapsed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: auto;
+    border-right: none;
+    background: transparent;
+    padding: 10px 12px;
+    z-index: 5;
+  }
+}
+
+.tooltip__anchor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.tooltip {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.32));
+
+  &--top {
+    .tooltip__arrow {
+      bottom: -5px;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid rgba($black-800, 0.96);
+      transform: translateX(-50%);
+    }
+  }
+
+  &--bottom {
+    .tooltip__arrow {
+      top: -5px;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-bottom: 6px solid rgba($black-800, 0.96);
+      transform: translateX(-50%);
+    }
+  }
+}
+
+.tooltip__content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba($black-800, 0.96);
+  color: $neutral-0;
+  border-radius: 8px;
+  padding: 5px 9px;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 14px;
+}
+
+.tooltip__shortcut {
+  color: rgba($neutral-0, 0.45);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 14px;
+}
+
+.tooltip__arrow {
+  position: absolute;
+  left: 50%;
+  width: 0;
+  height: 0;
+}

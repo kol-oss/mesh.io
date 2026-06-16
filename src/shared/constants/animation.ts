@@ -1,0 +1,1 @@
+export const MOVE_STEP_ANIMATION_DURATION = 900;

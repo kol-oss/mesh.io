@@ -1,0 +1,14 @@
+// Abstracts (no CSS output)
+@use "./abstracts";
+
+// Global reset + body defaults
+@use "./globals";
+
+// Base reusable styles (typography)
+@use "./base";
+
+// Reusable UI components
+@use "./components";
+
+// Page-specific styles (highest specificity layer)
+@use "./pages";

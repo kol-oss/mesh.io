@@ -1,0 +1,162 @@
+@use "../abstracts/variables" as *;
+
+.toolbar {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 8px;
+  border: 1px solid $neutral-400;
+  border-radius: 14px;
+  background: $neutral-0;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.toolbar__cluster,
+.toolbar__group {
+  display: inline-flex;
+  align-items: center;
+}
+
+.toolbar__cluster {
+  gap: 10px;
+}
+
+.toolbar__group {
+  gap: 2px;
+}
+
+.toolbar__menu-group {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.toolbar__delimiter {
+  display: block;
+  width: 1px;
+  align-self: stretch;
+  margin: -6px 8px;
+  background: $neutral-400;
+}
+
+.toolbar__button {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: $black-800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+
+  &:hover:not(:disabled):not(.toolbar__button--active) {
+    background: $neutral-200;
+    color: $black-800;
+  }
+
+  &:disabled {
+    color: $neutral-400;
+    cursor: not-allowed;
+  }
+
+  &--active {
+    background: $blue-500;
+    color: $neutral-0;
+  }
+}
+
+.toolbar__menu-toggle {
+  width: 14px;
+  border-radius: 5px;
+}
+
+.toolbar__button:not(.toolbar__button--active) .toolbar__chevrons-icon {
+  color: $black-800;
+}
+
+.toolbar__button:disabled .toolbar__chevrons-icon,
+.toolbar__menu-option:disabled .toolbar__chevrons-icon {
+  color: $neutral-400;
+}
+
+.toolbar__button--active .toolbar__chevrons-icon,
+.toolbar__menu-option .toolbar__chevrons-icon {
+  color: currentColor;
+}
+
+.toolbar__run-icon {
+  color: $blue-500;
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.toolbar__stop-icon {
+  color: $red-400;
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.toolbar__menu {
+  position: absolute;
+  left: calc(34px + 1px);
+  bottom: calc(100% + 8px);
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border: none;
+  border-radius: 8px;
+  background: rgba($black-800, 0.96);
+  color: $neutral-0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+  z-index: 50;
+}
+
+.toolbar__menu-option {
+  width: 100%;
+  min-height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: $neutral-0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-align: left;
+  padding: 4px 9px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  cursor: pointer;
+
+  &:hover:not(:disabled):not(.toolbar__menu-option--active) {
+    background: rgba($neutral-0, 0.14);
+  }
+
+  &:disabled {
+    color: $neutral-400;
+    cursor: not-allowed;
+  }
+
+  &--active {
+    color: $neutral-0;
+  }
+}
+
+.toolbar__menu-check {
+  width: 13px;
+  min-width: 13px;
+  height: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: $neutral-0;
+}

@@ -1,0 +1,360 @@
+@use "../abstracts/variables" as *;
+@use "../base/typography";
+
+.properties {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-left: 1px solid $neutral-400;
+  background-color: $neutral-0;
+
+  &--locked {
+    .properties__input,
+    .properties__status,
+    .properties__protocol,
+    .properties-select__trigger {
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .properties__input-with-icon,
+    .properties__input-with-icon {
+      cursor: not-allowed;
+    }
+
+    .properties__protocols {
+      pointer-events: none;
+    }
+  }
+
+  &__resizer {
+    position: absolute;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    cursor: col-resize;
+    touch-action: none;
+  }
+
+  &__header {
+    padding: 16px 20px;
+    border-bottom: 1px solid $neutral-400;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__title {
+    @extend .typo-h2;
+    color: $black-800;
+    font-weight: 500;
+  }
+
+  &__subtitle {
+    @extend .typo-h2;
+    color: $black-400;
+  }
+
+  &__read-more {
+    @extend .typo-caption;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: $blue-400;
+    margin-top: 8px;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__locked-notice {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border-bottom: 1px solid $neutral-400;
+    @extend .typo-caption;
+    color: $black-400;
+  }
+
+  &__section {
+    border-bottom: 1px solid $neutral-400;
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__section-title {
+    @extend .typo-button;
+    color: $black-800;
+    font-weight: 500;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__field-label {
+    @extend .typo-caption;
+    color: $black-400;
+    font-weight: 300;
+
+    &--required {
+      color: $red-400;
+    }
+
+    &--global {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+  }
+
+  &__field-label-text {
+    color: inherit;
+
+    &--required {
+      color: $red-400;
+    }
+  }
+
+  &__global-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: $neutral-500;
+    opacity: 1;
+  }
+
+  &__field-grid {
+    display: grid;
+    gap: 10px;
+
+    &--two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  &__inline-group {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  &__input,
+  &__status {
+    @extend .typo-button;
+    min-height: 28px;
+    border-radius: 3px;
+    padding: 4px 8px;
+    background: $neutral-200;
+    color: $black-800;
+    width: 100%;
+    border: 1px solid transparent;
+    transition: border-color 0.15s ease;
+
+    &:focus {
+      border-color: $blue-400;
+    }
+
+    &--placeholder {
+      color: $black-400;
+    }
+  }
+
+  &__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-start;
+    cursor: pointer;
+  }
+
+  &__input-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: $neutral-200;
+    border-radius: 3px;
+    padding-left: 8px;
+    color: $black-400;
+    flex: 1;
+    border: 1px solid transparent;
+    transition: border-color 0.15s ease;
+
+    .properties__input {
+      background: transparent;
+      padding-left: 0;
+      flex: 1;
+      border: none;
+
+      &:focus {
+        outline: none;
+      }
+    }
+
+    &:focus-within {
+      border-color: $blue-400;
+    }
+  }
+
+  &__input-icon {
+    @extend .typo-caption;
+    color: $black-400;
+    min-width: 10px;
+  }
+
+  &__protocols {
+    display: flex;
+    flex-wrap: nowrap;
+    border: 1px solid $neutral-400;
+    border-radius: 6px;
+    overflow: hidden;
+    background: $neutral-200;
+  }
+
+  &__protocol {
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 16px;
+    flex: 1;
+    min-width: max-content;
+    border: none;
+    border-left: 1px solid $neutral-400;
+    border-radius: 0;
+    color: $black-800;
+    background: transparent;
+    padding: 4px 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: center;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+
+    &:first-child {
+      border-left: none;
+    }
+
+    &--active {
+      color: $neutral-0;
+      background: $blue-500;
+      border-left-color: $blue-500;
+
+      & + .properties__protocol {
+        border-left-color: $blue-500;
+      }
+    }
+  }
+
+  &__placeholder {
+    @extend .typo-button;
+    color: $black-400;
+  }
+}
+
+.properties-select {
+  position: relative;
+  width: 100%;
+}
+
+.properties-select__trigger {
+  @extend .typo-button;
+  min-height: 28px;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  background: $neutral-200;
+  color: $black-800;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+
+  &:focus-visible {
+    border-color: $blue-400;
+  }
+
+  &--placeholder {
+    color: $black-400;
+  }
+}
+
+.properties-select__value {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.properties-select__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: $black-400;
+}
+
+.properties-select__chevron {
+  color: $black-400;
+  transition: transform 0.15s ease;
+
+  &--open {
+    transform: rotate(180deg);
+  }
+}
+
+.properties-select__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid $neutral-400;
+  border-radius: 6px;
+  background: $neutral-0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.properties-select__option {
+  @extend .typo-button;
+  min-height: 28px;
+  width: 100%;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: $black-800;
+  text-align: left;
+  cursor: pointer;
+  padding: 4px 8px;
+
+  &:hover {
+    background: $neutral-200;
+  }
+
+  &--selected {
+    background: $neutral-200;
+  }
+}
+
+.properties__required-outline {
+  border-color: $red-400 !important;
+  color: $red-400 !important;
+}

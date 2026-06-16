@@ -1,0 +1,559 @@
+@use "../abstracts/variables" as *;
+@use "../base/typography";
+
+.simulation-panel {
+  position: relative;
+  isolation: isolate;
+  width: min(360px, calc(100vw - 36px));
+  max-width: 360px;
+  border: 1px solid $neutral-400;
+  border-radius: 10px;
+  background: rgba($neutral-0, 0.96);
+  cursor: default;
+  user-select: text;
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.16),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+.simulation-panel--tooltip {
+  position: absolute;
+  z-index: 8;
+  transform: translate(-50%, calc(-100% - 28px));
+  pointer-events: auto;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -9px;
+    width: 18px;
+    height: 18px;
+    background: rgba($neutral-0, 0.96);
+    border-right: 1px solid $neutral-400;
+    border-bottom: 1px solid $neutral-400;
+    z-index: -1;
+    transform: translateX(-50%) rotate(45deg);
+  }
+}
+
+.simulation-panel--inspector {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 9;
+  width: min(440px, calc(100vw - 40px));
+  max-width: 440px;
+}
+
+.simulation-panel__header,
+.simulation-panel__section {
+  padding: 11px 14px;
+}
+
+.simulation-panel__header {
+  border-bottom: 1px solid $neutral-400;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.simulation-panel__header--static {
+  cursor: default;
+  touch-action: auto;
+}
+
+.simulation-panel__close-button {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border: none;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: $black-400;
+  opacity: 1;
+  visibility: visible;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+
+  &:hover {
+    background: rgba($black-800, 0.08);
+    color: $black-800;
+  }
+}
+
+.simulation-panel--dragging {
+  cursor: grabbing;
+
+  * {
+    cursor: grabbing;
+  }
+
+  .simulation-panel__header {
+    cursor: grabbing;
+  }
+}
+
+.simulation-panel__title,
+.simulation-panel__section-title {
+  @extend .typo-button;
+  color: $black-800;
+}
+
+.simulation-panel__peer-name {
+  font-weight: 600;
+  color: inherit;
+}
+
+.simulation-panel__variable-description {
+  color: $black-800;
+  font-size: 13px;
+  line-height: 1.3;
+  transition: color 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: $blue-500;
+  }
+}
+
+.tooltip__anchor.simulation-panel__variable-description-anchor {
+  display: inline;
+  vertical-align: baseline;
+}
+
+.tooltip__anchor.simulation-panel__peer-name-anchor {
+  display: inline;
+  vertical-align: baseline;
+}
+
+.simulation-panel__title {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.simulation-panel__subtitle,
+.simulation-panel__tick,
+.simulation-panel__empty,
+.simulation-panel__event-meta {
+  @extend .typo-caption;
+  color: $black-400;
+}
+
+.simulation-panel__section {
+  border-bottom: 1px solid $neutral-400;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.simulation-panel__description {
+  color: $black-800;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.simulation-panel__description--secondary {
+  color: $black-400;
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 400;
+}
+
+.simulation-panel__formula {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-style: italic;
+}
+
+.simulation-panel__tq-disclosure {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.simulation-panel__tq-toggle {
+  padding: 0;
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: $black-400;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.simulation-panel__tq-toggle-icon {
+  flex: 0 0 auto;
+  color: $black-400;
+  transition: transform 0.18s ease;
+}
+
+.simulation-panel__tq-toggle-icon--open {
+  transform: rotate(90deg);
+}
+
+.simulation-panel__tq-toggle-label {
+  color: inherit;
+}
+
+.simulation-panel__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.simulation-panel__events,
+.simulation-panel__tables {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.simulation-panel__footer {
+  padding: 8px 14px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+}
+
+.simulation-panel__pager {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.simulation-panel__pager--footer {
+  gap: 2px;
+}
+
+.simulation-panel__pager-button {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: $black-800;
+  cursor: pointer;
+
+  &:disabled {
+    color: $neutral-400;
+    cursor: not-allowed;
+  }
+}
+
+.simulation-panel__pager-label {
+  @extend .typo-caption;
+  color: $black-400;
+  min-width: 32px;
+  text-align: center;
+}
+
+.simulation-panel__read-more {
+  @extend .typo-caption;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: $blue-400;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.simulation-panel__event,
+.simulation-panel__table {
+  border: 1px solid $neutral-400;
+  border-radius: 7px;
+  background: $neutral-200;
+  padding: 8px;
+}
+
+.simulation-panel__table-block,
+.simulation-panel__message-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.simulation-panel__packet-structure {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid $neutral-400;
+  border-radius: 7px;
+  padding: 8px;
+  background: rgba($neutral-0, 0.85);
+}
+
+.simulation-panel__packet-structure-title {
+  @extend .typo-caption;
+  color: $black-400;
+  margin: 0;
+}
+
+.simulation-panel__packet-row {
+  display: flex;
+  gap: 0;
+}
+
+.simulation-panel__packet-field {
+  position: relative;
+  min-width: 0;
+  border: 1px solid $neutral-400;
+  border-left: none;
+  padding: 5px 6px;
+  background: $blue-50;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: help;
+
+  &:first-child {
+    border-left: 1px solid $neutral-400;
+  }
+}
+
+.simulation-panel__packet-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  min-width: 130px;
+  max-width: 220px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba($black-800, 0.92);
+  color: $neutral-0;
+  font-size: 11px;
+  line-height: 1.3;
+  text-align: left;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.16s ease;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.simulation-panel__packet-field:hover .simulation-panel__packet-tooltip {
+  opacity: 1;
+}
+
+.simulation-panel__packet-tooltip-bits {
+  font-style: italic;
+}
+
+.simulation-panel__packet-tooltip-description {
+  font-style: normal;
+}
+
+.simulation-panel__packet-tooltip-note {
+  font-style: italic;
+}
+
+.simulation-panel__packet-field-label {
+  font-size: 10px;
+  line-height: 1.2;
+  color: $black-400;
+}
+
+.simulation-panel__packet-field-value {
+  font-size: 11px;
+  line-height: 1.2;
+  color: $black-800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.simulation-panel__packet-field--blocked {
+  background: $neutral-300;
+
+  .simulation-panel__packet-field-label,
+  .simulation-panel__packet-field-value {
+    color: $black-200;
+  }
+}
+
+.simulation-panel__table-label,
+.simulation-panel__reason,
+.simulation-panel__message-key,
+.simulation-panel__message-value {
+  font-size: 12px;
+  line-height: 1.3;
+  color: $black-800;
+}
+
+.simulation-panel__reason {
+  color: $black-400;
+}
+
+.simulation-panel__table-view {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  line-height: 1.2;
+  table-layout: fixed;
+
+  th,
+  td {
+    border: 1px solid $neutral-400;
+    padding: 3px 6px;
+    text-align: center;
+  }
+
+  th {
+    background: $blue-100;
+    font-weight: 500;
+  }
+
+  td {
+    background: rgba($neutral-0, 0.84);
+  }
+}
+
+.simulation-panel__table-view--message {
+  table-layout: fixed;
+
+  th,
+  td {
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  th {
+    width: 88px;
+    font-weight: 500;
+  }
+
+  td {
+    word-break: break-word;
+  }
+}
+
+.simulation-panel__message-block {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid $neutral-400;
+  border-radius: 7px;
+  background: rgba($neutral-0, 0.84);
+}
+
+.simulation-panel__message-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 6px;
+}
+
+.simulation-panel__message-key {
+  margin: 0;
+  color: $black-400;
+}
+
+.simulation-panel__message-value {
+  margin: 0;
+  text-align: right;
+  word-break: break-word;
+}
+
+.simulation-panel__quality-window {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid $neutral-400;
+  background: rgba($neutral-0, 0.84);
+  overflow: hidden;
+}
+
+.simulation-panel__quality-window-label {
+  margin: 0;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: $black-800;
+  text-align: center;
+  background: $blue-100;
+  border-bottom: 1px solid $neutral-400;
+}
+
+.simulation-panel__quality-window-bits {
+  display: grid;
+  grid-template-columns: repeat(64, minmax(0, 1fr));
+  width: 100%;
+}
+
+.simulation-panel__quality-window-bit {
+  min-width: 0;
+  padding: 2px 0;
+  border-right: 1px solid $neutral-400;
+  border-bottom: 1px solid $neutral-400;
+  background: rgba($neutral-0, 0.84);
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 700;
+  font-family: "IBM Plex Mono", "Consolas", monospace;
+  text-align: center;
+  color: rgba($slate-600, 0.72);
+
+  &:nth-child(64n) {
+    border-right: none;
+  }
+}
+
+.simulation-panel__quality-window-bit--active {
+  background: $blue-100;
+  color: $blue-400;
+}
+
+.simulation-panel__event-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.simulation-panel__details {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  line-height: 1.45;
+  color: $black-800;
+}
