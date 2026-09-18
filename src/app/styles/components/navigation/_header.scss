@@ -1,0 +1,119 @@
+@use "../../abstracts/variables" as *;
+@use "../../base/typography";
+
+.navigation__header {
+  padding: 20px;
+  position: relative;
+  border-bottom: 1px solid $neutral-400;
+
+  &-general {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 20px;
+    margin-left: -20px;
+    margin-right: -20px;
+
+    &-text {
+      min-width: 0;
+    }
+
+    &-title {
+      @extend .typo-h1;
+      color: $black-800;
+    }
+
+    &-moto {
+      @extend .typo-h2;
+      color: $black-400;
+    }
+  }
+}
+
+.navigation__header-logo {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.navigation__header-action {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  line-height: 0;
+}
+
+.navigation__compact-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: $black-400;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+
+  &:hover {
+    background-color: $neutral-200;
+    color: $black-800;
+  }
+
+  &--inline {
+    position: static;
+  }
+}
+
+.navigation__collapsed-bar {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 0 12px;
+  border: 1px solid $neutral-400;
+  border-radius: 14px;
+  background-color: $neutral-0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+
+  .navigation__compact-button {
+    position: static;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+}
+
+.navigation__collapsed-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.navigation__collapsed-title {
+  @extend .typo-h1;
+  color: $black-800;
+}
+
+.navigation__collapsed-menu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navigation__collapsed-menu-button {
+  min-height: 22px;
+  padding: 2px 6px;
+}

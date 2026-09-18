@@ -1,0 +1,31 @@
+// H1 - Bold, 18px
+.typo-h1 {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0;
+}
+
+// H2 - Medium, 14px, 16px line-height
+.typo-h2 {
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 16px;
+  letter-spacing: 0;
+}
+
+// Button - Regular, 14px, 20px line-height
+.typo-button {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: 0;
+}
+
+// Caption - Regular, 12px, 16px line-height, 0.25px spacing
+.typo-caption {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: 0.25px;
+}
